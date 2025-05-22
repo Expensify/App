@@ -44,6 +44,9 @@ type OnyxTabNavigatorProps = ChildrenProps & {
 
     /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
+
+    /** Disable swipe between tabs */
+    disableSwipe?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -66,13 +69,14 @@ function OnyxTabNavigator({
     onTabSelected = () => {},
     screenListeners,
     shouldShowLabelWhenInactive = true,
+    disableSwipe = false,
     ...rest
 }: OnyxTabNavigatorProps) {
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
 
-    // This callback is used to register the focus trap container element of each avaiable tab screen
+    // This callback is used to register the focus trap container element of each available tab screen
     const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {
         setFocusTrapContainerElementMapping((prevMapping) => {
             const resultMapping = {...prevMapping};
@@ -137,7 +141,10 @@ function OnyxTabNavigator({
                     },
                     ...(screenListeners ?? {}),
                 }}
-                screenOptions={defaultScreenOptions}
+                screenOptions={{
+                    ...defaultScreenOptions,
+                    swipeEnabled: !disableSwipe,
+                }}
             >
                 {children}
             </TopTab.Navigator>

@@ -87,6 +87,7 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
             validate={validate}
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5]}
+            shouldHideFixErrorsAlert={!shouldGatherState}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whereWasTheBusinessIncorporated')}</Text>
             {shouldGatherState && (

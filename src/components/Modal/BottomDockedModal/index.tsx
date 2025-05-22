@@ -42,7 +42,7 @@ function BottomDockedModal({
     const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
-    const handleRef = useRef<number>();
+    const handleRef = useRef<number | undefined>(undefined);
 
     const styles = useThemeStyles();
 
@@ -61,12 +61,12 @@ function BottomDockedModal({
     }, [deviceWidth, deviceWidthProp, deviceHeight, deviceHeightProp]);
 
     const onBackButtonPressHandler = useCallback(() => {
-        if (isVisible) {
+        if (isVisibleState) {
             onBackButtonPress();
             return true;
         }
         return false;
-    }, [isVisible, onBackButtonPress]);
+    }, [isVisibleState, onBackButtonPress]);
 
     const handleEscape = useCallback(
         (e: KeyboardEvent) => {
@@ -79,27 +79,31 @@ function BottomDockedModal({
     );
 
     useEffect(() => {
-        const deviceEventListener = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
-        if (getPlatform() === CONST.PLATFORM.WEB) {
+        if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
             backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
         }
 
         return () => {
-            if (getPlatform() === CONST.PLATFORM.WEB) {
+            if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
                 document.body.removeEventListener('keyup', handleEscape, {capture: true});
             } else {
                 backHandlerListener.current?.remove();
             }
-            deviceEventListener.remove();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [handleEscape, onBackButtonPressHandler]);
+
+    useEffect(() => {
+        const deviceEventListener = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
+        return () => deviceEventListener.remove();
+    }, [handleDimensionsUpdate]);
 
     useEffect(
         () => () => {
-            onModalWillHide();
+            if (handleRef.current) {
+                InteractionManager.clearInteractionHandle(handleRef.current);
+            }
 
             setIsVisibleState(false);
             setIsContainerOpen(false);
@@ -130,9 +134,8 @@ function BottomDockedModal({
             width: deviceWidthProp ?? deviceWidth,
             height: deviceHeightProp ?? deviceHeight,
             backgroundColor: backdropColor,
-            opacity: getPlatform() === CONST.PLATFORM.WEB ? backdropOpacity : 1,
         };
-    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor, backdropOpacity]);
+    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor]);
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
@@ -170,12 +173,14 @@ function BottomDockedModal({
 
     const backdropView = (
         <Backdrop
+            isBackdropVisible={isVisible}
             style={backdropStyle}
             customBackdrop={customBackdrop}
             onBackdropPress={onBackdropPress}
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
             animationInDelay={animationInDelay}
+            backdropOpacity={backdropOpacity}
         />
     );
 
@@ -185,16 +190,12 @@ function BottomDockedModal({
                 pointerEvents="box-none"
                 style={[styles.modalBackdrop, styles.modalContainerBox]}
             >
-                {isVisibleState && (
-                    <>
-                        {hasBackdrop && backdropView}
-                        {containerView}
-                    </>
-                )}
+                {hasBackdrop && backdropView}
+                {containerView}
             </View>
         );
     }
-
+    const isBackdropMounted = isVisibleState || ((isTransitioning || isContainerOpen !== isVisibleState) && getPlatform() === CONST.PLATFORM.WEB);
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
             <Modal
@@ -214,11 +215,10 @@ function BottomDockedModal({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
-                {isVisibleState && hasBackdrop && backdropView}
-
+                {isBackdropMounted && hasBackdrop && backdropView}
                 {avoidKeyboard ? (
                     <KeyboardAvoidingView
-                        behavior={getPlatform() === CONST.PLATFORM.IOS ? 'padding' : undefined}
+                        behavior="padding"
                         pointerEvents="box-none"
                         style={[style, {margin: 0}]}
                     >

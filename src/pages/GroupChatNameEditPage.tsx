@@ -31,7 +31,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     // In this case its better to use empty string as the reportID if there is no reportID
     const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
-    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {initialValue: getGroupChatDraft()});
+    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {initialValue: getGroupChatDraft(), canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -91,6 +91,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                 validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -100,7 +101,6 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                     inputID={INPUT_IDS.NEW_CHAT_NAME}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
-                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>

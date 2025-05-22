@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomListFormSubmit from '@hooks/useNetSuiteImportAddCustomListForm';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,7 +19,7 @@ function ChooseCustomListStep({policy, onNext, isEditing, netSuiteCustomFieldFor
     const {translate} = useLocalize();
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
-        return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME]);
+        return getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME]);
     }, []);
 
     const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
@@ -39,6 +39,8 @@ function ChooseCustomListStep({policy, onNext, isEditing, netSuiteCustomFieldFor
             enabledWhenOffline
             submitFlexEnabled
             shouldUseScrollView
+            shouldHideFixErrorsAlert
+            addBottomSafeAreaPadding
         >
             <Text style={[styles.mb3, styles.ph5, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.listNameTitle`)}</Text>
             <InputWrapper

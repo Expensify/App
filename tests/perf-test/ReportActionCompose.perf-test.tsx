@@ -21,6 +21,9 @@ jest.mock('@gorhom/portal');
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     useAnimatedRef: jest.fn(),
+    LayoutAnimationConfig: () => {
+        return ({children}: {children: React.ReactNode}) => children;
+    },
 }));
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
@@ -56,11 +59,12 @@ jest.mock('@src/libs/actions/EmojiPickerAction', () => {
         isActive: () => true,
     };
 });
+jest.mock('@components/ConfirmedRoute.tsx');
 
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
     }),
 );
 

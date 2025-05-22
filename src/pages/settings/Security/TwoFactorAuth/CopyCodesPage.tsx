@@ -41,16 +41,14 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
 
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const isUserValidated = account?.validated ?? false;
     const contactMethod = account?.primaryLogin ?? '';
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
-    const hasMagicCodeBeenSent = !!validateCodeAction?.validateCodeSent;
 
     const [isValidateModalVisible, setIsValidateModalVisible] = useState(!isUserValidated);
 
@@ -174,7 +172,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                 descriptionPrimary={translate('contacts.featureRequiresValidate')}
                 descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
                 isVisible={isValidateModalVisible}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}
                 handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, true)}

@@ -39,13 +39,14 @@ function extractAttachments(
 
                 const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
                 attachments.unshift({
+                    reportActionID: attribs['data-id'],
                     attachmentID: attribs[CONST.ATTACHMENT_ID_ATTRIBUTE],
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
                     file: {name: fileName},
                     duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),
                     isReceipt: false,
-                    hasBeenFlagged: false,
+                    hasBeenFlagged: attribs['data-flagged'] === 'true',
                 });
                 return;
             }
@@ -114,7 +115,9 @@ function extractAttachments(
 
         const decision = getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = getReportActionHtml(action).replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
+        const html = getReportActionHtml(action)
+            .replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`)
+            .replaceAll('<video ', `<video data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}" `);
         htmlParser.write(getHtmlWithAttachmentID(html, action.reportActionID));
     });
     htmlParser.end();

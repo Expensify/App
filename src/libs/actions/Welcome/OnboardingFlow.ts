@@ -34,12 +34,19 @@ Onyx.connect({
     },
 });
 
+type GetOnboardingInitialPathParamsType = {
+    isUserFromPublicDomain: boolean;
+    hasAccessiblePolicies: boolean;
+    onboardingValuesParam?: Onboarding;
+    canUsePrivateDomainOnboarding?: boolean;
+};
+
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
-function startOnboardingFlow(isPrivateDomain?: boolean) {
+function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -51,24 +58,40 @@ function startOnboardingFlow(isPrivateDomain?: boolean) {
     } as PartialState<NavigationState>);
 }
 
-function getOnboardingInitialPath(isPrivateDomain?: boolean): string {
+function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingInitialPathParamsType): string {
+    const {isUserFromPublicDomain, hasAccessiblePolicies, onboardingValuesParam, canUsePrivateDomainOnboarding} = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
-    const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
+    const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
-        return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+    }
+    if (isSmb) {
+        Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
     }
 
-    if (isPrivateDomain) {
-        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
-    }
-
-    const isIndividual = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
+    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
+        return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
+    }
+
+    if (!isUserFromPublicDomain && hasAccessiblePolicies && canUsePrivateDomainOnboarding) {
+        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
+    }
+
+    if (isVsb) {
+        return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+    }
+    if (isSmb) {
+        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+    }
+
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }

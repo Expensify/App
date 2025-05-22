@@ -76,7 +76,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={EditPerDiemDestinationPage.displayName}
                 shouldEnableMaxHeight
@@ -92,6 +92,8 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.pb4}>
                         <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>

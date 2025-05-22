@@ -66,7 +66,7 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColu
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.peopleRow, styles.listTableHeader, styles.pt4]}>
+        <View style={[styles.dFlex, styles.flex5]}>
             <SortableTableHeader
                 columns={columnConfig}
                 shouldShowColumn={shouldShowColumn}

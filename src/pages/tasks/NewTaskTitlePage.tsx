@@ -4,13 +4,13 @@ import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setTitleValue} from '@libs/actions/Task';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,19 +18,20 @@ import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
 import variables from '@styles/variables';
+import {setTitleValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type NewTaskTitlePageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
 
 function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK);
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-
+    const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
     const {translate} = useLocalize();
 
     const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
@@ -56,6 +57,10 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
         goBack();
     };
 
+    if (isLoadingOnyxValue(taskMetadata)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -74,6 +79,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
                 validate={validate}
                 onSubmit={onSubmit}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <View style={styles.mb5}>
                     <InputWrapperWithRef

@@ -94,7 +94,7 @@ function ReportFieldsValueSettingsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
                 testID={ReportFieldsValueSettingsPage.displayName}
             >

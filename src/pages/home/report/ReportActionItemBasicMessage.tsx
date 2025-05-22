@@ -6,14 +6,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type ReportActionItemBasicMessageProps = Partial<ChildrenProps> & {
-    message: string;
+    message?: string;
 };
 
 function ReportActionItemBasicMessage({message, children}: ReportActionItemBasicMessageProps) {
     const styles = useThemeStyles();
     return (
         <View>
-            <Text style={[styles.chatItemMessage, styles.colorMuted]}>{Str.htmlDecode(message)}</Text>
+            {!!message && <Text style={[styles.chatItemMessage, styles.colorMuted]}>{Str.htmlDecode(message)}</Text>}
             {children}
         </View>
     );

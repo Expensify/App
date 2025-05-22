@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {buildNextStep} from '@libs/NextStepUtils';
-import {buildOptimisticExpenseReport} from '@libs/ReportUtils';
+import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
@@ -31,7 +31,7 @@ describe('libs/NextStepUtils', () => {
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
             isPolicyExpenseChatEnabled: true,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
         const optimisticNextStep: ReportNextStep = {
             type: 'neutral',
@@ -73,6 +73,42 @@ describe('libs/NextStepUtils', () => {
             optimisticNextStep.message = [];
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy).then(waitForBatchedUpdates);
+        });
+
+        describe('it generates and optimistic nextStep once a report has been created', () => {
+            test('Correct next steps message', () => {
+                const emptyReport = buildOptimisticEmptyReport(
+                    'fake-empty-report-id-2',
+                    currentUserAccountID,
+                    {reportID: 'fake-parent-report-id-3'},
+                    'fake-parent-report-action-id-4',
+                    policy,
+                    '2025-03-31 13:23:11',
+                );
+
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `${currentUserEmail}`,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'add',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                const result = buildNextStep(emptyReport, CONST.REPORT.STATUS_NUM.OPEN);
+
+                expect(result).toMatchObject(optimisticNextStep);
+            });
         });
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {
@@ -648,9 +684,13 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
             });
 
             test('payer', () => {

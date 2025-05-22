@@ -12,12 +12,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,23 +36,45 @@ function NewReportWorkspaceSelectionPage() {
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+
+    const navigateToNewReport = useCallback(
+        (optimisticReportID: string) => {
+            if (shouldUseNarrowLayout) {
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}), {forceReplace: true});
+                });
+                return;
+            }
+            // On wide screens we use dismissModal instead of forceReplace to avoid performance issues
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.dismissModal();
+            });
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}));
+            });
+        },
+        [shouldUseNarrowLayout],
+    );
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
             if (!policyID) {
                 return;
             }
+            if (shouldRestrictUserBillableActions(policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                return;
+            }
             const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}), {forceReplace: true});
-            });
+            navigateToNewReport(optimisticReportID);
         },
-        [currentUserPersonalDetails],
+        [currentUserPersonalDetails, navigateToNewReport],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

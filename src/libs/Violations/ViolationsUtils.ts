@@ -89,7 +89,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
     );
 
-    // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
+    // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we push SOME_TAG_LEVELS_REQUIRED in Onyx.
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
@@ -232,13 +232,19 @@ const ViolationsUtils = {
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
+        const canCalculateAmountViolations = policy.outputCurrency === currency;
+
         const shouldShowReceiptRequiredViolation =
+            canCalculateAmountViolations &&
             !isInvoiceTransaction &&
             policy.maxExpenseAmountNoReceipt &&
             Math.abs(amount) > policy.maxExpenseAmountNoReceipt &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
-        const shouldShowOverLimitViolation = !isInvoiceTransaction && policy.maxExpenseAmount && Math.abs(amount) > policy.maxExpenseAmount && isControlPolicy;
+        const shouldShowOverLimitViolation =
+            canCalculateAmountViolations && !isInvoiceTransaction && policy.maxExpenseAmount && Math.abs(amount) > policy.maxExpenseAmount && isControlPolicy;
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
         if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
@@ -250,7 +256,7 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
         }
 
-        if (!hasReceiptRequiredViolation && shouldShowReceiptRequiredViolation) {
+        if (canCalculateAmountViolations && !hasReceiptRequiredViolation && shouldShowReceiptRequiredViolation) {
             newTransactionViolations.push({
                 name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
                 data: {
@@ -261,11 +267,11 @@ const ViolationsUtils = {
             });
         }
 
-        if (hasReceiptRequiredViolation && !shouldShowReceiptRequiredViolation) {
+        if (canCalculateAmountViolations && hasReceiptRequiredViolation && !shouldShowReceiptRequiredViolation) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
         }
 
-        if (!hasOverLimitViolation && shouldShowOverLimitViolation) {
+        if (canCalculateAmountViolations && !hasOverLimitViolation && shouldShowOverLimitViolation) {
             newTransactionViolations.push({
                 name: CONST.VIOLATIONS.OVER_LIMIT,
                 data: {
@@ -276,7 +282,7 @@ const ViolationsUtils = {
             });
         }
 
-        if (hasOverLimitViolation && !shouldShowOverLimitViolation) {
+        if (canCalculateAmountViolations && hasOverLimitViolation && !shouldShowOverLimitViolation) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
         }
 
@@ -400,6 +406,8 @@ const ViolationsUtils = {
                 return translate('violations.prohibitedExpense', {
                     prohibitedExpenseType: violation.data?.prohibitedExpenseRule ?? '',
                 });
+            case CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI:
+                return translate('violations.receiptGeneratedWithAI');
             default:
                 // The interpreter should never get here because the switch cases should be exhaustive.
                 // If typescript is showing an error on the assertion below it means the switch statement is out of

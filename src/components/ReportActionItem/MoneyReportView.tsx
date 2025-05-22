@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,6 +12,7 @@ import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -80,11 +80,11 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
         styles.alignSelfCenter,
-        StyleUtils.getFontSizeStyle(variables.fontSizeh1),
+        StyleUtils.getFontSizeStyle(variables.fontSizeH1),
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
+    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
 
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
@@ -164,12 +164,11 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                                     ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getReportRHPActiveRoute()),
                                                 );
                                             }}
-                                            shouldShowRightIcon
-                                            disabled={isFieldDisabled}
+                                            shouldShowRightIcon={!isFieldDisabled}
                                             wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                             shouldGreyOutWhenDisabled={false}
                                             numberOfLinesTitle={0}
-                                            interactive
+                                            interactive={!isFieldDisabled}
                                             shouldStackHorizontally={false}
                                             onSecondaryInteraction={() => {}}
                                             titleWithTooltips={[]}

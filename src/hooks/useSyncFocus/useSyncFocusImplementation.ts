@@ -3,6 +3,12 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
 
+// This mutable ref holds the currently focused item's ref.
+// It enables external actions like calling .focus() from outside this hook,
+// as demonstrated in this PR: https://github.com/Expensify/App/pull/59206
+// eslint-disable-next-line import/no-mutable-exports
+let focusedItemRef: View | HTMLElement | null;
+
 /**
  * Custom React hook created to handle sync of focus on an element when the user navigates through the app with keyboard.
  * When the user navigates through the app using the arrows and then the tab button, the focus on the element and the native focus of the browser differs.
@@ -16,6 +22,10 @@ const useSyncFocusImplementation = (ref: RefObject<View | HTMLElement>, isFocuse
     const didScreenTransitionEnd = contextValue ? contextValue.didScreenTransitionEnd : true;
 
     useLayoutEffect(() => {
+        if (isFocused) {
+            focusedItemRef = ref.current;
+        }
+
         if (!isFocused || !shouldSyncFocus || !didScreenTransitionEnd) {
             return;
         }
@@ -26,3 +36,4 @@ const useSyncFocusImplementation = (ref: RefObject<View | HTMLElement>, isFocuse
 };
 
 export default useSyncFocusImplementation;
+export {focusedItemRef};

@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import mapCurrencyToCountry from '@pages/ReimbursementAccount/utils/mapCurrencyToCountry';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
+import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,16 +30,16 @@ type ConfirmationStepProps = {
 function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
-    const countryDefaultValue = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
+    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
 
     const disableSubmit = !(currency in CONST.CURRENCY);
@@ -48,6 +49,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             return;
         }
 
+        setIsComingFromGlobalReimbursementsFlow(true);
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
 
@@ -69,7 +71,6 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             return;
         }
 
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: currencyMappedToCountry});
         setSelectedCountry(currencyMappedToCountry);
     }, [currency, currencyMappedToCountry]);
 
@@ -82,6 +83,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5, styles.pb0]}
             isSubmitDisabled={disableSubmit}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
             <MenuItemWithTopDescription
@@ -100,7 +102,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             </Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
+                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES}
                 onValueChange={(value) => setSelectedCountry(value as string)}
                 description={translate('common.country')}
                 modalHeaderTitle={translate('countryStep.selectCountry')}
@@ -108,6 +110,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                 shouldAllowChange={shouldAllowChange}
                 value={selectedCountry}
                 inputID={COUNTRY}
+                shouldSaveDraft={false}
             />
         </FormProvider>
     );

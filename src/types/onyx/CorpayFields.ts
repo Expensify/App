@@ -27,6 +27,8 @@ type CorpayFormField = {
         id: string;
         /** Label for the form field value */
         text: string;
+        /** Value */
+        code: string;
     }>;
     /** Contains possible list of values for dropdown field (only for Canada region fields) */
     links?: Array<{

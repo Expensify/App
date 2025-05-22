@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
@@ -37,7 +38,7 @@ type OriginalMessageIOU = {
     /** ID of the expense report */
     expenseReportID?: string;
 
-    /** How much was transactioned */
+    /** How much was transaction */
     amount: number;
 
     /** Was the action created automatically, not by a human */
@@ -46,7 +47,7 @@ type OriginalMessageIOU = {
     /** Optional comment */
     comment?: string;
 
-    /** Currency of the transactioned money */
+    /** Currency of the transaction money */
     currency: string;
 
     /** When was the `IOU` last modified */
@@ -89,24 +90,6 @@ type Decision = {
 
     /** When was the decision made */
     timestamp?: string;
-};
-
-/** Model of user reaction */
-type User = {
-    /** Account ID of the user that reacted to the comment */
-    accountID: number;
-
-    /** What's the skin tone of the user reaction */
-    skinTone: number;
-};
-
-/** Model of comment reaction */
-type Reaction = {
-    /** Which emoji was used to react to the comment */
-    emoji: string;
-
-    /** Which users reacted with this emoji */
-    users: User[];
 };
 
 /** Model of `add comment` report action */
@@ -185,6 +168,12 @@ type OriginalMessageClosed = {
 
     /** Name of the invoice receiver's policy */
     receiverPolicyName?: string;
+
+    /** If the expense report was mark as closed, then this is the report amount */
+    amount?: number;
+
+    /** If the expense report was mark as closed, then this is the report currency */
+    currency?: string;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
@@ -363,14 +352,17 @@ type OriginalMessagePolicyChangeLog = {
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
 
-    /** New desciption */
+    /** New description */
     newDescription?: string;
 
-    /** Old desciption */
+    /** Old description */
     oldDescription?: string;
 
     /** Report field type */
     fieldType?: string;
+
+    /** Custom field type  */
+    field?: string;
 
     /** Report field name */
     fieldName?: string;
@@ -386,6 +378,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Updated tag list name */
     tagListName?: string;
+
+    /** Count of elements updated */
+    count?: string;
 
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
@@ -416,6 +411,9 @@ type OriginalMessageJoinPolicy = {
 
     /** AccountID for the user requesting to join the policy */
     accountID?: number;
+
+    /** Email of the requested user */
+    email?: string;
 };
 
 /** Model of `modified expense` report action */
@@ -492,11 +490,11 @@ type OriginalMessageModifiedExpense = {
     /** The ID of moved report */
     movedToReportID?: string;
 
-    /** The old stringify list of attendees */
-    oldAttendees?: string;
+    /** The old list of attendees */
+    oldAttendees?: Attendee[];
 
-    /** The stringify list of attendees */
-    attendees?: string;
+    /** The list of attendees */
+    newAttendees?: Attendee[];
 };
 
 /** Model of the `deleted transaction` report action */
@@ -509,6 +507,12 @@ type OriginalMessageDeletedTransaction = {
 
     /** The currency of the transaction */
     currency?: string;
+};
+
+/** Model of `concierge category options` report action */
+type OriginalMessageConciergeCategoryOptions = {
+    /** The options we present to the user when confidence in the predicted category is low */
+    options: string[];
 };
 
 /** Model of `reimbursement queued` report action */
@@ -544,13 +548,25 @@ type OriginalMessageReimbursementDequeued = {
     currency: string;
 };
 
-/** Model of `CHANGEPOLICY` report action */
+/** Model of CHANGE_POLICY report action */
 type OriginalMessageChangePolicy = {
     /** ID of the old policy */
     fromPolicy: string | undefined;
 
     /** ID of the new policy */
     toPolicy: string;
+};
+
+/** Model of `UNREPORTED_TRANSACTION` report action */
+type OriginalMessageUnreportedTransaction = {
+    /** ID of the old report */
+    fromReportID: string;
+};
+
+/** Model of MOVED_TRANSACTION report action */
+type OriginalMessageMovedTransaction = {
+    /** ID of the new report */
+    toReportID: string;
 };
 
 /** Model of `moved` report action */
@@ -693,7 +709,7 @@ type OriginalMessageDemotedFromWorkspace = {
 type OriginalMessageAddPaymentCard = Record<string, never>;
 
 /**
- * Original message for INTEGRATIONSYNCFAILED actions
+ * Original message for INTEGRATION_SYNC_FAILED actions
  */
 type OriginalMessageIntegrationSyncFailed = {
     /** The user friendly connection name */
@@ -715,6 +731,17 @@ type OriginalMessageCard = {
 
     /** The id of the card */
     cardID: number;
+};
+
+/**
+ * Model of INTEGRATIONS_MESSAGE report action
+ */
+type OriginalMessageIntegrationMessage = {
+    /** Object with detailed result */
+    result: {
+        /** Wether action was successful */
+        success: boolean;
+    };
 };
 
 /**
@@ -750,7 +777,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: OriginalMessageForwarded;
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
-    [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: never;
+    [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT]: never;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT]: never;
@@ -759,10 +786,12 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
+    [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
@@ -787,7 +816,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.UNSHARE]: never;
     [CONST.REPORT.ACTIONS.TYPE.UPDATE_GROUP_CHAT_MEMBER_ROLE]: never;
-    [CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW]: OriginalMessageTripRoomPreview;
+    [CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW]: OriginalMessageTripRoomPreview;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS]: never;
@@ -802,6 +831,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
+    [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {
@@ -817,7 +848,6 @@ export type {
     ChronosOOOEvent,
     PaymentMethodType,
     OriginalMessageSource,
-    Reaction,
     Decision,
     OriginalMessageChangeLog,
     JoinWorkspaceResolution,
@@ -825,4 +855,6 @@ export type {
     OriginalMessageExportIntegration,
     IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
+    OriginalMessageUnreportedTransaction,
+    OriginalMessageMovedTransaction,
 };

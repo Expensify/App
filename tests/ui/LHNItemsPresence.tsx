@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -24,6 +25,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
+jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
@@ -104,8 +106,9 @@ describe('SidebarLinksData', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        initOnyxDerivedValues();
     });
 
     // Helper to initialize common state
@@ -150,6 +153,7 @@ describe('SidebarLinksData', () => {
             // When the SidebarLinks are rendered again with the current active report ID.
             LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
+            await waitForBatchedUpdatesWithAct();
             // Then the active report should be displayed as part of LHN,
             expect(getOptionRows()).toHaveLength(1);
 
@@ -231,9 +235,13 @@ describe('SidebarLinksData', () => {
             };
             const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
             const transactionViolation = createFakeTransactionViolation();
+            const reportAction = LHNTestUtils.getFakeAdvancedReportAction();
 
             // When the report has outstanding violations
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
 
@@ -456,7 +464,7 @@ describe('SidebarLinksData', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, expenseTransaction);
 
-            // Then such report should not appear in the sidebar because the highest level context is on the workspace chat with GBR that is visible in the LHN
+            // Then such report should not appear in the sidebar because the highest level context is on the expense chat with GBR that is visible in the LHN
             expect(getOptionRows()).toHaveLength(0);
         });
 
@@ -527,6 +535,41 @@ describe('SidebarLinksData', () => {
 
             // Then the report should not disappear in the sidebar because it's read
             expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display an empty submitted report having only a CREATED action', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // When creating a report with total = 0, stateNum = SUBMITTED, statusNum = SUBMITTED
+            const report = {
+                ...createReport(false, [1, 2], 0),
+                total: 0,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            // And setting up a report action collection with only a CREATED action
+            const reportActionID = '1';
+            const reportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            };
+
+            // When the Onyx state is initialized with this report
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // And a report action collection with only a CREATED action is added
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportActionID]: reportAction,
+            });
+
+            // Then the report should not be displayed in the sidebar
+            expect(getOptionRows()).toHaveLength(0);
+            expect(getDisplayNames()).toHaveLength(0);
         });
     });
 });

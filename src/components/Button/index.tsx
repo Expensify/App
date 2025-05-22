@@ -39,6 +39,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Any additional styles to pass to the right icon container. */
     iconRightStyles?: StyleProp<ViewStyle>;
 
+    /** Any additional styles to pass to the icon wrapper container. */
+    iconWrapperStyles?: StyleProp<ViewStyle>;
+
     /** Small sized button */
     small?: boolean;
 
@@ -123,9 +126,6 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Id to use for this button */
     id?: string;
 
-    /** Used to locate this button in ui tests */
-    testID?: string;
-
     /** Accessibility label for the component */
     accessibilityLabel?: string;
 
@@ -146,6 +146,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
     isPressOnEnterActive?: boolean;
+
+    /** The testID of the button. Used to locate this view in end-to-end tests. */
+    testID?: string;
 
     /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
     isNested?: boolean;
@@ -216,6 +219,7 @@ function Button(
         icon = null,
         iconStyles = [],
         iconRightStyles = [],
+        iconWrapperStyles = [],
         text = '',
 
         small = false,
@@ -290,12 +294,12 @@ function Button(
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
                     !!secondLineText && styles.noPaddingBottom,
-                    textStyles,
                     isHovered && textHoverStyles,
-                    link && styles.link,
-                    link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
                     link && styles.fontWeightNormal,
                     link && styles.fontSizeLabel,
+                    textStyles,
+                    link && styles.link,
+                    link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
@@ -317,7 +321,7 @@ function Button(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
+                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
                             <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>

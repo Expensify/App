@@ -34,13 +34,14 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
-    const [isHidden, setIsHidden] = useState(() => (item.reportActionID ? isAttachmentHidden(item.reportActionID) : item.hasBeenFlagged));
+    const [isHidden, setIsHidden] = useState(() => (item.reportActionID && isAttachmentHidden(item.reportActionID)) ?? item.hasBeenFlagged);
 
     const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button
             small
             style={style}
             onPress={() => setIsHidden(!isHidden)}
+            testID="moderationButton"
         >
             <Text
                 style={[styles.buttonSmallText, styles.userSelectNone]}

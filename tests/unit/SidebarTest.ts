@@ -16,6 +16,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@src/libs/Permissions');
 jest.mock('@src/components/Icon/Expensicons');
 jest.mock('@src/hooks/useRootNavigationState');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'email1@test.com';
@@ -24,7 +25,7 @@ describe('Sidebar', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 

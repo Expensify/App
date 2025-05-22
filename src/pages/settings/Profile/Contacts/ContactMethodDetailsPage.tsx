@@ -4,6 +4,7 @@ import {InteractionManager, Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
+import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
@@ -45,18 +47,18 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
-import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
-    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
-    const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
-    const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
-    const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
+    const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
+    const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
-
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
 
     const {formatPhoneNumber, translate} = useLocalize();
@@ -169,12 +171,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (loginData?.validatedDate || prevPendingDeletedLogin) {
+        if (!loginData || loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
-    }, [contactMethod, loginData?.validatedDate]);
+    }, [contactMethod, loginData]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
@@ -210,6 +212,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
+    const shouldSkipInitialValidation = route.params?.shouldSkipInitialValidation === 'true';
 
     const getDeleteConfirmationModal = () => (
         <ConfirmModal
@@ -264,7 +267,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         title={translate('common.remove')}
                         icon={Trashcan}
                         iconFill={theme.danger}
-                        onPress={() => toggleDeleteModal(true)}
+                        onPress={() => {
+                            if (isActingAsDelegate) {
+                                setIsNoDelegateAccessMenuVisible(true);
+                                return;
+                            }
+                            toggleDeleteModal(true);
+                        }}
                     />
                 </OfflineWithFeedback>
             )}
@@ -333,19 +342,23 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        validatePendingAction={loginData.pendingFields?.validateCodeSent}
                         handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                         sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                         forwardedRef={validateCodeFormRef}
+                        shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
 
                 {!isValidateCodeFormVisible && !!loginData.validatedDate && getMenuItems()}
                 {getDeleteConfirmationModal()}
             </ScrollView>
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </ScreenWrapper>
     );
 }

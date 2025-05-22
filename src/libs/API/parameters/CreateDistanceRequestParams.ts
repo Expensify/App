@@ -21,6 +21,7 @@ type CreateDistanceRequestParams = {
     splits?: string;
     chatType?: string;
     description?: string;
+    attendees?: string;
 };
 
 export default CreateDistanceRequestParams;

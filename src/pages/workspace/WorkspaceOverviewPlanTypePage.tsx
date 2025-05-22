@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -20,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
-import type {PersonalPolicyTypeExludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
+import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -58,8 +57,8 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
-            text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExludedProps}.label`),
-            alternateText: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExludedProps}.description`),
+            text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),
+            alternateText: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.description`),
             keyForList: policyType,
             isSelected: policyType === currentPlan,
         }))
@@ -104,6 +103,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
             <ScreenWrapper
                 testID={WorkspaceOverviewPlanTypePage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
@@ -140,16 +140,17 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
                             initiallyFocusedOptionKey={workspacePlanTypes.find((mode) => mode.isSelected)?.keyForList}
+                            addBottomSafeAreaPadding
+                            footerContent={
+                                <Button
+                                    success
+                                    large
+                                    text={isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}
+                                    style={styles.mt6}
+                                    onPress={handleUpdatePlan}
+                                />
+                            }
                         />
-                        <FixedFooter>
-                            <Button
-                                success
-                                large
-                                text={isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}
-                                style={styles.mt6}
-                                onPress={handleUpdatePlan}
-                            />
-                        </FixedFooter>
                     </>
                 )}
             </ScreenWrapper>

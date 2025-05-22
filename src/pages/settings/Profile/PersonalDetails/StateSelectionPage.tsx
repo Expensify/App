@@ -69,7 +69,7 @@ function StateSelectionPage() {
     return (
         <ScreenWrapper
             testID={StateSelectionPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 // Label can be an empty string
@@ -103,6 +103,7 @@ function StateSelectionPage() {
                 initiallyFocusedOptionKey={currentState}
                 shouldUseDynamicMaxToRenderPerBatch
                 ListItem={RadioListItem}
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );

@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
@@ -47,6 +48,7 @@ function ConnectedVerifiedBankAccount({
 }: ConnectedVerifiedBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: reimbursementAccount?.achData?.bankName, styles});
 
@@ -97,7 +99,7 @@ function ConnectedVerifiedBankAccount({
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
                             icon={Close}
                             onPress={requestResetBankAccount}
-                            wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                             disabled={!!pendingAction || !isEmptyObject(errors)}
                         />
                     </OfflineWithFeedback>
@@ -106,8 +108,8 @@ function ConnectedVerifiedBankAccount({
             {shouldShowResetModal && (
                 <WorkspaceResetBankAccountModal
                     reimbursementAccount={reimbursementAccount}
-                    setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                     isNonUSDWorkspace={isNonUSDWorkspace}
+                    setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                     setUSDBankAccountStep={setUSDBankAccountStep}
                     setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                 />

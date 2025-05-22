@@ -8,20 +8,19 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
-import OfflineIndicator from '@components/OfflineIndicator';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
-import * as Welcome from '@userActions/Welcome';
+import {completeOnboarding} from '@userActions/Report';
+import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,21 +50,20 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowHeight} = useWindowDimensions();
+    const {canUsePrivateDomainOnboarding} = usePermissions();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
-
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const isPrivateDomainAndHasAccessiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     const theme = useTheme();
-    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
+    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
+    const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
 
-    const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
+    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, {canBeMissing: true});
 
     const onboardingChoices = getOnboardingChoices(customChoices);
 
@@ -82,12 +80,25 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
             onPress: () => {
-                Welcome.setOnboardingPurposeSelected(choice);
-                Welcome.setOnboardingErrorMessage('');
+                setOnboardingPurposeSelected(choice);
+                setOnboardingErrorMessage('');
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
                 }
+
+                if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
+                    completeOnboarding({
+                        engagementChoice: choice,
+                        onboardingMessage: CONST.ONBOARDING_MESSAGES[choice],
+                        firstName: personalDetailsForm.firstName,
+                        lastName: personalDetailsForm.lastName,
+                        adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
+                        onboardingPolicyID,
+                    });
+                    return;
+                }
+
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
             },
         };
@@ -95,7 +106,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const isFocused = useIsFocused();
 
     const handleOuterClick = useCallback(() => {
-        Welcome.setOnboardingErrorMessage(translate('onboarding.errorSelection'));
+        setOnboardingErrorMessage(translate('onboarding.errorSelection'));
     }, [translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
@@ -105,39 +116,37 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         return null;
     }
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
-                    <View style={onboardingIsMediumOrLargerScreenWidth && styles.mh3}>
-                        <HeaderWithBackButton
-                            shouldShowBackButton={false}
-                            iconFill={theme.iconColorfulBackground}
-                            progressBarPercentage={isPrivateDomain ? 60 : 20}
-                        />
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            testID="BaseOnboardingPurpose"
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
+        >
+            <View style={onboardingIsMediumOrLargerScreenWidth && styles.mh3}>
+                <HeaderWithBackButton
+                    shouldShowBackButton={false}
+                    iconFill={theme.iconColorfulBackground}
+                    progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 60 : 20}
+                />
+            </View>
+            <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
+                <View style={styles.flex1}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                        <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
                     </View>
-                    <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
-                        <View style={styles.flex1}>
-                            <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                                <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
-                            </View>
-                            <MenuItemList
-                                menuItems={menuItems}
-                                shouldUseSingleExecution
-                            />
-                        </View>
-                    </ScrollView>
-                    <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
-                        <FormHelpMessage message={onboardingErrorMessage} />
-                    </View>
-                    {isSmallScreenWidth && <OfflineIndicator />}
+                    <MenuItemList
+                        menuItems={menuItems}
+                        shouldUseSingleExecution
+                    />
                 </View>
-            )}
-        </SafeAreaConsumer>
+            </ScrollView>
+            <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
+                <FormHelpMessage message={onboardingErrorMessage} />
+            </View>
+        </ScreenWrapper>
     );
 }
 
 BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
 
 export default BaseOnboardingPurpose;
-
-export type {BaseOnboardingPurposeProps};

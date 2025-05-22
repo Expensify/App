@@ -1,7 +1,7 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {findNodeHandle, InteractionManager, Keyboard, View} from 'react-native';
+import {findNodeHandle, InteractionManager, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useOnyx} from 'react-native-onyx';
@@ -45,6 +45,7 @@ import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeIn
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import KeyboardUtils from '@src/utils/keyboard';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
@@ -84,7 +85,7 @@ function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
-    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE, canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -115,8 +116,8 @@ function ReportActionItemMessageEdit(
             willAlertModalBecomeVisible: false,
             isVisible: false,
         },
-    ] = useOnyx(ONYXKEYS.MODAL);
-    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
+    ] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
@@ -175,6 +176,7 @@ function ReportActionItemMessageEdit(
     const setUpComposeFocusManager = useCallback(() => {
         ReportActionComposeFocusManager.onComposerFocus(() => {
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+            emojiPickerSelectionRef.current = undefined;
         }, true);
     }, [focus]);
 
@@ -255,9 +257,8 @@ function ReportActionItemMessageEdit(
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (index === 0) {
-            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            KeyboardUtils.dismiss().then(() => {
                 reportScrollManager.scrollToIndex(index, false);
-                keyboardDidHideListener.remove();
             });
         }
     }, [action, index, reportID, reportScrollManager, isActive]);

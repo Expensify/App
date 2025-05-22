@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import PushNotification from '.';
-import type {ReportActionPushNotificationData} from './NotificationType';
+import type {PushNotificationData} from './NotificationType';
 
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
@@ -28,11 +28,11 @@ Onyx.connect({
             PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, applyOnyxData);
             PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, navigateToReport);
 
-            PushNotification.onReceived(PushNotification.TYPE.MONEY_REQUEST, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.MONEY_REQUEST, navigateToReport);
-
             PushNotification.onReceived(PushNotification.TYPE.REPORT_ACTION, applyOnyxData);
             PushNotification.onSelected(PushNotification.TYPE.REPORT_ACTION, navigateToReport);
+
+            PushNotification.onReceived(PushNotification.TYPE.TRANSACTION, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.TRANSACTION, navigateToReport);
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
@@ -62,8 +62,8 @@ Onyx.connect({
     },
 });
 
-function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: ReportActionPushNotificationData): Promise<void> {
-    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
+function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData): Promise<void> {
+    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID});
 
     const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
         if (isDataMissing) {
@@ -117,8 +117,8 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
     return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}));
 }
 
-function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {
-    Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+function navigateToReport({reportID}: PushNotificationData): Promise<void> {
+    Log.info('[PushNotification] Navigating to report', false, {reportID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
 
@@ -129,7 +129,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                 // When transitioning to the new experience via the singleNewDotEntry flow, the navigation
                 // is handled elsewhere. So we cancel here to prevent double navigation.
                 if (isSingleNewDotEntry) {
-                    Log.info('[PushNotification] Not navigating because this is a singleNewDotEntry flow', false, {reportID, reportActionID});
+                    Log.info('[PushNotification] Not navigating because this is a singleNewDotEntry flow', false, {reportID});
                     return;
                 }
 
@@ -142,8 +142,8 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                     Navigation.goBack();
                 }
 
-                Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID});
+                Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID});
+                Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID, backTo: Navigation.getActiveRoute()});
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
                 let errorMessage = String(error);
@@ -151,7 +151,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                     errorMessage = error.message;
                 }
 
-                Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
+                Log.alert('[PushNotification] onSelected() - failed', {reportID, error: errorMessage});
             }
         });
     });

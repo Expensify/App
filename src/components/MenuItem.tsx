@@ -350,6 +350,9 @@ type MenuItemBaseProps = {
     /** Callback to fire when the education tooltip is pressed */
     onEducationTooltipPress?: () => void;
 
+    /** Whether the tooltip should hide on scroll */
+    shouldHideOnScroll?: boolean;
+
     shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Should selected item be marked with checkmark */
@@ -373,7 +376,7 @@ type MenuItemBaseProps = {
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
 
-const getSubscriptpAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
+const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
     if (isPressed) {
         return pressedBackgroundColor;
     }
@@ -474,6 +477,7 @@ function MenuItem(
         onBlur,
         avatarID,
         shouldRenderTooltip = false,
+        shouldHideOnScroll = false,
         tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
         tooltipShiftHorizontal = 0,
@@ -498,10 +502,12 @@ function MenuItem(
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
 
+    const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
-    const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const fallbackAvatarSize = isCompact ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
     const firstRightIcon = floatRightAvatars.at(0);
+
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
@@ -514,6 +520,7 @@ function MenuItem(
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
             shouldBreakWord ? styles.breakWord : {},
+            styles.mw100,
         ],
         titleStyle ?? {},
     );
@@ -524,6 +531,7 @@ function MenuItem(
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
+        title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
         (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedback.deleted : {},
     ]);
@@ -545,7 +553,7 @@ function MenuItem(
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
         if (shouldRenderAsHTML) {
-            titleToWrap = title ? convertToLTR(title) : '';
+            titleToWrap = title ?? '';
         }
 
         if (shouldParseTitle) {
@@ -638,6 +646,7 @@ function MenuItem(
                 shiftVertical={tooltipShiftVertical}
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
+                shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
                     <Hoverable>
@@ -656,6 +665,8 @@ function MenuItem(
                                         containerStyle,
                                         combinedStyle,
                                         !interactive && styles.cursorDefault,
+                                        isCompact && styles.alignItemsCenter,
+                                        isCompact && styles.optionRowCompact,
                                         !shouldRemoveBackground &&
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
@@ -698,7 +709,7 @@ function MenuItem(
                                                     )}
                                                     {shouldShowAvatar && shouldShowSubscriptAvatar && (
                                                         <SubscriptAvatar
-                                                            backgroundColor={getSubscriptpAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                            backgroundColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
                                                             mainAvatar={firstIcon as IconType}
                                                             secondaryAvatar={(icon as IconType[]).at(1)}
                                                             size={avatarSize}
@@ -790,7 +801,7 @@ function MenuItem(
                                                         style={[
                                                             styles.justifyContentCenter,
                                                             styles.flex1,
-                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu),
+                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact),
                                                             titleContainerStyle,
                                                         ]}
                                                     >
@@ -862,7 +873,7 @@ function MenuItem(
                                                     </View>
                                                 </View>
                                             </View>
-                                            <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
+                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
                                                 {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
@@ -912,7 +923,11 @@ function MenuItem(
                                                 )}
                                                 {shouldShowRightIcon && (
                                                     <View
-                                                        style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}
+                                                        style={[
+                                                            styles.pointerEventsAuto,
+                                                            StyleUtils.getMenuItemIconStyle(isCompact),
+                                                            disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                        ]}
                                                     >
                                                         <Icon
                                                             src={iconRight}
@@ -970,5 +985,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {AvatarProps, IconProps, MenuItemBaseProps, MenuItemProps, NoIcon};
+export type {MenuItemBaseProps, MenuItemProps};
 export default forwardRef(MenuItem);

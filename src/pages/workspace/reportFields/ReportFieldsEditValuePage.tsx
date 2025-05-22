@@ -65,7 +65,7 @@ function ReportFieldsEditValuePage({
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
                 testID={ReportFieldsEditValuePage.displayName}
                 shouldEnableMaxHeight
@@ -81,6 +81,8 @@ function ReportFieldsEditValuePage({
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}

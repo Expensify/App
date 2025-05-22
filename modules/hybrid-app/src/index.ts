@@ -4,6 +4,10 @@ const HybridAppModule: HybridAppModuleType = {
     isHybridApp() {
         return false;
     },
+    shouldUseStaging() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `shouldUseStaging` should never be called on web');
+    },
     closeReactNativeApp() {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `closeReactNativeApp` should never be called on web');

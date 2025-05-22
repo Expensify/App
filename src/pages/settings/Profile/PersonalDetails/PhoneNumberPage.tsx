@@ -94,6 +94,7 @@ function PhoneNumberPage() {
                         onSubmit={updatePhoneNumber}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
+                        shouldHideFixErrorsAlert
                     >
                         <OfflineWithFeedback
                             errors={validateLoginError}
@@ -104,7 +105,7 @@ function PhoneNumberPage() {
                                 InputComponent={TextInput}
                                 ref={inputCallbackRef}
                                 inputID={INPUT_IDS.PHONE_NUMBER}
-                                name="lfname"
+                                name="legalFirstName"
                                 label={translate('common.phoneNumber')}
                                 aria-label={translate('common.phoneNumber')}
                                 role={CONST.ROLE.PRESENTATION}

@@ -39,7 +39,9 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
     const hasResultOfFetchingSetupLink = !!codatSetupLink || hasError;
 
-    const ContentWrapper = hasResultOfFetchingSetupLink ? ({children}: React.PropsWithChildren) => children : FullPageOfflineBlockingView;
+    const ContentWrapper = hasResultOfFetchingSetupLink
+        ? ({children}: React.PropsWithChildren) => children
+        : ({children}: React.PropsWithChildren) => <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>;
 
     const fetchSetupLink = useCallback(() => {
         setHasError(false);
@@ -131,7 +133,10 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                                 />
                             )}
                         </View>
-                        <FixedFooter style={[styles.mtAuto, styles.ph0]}>
+                        <FixedFooter
+                            style={[styles.mtAuto, styles.ph0]}
+                            addBottomSafeAreaPadding
+                        >
                             <Button
                                 success
                                 text={translate('common.done')}

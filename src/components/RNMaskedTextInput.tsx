@@ -36,4 +36,3 @@ function RNMaskedTextInputWithRef(props: MaskedTextInputProps, ref: ForwardedRef
 RNMaskedTextInputWithRef.displayName = 'RNMaskedTextInputWithRef';
 
 export default React.forwardRef(RNMaskedTextInputWithRef);
-export type {AnimatedTextInputRef};

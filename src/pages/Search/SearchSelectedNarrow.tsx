@@ -27,6 +27,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
         if (selectedOptionIndexRef.current === -1) {
             return;
         }
+
         options[selectedOptionIndexRef.current]?.onSelected?.();
     };
 

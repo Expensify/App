@@ -9,6 +9,7 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import CONST from '@src/CONST';
 import type {AnchorDimensions, AnchorPosition} from '@src/styles';
+import type {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
 import type PopoverProps from './Popover/types';
 
@@ -20,10 +21,13 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
     anchorDimensions?: AnchorDimensions;
 
     /** Whether we should change the vertical position if the popover's position is overflow */
-    shoudSwitchPositionIfOverflow?: boolean;
+    shouldSwitchPositionIfOverflow?: boolean;
 
     /** Whether handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
+
+    /** Whether we should should use top side for the anchor positioning */
+    shouldMeasureAnchorPositionFromTop?: boolean;
 };
 
 /**
@@ -57,10 +61,10 @@ function PopoverWithMeasuredContent({
         height: 0,
         width: 0,
     },
-    shoudSwitchPositionIfOverflow = false,
+    shouldSwitchPositionIfOverflow = false,
     shouldHandleNavigationBack = false,
     shouldEnableNewFocusManagement,
-    shouldUseNewModal = false,
+    shouldMeasureAnchorPositionFromTop = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -74,6 +78,10 @@ function PopoverWithMeasuredContent({
 
     if (!prevIsVisible && isVisible && shouldEnableNewFocusManagement) {
         ComposerFocusManager.saveFocusState(modalId);
+    }
+
+    if (!prevIsVisible && isVisible && isContentMeasured) {
+        setIsContentMeasured(false);
     }
 
     /**
@@ -115,7 +123,6 @@ function PopoverWithMeasuredContent({
             default:
                 verticalConstraint = {top: anchorPosition.vertical};
         }
-
         return {
             ...horizontalConstraint,
             ...verticalConstraint,
@@ -128,12 +135,22 @@ function PopoverWithMeasuredContent({
         popoverHeight,
         windowHeight,
         anchorDimensions.height,
-        shoudSwitchPositionIfOverflow,
+        shouldSwitchPositionIfOverflow,
     );
-    const shiftedAnchorPosition = {
+    const shiftedAnchorPosition: PopoverAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
-        bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift,
+        ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {}),
     };
+
+    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
+        const top = adjustedAnchorPosition.top + verticalShift;
+        const maxTop = windowHeight - popoverHeight - verticalShift;
+        shiftedAnchorPosition.top = Math.min(Math.max(verticalShift, top), maxTop);
+    }
+
+    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
+        shiftedAnchorPosition.bottom = windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift;
+    }
 
     return isContentMeasured ? (
         <Popover
@@ -154,7 +171,6 @@ function PopoverWithMeasuredContent({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             anchorPosition={shiftedAnchorPosition}
-            shouldUseNewModal={shouldUseNewModal}
         >
             <View onLayout={measurePopover}>{children}</View>
         </Popover>
@@ -181,3 +197,5 @@ export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => 
     }
     return isEqual(prevProps, nextProps);
 });
+
+export type {PopoverWithMeasuredContentProps};

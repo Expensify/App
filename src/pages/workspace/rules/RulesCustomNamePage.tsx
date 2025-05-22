@@ -59,11 +59,9 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            shouldBeBlocked={!policy?.shouldShowCustomReportTitleOption}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesCustomNamePage.displayName}
             >
@@ -93,6 +91,8 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}

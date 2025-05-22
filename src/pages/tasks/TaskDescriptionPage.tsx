@@ -12,6 +12,7 @@ import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -72,7 +73,8 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const isOpen = isOpenTaskReport(report);
-    const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID);
+    const isReportArchived = useReportIsArchived(report?.parentReportID);
+    const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID, isReportArchived);
     const isTaskNonEditable = isTaskReport(report) && (!canActuallyModifyTask || !isOpen);
 
     useFocusEffect(
@@ -109,6 +111,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                     onSubmit={submit}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <View style={[styles.mb4]}>
                         <InputWrapper

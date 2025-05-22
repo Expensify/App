@@ -8,6 +8,12 @@
 // logicalAnd: rule to match whitespace and return it as a logical 'and' operator.
 // whitespace: rule to match whitespaces.
 
+// Per-parse initializer
+{ 
+  let nameOperator = false;
+  let expectingNestedQuote = false;
+}
+
 // rules to match re-defined search syntax keys.
 date = "date"i { return "date"; }
 amount = "amount"i { return "amount"; }
@@ -20,6 +26,8 @@ currency = "currency"i { return "currency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
 to = "to"i { return "to"; }
+exporter = "exporter"i { return "exporter"; }
+payer = "payer"i { return "payer"; }
 taxRate
   = "taxRate"i
   / "tax-rate"i { return "taxRate"; }
@@ -30,6 +38,8 @@ from = "from"i { return "from"; }
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+billable = "billable"i { return "billable"; }
+reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
 status = "status"i { return "status"; }
 sortBy
@@ -48,6 +58,9 @@ exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
 groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 feed = "feed"i { return "feed"; }
+title = "title"i { return "title"; }
+assignee = "assignee"i { return "assignee"; }
+createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }
@@ -57,13 +70,44 @@ operator "operator"
   / "<=" { return "lte"; }
   / "<" { return "lt"; }
 
-quotedString "quote"
-  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
-      return [...start, '"', ...inner, '"', ...end].join("");
-    }
+filterOperator
+  = o:operator {
+      if (nameOperator) {
+        expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
+      }
+      return o;
+  }
 
 alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
 
 logicalAnd = _ { return "and"; }
 
 _ "whitespace" = [ \t\r\n\xA0]* //handle no-breaking space
+
+// Base quotedString rule (conditional, based on parser state)
+quotedString
+  = &{ return expectingNestedQuote; } nestedQuotedString
+  / simpleQuotedString
+
+simpleQuotedString "quote"
+  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
+      return [...start, '"', ...inner, '"', ...end].join("");
+    }
+
+nestedQuotedString "quote"
+  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”")    // Opening quote
+    inner:([^"”“\r\n]
+    / (!closingQuote "“" {return "“"}) / (!closingQuote "”" {return "”"}) / (!closingQuote "\"" {return "\""} )
+    )*                                              // Allow anything inside, but exclude true closing quotes
+    end:closingQuote                                // Detect the actual closing quote
+{
+    return [...start, '"', ...inner, '"'].join("");
+}
+
+closingQuote
+  = ("“" / "\"" / "”") &validClosingCondition       // A quote that is followed by a valid closing pattern
+
+validClosingCondition
+  = [ \t\n\r\xA0a-zA-Z0-9]* [a-zA-Z0-9]* [ \t\n\r\xA0]* operator  // Case 1: Followed by WORD + OPERATOR (new key-value pair)
+  / [ \t\n\r\xA0a-zA-Z]* !operator !.  // Case 2: Followed by any number of spaces, or words, with no operator, and then an END OF INPUT.
+  / [,] // Case 3: Followed by a comma

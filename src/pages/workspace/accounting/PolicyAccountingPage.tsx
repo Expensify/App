@@ -1,6 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -22,7 +21,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -42,6 +41,7 @@ import {
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
+    hasAccountingConnections,
     hasUnsupportedIntegration,
     isControlPolicy,
     settingsPendingAction,
@@ -68,9 +68,8 @@ type RouteParams = {
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
+    const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID, {canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
@@ -78,19 +77,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {canUseNetSuiteUSATax} = usePermissions();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const {isLargeScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
     const newConnectionName = params?.newConnectionName;
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
-
+    const policyID = policy?.id;
+    const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -100,7 +99,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
-    const policyID = policy?.id;
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
         connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
@@ -114,8 +112,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    const shouldShowCardReconciliationOption = isExpensifyCardFullySetUp(policy, cardSettings);
-
+    const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             ...(shouldShowReinstallConnectorMenuItem
@@ -187,6 +184,20 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         getAssignedSupportData(policyID);
     }, [policyID]);
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
+        if (shouldUseNarrowLayout) {
+            return Promise.resolve({horizontal: 0, vertical: 0});
+        }
+        return new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        });
+    }, [shouldUseNarrowLayout]);
 
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
@@ -317,9 +328,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (!connectedIntegration || !policyID) {
             return [];
         }
-        const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
+        const isConnectionVerified = !isConnectionUnverified(policy, connectedIntegration);
         const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+
+        let connectionMessage;
+        if (isSyncInProgress && connectionSyncProgress?.stageInProgress) {
+            connectionMessage = translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress?.stageInProgress});
+        } else if (!isConnectionVerified) {
+            connectionMessage = translate('workspace.accounting.notSync');
+        } else {
+            connectionMessage = translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative});
+        }
 
         const configurationOptions = [
             {
@@ -379,31 +399,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 errorText: synchronizationError,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
-                description:
-                    isSyncInProgress && connectionSyncProgress?.stageInProgress
-                        ? translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress.stageInProgress})
-                        : translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative}),
+                description: connectionMessage,
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
                         color={theme.spinner}
                     />
                 ) : (
-                    <View
-                        ref={threeDotsMenuContainerRef}
-                        onLayout={(e: LayoutChangeEvent) => {
-                            const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
-                            target?.measureInWindow((x, y, width) => {
-                                setThreeDotsMenuPosition({
-                                    horizontal: x + width,
-                                    vertical: y,
-                                });
-                            });
-                        }}
-                    >
+                    <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
+                            getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                             menuItems={overflowMenu}
-                            anchorPosition={threeDotsMenuPosition}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -413,7 +419,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ),
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isEmptyObject(policy?.connections) ? [] : [integrationSpecificMenuItems]),
-            ...(isEmptyObject(policy?.connections) || shouldHideConfigurationOptions ? [] : configurationOptions),
+            ...(isEmptyObject(policy?.connections) || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
         policy,
@@ -432,7 +438,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         datetimeToRelative,
         theme.spinner,
         overflowMenu,
-        threeDotsMenuPosition,
+        calculateAndSetThreeDotsMenuPosition,
         integrationSpecificMenuItems,
         accountingIntegrations,
         isOffline,
@@ -525,7 +531,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         >
             <ScreenWrapper
                 testID={PolicyAccountingPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -534,8 +539,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
+                    onBackButtonPress={Navigation.popToSidebar}
                 />
-                <ScrollView contentContainerStyle={styles.pt3}>
+                <ScrollView
+                    contentContainerStyle={styles.pt3}
+                    addBottomSafeAreaPadding
+                >
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             title={translate('workspace.accounting.title')}
@@ -605,7 +614,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                 </CollapsibleSection>
                             )}
-                            {!!account?.guideDetails?.email && (
+                            {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon
                                         src={Expensicons.QuestionMark}

@@ -47,6 +47,7 @@ export type {WorkspaceCategoryForm} from './WorkspaceCategoryForm';
 export type {WorkspaceSettingsForm} from './WorkspaceSettingsForm';
 export type {ReportPhysicalCardForm} from './ReportPhysicalCardForm';
 export type {WorkspaceDescriptionForm} from './WorkspaceDescriptionForm';
+export type {WorkspaceMemberCustomFieldsForm} from './WorkspaceCustomFieldsForm';
 export type {AdditionalDetailStepForm} from './AdditionalDetailStepForm';
 export type {PolicyTagNameForm} from './PolicyTagNameForm';
 export type {WorkspaceTagForm} from './WorkspaceTagForm';
@@ -87,6 +88,8 @@ export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName'
 export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
 export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';
 export type {PersonalDetailsForm} from './PersonalDetailsForm';
+export type {OnboardingWorkEmailForm} from './OnboardingWorkEmailForm';
+export type {MergeAccountDetailsForm} from './MergeAccountDetailsForm';
 export type {WorkspaceConfirmationForm} from './WorkspaceConfirmationForm';
 export type {MoneyRequestTimeForm} from './MoneyRequestTimeForm';
 export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';

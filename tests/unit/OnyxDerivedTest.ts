@@ -6,26 +6,83 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 const accountID = 2;
 const conciergeChatReport = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
 
 describe('OnyxDerived', () => {
-    beforeAll(async () => {
+    beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        await waitForBatchedUpdates();
+        initOnyxDerivedValues();
     });
 
     beforeEach(async () => {
         await Onyx.clear();
-        await waitForBatchedUpdates();
     });
 
-    it('Recomputes when dependent values change', async () => {
-        initOnyxDerivedValues();
-        let derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
-        expect(derivedConciergeChatReportID).toBeFalsy();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport.reportID}`, conciergeChatReport);
-        derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
-        expect(derivedConciergeChatReportID).toBe(conciergeChatReport.reportID);
+    describe('conciergeChatReportID', () => {
+        it('Recomputes when dependent values change', async () => {
+            let derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
+            expect(derivedConciergeChatReportID).toBeFalsy();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport.reportID}`, conciergeChatReport);
+            derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
+            expect(derivedConciergeChatReportID).toBe(conciergeChatReport.reportID);
+        });
+    });
+
+    describe('reportAttributes', () => {
+        const mockReport = {
+            reportID: `test_1`,
+            reportName: 'Test Report',
+            type: 'chat',
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            lastVisibleActionCreated: '2023-01-01T00:00:00.000Z',
+            lastMessageText: 'Test message',
+            lastActorAccountID: 1,
+            lastMessageHtml: '<p>Test message</p>',
+            policyID: '123',
+            ownerAccountID: 1,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('returns empty reports when dependencies are not set', async () => {
+            await waitForBatchedUpdates();
+            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            expect(derivedReportAttributes).toMatchObject({
+                reports: {},
+            });
+        });
+
+        it('computes report attributes when reports are set', async () => {
+            await waitForBatchedUpdates();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+
+            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            expect(derivedReportAttributes).toMatchObject({
+                reports: {
+                    [mockReport.reportID]: {
+                        reportName: mockReport.reportName,
+                    },
+                },
+            });
+        });
+
+        it('updates when locale changes', async () => {
+            await waitForBatchedUpdates();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
+
+            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            expect(derivedReportAttributes).toMatchObject({
+                locale: 'es',
+            });
+        });
     });
 });

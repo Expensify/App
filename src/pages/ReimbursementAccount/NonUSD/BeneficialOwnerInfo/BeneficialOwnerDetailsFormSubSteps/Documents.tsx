@@ -25,11 +25,11 @@ const {PROOF_OF_OWNERSHIP, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, COUNTRY, P
 function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
     const proofOfOwnershipInputID = `${PREFIX}_${ownerBeingModifiedID}_${PROOF_OF_OWNERSHIP}` as const;
     const copyOfIDInputID = `${PREFIX}_${ownerBeingModifiedID}_${COPY_OF_ID}` as const;
@@ -87,6 +87,14 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
         shouldSaveDraft: isEditing,
     });
 
+    const testForShouldHideFixErrorsAlert =
+        [
+            isDocumentNeededStatus.isProofOfOwnershipNeeded,
+            isDocumentNeededStatus.isCopyOfIDNeeded,
+            isDocumentNeededStatus.isProofOfAddressNeeded,
+            isDocumentNeededStatus.isCodiceFiscaleNeeded,
+        ].filter(Boolean).length <= 1;
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -95,6 +103,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            shouldHideFixErrorsAlert={testForShouldHideFixErrorsAlert}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('ownershipInfoStep.uploadDocuments')}</Text>
             <Text style={[styles.textSupporting, styles.mb5]}>{translate('ownershipInfoStep.pleaseUpload')}</Text>
@@ -122,7 +131,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfBeneficialOwnerDescription')}</Text>
                     {(isDocumentNeededStatus.isCopyOfIDNeeded || isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && (
-                        <View style={[styles.sectionDividerLine, styles.mh0]} />
+                        <View style={[styles.sectionDividerLine, styles.mv6]} />
                     )}
                 </View>
             )}
@@ -149,7 +158,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={copyOfIDInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
-                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mv6]} />}
                 </View>
             )}
 
@@ -175,7 +184,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={addressProofInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
-                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mv6]} />}
                 </View>
             )}
 

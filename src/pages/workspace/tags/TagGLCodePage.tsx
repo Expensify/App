@@ -78,7 +78,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={TagGLCodePage.displayName}
                 shouldEnableMaxHeight
@@ -94,6 +94,8 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         ref={inputCallbackRef}

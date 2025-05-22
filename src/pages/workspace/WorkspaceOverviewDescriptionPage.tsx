@@ -66,8 +66,8 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={WorkspaceOverviewDescriptionPage.displayName}
             >
                 <HeaderWithBackButton
@@ -85,6 +85,8 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                     onSubmit={submit}
                     validate={validate}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

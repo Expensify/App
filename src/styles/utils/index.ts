@@ -14,6 +14,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type Nullable from '@src/types/utils/Nullable';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
@@ -31,8 +32,8 @@ import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import getSearchBottomTabHeaderStyles from './searchBottomTabHeaderStyles.ts';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
+import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -97,7 +98,7 @@ const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.XLARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
 };
@@ -110,12 +111,13 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
-    [CONST.AVATAR_SIZE.XLARGE]: variables.avatarSizeXLarge,
+    [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
     [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
+    [CONST.AVATAR_SIZE.LARGE_NORMAL]: variables.avatarSizeLargeNormal,
 };
 
 const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -138,7 +140,7 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SMALL]: 2,
     [CONST.AVATAR_SIZE.SMALLER]: 2,
     [CONST.AVATAR_SIZE.LARGE]: 4,
-    [CONST.AVATAR_SIZE.XLARGE]: 4,
+    [CONST.AVATAR_SIZE.X_LARGE]: 4,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
 };
@@ -244,7 +246,7 @@ function getAvatarExtraFontSizeStyle(size: AvatarSizeName): TextStyle {
 }
 
 /**
- * Get Bordersize of Avatar based on avatar size
+ * Get border size of Avatar based on avatar size
  */
 function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
     return {
@@ -473,7 +475,7 @@ function getTextColorStyle(color: string): TextColorStyle {
 /**
  * Returns a style with the specified borderColor
  */
-function getBorderColorStyle(borderColor: string): ViewStyle {
+function getBorderColorStyle(borderColor: ColorValue): ViewStyle {
     return {
         borderColor,
     };
@@ -589,14 +591,7 @@ type ModalPaddingStylesParams = {
     shouldAddTopSafeAreaMargin: boolean;
     shouldAddBottomSafeAreaPadding: boolean;
     shouldAddTopSafeAreaPadding: boolean;
-    safeAreaPaddingTop: number;
-    safeAreaPaddingBottom: number;
-    safeAreaPaddingLeft: number;
-    safeAreaPaddingRight: number;
-    modalContainerStyleMarginTop: MarginPaddingValue;
-    modalContainerStyleMarginBottom: MarginPaddingValue;
-    modalContainerStylePaddingTop: MarginPaddingValue;
-    modalContainerStylePaddingBottom: MarginPaddingValue;
+    modalContainerStyle: ViewStyle;
     insets: EdgeInsets;
 };
 
@@ -605,24 +600,19 @@ function getModalPaddingStyles({
     shouldAddTopSafeAreaMargin,
     shouldAddBottomSafeAreaPadding,
     shouldAddTopSafeAreaPadding,
-    safeAreaPaddingTop,
-    safeAreaPaddingBottom,
-    safeAreaPaddingLeft,
-    safeAreaPaddingRight,
-    modalContainerStyleMarginTop,
-    modalContainerStyleMarginBottom,
-    modalContainerStylePaddingTop,
-    modalContainerStylePaddingBottom,
+    modalContainerStyle,
     insets,
 }: ModalPaddingStylesParams): ViewStyle {
+    const {paddingTop: safeAreaPaddingTop, paddingBottom: safeAreaPaddingBottom, paddingLeft: safeAreaPaddingLeft, paddingRight: safeAreaPaddingRight} = getPlatformSafeAreaPadding(insets);
+
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStylePaddingTop === 'number' ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStyle.paddingTop === 'number' ? modalContainerStyle.paddingTop ?? 0 : safeAreaPaddingBottom;
     return {
-        marginTop: getCombinedSpacing(modalContainerStyleMarginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
-        marginBottom: getCombinedSpacing(modalContainerStyleMarginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
-        paddingTop: getCombinedSpacing(modalContainerStylePaddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
-        paddingBottom: getCombinedSpacing(modalContainerStylePaddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
+        marginTop: getCombinedSpacing(modalContainerStyle.marginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
+        marginBottom: getCombinedSpacing(modalContainerStyle.marginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
+        paddingTop: getCombinedSpacing(modalContainerStyle.paddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
+        paddingBottom: getCombinedSpacing(modalContainerStyle.paddingBottom, safeAreaPaddingBottom, shouldAddBottomSafeAreaPadding),
         paddingLeft: safeAreaPaddingLeft ?? 0,
         paddingRight: safeAreaPaddingRight ?? 0,
     };
@@ -705,11 +695,20 @@ function getPaddingRight(paddingRight: number): ViewStyle {
 }
 
 /**
+ * Get variable padding-bottom as style
+ */
+function getPaddingBottom(paddingBottom: number): ViewStyle {
+    return {
+        paddingBottom,
+    };
+}
+
+/**
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
-    const heightsIphonesWithNotches = [812, 896, 844, 926];
-    return heightsIphonesWithNotches.includes(windowHeight) || heightsIphonesWithNotches.includes(windowWidth);
+    const heightsIPhonesWithNotches = [812, 896, 844, 926];
+    return heightsIPhonesWithNotches.includes(windowHeight) || heightsIPhonesWithNotches.includes(windowWidth);
 }
 
 /**
@@ -999,11 +998,22 @@ function getWrappingStyle(isExtraSmallScreenWidth: boolean): ViewStyle {
 }
 
 /**
- * Returns the text container styles for menu items depending on if the menu item container a small avatar
+ * Returns the text container styles for menu items depending on if the menu item container is in compact mode or not
  */
-function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): ViewStyle {
+function getMenuItemTextContainerStyle(compactMode: boolean): ViewStyle {
     return {
-        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
+        minHeight: compactMode ? 20 : variables.componentSizeNormal,
+    };
+}
+
+/**
+ * Returns the style for a menu item's icon based on of the container is in compact mode or not
+ */
+function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
+    return {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: compactMode ? 20 : variables.componentSizeNormal,
     };
 }
 
@@ -1026,7 +1036,7 @@ function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
 }
 
 /**
- * Returns style object for the dropbutton height
+ * Returns style object for the drop button height
  */
 function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
     if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
@@ -1201,6 +1211,7 @@ const staticStyleUtils = {
     getBackgroundColorWithOpacityStyle,
     getPaddingLeft,
     getPaddingRight,
+    getPaddingBottom,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1230,6 +1241,7 @@ const staticStyleUtils = {
     getFontSizeStyle,
     getLineHeightStyle,
     getMenuItemTextContainerStyle,
+    getMenuItemIconStyle,
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
@@ -1250,7 +1262,7 @@ const staticStyleUtils = {
     getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
-    getSearchBottomTabHeaderStyles,
+    getSearchPageNarrowHeaderStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
@@ -1322,9 +1334,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /*
      * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
      */
-    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number, marginSide?: 'left' | 'right'): ViewStyle => {
         if (!!width && !!extraSpace) {
-            return {marginRight: -extraSpace, width: width + extraSpace};
+            const marginKey = marginSide === 'left' ? 'marginLeft' : 'marginRight';
+            return {[marginKey]: -extraSpace, width: width + extraSpace};
         }
         return {width};
     },
@@ -1451,8 +1464,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: theme.componentBG} : {};
 
         return {
-            styleForAM: [styles.timePickerWidth100, computedStyleForAM],
-            styleForPM: [styles.timePickerWidth100, computedStyleForPM],
+            styleForAM: [styles.timePickerWidth72, computedStyleForAM],
+            styleForPM: [styles.timePickerWidth72, computedStyleForPM],
         };
     },
 
@@ -1632,6 +1645,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
+            case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
+            case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            case CONST.SEARCH.TABLE_COLUMNS.IN:
                 columnWidth = styles.flex1;
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
@@ -1768,6 +1785,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
+    getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
+        keys.reduce((styleObj: Nullable<K>, key) => {
+            // eslint-disable-next-line no-param-reassign
+            styleObj[key] = null;
+            return styleObj;
+        }, {} as Nullable<K>) as K,
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

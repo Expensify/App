@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -19,17 +19,19 @@ import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
+import {isSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidAddress} from '@libs/ValidationUtils';
+import variables from '@styles/variables';
 import {removeWaypoint, saveWaypoint} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {RecentWaypoint, Transaction} from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -38,7 +40,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
 // that the google autocomplete component expects for it's "predefined places" feature.
-function recentWaypointsSelector(waypoints: OnyxTypes.RecentWaypoint[] = []) {
+function recentWaypointsSelector(waypoints: RecentWaypoint[] = []) {
     return waypoints
         .slice(0, CONST.RECENT_WAYPOINTS_NUMBER)
         .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
@@ -55,7 +57,7 @@ function recentWaypointsSelector(waypoints: OnyxTypes.RecentWaypoint[] = []) {
 }
 
 type IOURequestStepWaypointProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transaction: OnyxEntry<Transaction>;
 };
 
 function IOURequestStepWaypoint({
@@ -78,9 +80,10 @@ function IOURequestStepWaypoint({
     const currentWaypoint = allWaypoints[`waypoint${pageIndex}`] ?? {};
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
+    const [caretHidden, setCaretHidden] = useState(false);
 
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector});
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector, canBeMissing: true});
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -169,6 +172,24 @@ function IOURequestStepWaypoint({
         goBack();
     };
 
+    const onScroll = useCallback(() => {
+        if (!isSafari()) {
+            return;
+        }
+        // eslint-disable-next-line react-compiler/react-compiler
+        textInput.current?.measureInWindow((x, y) => {
+            if (y < variables.contentHeaderHeight) {
+                setCaretHidden(true);
+            } else {
+                setCaretHidden(false);
+            }
+        });
+    }, []);
+
+    const resetCaretHiddenValue = useCallback(() => {
+        setCaretHidden(false);
+    }, []);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -218,6 +239,8 @@ function IOURequestStepWaypoint({
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
+                    shouldHideFixErrorsAlert
+                    onScroll={onScroll}
                 >
                     <View>
                         <InputWrapperWithRef
@@ -247,6 +270,8 @@ function IOURequestStepWaypoint({
                             }}
                             predefinedPlaces={recentWaypoints}
                             resultTypes=""
+                            caretHidden={caretHidden}
+                            onValueChange={resetCaretHiddenValue}
                         />
                     </View>
                 </FormProvider>

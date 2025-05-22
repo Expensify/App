@@ -75,7 +75,7 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate) || isEmptyObject(selectedSubrate)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={EditPerDiemSubratePage.displayName}
                 shouldEnableMaxHeight
@@ -91,6 +91,8 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         ref={inputCallbackRef}

@@ -20,7 +20,7 @@ type BaseHTMLEngineProviderProps = ChildrenProps & {
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
-// Beware that each prop should be referentialy stable between renders to avoid
+// Beware that each prop should be referentially stable between renders to avoid
 // costly invalidations and commits.
 function BaseHTMLEngineProvider({textSelectable = false, children, enableExperimentalBRCollapsing = false}: BaseHTMLEngineProviderProps) {
     const styles = useThemeStyles();
@@ -48,6 +48,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            rbr: HTMLElementModel.fromCustomModel({
+                tagName: 'rbr',
+                mixedUAStyles: {...styles.formError, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
@@ -62,6 +67,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'comment',
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
+                        if (tnode.attributes.center === undefined) {
+                            return {whiteSpace: 'pre'};
+                        }
                         return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
@@ -91,7 +99,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             h1: HTMLElementModel.fromCustomModel({
                 tagName: 'h1',
                 getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.h1),
-                contentModel: HTMLContentModel.textual,
+                contentModel: HTMLContentModel.block,
             }),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
@@ -119,9 +127,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.isemojisonly === undefined) {
-                        return;
+                        return isChildOfTaskTitle(tnode as TNode) ? {} : styles.blockquote;
                     }
-                    return styles.onlyEmojisTextLineHeight;
+                    return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
         }),
@@ -141,13 +149,14 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.em,
             styles.strong,
             styles.h1,
+            styles.blockquote,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps: TextProps = useMemo(() => ({selectable: textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [textSelectable]);
-    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
+    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.mw100]};
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}

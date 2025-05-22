@@ -40,8 +40,8 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
 
     const initialDiscountInfo = getEarlyDiscountInfo();
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
@@ -86,7 +86,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
                 {GuideBookingButton}
                 <Button
                     success
-                    style={shouldUseNarrowLayout ? styles.flex1 : styles.mr2}
+                    style={shouldUseNarrowLayout ? styles.earlyDiscountButton : styles.mr2}
                     text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                 />
@@ -101,7 +101,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         styles.flexRow,
         styles.gap2,
         styles.alignItemsCenter,
-        styles.flex1,
+        styles.earlyDiscountButton,
         styles.mr2,
         TalkToSalesButton,
         GuideBookingButton,

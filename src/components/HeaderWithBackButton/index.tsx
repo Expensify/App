@@ -8,7 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
+import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -72,6 +72,7 @@ function HeaderWithBackButton({
     progressBarPercentage,
     style,
     subTitleLink = '',
+    openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -95,13 +96,13 @@ function HeaderWithBackButton({
                 </>
             );
         }
-
         if (shouldShowReportAvatarWithDisplay) {
             return (
                 <AvatarWithDisplayName
                     report={report}
                     policy={policy}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                    openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
             );
         }
@@ -134,6 +135,7 @@ function HeaderWithBackButton({
         title,
         titleColor,
         translate,
+        openParentReportInCurrentTab,
     ]);
 
     return (
@@ -143,10 +145,10 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarDesktopHeight,
+                shouldUseHeadlineHeader && styles.headerBarHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 // progressBarPercentage can be 0 which would
-                // be falsey, hence using !== undefined explicitly
+                // be falsy, hence using !== undefined explicitly
                 progressBarPercentage !== undefined && styles.pl0,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFillObject,

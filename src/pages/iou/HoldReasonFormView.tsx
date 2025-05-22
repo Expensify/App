@@ -48,6 +48,7 @@ function HoldReasonFormView({backTo, validate, onSubmit}: HoldReasonFormViewProp
                 onSubmit={onSubmit}
                 validate={validate}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <Text style={styles.mb6}>{translate('iou.explainHold')}</Text>
                 <View>
