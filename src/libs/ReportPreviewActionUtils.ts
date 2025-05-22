@@ -101,7 +101,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessing;
     const isApproved = isReportApproved({report}) || isSubmittedWithoutApprovalsEnabled;
     const isClosed = isClosedReport(report);
-    const isReportFinished = (isApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isClosed;
+    const isReportFinished = (isApproved && !report.isWaitingOnBankAccount) || isClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isReimbursed = isSettled(report);
 
