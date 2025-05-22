@@ -73,8 +73,8 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const welcomeNote = useMemo(() => translate('workspace.common.welcomeNote'), [translate]);
 
     const excludedUsers = useMemo(() => {
-        const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvites.reduce((acc, login) => {
+        const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
+        return ineligibleInvitees.reduce((acc, login) => {
             acc[login] = true;
             return acc;
         }, {} as Record<string, boolean>);
@@ -118,7 +118,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
         const userToInvite = inviteOptions.userToInvite;
 
-        // Only add the user to the invites list if it is valid
+        // Only add the user to the invitees list if it is valid
         if (typeof userToInvite?.accountID === 'number') {
             newUsersToInviteDict[userToInvite.accountID] = userToInvite;
         }
@@ -175,9 +175,10 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         });
 
         // Filtering out selected users from the search results
-        const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsWithoutSelected = Object.values(personalDetails).filter(({login}) => !selectedLogins.some((selectedLogin) => selectedLogin === login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => formatMemberForList(item));
+        const selectedLoginsSet = new Set(selectedOptions.map(({login}) => login));
+        const personalDetailsFormatted = Object.values(personalDetails)
+            .filter(({login}) => !selectedLoginsSet.has(login ?? ''))
+            .map(formatMemberForList);
 
         sectionsArr.push({
             title: translate('common.contacts'),
@@ -186,7 +187,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         });
 
         Object.values(usersToInvite).forEach((userToInvite) => {
-            const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === userToInvite.login);
+            const hasUnselectedUserToInvite = !selectedLoginsSet.has(userToInvite.login ?? '');
 
             if (hasUnselectedUserToInvite) {
                 sectionsArr.push({
