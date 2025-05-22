@@ -2759,5 +2759,17 @@ describe('ReportUtils', () => {
             };
             expect(isReportOutstanding(report, policy.id)).toBe(true);
         });
+        it('should return false for archived report', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+            expect(isReportOutstanding(report, policy.id)).toBe(false);
+        })
     });
 });
