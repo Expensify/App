@@ -4268,6 +4268,12 @@ const translations = {
             approverDescription: 'Aprobador',
             importTags: 'Importar categorías',
             importTagsSupportingText: 'Clasifica tus gastos con un tipo de etiqueta o con varios.',
+            importMultiLevelTagsSupportingText: `Aquí tienes una vista previa de tus etiquetas. Si todo se ve bien, haz clic abajo para importarlas.`,
+            importMultiLevelTags: {
+                firstRowTitle: 'La primera fila es el título de cada lista de etiquetas',
+                independentTags: 'Estas son etiquetas independientes',
+                glAdjacentColumn: 'Hay un código GL en la columna adyacente',
+            },            
             tagLevel: {
                 singleLevel: 'Nivel único de etiquetas',
                 multiLevel: 'Etiquetas multinivel',

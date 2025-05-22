@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {downloadMultiLevelIndependentTagsCSV, downloadTagsCSV, TogglePolicyTags} from '@libs/actions/Policy/Tag';
+import {downloadMultiLevelIndependentTagsCSV, downloadTagsCSV, cleanPolicyTags, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -33,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 
 type ImportTagsOptionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS>;
 
@@ -85,16 +86,19 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     title={translate('workspace.tags.importTags')}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{translate('workspace.tags.importTagsSupportingText')}</Text>
+                <FullPageOfflineBlockingView>
+                <Text style={[styles.ph5, styles.textSupporting, styles.textNormal]}>{translate('workspace.tags.importTagsSupportingText')}</Text>
 
                 <MenuItem
                     title={translate('workspace.tags.tagLevel.singleLevel')}
                     icon={Tag}
                     shouldShowRightIcon
                     onPress={() => {
+                        setImportedSpreadsheetIsImportingMultiLevelTags(false);
                         if (hasVisibleTags) {
                             setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
                         } else {
+                            cleanPolicyTags(policyID);
                             Navigation.navigate(
                                 isQuickSettingsFlow
                                     ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
@@ -113,9 +117,11 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiLevelTags.alias, Navigation.getActiveRoute()));
                             return;
                         }
+                        setImportedSpreadsheetIsImportingMultiLevelTags(true);
                         if (hasVisibleTags) {
                             setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
                         } else {
+                            cleanPolicyTags(policyID);
                             Navigation.navigate(
                                 isQuickSettingsFlow
                                     ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
@@ -124,6 +130,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         }
                     }}
                 />
+                </FullPageOfflineBlockingView>
             </ScreenWrapper>
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
@@ -137,7 +144,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
             <ConfirmModal
                 isVisible={isSwitchSingleToMultipleLevelTagWarningModalVisible}
                 onConfirm={() => {
-                    TogglePolicyTags(policyID);
+                    cleanPolicyTags(policyID);
                     setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
                     Navigation.navigate(
                         isQuickSettingsFlow
@@ -185,6 +192,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 danger
                 cancelText={translate('common.cancel')}
                 onCancel={() => {
+                    setImportedSpreadsheetIsImportingMultiLevelTags(false);
                     setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
                 }}
             />

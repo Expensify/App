@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
+    ImportMultiLevelTagsParams,
     OpenPolicyTagsPageParams,
     RenamePolicyTagListParams,
     RenamePolicyTagsParams,
@@ -28,7 +29,7 @@ import type {PolicyTagList} from '@pages/workspace/tags/types';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -685,8 +686,47 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     }
 }
 
-function TogglePolicyTags(policyID: string) {
-    API.write(WRITE_COMMANDS.TOGGLE_POLICY_TAGS, {policyID});
+function cleanPolicyTags(policyID: string) {
+    // We do not have any optimistic data or success data for this command as this action cannot be done offline
+    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
+}
+
+function setImportedSpreadsheetIsImportingMultiLevelTags(isImportingMultiLevelTags: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingMultiLevelTags});
+}
+
+function setImportedSpreadsheetIsImportingIndependentMultiLevelTags(isImportingIndependentMultiLevelTags: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingIndependentMultiLevelTags});
+}
+
+function setImportedSpreadsheetIsFirstLineHeader(isFirstLineHeader: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isFirstLineHeader});
+}
+
+function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
+}
+
+function setImportedSpreadsheetFile(file: File) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {file});
+}
+
+
+function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
+        if(!spreadsheet) {
+        return;
+    }
+
+    const parameters: ImportMultiLevelTagsParams = {
+            policyID,
+            isFirstLineHeader: spreadsheet?.isFirstLineHeader,
+            isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
+            isGLAdjacent: spreadsheet?.isGLAdjacent,
+            file: spreadsheet?.file,
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters)
+
 }
 function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
     const newName = policyTagListName.newName;
@@ -1070,5 +1110,11 @@ export {
     downloadTagsCSV,
     getPolicyTagsData,
     downloadMultiLevelIndependentTagsCSV,
-    TogglePolicyTags,
+    cleanPolicyTags,
+    setImportedSpreadsheetIsImportingMultiLevelTags,
+    setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
+    setImportedSpreadsheetIsFirstLineHeader,
+    setImportedSpreadsheetIsGLAdjacent,
+    setImportedSpreadsheetFile,
+    importMultiLevelTags,
 };

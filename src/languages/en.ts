@@ -4223,6 +4223,12 @@ const translations = {
             approverDescription: 'Approver',
             importTags: 'Import tags',
             importTagsSupportingText: 'Code your expenses with one type of tag or many.',
+            importMultiLevelTagsSupportingText: `Here's a preview of your tags. If everything looks good, click below to import them.`,
+            importMultiLevelTags: {
+                firstRowTitle: 'The first row is the title for each tag list',
+                independentTags: 'These are independent tags',
+                glAdjacentColumn: 'There is a GL code in the adjacent column',
+            },
             tagLevel: {
                 singleLevel: 'Single level of tags',
                 multiLevel: 'Multi-level tags',

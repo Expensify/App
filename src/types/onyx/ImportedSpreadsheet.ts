@@ -20,6 +20,22 @@ type ImportedSpreadsheet = {
 
     /** Whether the first row of the spreadsheet contains headers */
     containsHeader: boolean;
+
+    /** Whether the spreadsheet is importing multi-level tags */
+    isImportingMultiLevelTags: boolean;
+
+    /** Whether the spreadsheet is importing independent multi-level tags */
+    isImportingIndependentMultiLevelTags: boolean;
+
+    /** Whether the GL code is in the adjacent column */
+    isGLAdjacent: boolean;
+
+    /** Whether the first line is the header */
+    /** Whether the first line is the header */
+    isFirstLineHeader: boolean;
+
+    /** The imported file */
+    file: File;
 };
 
 export default ImportedSpreadsheet;

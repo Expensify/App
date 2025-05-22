@@ -24,6 +24,7 @@ import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
+import { setImportedSpreadsheetFile } from '@libs/actions/Policy/Tag';
 
 type ImportSpreadsheetProps = {
     // The route to navigate to when the back button is pressed.
@@ -41,7 +42,6 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use different copies depending on the screen size
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -77,6 +77,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
         if (!validateFile(file)) {
             return;
         }
+        setImportedSpreadsheetFile({...file})
         let fileURI = file.uri ?? URL.createObjectURL(file);
         if (!fileURI) {
             return;

@@ -293,6 +293,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
         policyID: string;
         backTo?: Routes;
