@@ -57,6 +57,26 @@ This guide provides specific instructions for AI agents working on the Expensify
 2. For web development, use the exposed Onyx object in the console
 3. For performance issues, use the Release Profiler as described in the README
 
+### Key NPM Scripts
+1. **Development**
+   - `npm run web` - Run the development web app. Be sure to run this in the background.
+
+2. **Code Quality**
+   - `npm run prettier` - Format code using Prettier
+   - `npm run lint` - Run ESLint on all files, not recommended because it takes a long time.
+   - `npm run lint-changed` - Run ESLint only on changed files
+   - `npm run type-check` - Run TypeScript type checking
+
+3. **Testing**
+   - `npm run test` - Run all Jest unit tests
+   - `npm run test -- <file-path>` - Run tests for a specific file. For example:
+     ```bash
+     npm run test -- src/components/Button.test.js
+     ```
+   - `npm run test -- -t "test name"` - Run tests matching a specific name pattern
+
+   **Recommendation**: When working on a specific feature or component, run tests only for the relevant files to speed up the development cycle. This is especially helpful when making frequent changes and wanting quick feedback.
+
 ## Best Practices
 
 1. **Code Style**
