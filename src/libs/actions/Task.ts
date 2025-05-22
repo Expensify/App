@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {IntroSelectedTask} from '@src/types/onyx/IntroSelected';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -1275,7 +1276,7 @@ function clearTaskErrors(reportID: string | undefined) {
     });
 }
 
-function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected): OnyxData {
+function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData {
     const taskReportID = introSelected?.[taskName];
     const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
     if (taskReportID && canActionTask(taskReport, currentUserAccountID)) {

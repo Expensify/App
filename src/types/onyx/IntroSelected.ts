@@ -1,6 +1,9 @@
 import type {OnboardingInvite} from '@src/CONST';
 import type {OnboardingPurpose} from './index';
 
+/** The tasks of IntroSelected model */
+type IntroSelectedTask = 'viewTour' | 'createWorkspace' | 'setupCategories';
+
 /** Model of onboarding */
 type IntroSelected = {
     /** The choice that the user selected in the engagement modal */
@@ -29,3 +32,4 @@ type IntroSelected = {
 };
 
 export default IntroSelected;
+export type {IntroSelectedTask};
