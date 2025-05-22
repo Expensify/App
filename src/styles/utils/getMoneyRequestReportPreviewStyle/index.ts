@@ -12,15 +12,17 @@ const componentsSpacing = {
 };
 
 const NEXT_TRANSACTION_PEEK = 32;
+const CAROUSEL_MAX_WIDTH_WIDE = 680;
 const TRANSACTION_WIDTH_WIDE = CONST.REPORT.TRANSACTION_PREVIEW_WIDTH_WIDE;
+const CAROUSEL_ONE_SIDE_PADDING = componentsSpacing.wrapperStyle.padding;
+const CAROUSEL_GAP = spacing.gap2.gap;
 
 const getPeek = (isSingleTransaction?: boolean) => {
-    return isSingleTransaction ? spacing.p4.padding : NEXT_TRANSACTION_PEEK;
+    return isSingleTransaction ? CAROUSEL_ONE_SIDE_PADDING : NEXT_TRANSACTION_PEEK;
 };
 
 const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
-    const peek = getPeek(isSingleTransaction);
-    const transactionPreviewWidth = currentWidth - spacing.p4.padding - peek;
+    const transactionPreviewWidth = currentWidth - CAROUSEL_ONE_SIDE_PADDING - getPeek(isSingleTransaction);
     return {
         transactionPreviewStyle: {width: transactionPreviewWidth, maxWidth: transactionPreviewWidth},
         componentStyle: [sizing.mw100, {width: '100%'}],
@@ -28,13 +30,14 @@ const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
     };
 };
 
-const desktopStyle = (currentWrapperWidth: number, isSingleTransaction?: boolean) => {
-    const peek = getPeek(isSingleTransaction);
-    const minimalWrapperWidth = TRANSACTION_WIDTH_WIDE + spacing.p4.padding + getPeek(isSingleTransaction);
-    const transactionPreviewWidth = currentWrapperWidth - spacing.p4.padding - peek;
+const desktopStyle = (currentWrapperWidth: number, isSingleTransaction?: boolean, transactionsCount?: number) => {
+    const minimalWrapperWidth = TRANSACTION_WIDTH_WIDE + CAROUSEL_ONE_SIDE_PADDING + getPeek(isSingleTransaction);
+    const transactionPreviewWidth = currentWrapperWidth - CAROUSEL_ONE_SIDE_PADDING - getPeek(isSingleTransaction);
+    const spaceForTransactions = Math.max(transactionsCount ?? 1, 1);
+    const carouselExactMaxWidth = Math.min(minimalWrapperWidth + (TRANSACTION_WIDTH_WIDE + CAROUSEL_GAP) * (spaceForTransactions - 1), CAROUSEL_MAX_WIDTH_WIDE);
     return {
         transactionPreviewStyle: {width: currentWrapperWidth > minimalWrapperWidth ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth},
-        componentStyle: [{maxWidth: 'min(680px, 100%)'}, {width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'}],
+        componentStyle: [{maxWidth: `min(${carouselExactMaxWidth}px, 100%)`}, {width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'}],
         expenseCountVisible: transactionPreviewWidth >= TRANSACTION_WIDTH_WIDE,
     };
 };
@@ -43,10 +46,10 @@ const getMoneyRequestReportPreviewStyle = (
     shouldUseNarrowLayout: boolean,
     currentWidth?: number,
     currentWrapperWidth?: number,
-    isSingleTransaction?: boolean,
+    transactionsCount?: number,
 ): MoneyRequestReportPreviewStyleType => ({
     ...componentsSpacing,
-    ...(shouldUseNarrowLayout ? mobileStyle(currentWidth ?? 256, isSingleTransaction) : desktopStyle(currentWrapperWidth ?? 1000, isSingleTransaction)),
+    ...(shouldUseNarrowLayout ? mobileStyle(currentWidth ?? 256, transactionsCount === 1) : desktopStyle(currentWrapperWidth ?? 1000, transactionsCount === 1, transactionsCount)),
 });
 
 export default getMoneyRequestReportPreviewStyle;
