@@ -241,7 +241,7 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
 }
 
 function getPolicyNameByID(policyID: string): string {
-    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? policyID;
+    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '';
 }
 
 /**

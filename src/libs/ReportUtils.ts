@@ -4800,6 +4800,10 @@ function getReportNameInternal({
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
+        return getPolicyChangeMessage(parentReportAction);
+    }
+
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
