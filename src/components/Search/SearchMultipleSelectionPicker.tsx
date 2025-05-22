@@ -47,7 +47,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     }, [initiallySelectedItems]);
 
     const {sections, noResultsFound} = useMemo(() => {
-        const remainingItemsSection = items
+        const filteredAndSortedItems = items
             .filter((item) => item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
@@ -57,19 +57,19 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 value: item.value,
             }));
 
-        const isEmpty = !remainingItemsSection.length;
+        const hasNoMatches = filteredAndSortedItems.length === 0;
 
         return {
-            sections: isEmpty
+            sections: hasNoMatches
                 ? []
                 : [
                       {
                           title: pickerTitle,
-                          data: remainingItemsSection,
-                          shouldShow: remainingItemsSection.length > 0,
+                          data: filteredAndSortedItems,
+                          shouldShow: true,
                       },
                   ],
-            noResultsFound: isEmpty,
+            noResultsFound: hasNoMatches,
         };
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
 

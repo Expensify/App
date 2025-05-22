@@ -73,11 +73,13 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
 
+        const newSections: OptionsListUtils.Section[] = [];
+
+        // Format section from search
         const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(
             cleanSearchTerm,
             selectedOptions,
@@ -89,17 +91,26 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
 
         newSections.push(formattedResults.section);
 
-        const visibleReportsWhenSearchTermNonEmpty = chatOptions.recentReports.map((report) => (selectedReportIDs.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports.filter((report) => !selectedReportIDs.includes(report.reportID));
-        const reportsFiltered = cleanSearchTerm === '' ? visibleReportsWhenSearchTermEmpty : visibleReportsWhenSearchTermNonEmpty;
+        // Preserve original order of reports but flag if selected
+        const reportsToShow = chatOptions.recentReports
+            .filter((report) => {
+                if (!cleanSearchTerm) {
+                    return !selectedReportIDs.includes(report.reportID); // exclude selected if no search
+                }
+                return true; // include all if searching
+            })
+            .map((report) => {
+                return selectedReportIDs.includes(report.reportID) ? {...getSelectedOptionData(report), isSelected: true} : report;
+            });
 
         newSections.push({
             title: undefined,
-            data: reportsFiltered,
+            data: reportsToShow,
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
-        const areResultsFound = didScreenTransitionEnd && formattedResults.section.data.length === 0 && reportsFiltered.length === 0;
+        const areResultsFound = didScreenTransitionEnd && formattedResults.section.data.length === 0 && reportsToShow.length === 0;
+
         const message = areResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
