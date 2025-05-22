@@ -35,6 +35,17 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
     const theme = useTheme();
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
+    const containerStyle = [
+        styles.alignItemsCenter,
+        styles.justifyContentCenter,
+        styles.moneyRequestViewImage,
+        isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
+        isThumbnail && !isInMoneyRequestView && styles.w100,
+        isThumbnail && isInMoneyRequestView && styles.thumbnailImageContainerHighlight,
+        isInMoneyRequestView && styles.expenseViewImage,
+        hasError && styles.borderColorDanger,
+        shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
+    ];
 
     return (
         <Wrapper
@@ -43,16 +54,7 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
             onPress={onPress}
             disabled={disabled}
             disabledStyle={styles.cursorDefault}
-            style={[
-                styles.alignItemsCenter,
-                styles.justifyContentCenter,
-                styles.moneyRequestViewImage,
-                isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
-                isThumbnail && !isInMoneyRequestView && styles.w100,
-                isInMoneyRequestView && styles.expenseViewImage,
-                hasError && styles.borderColorDanger,
-                shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
-            ]}
+            style={containerStyle}
         >
             <View>
                 <Icon
