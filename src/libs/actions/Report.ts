@@ -4700,7 +4700,7 @@ function deleteAppReport(reportID: string | undefined) {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {reportID: '0'},
+                    value: {reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -4729,7 +4729,7 @@ function deleteAppReport(reportID: string | undefined) {
             originalMessage: {
                 // eslint-disable-next-line deprecation/deprecation
                 ...reportAction.originalMessage,
-                IOUReportID: '0',
+                IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 type: CONST.IOU.TYPE.TRACK,
             },
             reportActionID: newReportActionID,
