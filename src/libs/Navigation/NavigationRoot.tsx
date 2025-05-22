@@ -4,6 +4,7 @@ import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -26,8 +27,8 @@ import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import {saveWorkspacesTabPathToSessionStorage} from './helpers/getLastVisitedWorkspaceTabScreen';
 import {isWorkspacesTabScreenName} from './helpers/isNavigatorName';
+import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -74,6 +75,8 @@ function parseAndLogRoute(state: NavigationState) {
     Navigation.setIsNavigationReady();
     if (isWorkspacesTabScreenName(state.routes.at(-1)?.name)) {
         saveWorkspacesTabPathToSessionStorage(currentPath);
+    } else if (state.routes.at(-1)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+        saveSettingsTabPathToSessionStorage(currentPath);
     }
 
     // Fullstory Page navigation tracking
@@ -105,9 +108,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const previousAuthenticated = usePrevious(authenticated);
 
+    const {canUsePrivateDomainOnboarding} = usePermissions();
+
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) && lastVisitedPath && isOnboardingCompleted && authenticated) {
+        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && lastVisitedPath && isOnboardingCompleted && authenticated) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
+            });
+
             return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 
@@ -125,7 +134,14 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
+            return getAdaptedStateFromPath(
+                getOnboardingInitialPath({
+                    canUsePrivateDomainOnboarding,
+                    isUserFromPublicDomain: !!account.isFromPublicDomain,
+                    hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
+                }),
+                linkingConfig.config,
+            );
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.

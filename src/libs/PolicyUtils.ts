@@ -32,7 +32,7 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {hasSynchronizationErrorMessage} from './actions/connections';
+import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
@@ -425,8 +425,20 @@ function escapeTagName(tag: string) {
 /**
  * Gets a count of enabled tags of a policy
  */
-function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
+function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
+    if (!policyTags) {
+        return 0;
+    }
     return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
+}
+/**
+ * Gets count of required tag lists of a policy
+ */
+function getCountOfRequiredTagLists(policyTagLists: OnyxEntry<PolicyTagLists>): number {
+    if (!policyTagLists) {
+        return 0;
+    }
+    return Object.values(policyTagLists).filter((tagList) => tagList.required).length;
 }
 
 /**
@@ -485,7 +497,7 @@ function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy> | SearchPolicy)
  *
  * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
  */
-function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
+function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy> | SearchPolicy): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
     if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE) {
         return policy?.autoReportingFrequency;
     }
@@ -1156,6 +1168,12 @@ function getConnectedIntegration(policy: Policy | undefined, accountingIntegrati
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
 
+function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
+        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
+    );
+}
+
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
     return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
@@ -1231,10 +1249,6 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
 
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
-}
-
-function getAllPolicies() {
-    return Object.values(allPolicies ?? {}).filter((p) => !!p);
 }
 
 function getActivePolicy(): OnyxEntry<Policy> {
@@ -1409,6 +1423,7 @@ export {
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
+    getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
@@ -1525,7 +1540,6 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
-    getAllPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
@@ -1541,6 +1555,7 @@ export {
     getManagerAccountID,
     isPreferredExporter,
     areAllGroupPoliciesExpenseChatDisabled,
+    getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
     getPolicyRole,
