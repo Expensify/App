@@ -1,6 +1,7 @@
+import {LegendList} from '@legendapp/list';
+import type {LegendListProps, LegendListRenderItemProps} from '@legendapp/list';
 import {useIsFocused} from '@react-navigation/native';
-import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
-import {FlashList} from '@shopify/flash-list';
+import type {FlashListProps} from '@shopify/flash-list';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -33,7 +34,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const AnimatedFlashList = Animated.createAnimatedComponent<FlashListProps<SearchListItem>>(FlashList);
+const AnimatedLegendList = Animated.createAnimatedComponent<LegendListProps<SearchListItem>>(LegendList);
 
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
@@ -116,7 +117,7 @@ function SearchList(
     }, 0);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
-    const listRef = useRef<FlashList<SearchListItem>>(null);
+    const listRef = useRef(null);
     const hasKeyBeenPressed = useRef(false);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -301,7 +302,7 @@ function SearchList(
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
 
     const renderItem = useCallback(
-        ({item, index}: ListRenderItemInfo<SearchListItem>) => {
+        ({item, index}: LegendListRenderItemProps<SearchListItem>) => {
             const isItemFocused = focusedIndex === index;
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
@@ -388,7 +389,7 @@ function SearchList(
                 </View>
             )}
 
-            <AnimatedFlashList
+            <AnimatedLegendList
                 data={data}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => item.keyForList ?? `${index}`}
@@ -403,6 +404,7 @@ function SearchList(
                 removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
+                recycleItems
             />
             <Modal
                 isVisible={isModalVisible}
