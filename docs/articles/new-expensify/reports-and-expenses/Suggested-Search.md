@@ -98,7 +98,7 @@ To make reports easier to find, New Expensify introduces:
 - See a celebratory message (e.g., “All reports paid!”) when cleared.
 
 ### Admins (Exports)
-- See **Export** for reports eligible for accounting export (e.g., QBO).
+- See **Export** for reports eligible for accounting export (e.g., to QuickBooks Online).
 - Filter uses `exported:never` to show only unexported reports.
 
 ---
