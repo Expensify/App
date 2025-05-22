@@ -1013,6 +1013,17 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
 }
 
 /**
+ * Helper for filtering out Report Actions that are either:
+ * - ReportPreview with shouldShow set to false and without a pending action
+ * - Money request with parent action deleted
+ */
+function getFilteredReportActionsForReportView(actions: ReportAction[]) {
+    const isDeletedMoneyRequest = (action: ReportAction) => isDeletedParentAction(action) && isMoneyRequestAction(action);
+    const isHiddenReportPreviewWithoutPendingAction = (action: ReportAction) => isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
+    return actions.filter((action) => !isDeletedMoneyRequest(action) && !isHiddenReportPreviewWithoutPendingAction(action));
+}
+
+/**
  * This method returns the report actions that are ready for display in the ReportActionsView.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
@@ -1240,8 +1251,8 @@ function getOneTransactionThreadReportID(
             iouRequestTypesSet.has(actionType) &&
             action.childReportID &&
             // Include deleted IOU reportActions if:
-            // - they have an assocaited IOU transaction ID or
-            // - they have visibile childActions (like comments) that we'd want to display
+            // - they have an associated IOU transaction ID or
+            // - they have visible childActions (like comments) that we'd want to display
             // - the action is pending deletion and the user is offline
             (!!originalMessage?.IOUTransactionID ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1585,6 +1596,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
+    if (isConciergeCategoryOptions(action)) {
+        const message = getReportActionMessageText(action);
+        return [{text: message, html: message, type: 'COMMENT'}];
+    }
+
     const actionMessage = action.previousMessage ?? action.message;
     if (Array.isArray(actionMessage)) {
         return actionMessage.filter((item): item is Message => !!item);
@@ -1801,7 +1817,7 @@ function getExportIntegrationMessageHTML(reportAction: OnyxEntry<ReportAction>):
 }
 
 function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportAction>): Array<{text: string; url: string}> {
-    if (reportAction?.actionName !== 'EXPORTINTEGRATION') {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         throw Error(`received wrong action type. actionName: ${reportAction?.actionName}`);
     }
 
@@ -1841,14 +1857,25 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
-
-    if (reimbursableUrls.length === 1) {
+    if (reimbursableUrls.length || nonReimbursableUrls.length) {
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
+            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionThree'),
+            url: '',
+        });
+    }
+    if (reimbursableUrls.length === 1) {
+        const shouldAddPeriod = nonReimbursableUrls.length === 0;
+        result.push({
+            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
             url: reimbursableUrls.at(0) ?? '',
         });
     }
-
+    if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
+        result.push({
+            text: translateLocal('common.and'),
+            url: '',
+        });
+    }
     if (nonReimbursableUrls.length) {
         const text = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
         let url = '';
@@ -2195,7 +2222,7 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action: ReportAction): string {
+function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action: ReportAction): string {
     const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
 
@@ -2537,6 +2564,7 @@ export {
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
+    getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
     getJoinRequestMessage,
@@ -2544,7 +2572,7 @@ export {
     getWorkspaceUpdateFieldMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
-    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,

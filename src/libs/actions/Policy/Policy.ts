@@ -1865,6 +1865,7 @@ function buildPolicyData(
                     address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
                 disabledFields: {defaultBillable: true},
@@ -1872,6 +1873,17 @@ function buildPolicyData(
                 originalFileName: file?.name,
                 ...optimisticMccGroupData.optimisticData,
                 requiresCategory: true,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN,
+                        pendingFields: {defaultValue: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, deletable: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        type: CONST.POLICY.DEFAULT_FIELD_LIST_TYPE,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        name: CONST.POLICY.DEFAULT_FIELD_LIST_NAME,
+                        fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
+                        deletable: true,
+                    },
+                },
             },
         },
         {
@@ -1951,8 +1963,17 @@ function buildPolicyData(
                     address: null,
                     description: null,
                     type: null,
+                    areReportFieldsEnabled: null,
                 },
                 ...optimisticMccGroupData.successData,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        pendingFields: {
+                            defaultValue: null,
+                            deletable: null,
+                        },
+                    },
+                },
             },
         },
         {
@@ -4132,7 +4153,7 @@ function updateCustomRules(policyID: string, customRules: string) {
 
 /**
  * Call the API to enable or disable the billable mode for the given policy
- * @param policyID - id of the policy to enable or disable the bilable mode
+ * @param policyID - id of the policy to enable or disable the billable mode
  * @param defaultBillable - whether the billable mode is enabled in the given policy
  */
 function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
@@ -4198,7 +4219,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
 
 /**
  * Call the API to disable the billable mode for the given policy
- * @param policyID - id of the policy to enable or disable the bilable mode
+ * @param policyID - id of the policy to enable or disable the billable mode
  */
 function disableWorkspaceBillableExpenses(policyID: string) {
     const policy = getPolicy(policyID);

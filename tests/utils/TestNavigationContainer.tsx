@@ -4,7 +4,13 @@ import React from 'react';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {AuthScreensParamList, ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {
+    AuthScreensParamList,
+    ReportsSplitNavigatorParamList,
+    SearchFullscreenNavigatorParamList,
+    SettingsSplitNavigatorParamList,
+    WorkspaceSplitNavigatorParamList,
+} from '@libs/Navigation/types';
 import createPlatformStackNavigator from '@navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -14,10 +20,38 @@ const RootStack = createRootStackNavigator<AuthScreensParamList>();
 const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
+const WorkspaceSplit = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
 const getEmptyComponent = () => jest.fn();
 
 type TestNavigationContainerProps = {initialState: InitialState};
+
+function TestWorkspaceSplitNavigator() {
+    return (
+        <WorkspaceSplit.Navigator
+            sidebarScreen={SCREENS.WORKSPACE.INITIAL}
+            defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
+            parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
+        >
+            <WorkspaceSplit.Screen
+                name={SCREENS.WORKSPACE.INITIAL}
+                getComponent={getEmptyComponent}
+            />
+            <WorkspaceSplit.Screen
+                name={SCREENS.WORKSPACE.PROFILE}
+                getComponent={getEmptyComponent}
+            />
+            <WorkspaceSplit.Screen
+                name={SCREENS.WORKSPACE.MEMBERS}
+                getComponent={getEmptyComponent}
+            />
+            <WorkspaceSplit.Screen
+                name={SCREENS.WORKSPACE.CATEGORIES}
+                getComponent={getEmptyComponent}
+            />
+        </WorkspaceSplit.Navigator>
+    );
+}
 
 function TestReportsSplitNavigator() {
     return (
@@ -94,6 +128,10 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
                     component={TestSettingsSplitNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
+                    component={TestWorkspaceSplitNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}

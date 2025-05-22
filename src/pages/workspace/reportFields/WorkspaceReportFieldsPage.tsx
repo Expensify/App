@@ -176,6 +176,7 @@ function WorkspaceReportFieldsPage({
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={Navigation.popToSidebar}
                 />
                 {isLoading && (
                     <ActivityIndicator

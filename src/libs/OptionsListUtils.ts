@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +23,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
+    PolicyTagLists,
     Report,
     ReportAction,
     ReportActions,
@@ -33,6 +35,7 @@ import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
+import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -45,7 +48,7 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
+import {canSendInvoiceFromWorkspace, getCountOfEnabledTagsOfList, getCountOfRequiredTagLists, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -67,6 +70,7 @@ import {
     isActionOfType,
     isClosedAction,
     isCreatedTaskReportAction,
+    isDeletedAction,
     isDeletedParentAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -92,19 +96,14 @@ import {
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
     getIcons,
-    getIOUApprovedMessage,
     getIOUForwardedMessage,
-    getIOUSubmittedMessage,
-    getIOUUnapprovedMessage,
     getMoneyRequestSpendBreakdown,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
-    getReportAutomaticallySubmittedMessage,
     getReportLastMessage,
     getReportName,
     getReportNotificationPreference,
@@ -779,19 +778,19 @@ function getLastMessageTextForReport(
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? getOriginalMessage(lastReportAction)?.harvesting ?? false : false;
         if (wasSubmittedViaHarvesting) {
-            lastMessageTextFromReport = getReportAutomaticallySubmittedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.automaticallySubmitted');
         } else {
-            lastMessageTextFromReport = getIOUSubmittedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.submitted');
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
-            lastMessageTextFromReport = getReportAutomaticallyApprovedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.automaticallyApproved');
         } else {
-            lastMessageTextFromReport = getIOUApprovedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
     } else if (isUnapprovedAction(lastReportAction)) {
-        lastMessageTextFromReport = getIOUUnapprovedMessage(lastReportAction);
+        lastMessageTextFromReport = translateLocal('iou.unapproved');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
@@ -829,11 +828,15 @@ function getLastMessageTextForReport(
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
-    if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+    if (
+        reportID &&
+        !isArchivedReport(reportNameValuePairs) &&
+        (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
+    ) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
 
-    // When the last report action has unkown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
+    // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
     // so we reconstruct the last message text of the report from the last report action.
     if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
         lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
@@ -1120,11 +1123,48 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
     return Object.keys(loginList ?? {}).some((login) => login.toLowerCase() === userDetailsLogin.toLowerCase());
 }
 
-/**
- * Calculates count of all enabled options
- */
-function getEnabledCategoriesCount(options: PolicyCategories): number {
-    return Object.values(options).filter((option) => option.enabled).length;
+function isDisablingOrDeletingLastEnabledCategory(
+    policy: Policy | undefined,
+    policyCategories: PolicyCategories | undefined,
+    selectedCategories: Array<PolicyCategory | undefined>,
+): boolean {
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
+
+    if (!enabledCategoriesCount) {
+        return false;
+    }
+
+    if (policy?.requiresCategory && selectedCategories.filter((selectedCategory) => selectedCategory?.enabled).length === enabledCategoriesCount) {
+        return true;
+    }
+
+    return false;
+}
+
+function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagList | undefined, selectedTags: Array<PolicyTag | undefined>): boolean {
+    const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagList?.tags);
+
+    if (!enabledTagsCount) {
+        return false;
+    }
+
+    if (policyTagList?.required && selectedTags.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
+        return true;
+    }
+    return false;
+}
+
+function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyTags: PolicyTagLists | undefined, selectedTagLists: Array<PolicyTagList | undefined>): boolean {
+    const requiredTagsCount = getCountOfRequiredTagLists(policyTags);
+
+    if (!requiredTagsCount) {
+        return false;
+    }
+
+    if (policy?.requiresTag && selectedTagLists.filter((selectedTagList) => selectedTagList?.required).length === requiredTagsCount) {
+        return true;
+    }
+    return false;
 }
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
@@ -2409,7 +2449,6 @@ export {
     shouldOptionShowTooltip,
     getLastActorDisplayName,
     getLastMessageTextForReport,
-    getEnabledCategoriesCount,
     hasEnabledOptions,
     sortAlphabetically,
     formatMemberForList,
@@ -2445,6 +2484,9 @@ export {
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
     shouldShowLastActorDisplayName,
+    isDisablingOrDeletingLastEnabledCategory,
+    isDisablingOrDeletingLastEnabledTag,
+    isMakingLastRequiredTagListOptional,
     processReport,
 };
 

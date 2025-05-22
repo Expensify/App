@@ -226,7 +226,7 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
 /**
  * Whether a string representation is an empty value
  *
- * @param value - string representantion
+ * @param value - string representation
  * @returns whether the value is an empty value
  */
 function isEmptyValue(value: string): boolean {
@@ -572,6 +572,14 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 data: 'object',
                 errors: 'object',
             });
+        case 'calendlyCalls':
+            return validateArray<ArrayElement<ReportNameValuePairs, 'calendlyCalls'>>(value, {
+                status: 'string',
+                host: 'number',
+                eventTime: 'string',
+                eventURI: 'string',
+                inserted: 'string',
+            });
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
@@ -637,6 +645,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
