@@ -1,8 +1,12 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getReportPrimaryAction, getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import * as InvoiceData from '../data/Invoice';
+import type {InvoiceTestData} from '../data/Invoice';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'tester@mail.com';
@@ -18,6 +22,9 @@ const PERSONAL_DETAILS = {
 };
 
 const REPORT_ID = 1;
+
+// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
+jest.mock('@components/ConfirmedRoute.tsx');
 
 describe('getPrimaryAction', () => {
     beforeAll(() => {
@@ -293,6 +300,34 @@ describe('getPrimaryAction', () => {
                 policy: policy as Policy,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
+    });
+
+    it('should return an empty string for invoice report when the chat report is archived', async () => {
+        // Given the invoice data
+        const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+        const report = {
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            chatReportID: chatReport.chatReportID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`, {
+            private_isArchived: new Date().toString(),
+        });
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        // Simulate how components determine if a chat report is archived by using this hook
+        const {result: isChatReportArchived} = renderHook(() => useReportIsArchived(report?.chatReportID));
+
+        // Then the getReportPrimaryAction should return the empty string
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        expect(getReportPrimaryAction({report, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: isChatReportArchived.current})).toBe('');
     });
 });
 
