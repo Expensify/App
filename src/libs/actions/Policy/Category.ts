@@ -27,6 +27,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {getAllPolicyReports, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
@@ -367,7 +368,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyID, shouldDisableRequiresCategory ? {requiresCategory: false} : {}, optimisticPolicyCategoriesData);
+    pushTransactionViolationsOnyxData(onyxData, policyID, {}, optimisticPolicyCategoriesData);
     appendSetupCategoriesOnboardingData(onyxData);
 
     const parameters = {
@@ -1057,10 +1058,10 @@ function enablePolicyCategories(policyID: string, enabled: boolean, shouldGoBack
 
     const policyUpdate: Partial<Policy> = {
         areCategoriesEnabled: enabled,
+        requiresCategory: enabled,
         pendingFields: {
             areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         },
-        ...(!enabled ? {requiresCategory: false} : {}),
     };
 
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
