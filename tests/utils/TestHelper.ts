@@ -14,6 +14,7 @@ import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
+import {Linking} from 'react-native';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -40,6 +41,7 @@ type FormData = {
 
 function setupApp() {
     beforeAll(() => {
+        Linking.setInitialURL('https://new.expensify.com/');
         appSetup();
 
         // Connect to Pusher
