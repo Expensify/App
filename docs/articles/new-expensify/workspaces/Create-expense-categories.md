@@ -3,6 +3,7 @@ title: Create Expense Categories
 description: Add categories to use for coding expenses.
 keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding]
 ---
+
 <div id="new-expensify" markdown="1">
 
 In Expensify, categories represent your **chart of accounts, GL accounts, expense accounts**, or other financial coding used for reporting and accounting.
