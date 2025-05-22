@@ -173,4 +173,90 @@ describe('WorkspaceCategories', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+    it('should show a blocking modal when trying to disable the only enabled category when policy has requiresCategory set to true', async () => {
+        await TestHelper.signInWithTestUser();
+
+        const policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areCategoriesEnabled: true,
+            requiresCategory: true,
+        };
+
+        const categories = {
+            [FIRST_CATEGORY]: {
+                name: FIRST_CATEGORY,
+                enabled: true,
+            },
+            [SECOND_CATEGORY]: {
+                name: SECOND_CATEGORY,
+                enabled: true,
+            },
+        };
+
+        // Initialize categories
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, categories);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Wait for initial render and verify categories are visible
+        await waitFor(() => {
+            expect(screen.getByText(FIRST_CATEGORY)).toBeOnTheScreen();
+        });
+        await waitFor(() => {
+            expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
+        });
+
+        // Select categories to delete by clicking their checkboxes
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+
+        const dropdownMenuButtonTestID = `${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`;
+
+        // Wait for selection mode to be active and click the dropdown menu button
+        await waitFor(() => {
+            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
+        });
+
+        // Click the "2 selected" button to open the menu
+        const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
+        fireEvent.press(dropdownButton);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Wait for menu items to be visible
+        await waitFor(() => {
+            const disableText = translateLocal('workspace.categories.disableCategories');
+            expect(screen.getByText(disableText)).toBeOnTheScreen();
+        });
+
+        // Find and verify "Disable categories" dropdown menu item
+        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable categories');
+        expect(disableMenuItem).toBeOnTheScreen();
+
+        // Create a mock event object that matches GestureResponderEvent. Needed for onPress in MenuItem to be called
+        const mockEvent = {
+            nativeEvent: {},
+            type: 'press',
+            target: disableMenuItem,
+            currentTarget: disableMenuItem,
+        };
+        fireEvent.press(disableMenuItem, mockEvent);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // After clicking disable categories dropdown menu item, verify the blocking modal appears
+        await waitFor(() => {
+            const blockingPrompt = translateLocal('workspace.categories.cannotDeleteOrDisableAllCategories.title');
+            expect(screen.getByText(blockingPrompt)).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });

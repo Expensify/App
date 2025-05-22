@@ -59,7 +59,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isProofOfDirecorsNeeded && values.proofOfDirectors.length > 0) {
+    if (isDocumentNeededStatus.isProofOfDirectorsNeeded && values.proofOfDirectors.length > 0) {
         summaryItems.push({
             title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOfDirectors'),

@@ -85,7 +85,7 @@ function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
-    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true, initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE, canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -176,6 +176,7 @@ function ReportActionItemMessageEdit(
     const setUpComposeFocusManager = useCallback(() => {
         ReportActionComposeFocusManager.onComposerFocus(() => {
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+            emojiPickerSelectionRef.current = undefined;
         }, true);
     }, [focus]);
 

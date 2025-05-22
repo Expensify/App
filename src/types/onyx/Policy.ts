@@ -1740,9 +1740,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether transactions should be billable by default */
         defaultBillable?: boolean;
 
-        /** Whether transactions should be reimbursable by default */
-        defaultReimbursable?: boolean;
-
         /** The workspace description */
         description?: string;
 
