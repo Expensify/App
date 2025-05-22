@@ -11053,7 +11053,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
             splitExpenses: [
                 {
                     transactionID: NumberUtils.rand64(),
-                    amount: transactionDetailsAmount / 2,
+                    amount: Math.floor(transactionDetailsAmount / 2),
                     description: transactionDetails?.comment,
                     category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
@@ -11061,7 +11061,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                 },
                 {
                     transactionID: NumberUtils.rand64(),
-                    amount: transactionDetailsAmount / 2,
+                    amount: Math.ceil(transactionDetailsAmount / 2),
                     description: transaction?.comment?.comment,
                     category: transaction?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
@@ -11371,7 +11371,12 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
     InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
-    dismissModalAndOpenReportInInboxTab(transactionReport?.parentReportID);
+    const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
+    if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
+        Navigation.dismissModal();
+        return;
+    }
+    Navigation.dismissModalWithReport({reportID: transactionReport?.parentReportID});
 }
 
 export {
