@@ -245,7 +245,8 @@ function isAmountTooLong(amount: number, currencyCode: string, maxLength = 11): 
 }
 
 function isFormattedAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
-    const amount = Math.abs(transactionItem.modifiedAmount ?? transactionItem.amount);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const amount = Math.abs(transactionItem.modifiedAmount || transactionItem.amount);
     return isAmountTooLong(amount, getCurrency(transactionItem));
 }
 

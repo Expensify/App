@@ -431,6 +431,8 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
+        isAmountColumnWide: false,
+        isTaxAmountColumnWide: false,
         tag: '',
         to: {
             accountID: 0,
@@ -484,6 +486,8 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
+        isAmountColumnWide: false,
+        isTaxAmountColumnWide: false,
         tag: '',
         to: {
             accountID: 18439984,
@@ -545,6 +549,8 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        isAmountColumnWide: false,
+        isTaxAmountColumnWide: false,
     },
     {
         accountID: 18439984,
@@ -596,6 +602,8 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        isAmountColumnWide: false,
+        isTaxAmountColumnWide: false,
     },
 ] as TransactionListItemType[];
 
@@ -674,6 +682,8 @@ const reportsListItems = [
                 shouldShowTag: false,
                 shouldShowTax: false,
                 shouldShowYear: true,
+                isAmountColumnWide: false,
+                isTaxAmountColumnWide: false,
                 tag: '',
                 to: {
                     accountID: 0,
@@ -763,6 +773,8 @@ const reportsListItems = [
                 shouldShowTag: false,
                 shouldShowTax: false,
                 shouldShowYear: true,
+                isAmountColumnWide: false,
+                isTaxAmountColumnWide: false,
                 tag: '',
                 to: {
                     accountID: 18439984,

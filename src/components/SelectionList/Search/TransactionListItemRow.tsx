@@ -446,7 +446,7 @@ function TransactionListItemRow({
                     </View>
                 )}
                 {item.shouldShowTax && (
-                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, item.isTaxAmountColumnWide)]}>
                         <TaxCell
                             transactionItem={item}
                             isLargeScreenWidth
