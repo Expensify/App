@@ -1,4 +1,5 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
+import debounce from 'lodash/debounce';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -139,18 +140,27 @@ function SearchAutocompleteInput(
         setInternalValue(value);
     }, [value]);
 
-    const debouncedSearchQueryChange = useMemo(() => {
-        let timeoutId: NodeJS.Timeout;
-        return (searchTerm: string) => {
-            setInternalValue(searchTerm);
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-            timeoutId = setTimeout(() => {
+    const debouncedSearchQueryChange = useMemo(
+        () =>
+            debounce((searchTerm: string) => {
                 onSearchQueryChange(searchTerm);
-            }, 300);
+            }, 300) as ReturnType<typeof debounce>,
+        [onSearchQueryChange],
+    );
+
+    const handleSearchQueryChange = useCallback(
+        (searchTerm: string) => {
+            setInternalValue(searchTerm);
+            debouncedSearchQueryChange(searchTerm);
+        },
+        [debouncedSearchQueryChange],
+    );
+
+    useEffect(() => {
+        return () => {
+            debouncedSearchQueryChange.cancel();
         };
-    }, [onSearchQueryChange]);
+    }, [debouncedSearchQueryChange]);
 
     useEffect(() => {
         runOnLiveMarkdownRuntime(() => {
@@ -212,7 +222,7 @@ function SearchAutocompleteInput(
                     <TextInput
                         testID="search-autocomplete-text-input"
                         value={internalValue}
-                        onChangeText={debouncedSearchQueryChange}
+                        onChangeText={handleSearchQueryChange}
                         autoFocus={autoFocus}
                         caretHidden={caretHidden}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
