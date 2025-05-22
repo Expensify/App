@@ -75,7 +75,7 @@ type MoneyRequestReportListProps = {
     reportActions?: OnyxTypes.ReportAction[];
 
     /** List of transactions belonging to this report */
-    transactions: OnyxTypes.Transaction[];
+    transactions?: OnyxTypes.Transaction[];
 
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
@@ -94,7 +94,15 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportActionsList({report, policy, reportActions = [], transactions = [], hasNewerActions, hasOlderActions, isLoadingInitialReportActions}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({
+    report,
+    policy,
+    reportActions = [],
+    transactions = [],
+    hasNewerActions,
+    hasOlderActions,
+    isLoadingInitialReportActions,
+}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {preferredLocale} = useLocalize();
