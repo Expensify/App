@@ -23,6 +23,9 @@ type IntroSelected = {
 
     /** Task reportID for 'setupCategories' type */
     setupCategories?: string;
+
+    /** The previous onboarding choices of the user */
+    previousChoices?: OnboardingPurpose[];
 };
 
 export default IntroSelected;
