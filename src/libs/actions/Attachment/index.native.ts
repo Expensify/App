@@ -14,13 +14,8 @@ function uploadAttachment(attachmentID: string, url: string) {
     if (!attachmentID || !url) {
         return;
     }
-    fetchFile(url)?.then((file) => {
-        if (!file) {
-            return;
-        }
-        Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-            source: file,
-        });
+    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+        source: url,
     });
 }
 
