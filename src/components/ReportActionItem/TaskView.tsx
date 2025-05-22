@@ -73,6 +73,7 @@ function TaskView({report, action}: TaskViewProps) {
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
             isDisabled: true,
+            onShowContextMenu: (callback: () => void) => callback(),
             shouldDisplayContextMenu: false,
         }),
         [report, action],
