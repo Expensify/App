@@ -76,7 +76,7 @@ type MoneyRequestReportListProps = {
     reportActions?: OnyxTypes.ReportAction[];
 
     /** List of transactions belonging to this report */
-    transactions: OnyxTypes.Transaction[];
+    transactions?: OnyxTypes.Transaction[];
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
@@ -86,6 +86,9 @@ type MoneyRequestReportListProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+
+    /** Whether report actions are still loading */
+    isLoadingInitialReportActions?: boolean;
 };
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
@@ -95,7 +98,16 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportActionsList({report, policy, reportActions = [], transactions = [], newTransactions, hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({
+    report,
+    policy,
+    reportActions = [],
+    transactions = [],
+    newTransactions,
+    hasNewerActions,
+    hasOlderActions,
+    isLoadingInitialReportActions,
+}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {preferredLocale} = useLocalize();
@@ -508,7 +520,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-                {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
+                {isEmpty(visibleReportActions) && isEmpty(transactions) && !isLoadingInitialReportActions ? (
                     <>
                         <MoneyRequestViewReportFields
                             report={report}

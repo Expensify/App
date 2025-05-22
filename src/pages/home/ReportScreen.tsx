@@ -465,6 +465,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        if (report?.errorFields?.notFound && isOffline) {
+            return;
+        }
+
         const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
         const transactionID: string | undefined = route.params?.transactionID;
 
@@ -475,7 +479,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [reportMetadata.isOptimisticReport, route.params?.moneyRequestReportActionID, route.params?.transactionID, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail]);
+    }, [
+        reportMetadata.isOptimisticReport,
+        route.params?.moneyRequestReportActionID,
+        route.params?.transactionID,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        currentUserEmail,
+        report?.errorFields?.notFound,
+        isOffline,
+    ]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
