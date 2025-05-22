@@ -23,30 +23,9 @@ type UseWorkspaceListParams = {
     selectedPolicyID: string | undefined;
     searchTerm: string;
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
-} & (
-    | {
-          isWorkspaceSwitcher: true;
-          hasUnreadData: (policyID?: string) => boolean;
-          getIndicatorTypeForPolicy: (policyID?: string) => BrickRoad;
-      }
-    | {
-          isWorkspaceSwitcher?: false | undefined;
-          hasUnreadData?: never;
-          getIndicatorTypeForPolicy?: never;
-      }
-);
+};
 
-function useWorkspaceList({
-    policies,
-    currentUserLogin,
-    selectedPolicyID,
-    searchTerm,
-    shouldShowPendingDeletePolicy,
-    isWorkspaceSwitcher = false,
-    hasUnreadData,
-    getIndicatorTypeForPolicy,
-    additionalFilter,
-}: UseWorkspaceListParams) {
+function useWorkspaceList({policies, currentUserLogin, selectedPolicyID, searchTerm, shouldShowPendingDeletePolicy, additionalFilter}: UseWorkspaceListParams) {
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
@@ -75,14 +54,8 @@ function useWorkspaceList({
                 keyForList: policy?.id,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 isSelected: selectedPolicyID === policy?.id,
-                ...(isWorkspaceSwitcher &&
-                    hasUnreadData &&
-                    getIndicatorTypeForPolicy && {
-                        isBold: hasUnreadData(policy?.id),
-                        brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
-                    }),
             }));
-    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyID, getIndicatorTypeForPolicy, hasUnreadData, isWorkspaceSwitcher]);
+    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyID]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
@@ -105,13 +78,11 @@ function useWorkspaceList({
 
     const shouldShowNoResultsFoundMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length;
     const shouldShowSearchInput = usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const shouldShowCreateWorkspace = isWorkspaceSwitcher && usersWorkspaces.length === 0;
 
     return {
         sections,
         shouldShowNoResultsFoundMessage,
         shouldShowSearchInput,
-        shouldShowCreateWorkspace,
     };
 }
 

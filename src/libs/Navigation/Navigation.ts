@@ -536,7 +536,7 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 }
 
 /**
- * Closes the modal navigator (RHP, LHP, onboarding).
+ * Closes the modal navigator (RHP, onboarding).
  */
 const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
