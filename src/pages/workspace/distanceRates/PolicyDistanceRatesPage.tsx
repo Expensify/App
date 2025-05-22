@@ -152,7 +152,8 @@ function PolicyDistanceRatesPage({
             Object.values(customUnitRates).map((value) => ({
                 rate: value.rate,
                 value: value.customUnitRateID,
-                text: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
+                text: value.name,
+                alternativeText: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
                     `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                 )}`,
                 keyForList: value.customUnitRateID,
