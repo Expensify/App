@@ -1251,14 +1251,6 @@ function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
 
-function getAllSharedPolicies() {
-    return Object.values(allPolicies ?? {}).filter((p) => p?.type !== CONST.POLICY.TYPE.PERSONAL);
-}
-
-function getAllPolicies() {
-    return Object.values(allPolicies ?? {}).filter((p) => !!p);
-}
-
 function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
@@ -1548,8 +1540,6 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
-    getAllPolicies,
-    getAllSharedPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
