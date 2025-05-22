@@ -495,6 +495,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Label for the text input */
     textInputLabel?: string;
 
+    /** Style for the text input */
+    textInputStyle?: StyleProp<ViewStyle>;
+
     /** Placeholder for the text input */
     textInputPlaceholder?: string;
 

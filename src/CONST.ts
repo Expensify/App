@@ -171,6 +171,29 @@ const setupCategoriesTask: OnboardingTask = {
         `![Set up categories](${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
 };
 
+const inviteAccountantTask: (isCompleted: boolean) => OnboardingTask = (isCompleted) => ({
+    type: 'inviteAccountant',
+    autoCompleted: isCompleted,
+    mediaAttributes: {},
+    title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
+    description: ({workspaceMembersLink}) =>
+        '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
+        '\n' +
+        'Here’s how to invite your accountant:\n' +
+        '\n' +
+        '1. Click your profile picture.\n' +
+        '2. Go to *Workspaces*.\n' +
+        '3. Select your workspace.\n' +
+        '4. Click *Members* > Invite member.\n' +
+        '5. Enter their email or phone number.\n' +
+        '6. Add an invite message if you’d like.\n' +
+        '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
+        '\n' +
+        'That’s it, happy expensing! 😄\n' +
+        '\n' +
+        `[View your workspace members](${workspaceMembersLink}).`,
+});
+
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     tasks: [
@@ -5556,7 +5579,7 @@ const CONST = {
             ],
         },
         [onboardingChoices.TRACK_WORKSPACE]: {
-            message: 'Here are some important tasks to help get your workspace set up.',
+            message: 'Here is a task list tailored for sole proprietors and similar businesses:',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
@@ -5564,32 +5587,18 @@ const CONST = {
                 width: 1280,
                 height: 960,
             },
-            tasks: [
-                createWorkspaceTask,
-                setupCategoriesTask,
-                {
-                    type: 'inviteAccountant',
-                    autoCompleted: false,
-                    mediaAttributes: {},
-                    title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
-                    description: ({workspaceMembersLink}) =>
-                        '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
-                        '\n' +
-                        'Here’s how to invite your accountant:\n' +
-                        '\n' +
-                        '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Members* > Invite member.\n' +
-                        '5. Enter their email or phone number.\n' +
-                        '6. Add an invite message if you’d like.\n' +
-                        '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
-                        '\n' +
-                        'That’s it, happy expensing! 😄\n' +
-                        '\n' +
-                        `[View your workspace members](${workspaceMembersLink}).`,
-                },
-            ],
+            tasks: [createWorkspaceTask, testDriveTask, setupCategoriesTask, inviteAccountantTask(false)],
+        },
+        [`${onboardingChoices.TRACK_WORKSPACE}Invited`]: {
+            message: 'Here is a task list tailored for sole proprietors and similar businesses:',
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [createWorkspaceTask, testDriveTask, setupCategoriesTask, inviteAccountantTask(true)],
         },
         [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
         [onboardingChoices.CHAT_SPLIT]: {
