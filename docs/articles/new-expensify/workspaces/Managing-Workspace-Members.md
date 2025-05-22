@@ -6,9 +6,9 @@ keywords: [New Expensify, workspace members, add user, remove user, user roles, 
 
 <div id="new-expensify" markdown="1">
 
-Managing users in a workspace helps ensure that the right people can submit, approve, and review expenses. This guide walks through how to invite, remove, and update roles for members in New Expensify.
+Managing members in a workspace helps ensure that the right people can submit, approve, and review expenses. This guide walks through how to invite, remove, and update roles for members in New Expensify.
 
-A **Workspace user** is anyone added to a workspace with one of the following roles:
+A **Workspace member** is anyone added to a workspace with one of the following roles:
 
 - **Member** – Can submit and/or approve expenses.
 - **Admin** – Can manage members, roles, workflows, and settings.
@@ -16,7 +16,7 @@ A **Workspace user** is anyone added to a workspace with one of the following ro
 
 ---
 
-# Invite Users to a Workspace
+# Invite Members to a Workspace
 
 To invite someone to your workspace:
 
@@ -27,7 +27,7 @@ To invite someone to your workspace:
 5. (Optional) Add a message to the invitation.
 6. Click **Invite**.
 
-**Tip:** You can also invite users under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
+**Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
 ---
 
@@ -45,7 +45,7 @@ If someone no longer needs access to your workspace, you can remove them individ
 ## Remove Multiple Members
 
 1. Go to **Workspaces > Members**.
-2. Select the checkboxes next to the users you want to remove.
+2. Select the checkboxes next to the members you want to remove.
 3. Click the **green dropdown arrow** in the top-right.
 4. Choose **Remove Member(s)**.
 5. Confirm by clicking **Remove**.
@@ -78,7 +78,7 @@ After the transfer, the initiating user becomes the new **Owner**.
 
 ---
 
-# Invite Multiple Users via Spreadsheet
+# Invite Multiple Members via Spreadsheet
 
 1. Go to **Workspaces > Members**.
 2. Click the **three-dot menu** in the top-right.
@@ -95,8 +95,8 @@ After the transfer, the initiating user becomes the new **Owner**.
 
 You must be a **Workspace Admin**, and the email or phone number of the individual you're inviting must be valid and correctly formatted.
 
-## Can I Invite Multiple Users at Once?
+## Can I invite multiple members to a workspace at the same time?
 
-Yes. Use the search tool during invite or import users using a spreadsheet (see the **Invite Multiple Users via Spreadsheet** section above.
+Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
 
 </div>
