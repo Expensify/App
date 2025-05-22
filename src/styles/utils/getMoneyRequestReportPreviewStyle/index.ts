@@ -36,7 +36,7 @@ const desktopStyle = (currentWrapperWidth: number, isSingleTransaction?: boolean
     const spaceForTransactions = Math.max(transactionsCount ?? 1, 1);
     const carouselExactMaxWidth = Math.min(minimalWrapperWidth + (TRANSACTION_WIDTH_WIDE + CAROUSEL_GAP) * (spaceForTransactions - 1), CAROUSEL_MAX_WIDTH_WIDE);
     return {
-        transactionPreviewStyle: {width: currentWrapperWidth > minimalWrapperWidth ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth},
+        transactionPreviewStyle: {width: currentWrapperWidth > minimalWrapperWidth || currentWrapperWidth === 0 ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth},
         componentStyle: [{maxWidth: `min(${carouselExactMaxWidth}px, 100%)`}, {width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'}],
         expenseCountVisible: transactionPreviewWidth >= TRANSACTION_WIDTH_WIDE,
     };
