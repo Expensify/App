@@ -16,7 +16,6 @@ import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import {useMouseContext} from '@hooks/useMouseContext';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,11 +46,17 @@ type MoneyRequestReportTransactionListProps = {
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 
+    /** List of transactions that arrived when the report was open */
+    newTransactions: OnyxTypes.Transaction[];
+
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
 
     /** Whether the report that these transactions belong to has any chat comments */
     hasComments: boolean;
+
+    /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
+    scrollToNewTransaction: (offset: number) => void;
 };
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
@@ -92,7 +97,7 @@ const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColu
     return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
 };
 
-function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({report, transactions, newTransactions, reportActions, hasComments, scrollToNewTransaction}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -122,8 +127,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         }, [setSelectedTransactionsID]),
     );
 
-    const prevTransactions = usePrevious(transactions);
-
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
         e.stopPropagation();
@@ -137,27 +140,14 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
     const {sortBy, sortOrder} = sortConfig;
 
-    const newTransactionsID = useMemo(() => {
-        if (!prevTransactions || transactions.length <= prevTransactions.length) {
-            return CONST.EMPTY_ARRAY as unknown as string[];
-        }
-
-        return transactions.reduce((acc, t) => {
-            if (!prevTransactions.some((prevTransaction) => prevTransaction.transactionID === t.transactionID)) {
-                acc.push(t.transactionID);
-            }
-            return acc;
-        }, [] as string[]);
-    }, [prevTransactions, transactions]);
-
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
             .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy))
             .map((transaction) => ({
                 ...transaction,
-                shouldBeHighlighted: newTransactionsID?.includes(transaction.transactionID),
+                shouldBeHighlighted: newTransactions?.includes(transaction),
             }));
-    }, [newTransactionsID, sortBy, sortOrder, transactions]);
+    }, [newTransactions, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
@@ -190,7 +180,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     return !isEmpty(transactions) ? (
         <>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, StyleUtils.getPaddingBottom(6), styles.alignItemsCenter]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.alignItemsCenter]}>
                     <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
@@ -272,6 +262,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}
                                 onCheckboxPress={toggleTransaction}
                                 columns={allReportColumns}
+                                scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                             />
                         </PressableWithFeedback>
                     );

@@ -417,6 +417,7 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     IMAGE_SVG_TRANSITION_DURATION: 200,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
+    LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
@@ -1408,6 +1409,7 @@ const CONST = {
             // Used when displaying reportActions list to handle unread messages icon/button
             SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
             ACTION_VISIBLE_THRESHOLD: 250,
+            MAX_GROUPING_TIME: 300000,
         },
         TRANSACTION_LIST: {
             COLUMNS: {
