@@ -605,7 +605,7 @@ function findNextAction(reportActions: ReportAction[], actionIndex: number): Ony
 }
 
 /**
- *  Returns true when the previous report action (before actionIndex) is made by the same actor who performed the action at actionIndex.
+ * Returns true when the previous report action (before actionIndex) is made by the same actor who performed the action at actionIndex.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
  * @param reportActions - report actions ordered from latest
@@ -638,7 +638,7 @@ function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex
 
 /**
  * Combines the logic for grouping chat messages isConsecutiveActionMadeByPreviousActor and hasNextActionMadeBySameActor.
- *  Returns true when messages are made by the same actor and not separated by more than 5 minutes.
+ * Returns true when messages are made by the same actor and not separated by more than 5 minutes.
  *
  * @param currentAction - Chronologically - latest action.
  * @param adjacentAction - Chronologically - previous action. Named adjacentAction to avoid confusion as isConsecutiveActionMadeByPreviousActor and hasNextActionMadeBySameActor take action lists that are in opposite orders.
