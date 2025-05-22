@@ -100,7 +100,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 
-    const [transactions = undefined] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
         canBeMissing: true,
     });
@@ -123,8 +123,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
 
-    const isEmptyTransactionReport = transactions && transactionThreadReportID === undefined && !isLoadingInitialReportActions;
-    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || (transactions && shouldDisplayReportTableView(report, transactions));
+    // Prevent flash by ensuring transaction data is fully loaded before deciding which view to render
+    // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
+    const isTransactionDataReady = transactions !== undefined;
+    const isStillLoadingData = !!isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
+    const shouldWaitForData = (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) && !isTransactionThreadView;
+
+    const isEmptyTransactionReport = transactions && transactions.length === 0 && transactionThreadReportID === undefined;
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, transactions ?? []);
 
     const reportHeaderView = useMemo(
         () =>
@@ -160,7 +166,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         [activeWorkspaceID, backToRoute, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
-    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || !transactions) {
+    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForData) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 
@@ -214,6 +220,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
+                            isLoadingInitialReportActions={isLoadingInitialReportActions}
                         />
                     ) : (
                         <ReportActionsView
