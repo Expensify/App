@@ -340,7 +340,15 @@ function TransactionListItemRow({
                             </View>
                         )}
                     </View>
-                    <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1, styles.justifyContentBetween]}>
+                    <View
+                        style={[
+                            styles.alignItemsEnd,
+                            styles.flex1,
+                            styles.gap1,
+                            styles.justifyContentBetween,
+                            StyleUtils.getMinimumWidth(item.isAmountColumnWide ? variables.w130 : variables.w96),
+                        ]}
+                    >
                         <TotalCell
                             showTooltip={showTooltip}
                             transactionItem={item}

@@ -130,6 +130,7 @@ const mockReportItemWithHold = {
             keyForList: '1049531721038862176',
             shouldShowYear: false,
             isAmountColumnWide: false,
+            isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
         },
         {
@@ -184,6 +185,7 @@ const mockReportItemWithHold = {
             keyForList: '5345995386715609966',
             shouldShowYear: false,
             isAmountColumnWide: false,
+            isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
         },
     ],

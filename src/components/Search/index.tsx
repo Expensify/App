@@ -582,7 +582,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                             sortOrder={sortOrder}
                             sortBy={sortBy}
                             shouldShowYear={tableYearAndAmountWidth.shouldShowYear}
-                            isAmountColumnWide={tableYearAndAmountWidth.isLongAmountLength}
+                            isAmountColumnWide={tableYearAndAmountWidth.isAmountLengthLong}
                             shouldShowSorting={shouldShowSorting}
                         />
                     )

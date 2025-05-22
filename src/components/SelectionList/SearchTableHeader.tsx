@@ -142,11 +142,23 @@ type SearchTableHeaderProps = {
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldShowYear: boolean;
     isAmountColumnWide: boolean;
+    isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
     canSelectMultiple: boolean;
 };
 
-function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting, canSelectMultiple, isAmountColumnWide}: SearchTableHeaderProps) {
+function SearchTableHeader({
+    data,
+    metadata,
+    sortBy,
+    sortOrder,
+    onSortPress,
+    shouldShowYear,
+    shouldShowSorting,
+    canSelectMultiple,
+    isAmountColumnWide,
+    isTaxAmountColumnWide,
+}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -176,6 +188,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
             shouldShowColumn={shouldShowColumn}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}
