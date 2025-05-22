@@ -165,7 +165,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isDeleteExpenseModalVisible, setIsDeleteExpenseModalVisible] = useState(false);
     const [isDeleteReportModalVisible, setIsDeleteReportModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isReopenWarningModalVisible, setIsReopenWarningModalVisible] = useState(false);
@@ -738,7 +738,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
                 if (Object.keys(transactions).length === 1) {
-                    setIsDeleteModalVisible(true);
+                    setIsDeleteExpenseModalVisible(true);
                 } else {
                     setIsDeleteReportModalVisible(true);
                 }
@@ -950,9 +950,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             />
             <ConfirmModal
                 title={translate('iou.deleteExpense', {count: 1})}
-                isVisible={isDeleteModalVisible}
+                isVisible={isDeleteExpenseModalVisible}
                 onConfirm={() => {
-                    setIsDeleteModalVisible(false);
+                    setIsDeleteExpenseModalVisible(false);
                     let goBackRoute: Route | undefined;
                     if (transactionThreadReportID) {
                         if (!requestParentReportAction || !transaction?.transactionID) {
@@ -967,7 +967,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         Navigation.navigate(goBackRoute);
                     }
                 }}
-                onCancel={() => setIsDeleteModalVisible(false)}
+                onCancel={() => setIsDeleteExpenseModalVisible(false)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}

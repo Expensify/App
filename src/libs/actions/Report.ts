@@ -4611,7 +4611,7 @@ function deleteAppReport(reportID: string | undefined) {
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-    const selfDMReportID = findSelfDMReportID();
+    let selfDMReportID = findSelfDMReportID();
     let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     let createdAction: ReportAction;
     let selfDMParameters: SelfDMParameters = {};
@@ -4619,6 +4619,7 @@ function deleteAppReport(reportID: string | undefined) {
     if (!selfDMReport) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        selfDMReportID = selfDMReport.reportID;
         createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
         selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
         optimisticData.push(
@@ -4679,10 +4680,9 @@ function deleteAppReport(reportID: string | undefined) {
 
     // 1. Get all report transactions
     const reportActionsForReport = allReportActions?.[reportID];
-    const transactionIDToMoneyRequestReportActionIDMap: Record<string, string> = {};
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
 
-    [...Object.values(reportActionsForReport ?? {})].forEach((reportAction) => {
+    Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
         if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
             return;
         }
@@ -4700,7 +4700,7 @@ function deleteAppReport(reportID: string | undefined) {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {reportID: 0},
+                    value: {reportID: '0'},
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -4721,8 +4721,6 @@ function deleteAppReport(reportID: string | undefined) {
                     value: transactionViolations,
                 },
             );
-
-            transactionIDToMoneyRequestReportActionIDMap[transactionID] = newReportActionID;
         }
 
         // 2. Move the report action to self DM
@@ -4731,7 +4729,7 @@ function deleteAppReport(reportID: string | undefined) {
             originalMessage: {
                 // eslint-disable-next-line deprecation/deprecation
                 ...reportAction.originalMessage,
-                IOUReportID: 0,
+                IOUReportID: '0',
                 type: CONST.IOU.TYPE.TRACK,
             },
             reportActionID: newReportActionID,
