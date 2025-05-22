@@ -72,7 +72,6 @@ import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/o
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
-import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
@@ -129,6 +128,7 @@ import {
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
+    isPolicyMember,
     isPolicyOwner,
     isSubmitAndClose,
     shouldShowPolicy,
@@ -3564,7 +3564,16 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(report?.policyID, {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`]: policy});
-    return isTitleField ? !reportField?.deletable : !isAdmin && (isReportSettled || isReportClosed);
+    const isApproved = isReportApproved({report});
+    if (!isAdmin && (isReportSettled || isReportClosed || isApproved)) {
+        return true;
+    }
+
+    if (isTitleField) {
+        return !reportField?.deletable;
+    }
+
+    return false;
 }
 
 /**
@@ -3820,6 +3829,40 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
     }
 
     return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport?.reportID) && !isClosedReport(moneyRequestReport) && isRequestor;
+}
+
+function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<Policy>): boolean {
+    const isAdmin = isPolicyAdminPolicyUtils(reportPolicy);
+    const isManager = isReportManager(report);
+    const isSubmitter = isReportOwner(report);
+    const isReportAuditor = isAuditor(report);
+    const isIOUType = isIOUReport(report);
+    const isInvoiceType = isInvoiceReport(report);
+    const isExpenseType = isExpenseReport(report);
+    const isOpen = isOpenReport(report);
+    const isSubmitted = isProcessingReport(report);
+
+    if (isIOUType) {
+        return isOpen || isSubmitted;
+    }
+
+    if (isInvoiceType) {
+        return isOpen && !isReportAuditor;
+    }
+
+    if (isExpenseType) {
+        if (isOpen) {
+            return isSubmitter || isAdmin;
+        }
+
+        if (isSubmitted) {
+            return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isManager || isAdmin;
+        }
+
+        return isManager || isAdmin;
+    }
+
+    return false;
 }
 
 /**
@@ -7536,7 +7579,9 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | u
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
-    const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
+    const isChildReportHasComment = Object.values(reportActions ?? {})?.some(
+        (reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0 && shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report)),
+    );
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
@@ -10449,78 +10494,12 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
     return Object.values(reportActions).some((action) => isIntegrationMessageAction(action));
 }
 
-function verifyState(report: OnyxEntry<Report>, validStates: Array<ValueOf<typeof CONST.REPORT.STATE_NUM>>): boolean {
-    if (report?.stateNum === undefined || report?.stateNum === null) {
-        return false;
-    }
-    return validStates.includes(report?.stateNum);
-}
-
-function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<typeof CONST.REPORT.STATUS_NUM>>): boolean {
-    if (report?.statusNum === undefined || report?.statusNum === null) {
-        return false;
-    }
-    return validStatuses.includes(report?.statusNum);
-}
-
 /**
  * Determines whether the report can be moved to the workspace.
  */
-function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>, currentPolicy?: OnyxEntry<Policy>): boolean {
-    if (!session?.accountID) {
-        return false;
-    }
-
-    const isIOU = isIOUReport(report);
-    const submitterLogin = report?.ownerAccountID && getLoginByAccountID(report?.ownerAccountID);
-    const isSubmitterMember = !!submitterLogin && !!newPolicy?.employeeList?.[submitterLogin];
-    const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
-    const isManagerMember = !!managerLogin && !!newPolicy?.employeeList?.[managerLogin];
-    const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, session?.email);
-    const isAdminOfCurrentPolicy = isPolicyAdminPolicyUtils(currentPolicy, session?.email);
-    const isPaidGroupPolicyType = isPaidGroupPolicyPolicyUtils(newPolicy);
-    const isReportOpenOrSubmitted = verifyState(report, [CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATE_NUM.SUBMITTED]);
-
-    // For IOUs, the sender and receiver can only change the workspace if:
-    // 1. The sender AND receiver are both members of the new policy OR
-    // 2. The sender OR receiver is an admin of the new policy. In this case, changing the policy also invites the non-member to the policy
-    if (isIOU && isReportOpenOrSubmitted && isPaidGroupPolicyType && ((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
-        return true;
-    }
-
-    // From this point on, reports must be of type Expense, the policy must be a paid type.
-    // The submitter and manager must also be policy members OR the current user is an admin so they can invite the non-members to the policy.
-    // Additionally, if the report is not open or submitted, the current user must be an admin.
-    // We're temporarily disabling moving reports to a workspace if the submitter is not a member of the new policy because this flow requires additional API changes.
-    const isExpenseReportType = isExpenseReport(report);
-    if (!isExpenseReportType || !isPaidGroupPolicyType || !isSubmitterMember || (!isReportOpenOrSubmitted && !isAdminOfCurrentPolicy)) {
-        return false;
-    }
-
-    const isCurrentUserReportSubmitter = session.accountID === report?.ownerAccountID;
-    if (isCurrentUserReportSubmitter) {
-        return true;
-    }
-
-    const isCurrentUserReportApprover = isApproverMember(newPolicy, session.accountID);
-    if (isCurrentUserReportApprover && verifyState(report, [CONST.REPORT.STATE_NUM.SUBMITTED])) {
-        return true;
-    }
-
-    const isCurrentUserReportPayer = isPayer(session, report, false, newPolicy);
-    if (isCurrentUserReportPayer && verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED])) {
-        return true;
-    }
-
-    if (
-        isCurrentUserAdmin &&
-        verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED]) &&
-        verifyStatus(report, [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED, CONST.REPORT.STATUS_NUM.CLOSED])
-    ) {
-        return true;
-    }
-
-    return false;
+function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
+    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies));
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
@@ -10804,6 +10783,7 @@ export {
     canCurrentUserOpenReport,
     canDeleteReportAction,
     canHoldUnholdReportAction,
+    canEditReportPolicy,
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canEditPolicyDescription,

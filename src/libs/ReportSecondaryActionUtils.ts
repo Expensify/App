@@ -1,12 +1,12 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    getAllPolicies,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
@@ -18,6 +18,7 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {
     canAddTransaction,
     canEditFieldOfMoneyRequest,
+    canEditReportPolicy,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -318,10 +319,14 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report, policy?: Policy): boolean {
-    const policies = getAllPolicies();
-    const session = getSession();
-    return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session, policy)).length > 0;
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>): boolean {
+    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies));
+    let hasAvailablePolicies = availablePolicies.length > 1;
+    if (!hasAvailablePolicies && availablePolicies.length === 1) {
+        hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
+    }
+    const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy);
 }
 
 function isMoveTransactionAction(reportTransactions: Transaction[], reportActions?: ReportAction[]) {
@@ -395,6 +400,7 @@ function getSecondaryReportActions(
     reportActions?: ReportAction[],
     canUseRetractNewDot?: boolean,
     canUseTableReportView?: boolean,
+    policies?: OnyxCollection<Policy>,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -438,7 +444,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
-    if (isChangeWorkspaceAction(report, policy)) {
+    if (isChangeWorkspaceAction(report, policies)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
