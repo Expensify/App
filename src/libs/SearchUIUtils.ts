@@ -70,8 +70,6 @@ import {
     getMerchant as getTransactionMerchant,
     isPendingCardOrScanningTransaction,
 } from './TransactionUtils';
-import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
-import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
 const transactionColumnNamesToSortingProperty = {
