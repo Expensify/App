@@ -11057,15 +11057,15 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                     description: transactionDetails?.comment,
                     category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: DateUtils.getDBTime(),
+                    created: transactionDetails?.created ?? DateUtils.getDBTime(),
                 },
                 {
                     transactionID: NumberUtils.rand64(),
                     amount: Math.ceil(transactionDetailsAmount / 2),
-                    description: transaction?.comment?.comment,
-                    category: transaction?.category,
+                    description: transactionDetails?.comment,
+                    category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: DateUtils.getDBTime(),
+                    created: transactionDetails?.created ?? DateUtils.getDBTime(),
                 },
             ],
             amount: transactionDetailsAmount,
@@ -11125,6 +11125,8 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
         return;
     }
 
+    const transactionDetails = getTransactionDetails(transaction);
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
         comment: {
             splitExpenses: [
@@ -11132,10 +11134,10 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
                 {
                     transactionID: NumberUtils.rand64(),
                     amount: 0,
-                    description: transaction?.comment?.comment,
-                    category: transaction?.category,
+                    description: transactionDetails?.comment,
+                    category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: DateUtils.getDBTime(),
+                    created: transactionDetails?.created ?? DateUtils.getDBTime(),
                 },
             ],
         },
@@ -11261,7 +11263,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             transactionParams: {
                 amount: splitExpense.amount ?? 0,
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
-                created: splitExpense.created ?? DateUtils.getDBTime(),
+                created: splitExpense.created,
                 merchant: draftTransaction?.merchant ?? '',
                 comment: splitExpense.description,
                 category: splitExpense.category,
