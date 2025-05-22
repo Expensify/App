@@ -188,7 +188,6 @@ const WRITE_COMMANDS = {
     COMPLETE_SPLIT_BILL: 'CompleteSplitBill',
     UPDATE_MONEY_REQUEST_ATTENDEES: 'UpdateMoneyRequestAttendees',
     UPDATE_MONEY_REQUEST_DATE: 'UpdateMoneyRequestDate',
-    UPDATE_MONEY_REQUEST_REIMBURSABLE: 'UpdateMoneyRequestReimbursable',
     UPDATE_MONEY_REQUEST_BILLABLE: 'UpdateMoneyRequestBillable',
     UPDATE_MONEY_REQUEST_MERCHANT: 'UpdateMoneyRequestMerchant',
     UPDATE_MONEY_REQUEST_TAG: 'UpdateMoneyRequestTag',
@@ -657,7 +656,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT]: Parameters.UpdateMoneyRequestParams;
-    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT]: Parameters.UpdateMoneyRequestParams;
