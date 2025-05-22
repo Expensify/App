@@ -1104,8 +1104,9 @@ const CONST = {
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
+    CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
+    SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
-    DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
@@ -2888,6 +2889,9 @@ const CONST = {
             TAX: 'tax',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
+        DEFAULT_FIELD_LIST_TYPE: 'formula',
+        DEFAULT_FIELD_LIST_TARGET: 'expense',
+        DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
@@ -3731,7 +3735,6 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
-        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -6421,7 +6424,10 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
-        LAST_VISITED_WORKSPACES_TAB_PATH: 'LAST_VISITED_WORKSPACES_TAB_PATH',
+        LAST_VISITED_TAB_PATH: {
+            WORKSPACES: 'LAST_VISITED_WORKSPACES_TAB_PATH',
+            SETTINGS: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        },
     },
 
     RESERVATION_TYPE: {
