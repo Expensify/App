@@ -13,7 +13,7 @@ import Parser from './Parser';
 import {getCleanedTagName, getSortedTagKeys} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
-import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
+import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -187,6 +187,12 @@ function getForReportAction({
 
     if (reportActionOriginalMessage?.movedToReportID) {
         return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
+    }
+
+    if (reportActionOriginalMessage?.movedFromReport) {
+        const reportID = reportActionOriginalMessage?.movedFromReport;
+        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+        return translateLocal('iou.movedFromReport', {reportName: reportName ?? '', reportID});
     }
 
     const removalFragments: string[] = [];

@@ -129,6 +129,11 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
+type MovedFromReportParams = {
+    reportName: string;
+    reportID: string;
+};
+
 type UnreportedTransactionParams = {
     reportUrl: string;
     reportName?: string;
@@ -815,6 +820,7 @@ export type {
     PayerPaidParams,
     PayerSettledParams,
     RemovedTheRequestParams,
+    MovedFromReportParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
