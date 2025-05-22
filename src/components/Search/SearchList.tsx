@@ -1,11 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
+import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
+import {FlashList} from '@shopify/flash-list';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
-import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -32,6 +33,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+const AnimatedFlashList = Animated.createAnimatedComponent<FlashListProps<SearchListItem>>(FlashList);
+
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
 
@@ -40,7 +43,7 @@ type SearchListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
-type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' | 'contentContainerStyle' | 'onEndReached' | 'onEndReachedThreshold' | 'ListFooterComponent'> & {
+type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'contentContainerStyle' | 'onEndReached' | 'onEndReachedThreshold' | 'ListFooterComponent'> & {
     data: SearchListItem[];
 
     /** Default renderer for every item in the list */
@@ -82,8 +85,6 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     onLayout?: () => void;
 };
 
-const onScrollToIndexFailed = () => {};
-
 function SearchList(
     {
         data,
@@ -115,7 +116,7 @@ function SearchList(
     }, 0);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
-    const listRef = useRef<FlatList<SearchListItem>>(null);
+    const listRef = useRef<FlashList<SearchListItem>>(null);
     const hasKeyBeenPressed = useRef(false);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -387,7 +388,7 @@ function SearchList(
                 </View>
             )}
 
-            <Animated.FlatList
+            <AnimatedFlashList
                 data={data}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => item.keyForList ?? `${index}`}
@@ -401,7 +402,6 @@ function SearchList(
                 ListFooterComponent={ListFooterComponent}
                 removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
-                onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
             />
             <Modal
