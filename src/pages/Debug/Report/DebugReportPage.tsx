@@ -120,7 +120,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, reportAttributes?.reportErrors, reportID, transactionViolations, translate, isReportArchived]);
+    }, [report, transactionViolations, reportID, reportActions, transactions, reportAttributes?.reportErrors, isReportArchived, translate]);
 
     const DebugDetailsTab = useCallback(
         () => (
