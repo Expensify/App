@@ -1556,16 +1556,15 @@ function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
 
 const getOriginalTransactionIfItIsSplit = (transaction: OnyxEntry<Transaction>) => {
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
 
     if (splits && splits.length > 0) {
-        return {isBillSplit: true, isExpenseSplit: false, originalTransaction: getTransaction(originalTransactionID) ?? transaction};
+        return {isBillSplit: true, isExpenseSplit: false, originalTransaction: originalTransaction ?? transaction};
     }
 
     if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
         return {isBillSplit: false, isExpenseSplit: false, originalTransaction: transaction};
     }
-
-    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
 
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: !originalTransaction?.comment?.splits, originalTransaction: originalTransaction ?? transaction};
 };
