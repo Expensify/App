@@ -2,6 +2,7 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import Log from '@libs/Log';
+import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -24,13 +25,6 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
 ];
-
-const SPLIT_TO_CONDITION = {
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: (screen: string | undefined) => screen === SCREENS.REPORT, // ReportScreen should always be opened with an animation
-    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: (screen: string | undefined) => screen !== SCREENS.SETTINGS.ROOT, // Transitioning to all central screens in settings should be animated
-    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: (screen: string | undefined) => screen === SCREENS.SEARCH.MONEY_REQUEST_REPORT, // Transitioning to SCREENS.SEARCH.MONEY_REQUEST_REPORT should be animated
-    [NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR]: (screen: string | undefined) => screen !== SCREENS.WORKSPACE_HUB.ROOT, // Transitioning to all central screens in workspace hub should be animated
-};
 
 const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
 
@@ -146,7 +140,7 @@ function handleSwitchPolicyIDAction(
     return null;
 }
 
-function handlePushAction(
+function handlePushSplitAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
     configOptions: RouterConfigOptions,
@@ -163,11 +157,36 @@ function handlePushAction(
     const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
     const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
 
-    if (lastFullScreenRoute?.key && navigatorName in SPLIT_TO_CONDITION && SPLIT_TO_CONDITION[navigatorName as keyof typeof SPLIT_TO_CONDITION](actionPayloadScreen)) {
+    // Transitioning to all central screens in each split should be animated
+    if (lastFullScreenRoute?.key && navigatorName in SPLIT_TO_SIDEBAR && SPLIT_TO_SIDEBAR[navigatorName as keyof typeof SPLIT_TO_SIDEBAR] !== actionPayloadScreen) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
 
     return stateWithNavigator;
+}
+
+function handlePushSearchPageAction(
+    state: StackNavigationState<ParamListBase>,
+    action: PushActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const stateWithSearchFullscreenNavigator = stackRouter.getStateForAction(state, action, configOptions);
+
+    if (!stateWithSearchFullscreenNavigator) {
+        Log.hmmm('[handlePushSettingsAction] SearchFullscreenNavigator has not been found in the navigation state.');
+        return null;
+    }
+
+    const lastFullScreenRoute = stateWithSearchFullscreenNavigator.routes.at(-1);
+    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
+
+    // Transitioning to SCREENS.SEARCH.MONEY_REQUEST_REPORT should be animated
+    if (actionPayloadScreen === SCREENS.SEARCH.MONEY_REQUEST_REPORT && lastFullScreenRoute?.key) {
+        screensWithEnteringAnimation.add(lastFullScreenRoute.key);
+    }
+
+    return stateWithSearchFullscreenNavigator;
 }
 
 function handleReplaceReportsSplitNavigatorAction(
@@ -230,7 +249,8 @@ export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
     handleOpenWorkspaceSplitAction,
-    handlePushAction,
+    handlePushSplitAction,
+    handlePushSearchPageAction,
     screensWithEnteringAnimation,
     handleReplaceReportsSplitNavigatorAction,
     handleSwitchPolicyIDAction,

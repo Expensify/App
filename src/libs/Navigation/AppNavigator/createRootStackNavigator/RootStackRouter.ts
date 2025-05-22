@@ -13,7 +13,8 @@ import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
     handleOpenWorkspaceSplitAction,
-    handlePushAction,
+    handlePushSearchPageAction,
+    handlePushSplitAction,
     handleReplaceReportsSplitNavigatorAction,
     handleSwitchPolicyIDAction,
 } from './GetStateForActionHandlers';
@@ -104,7 +105,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
             }
 
             if (isPushAction(action)) {
-                return handlePushAction(state, action, configOptions, stackRouter);
+                if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+                    return handlePushSearchPageAction(state, action, configOptions, stackRouter);
+                }
+                return handlePushSplitAction(state, action, configOptions, stackRouter);
             }
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
