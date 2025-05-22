@@ -3564,7 +3564,16 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(report?.policyID, {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`]: policy});
-    return isTitleField ? !reportField?.deletable : !isAdmin && (isReportSettled || isReportClosed);
+    const isApproved = isReportApproved({report});
+    if (!isAdmin && (isReportSettled || isReportClosed || isApproved)) {
+        return true;
+    }
+
+    if (isTitleField) {
+        return !reportField?.deletable;
+    }
+
+    return false;
 }
 
 /**
@@ -7536,7 +7545,9 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | u
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
-    const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
+    const isChildReportHasComment = Object.values(reportActions ?? {})?.some(
+        (reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0 && shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report)),
+    );
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
