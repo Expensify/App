@@ -68,17 +68,6 @@ Here’s how these actions are usually completed manually—Suggested Search str
 
 ---
 
-## Smart filters and UI enhancements
-
-To make reports easier to find, New Expensify introduces:
-- **Exposed filters** (Type, Status, Date, From) at the top of the results table.
-- **New To-do LHN section** that highlights your actionable items.
-- **Improved search routing** to help you get familiar with advanced search syntax.
-
-**Note:** These updates replace the older tabbed report filters and make everyday filtering simpler and more intuitive.
-
----
-
 ## Who sees what?
 
 ### All members
