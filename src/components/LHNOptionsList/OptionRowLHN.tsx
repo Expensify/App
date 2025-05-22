@@ -105,14 +105,14 @@ function OptionRowLHN({
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            setIsScreenFocused(true);
-            return () => {
-                setIsScreenFocused(false);
-            };
-        }, []),
-    );
+    // useFocusEffect(
+    //     useCallback(() => {
+    //         setIsScreenFocused(true);
+    //         return () => {
+    //             setIsScreenFocused(false);
+    //         };
+    //     }, []),
+    // );
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
