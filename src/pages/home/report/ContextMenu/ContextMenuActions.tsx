@@ -88,6 +88,7 @@ import {
     getIOUForwardedMessage,
     getIOUReportActionDisplayMessage,
     getOriginalReportID,
+    getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
@@ -622,6 +623,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, card}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(getRemovedConnectionMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
+                    const displayMessage = getPolicyChangeMessage(reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
