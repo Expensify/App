@@ -9628,6 +9628,7 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
     }
+    const reportNameValuePair = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     return (
         isExpenseReport(iouReport) &&
         iouReport?.stateNum !== undefined &&
@@ -9635,7 +9636,8 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
         iouReport?.policyID === policyID &&
         iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
         iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
-        !hasForwardedAction(iouReport.reportID)
+        !hasForwardedAction(iouReport.reportID) &&
+        !isArchivedReport(reportNameValuePair)
     );
 }
 
