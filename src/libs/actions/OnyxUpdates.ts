@@ -20,6 +20,13 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
+// This key is used to ensure that ONYXKEYS.ONYX_UPDATES_FROM_SERVER only stores the most recent update data
+let lastUpdateIDSavedInOnyxData = 0;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
+    callback: (val) => (lastUpdateIDSavedInOnyxData = Number(val?.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID)),
+});
+
 // This promise is used to ensure pusher events are always processed in the order they are received,
 // even when such events are received over multiple separate pusher updates.
 let pusherEventsPromise = Promise.resolve();
@@ -151,18 +158,19 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
     }
 }
 
-let lastUpdateIDSavedInOnyxData: number = 0;
 /**
  * @param [updateParams.request] Exists if updateParams.type === 'https'
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
 function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
+    // Only record the latest Onyx data updates
+    // Prioritize HTTPS since it provides complete request information for updating in the correct logical order
+    // https://github.com/Expensify/App/issues/62233
     const lastUpdateID = Number(updateParams.lastUpdateID);
-    if (lastUpdateID <= lastUpdateIDSavedInOnyxData) {
+    if (lastUpdateID < lastUpdateIDSavedInOnyxData || (lastUpdateID === lastUpdateIDSavedInOnyxData && updateParams.type !== 'https')) {
         return;
     }
-    lastUpdateIDSavedInOnyxData = lastUpdateID;
 
     let modifiedUpdateParams = updateParams;
     // We don't want to store the data in the updateParams if it's a HTTPS update since it is useless anyways
