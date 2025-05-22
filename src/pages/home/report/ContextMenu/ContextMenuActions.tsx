@@ -85,19 +85,14 @@ import {
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
-    getIOUApprovedMessage,
     getIOUForwardedMessage,
     getIOUReportActionDisplayMessage,
-    getIOUSubmittedMessage,
-    getIOUUnapprovedMessage,
     getOriginalReportID,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
-    getReportAutomaticallySubmittedMessage,
     getReportName,
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
@@ -564,19 +559,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
                     if (harvesting) {
-                        setClipboardMessage(getReportAutomaticallySubmittedMessage(reportAction));
+                        setClipboardMessage(translateLocal('iou.automaticallySubmitted'));
                     } else {
-                        Clipboard.setString(getIOUSubmittedMessage(reportAction));
+                        Clipboard.setString(translateLocal('iou.submitted'));
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
-                        setClipboardMessage(getReportAutomaticallyApprovedMessage(reportAction));
+                        setClipboardMessage(translateLocal('iou.automaticallyApproved'));
                     } else {
-                        Clipboard.setString(getIOUApprovedMessage(reportAction));
+                        Clipboard.setString(translateLocal('iou.approvedMessage'));
                     }
                 } else if (isUnapprovedAction(reportAction)) {
-                    Clipboard.setString(getIOUUnapprovedMessage(reportAction));
+                    Clipboard.setString(translateLocal('iou.unapproved'));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
@@ -661,7 +656,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: ({type, reportAction, menuTarget}) => {
             const isAttachment = isReportActionAttachment(reportAction);
 
-            // Only hide the copylink menu item when context menu is opened over img element.
+            // Only hide the copy link menu item when context menu is opened over img element.
             const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction);
         },
