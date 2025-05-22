@@ -89,7 +89,6 @@ import {
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
-    getAllReportErrors,
     getChatByParticipants,
     getChatRoomSubtitle,
     getDeletedParentActionMessageForChatReport,
@@ -849,10 +848,6 @@ function getLastMessageTextForReport(
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
-function hasReportErrors(report: Report, reportActions: OnyxEntry<ReportActions>) {
-    return !isEmptyObject(getAllReportErrors(report, reportActions));
-}
-
 /**
  * Creates a report list option
  */
@@ -1201,7 +1196,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, undefined),
+            ...createOption(accountIDs, personalDetails, report),
         },
     };
 }
@@ -2444,7 +2439,6 @@ export {
     getAttendeeOptions,
     getAlternateText,
     getReportDisplayOption,
-    hasReportErrors,
     combineOrderingOfReportsAndPersonalDetails,
     filterWorkspaceChats,
     orderWorkspaceOptions,
