@@ -5,7 +5,7 @@ keywords: [Suggested Search, Submit, Approve, Pay, Export, New Expensify, To-do,
 ---
 <div id="new-expensify" markdown="1">
 
-Suggested Search helps you quickly take action on expense reports you need to submit, approve, pay, or export—tailored to your role in a workspace.
+Suggested Search helps you quickly take action on expense reports you need to submit, approve, pay, or export, all tailored to your role in a workspace.
 
 **Navigation:** Reports > Expense Reports > Suggested Search
 
@@ -19,7 +19,7 @@ Suggested Search surfaces key report actions in your **Reports** page so you can
 - Pay approved reports ready for reimbursement
 - Export finalized reports to accounting platforms
 
-These shortcuts are personalized based on your role and workspace configuration, helping you process reports in batches—no advanced search needed.
+These shortcuts are personalized based on your role and workspace configuration, helping you process reports in batches with no advanced search needed.
 
 ---
 
@@ -37,7 +37,7 @@ Depending on your role, you’ll see shortcuts like:
 
 ## Workflow breakdown
 
-Here’s how these actions are usually completed manually—Suggested Search streamlines them for you.
+Here’s how these actions are usually completed manually and how Suggested Search streamlines them for you.
 
 ### Submit
 
