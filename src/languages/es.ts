@@ -5296,7 +5296,7 @@ const translations = {
             `${optionEnabled ? 'habilitó' : 'deshabilitó'} la opción "${optionName}" para el campo de informe "${fieldName}"`,
         updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled, toggledOptionsCount}: PolicyDisabledReportFieldAllOptionsParams) => {
             if (toggledOptionsCount && toggledOptionsCount > 1) {
-                return `${allEnabled ? 'habilitó' : 'deshabilitó'} todas las opciones del campo de informe "${fieldName}"`;
+                return `${allEnabled ? 'habilitó' : 'deshabilitó'} todas las opciones para el campo de informe "${fieldName}"`;
             }
             return `${allEnabled ? 'habilitó' : 'deshabilitó'} la opción "${optionName}" para el campo de informe "${fieldName}", haciendo que todas las opciones queden ${
                 allEnabled ? 'habilitadas' : 'deshabilitadas'
