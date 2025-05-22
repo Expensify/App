@@ -48,7 +48,11 @@ else
     exit 1
 fi
 
-# Rebuild native modules for current Node.js version
+# Install project dependencies first
+echo "📦 Installing project dependencies..."
+npm install
+
+# Now rebuild native modules
 echo "🔨 Rebuilding native modules..."
 npm rebuild
 
@@ -74,10 +78,6 @@ fi
 # Install mkcert for HTTPS setup
 echo "📦 Installing mkcert..."
 sudo apt install -y mkcert
-
-# Install project dependencies
-echo "📦 Installing project dependencies..."
-npm install
 
 # Setup HTTPS certificates
 echo "🔒 Setting up HTTPS certificates..."
