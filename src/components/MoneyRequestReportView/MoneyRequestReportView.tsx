@@ -110,7 +110,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const prevTransactions = usePrevious(transactions);
 
     const newTransactions = useMemo(() => {
-        if (!prevTransactions || transactions.length <= prevTransactions.length) {
+        if (!prevTransactions || !transactions || transactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
