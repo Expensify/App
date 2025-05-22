@@ -820,6 +820,7 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
+        NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
     },
     BUTTON_STATES: {
