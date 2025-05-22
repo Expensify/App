@@ -13,15 +13,15 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as DistanceRate from '@userActions/Policy/DistanceRate';
+import {clearPolicyDistanceRateErrorFields, deletePolicyDistanceRates, setPolicyDistanceRatesEnabled} from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,7 +36,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policyID = route.params.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`, {canBeMissing: true});
     const rateID = route.params.rateID;
 
     const customUnit = getDistanceRateCustomUnit(policy);
@@ -75,7 +75,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const toggleRate = () => {
         if (!rate?.enabled || canDisableOrDeleteRate) {
-            DistanceRate.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
+            setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
         } else {
             setIsWarningModalVisible(true);
         }
@@ -83,16 +83,16 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const deleteRate = () => {
         Navigation.goBack();
-        DistanceRate.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
+        deletePolicyDistanceRates(policyID, customUnit, [rateID]);
         setIsDeleteModalVisible(false);
     };
 
-    const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate?.rate, currency);
-    const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? CurrencyUtils.convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
+    const rateValueToDisplay = convertAmountToDisplayString(rate?.rate, currency);
+    const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
     const clearErrorFields = (fieldName: keyof Rate | keyof TaxRateAttributes) => {
-        DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
+        clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
     return (
@@ -112,7 +112,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     addBottomSafeAreaPadding
                 >
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}
+                        errors={getLatestErrorField(rate ?? {}, 'enabled')}
                         pendingAction={rate?.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('enabled')}
@@ -127,7 +127,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         </View>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'name')}
+                        errors={getLatestErrorField(rate ?? {}, 'name')}
                         pendingAction={rate?.pendingFields?.name}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('name')}
@@ -141,7 +141,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'rate')}
+                        errors={getLatestErrorField(rate ?? {}, 'rate')}
                         pendingAction={rate?.pendingFields?.rate ?? rate?.pendingFields?.currency}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('rate')}
@@ -156,7 +156,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'taxRateExternalID')}
+                            errors={getLatestErrorField(rate, 'taxRateExternalID')}
                             pendingAction={rate?.pendingFields?.taxRateExternalID}
                             errorRowStyles={styles.mh5}
                             onClose={() => clearErrorFields('taxRateExternalID')}
@@ -173,7 +173,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     )}
                     {isDistanceTrackTaxEnabled && !!taxRate && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'taxClaimablePercentage')}
+                            errors={getLatestErrorField(rate, 'taxClaimablePercentage')}
                             pendingAction={rate?.pendingFields?.taxClaimablePercentage}
                             errorRowStyles={styles.mh5}
                             onClose={() => clearErrorFields('taxClaimablePercentage')}
