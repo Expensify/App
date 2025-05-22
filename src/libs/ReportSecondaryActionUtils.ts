@@ -18,8 +18,8 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {
     canAddTransaction,
     canEditFieldOfMoneyRequest,
-    getTransactionDetails,
     canEditReportPolicy,
+    getTransactionDetails,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
