@@ -82,10 +82,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const iouAction =
         isBillSplit && originalTransaction
-            ? getIOUActionForReportID(
-                  originalTransaction.comment?.splits?.find((split) => !!split && !!split.chatReportID && split.accountID === sessionAccountID)?.chatReportID,
-                  originalTransaction.transactionID,
-              )
+            ? (getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action)
             : action;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
