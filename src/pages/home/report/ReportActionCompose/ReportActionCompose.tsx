@@ -9,10 +9,9 @@ import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
-import DropZoneUI from '@components/DropZoneUI';
+import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -488,8 +487,9 @@ function ReportActionCompose({
                                     />
                                     {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
                                     {canUseMultiFilesDragAndDrop ? (
-                                        <DropZoneUI
-                                            onDrop={(event: DragEvent) => {
+                                        <DualDropZone
+                                            isEditing={false}
+                                            onAttachmentDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {
                                                     return;
                                                 }
@@ -499,11 +499,7 @@ function ReportActionCompose({
                                                     displayFileInModal(data);
                                                 }
                                             }}
-                                            icon={Expensicons.MessageInABottle}
-                                            dropTitle={translate('dropzone.addAttachments')}
-                                            dropStyles={styles.attachmentDropOverlay}
-                                            dropTextStyles={styles.attachmentDropText}
-                                            dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
+                                            onReceiptDrop={() => {}}
                                         />
                                     ) : (
                                         <ReportDropUI

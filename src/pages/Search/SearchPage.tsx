@@ -7,7 +7,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZoneUI';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PDFThumbnail from '@components/PDFThumbnail';

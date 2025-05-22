@@ -16,8 +16,9 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZoneUI';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -334,7 +335,15 @@ function IOURequestStepScan({
     }, [initialTransaction, reportID]);
 
     const createTransaction = useCallback(
-        (files: ReceiptFile[], participant: Participant, gpsPoints?: GpsPoint, policyParams?: {policy: OnyxEntry<Policy>}, billable?: boolean) => {
+        (
+            files: ReceiptFile[],
+            participant: Participant,
+            gpsPoints?: GpsPoint,
+            policyParams?: {
+                policy: OnyxEntry<Policy>;
+            },
+            billable?: boolean,
+        ) => {
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
                 const receipt: Receipt = receiptFile.file;
@@ -951,7 +960,7 @@ function IOURequestStepScan({
                         </EducationalTooltip>
                         {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
                         {canUseMultiFilesDragAndDrop ? (
-                            <DropZoneUI
+                            <DragAndDropConsumer
                                 onDrop={(e) => {
                                     const file = e?.dataTransfer?.files[0];
                                     if (file) {
@@ -959,12 +968,16 @@ function IOURequestStepScan({
                                         setReceiptAndNavigate(file);
                                     }
                                 }}
-                                icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
-                                dropStyles={styles.receiptDropOverlay}
-                                dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
-                                dropTextStyles={styles.receiptDropText}
-                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
-                            />
+                            >
+                                <DropZoneUI
+                                    isDraggingOver
+                                    icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                                    dropStyles={styles.receiptDropOverlay}
+                                    dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
+                                    dropTextStyles={styles.receiptDropText}
+                                    dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
+                                />
+                            </DragAndDropConsumer>
                         ) : (
                             <ReceiptDropUI
                                 onDrop={(e) => {
