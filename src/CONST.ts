@@ -5249,7 +5249,7 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
-        TEST_DRIVE_COVER_ASPECT_RATIO: 500 / 300,
+        TEST_DRIVE_COVER_ASPECT_RATIO: 1000 / 508,
     },
 
     /**

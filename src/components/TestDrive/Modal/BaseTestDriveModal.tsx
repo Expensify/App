@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import FastTrack from '@assets/images/fast-track-cover.jpg';
+import FastTrack from '@assets/images/fast-track-cover.png';
 import type {FeatureTrainingModalProps} from '@components/FeatureTrainingModal';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import useLocalize from '@hooks/useLocalize';
