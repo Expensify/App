@@ -116,12 +116,19 @@ const signupQualifiers = {
 } as const;
 
 const getTestDriveTaskName = (testDriveURL?: string) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive');
-const testDriveTask: OnboardingTask = {
+const testDriveAdminTask: OnboardingTask = {
     type: 'viewTour',
     autoCompleted: false,
     mediaAttributes: {},
     title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
     description: ({testDriveURL}) => `[Take a quick product tour](${testDriveURL}) to see why Expensify is the fastest way to do your expenses.`,
+};
+const testDriveEmployeeTask: OnboardingTask = {
+    type: 'viewTour',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
+    description: ({testDriveURL}) => `Take us for a [test drive](${testDriveURL}) and get your team *3 free months of Expensify!*`,
 };
 const createTestDriveAdminWorkspaceTask: OnboardingTask = {
     type: 'createWorkspace',
@@ -174,7 +181,7 @@ const setupCategoriesTask: OnboardingTask = {
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     tasks: [
-        testDriveTask,
+        testDriveEmployeeTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -198,7 +205,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
     ...onboardingEmployerOrSubmitMessage,
     tasks: [
-        testDriveTask,
+        testDriveEmployeeTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -223,7 +230,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
 const onboardingPersonalSpendMessage: OnboardingMessage = {
     message: 'Here’s how to track your spend in a few clicks.',
     tasks: [
-        testDriveTask,
+        testDriveEmployeeTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -247,7 +254,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
-        testDriveTask,
+        testDriveEmployeeTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -5445,7 +5452,7 @@ const CONST = {
             message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
             tasks: [
                 createWorkspaceTask,
-                testDriveTask,
+                testDriveAdminTask,
                 {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
@@ -5596,7 +5603,7 @@ const CONST = {
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             tasks: [
-                testDriveTask,
+                testDriveEmployeeTask,
                 {
                     type: 'startChat',
                     autoCompleted: false,
@@ -5675,7 +5682,7 @@ const CONST = {
         },
         [onboardingChoices.TEST_DRIVE_RECEIVER]: {
             message: "*You've got 3 months free! Get started below.*",
-            tasks: [testDriveTask, createTestDriveAdminWorkspaceTask],
+            tasks: [testDriveAdminTask, createTestDriveAdminWorkspaceTask],
         },
     } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
