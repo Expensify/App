@@ -53,6 +53,7 @@ function DebugReportPage({
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: (attributes) => attributes?.reports?.[reportID],
@@ -71,7 +72,7 @@ function DebugReportPage({
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
-            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, transactions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
