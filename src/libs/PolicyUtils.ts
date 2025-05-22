@@ -425,8 +425,20 @@ function escapeTagName(tag: string) {
 /**
  * Gets a count of enabled tags of a policy
  */
-function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
+function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
+    if (!policyTags) {
+        return 0;
+    }
     return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
+}
+/**
+ * Gets count of required tag lists of a policy
+ */
+function getCountOfRequiredTagLists(policyTagLists: OnyxEntry<PolicyTagLists>): number {
+    if (!policyTagLists) {
+        return 0;
+    }
+    return Object.values(policyTagLists).filter((tagList) => tagList.required).length;
 }
 
 /**
@@ -1239,10 +1251,6 @@ function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
 
-function getAllPolicies() {
-    return Object.values(allPolicies ?? {}).filter((p) => !!p);
-}
-
 function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
@@ -1532,7 +1540,6 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
-    getAllPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
@@ -1548,6 +1555,7 @@ export {
     getManagerAccountID,
     isPreferredExporter,
     areAllGroupPoliciesExpenseChatDisabled,
+    getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
     getPolicyRole,
