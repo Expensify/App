@@ -5108,13 +5108,11 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, b
 }
 
 function navigateOnDeleteExpense(backToRoute: Route) {
-    const rootState = navigationRef.current?.getRootState();
-    if (rootState) {
-        const focusedRoute = findFocusedRoute(rootState);
-        if (focusedRoute?.params && 'backTo' in focusedRoute.params) {
-            Navigation.goBack(focusedRoute.params.backTo as Route);
-            return;
-        }
+    const rootState = navigationRef.getRootState();
+    const focusedRoute = findFocusedRoute(rootState);
+    if (focusedRoute?.params && 'backTo' in focusedRoute.params) {
+        Navigation.goBack(focusedRoute.params.backTo as Route);
+        return;
     }
 
     Navigation.goBack(backToRoute);
