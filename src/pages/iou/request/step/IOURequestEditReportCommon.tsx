@@ -45,20 +45,21 @@ type Props = {
 function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}: Props) {
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
+    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const expenseReports = useMemo(
         () =>
-            Object.values(transactionsReports ?? {}).flatMap((transactionsReport) => {
-                if (!transactionsReport.policyID) {
+            Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
+                if (!policyID) {
                     return [];
                 }
-                const reports = getOutstandingReportsForUser(transactionsReport.policyID, transactionsReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
+                const reports = getOutstandingReportsForUser(policyID, transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
                 return reports;
             }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports],
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID],
     );
 
     const reportOptions: ReportListItem[] = useMemo(() => {
