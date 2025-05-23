@@ -30,6 +30,7 @@ import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -99,6 +100,9 @@ function IOURequestStepScan({
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
+    // TODO: remove when multi-scan functionality is removed from beta
+    const {canUseMultiScan} = usePermissions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -692,6 +696,13 @@ function IOURequestStepScan({
         iouType,
     ]);
 
+    const toggleMultiScan = () => {
+        if (isMultiScanEnabled) {
+            // TODO: clear out taken photos when multi scan is turning off
+        }
+        setIsMultiScanEnabled(!isMultiScanEnabled);
+    };
+
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
         return null;
@@ -786,6 +797,24 @@ function IOURequestStepScan({
                                             cameraTabIndex={1}
                                         />
                                         <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                                        {canUseMultiScan ? (
+                                            <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess]}>
+                                                <PressableWithFeedback
+                                                    role={CONST.ROLE.BUTTON}
+                                                    accessibilityLabel={translate('receipt.flash')}
+                                                    style={!hasFlash && styles.opacity0}
+                                                    disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                                                    onPress={() => setFlash((prevFlash) => !prevFlash)}
+                                                >
+                                                    <Icon
+                                                        height={16}
+                                                        width={16}
+                                                        src={Expensicons.Bolt}
+                                                        fill={flash ? theme.white : theme.textSupporting}
+                                                    />
+                                                </PressableWithFeedback>
+                                            </View>
+                                        ) : null}
                                     </View>
                                 </GestureDetector>
                             </View>
@@ -833,20 +862,37 @@ function IOURequestStepScan({
                             height={CONST.RECEIPT.SHUTTER_SIZE}
                         />
                     </PressableWithFeedback>
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.flash')}
-                        style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
-                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                        onPress={() => setFlash((prevFlash) => !prevFlash)}
-                    >
-                        <Icon
-                            height={32}
-                            width={32}
-                            src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
-                            fill={theme.textSupporting}
-                        />
-                    </PressableWithFeedback>
+                    {canUseMultiScan ? (
+                        <PressableWithFeedback
+                            accessibilityRole="button"
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.multiScan')}
+                            style={styles.alignItemsEnd}
+                            onPress={toggleMultiScan}
+                        >
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={Expensicons.ReceiptMultiple}
+                                fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
+                            />
+                        </PressableWithFeedback>
+                    ) : (
+                        <PressableWithFeedback
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.flash')}
+                            style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
+                            disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                            onPress={() => setFlash((prevFlash) => !prevFlash)}
+                        >
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
+                                fill={theme.textSupporting}
+                            />
+                        </PressableWithFeedback>
+                    )}
                 </View>
                 {startLocationPermissionFlow && !!receiptFiles.length && (
                     <LocationPermissionModal

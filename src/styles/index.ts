@@ -4032,6 +4032,16 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.receiptDropBorderColor,
         },
 
+        flashButtonContainer: {
+            position: 'absolute',
+            top: 20,
+            right: 20,
+        },
+
+        bgGreenSuccess: {
+            backgroundColor: colors.green400,
+        },
+
         isDraggingOver: {
             backgroundColor: theme.fileDropUIBG,
         },
