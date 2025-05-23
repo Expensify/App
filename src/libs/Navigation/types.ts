@@ -1613,8 +1613,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
-    [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
-    [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
 };
@@ -1993,13 +1993,13 @@ type MissingPersonalDetailsParamList = {
 };
 
 type SplitExpenseParamList = {
-    [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE]: {
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
         reportID: string;
         transactionID: string;
         backTo?: Routes;
         splitExpenseTransactionID?: string;
     };
-    [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE_EDIT]: {
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
         reportID: string;
         transactionID: string;
         splitExpenseTransactionID: string;

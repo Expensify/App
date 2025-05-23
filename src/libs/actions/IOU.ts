@@ -11079,7 +11079,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
 
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
 
-    Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID ?? String(CONST.DEFAULT_NUMBER_ID), transaction.transactionID, undefined, Navigation.getActiveRouteWithoutParams()));
+    Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID ?? String(CONST.DEFAULT_NUMBER_ID), transaction.transactionID, undefined, Navigation.getActiveRoute()));
 }
 
 /**

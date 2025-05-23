@@ -30,7 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.RIGHT_MODAL.SPLIT_EXPENSE>;
+type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();

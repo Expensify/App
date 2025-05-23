@@ -204,8 +204,6 @@ const SCREENS = {
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
-        SPLIT_EXPENSE: 'Split_Expense',
-        SPLIT_EXPENSE_EDIT: 'Split_Expense_Edit',
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
     },
@@ -258,6 +256,8 @@ const SCREENS = {
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
         STEP_REPORT: 'Money_Request_Report',
         EDIT_REPORT: 'Money_Request_Edit_Report',
+        SPLIT_EXPENSE: 'Money_Request_Split_Expense',
+        SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
     },
 
     TRANSACTION_DUPLICATE: {

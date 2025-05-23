@@ -573,21 +573,21 @@ const ROUTES = {
         },
     },
     SPLIT_EXPENSE: {
-        route: 'r/:reportID/split-expense/:transactionID/:splitExpenseTransactionID?',
+        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
         getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
             if (!reportID || !originalTransactionID) {
                 Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE route`);
             }
-            return getUrlWithBackToParam(`r/${reportID}/split-expense/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
+            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
     SPLIT_EXPENSE_EDIT: {
-        route: 'r/:reportID/split-expense-edit/:transactionID/:splitExpenseTransactionID?',
+        route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
         getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
             if (!reportID || !originalTransactionID) {
                 Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
             }
-            return getUrlWithBackToParam(`r/${reportID}/split-expense-edit/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
+            return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {
