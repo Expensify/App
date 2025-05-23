@@ -141,7 +141,6 @@ function HeaderWithBackButton({
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {
-            const firstMenuButton = threeDotsMenuItems.at(0);
             return threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
                 <Tooltip text={threeDotsMenuItems.at(0)?.text}>
                     <PressableWithoutFeedback
@@ -151,7 +150,7 @@ function HeaderWithBackButton({
                         accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
                     >
                         <Icon
-                            src={firstMenuButton?.icon as React.FC<SvgProps>}
+                            src={threeDotsMenuItems.at(0)?.icon as React.FC<SvgProps>}
                             fill={theme.icon}
                         />
                     </PressableWithoutFeedback>
