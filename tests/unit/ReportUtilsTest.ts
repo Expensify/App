@@ -619,7 +619,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
+                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted');
             });
 
             test('Invited/Removed Room Member Action', () => {

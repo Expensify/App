@@ -1827,14 +1827,25 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
-
-    if (reimbursableUrls.length === 1) {
+    if (reimbursableUrls.length || nonReimbursableUrls.length) {
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
+            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionThree'),
+            url: '',
+        });
+    }
+    if (reimbursableUrls.length === 1) {
+        const shouldAddPeriod = nonReimbursableUrls.length === 0;
+        result.push({
+            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
             url: reimbursableUrls.at(0) ?? '',
         });
     }
-
+    if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
+        result.push({
+            text: translateLocal('common.and'),
+            url: '',
+        });
+    }
     if (nonReimbursableUrls.length) {
         const text = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
         let url = '';
