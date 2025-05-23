@@ -4026,7 +4026,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, searchHash?: number): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -4049,10 +4049,10 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
-        unholdRequest(transactionID, reportAction.childReportID);
+        unholdRequest(transactionID, reportAction.childReportID, searchHash);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute, searchHash));
     }
 };
 
