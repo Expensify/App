@@ -300,18 +300,18 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh3 : undefined]}>
                 <View style={styles.mb2}>
                     <Button
+                        large
+                        text={translate('common.skip')}
+                        onPress={() => completeOnboarding()}
+                    />
+                </View>
+                <View>
+                    <Button
                         success
                         large
                         text={translate('common.continue')}
                         onPress={() => inviteUser()}
                         isDisabled={selectedOptions.length <= 0}
-                    />
-                </View>
-                <View>
-                    <Button
-                        large
-                        text={translate('common.skip')}
-                        onPress={() => completeOnboarding()}
                     />
                 </View>
             </View>

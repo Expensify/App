@@ -143,6 +143,13 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 </View>
                 <View style={styles.mb2}>
                     <Button
+                        large
+                        text={translate('common.skip')}
+                        onPress={() => completeOnboarding()}
+                    />
+                </View>
+                <View>
+                    <Button
                         success
                         large
                         text={translate('onboarding.workspace.createWorkspace')}
@@ -150,13 +157,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                             setOnboardingErrorMessage('');
                             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
                         }}
-                    />
-                </View>
-                <View>
-                    <Button
-                        large
-                        text={translate('common.skip')}
-                        onPress={() => completeOnboarding()}
                     />
                 </View>
             </View>
