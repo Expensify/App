@@ -40,7 +40,17 @@ import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Performance from '@libs/Performance';
-import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcierge, getReportRecipientAccountIDs} from '@libs/ReportUtils';
+import {
+    canShowReportRecipientLocalTime,
+    chatIncludesChronos,
+    chatIncludesConcierge,
+    generateReportID,
+    getReportRecipientAccountIDs,
+    isAdminRoom,
+    isAnnounceRoom,
+    isChatRoom,
+    isUserCreatedPolicyRoom,
+} from '@libs/ReportUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
@@ -201,7 +211,7 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
-    const shouldDisplayDualDropZone = useMemo(() => !isChatRoom(report), [report]);
+    const shouldDisplayDualDropZone = useMemo(() => !isChatRoom(report) && !isUserCreatedPolicyRoom(report) && !isAnnounceRoom(report) && !isAdminRoom(report), [report]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
