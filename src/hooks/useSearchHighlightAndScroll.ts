@@ -35,14 +35,12 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const initializedRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
-    // Create a search function that will be debounced
     const performSearch = useCallback(() => {
         triggeredByHookRef.current = true;
         search({queryJSON, offset});
         searchTriggeredRef.current = true;
     }, [queryJSON, offset]);
 
-    // Create debounced version of the search function
     const debouncedSearch = useDebounce(performSearch, 150);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
@@ -77,7 +75,6 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // We don't want to highlight these old items, even if they appear new in the current search results.
             hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
 
-            // Trigger the debounced search
             debouncedSearch();
         }
 
