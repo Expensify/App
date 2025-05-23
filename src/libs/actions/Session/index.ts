@@ -247,7 +247,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     hideContextMenu(false);
 
     // Reset storage related to the signing out loading state
-    Onyx.set(ONYXKEYS.IS_LOGGING_OUT_CONTENT_SHOWN, false);
+    sessionStorage.removeItem('loggingOutContentShown');
 
     // Navigate to signing out page immediately
     Navigation.navigate(ROUTES.LOGGING_OUT);
@@ -1435,10 +1435,6 @@ function resetSMSDeliveryFailureStatus(login: string) {
     API.write(WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS, params, {optimisticData, successData, failureData});
 }
 
-function setLoggingOutContentShown(isShown: boolean) {
-    Onyx.set(ONYXKEYS.IS_LOGGING_OUT_CONTENT_SHOWN, isShown);
-}
-
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1481,5 +1477,4 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
-    setLoggingOutContentShown,
 };
