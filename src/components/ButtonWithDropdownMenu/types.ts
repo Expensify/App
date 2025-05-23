@@ -39,6 +39,7 @@ type DropdownOption<TValueType> = {
     wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;
     subMenuItems?: PopoverMenuItem[];
+    backButtonText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 

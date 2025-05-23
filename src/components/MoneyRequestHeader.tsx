@@ -10,12 +10,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU';
+import {deleteMoneyRequest} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, isSelfDM, navigateBackOnDeleteTransaction, navigateToDetailsPage} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasReceipt,
@@ -320,10 +320,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
 
-                    deleteMoneyRequest(transaction?.transactionID, parentReportAction);
-
-                    const goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, parentReportAction, true);
-                    navigateBackOnDeleteTransaction(goBackRoute);
+                    deleteMoneyRequest(transaction?.transactionID, parentReportAction, true);
+                    onBackButtonPress();
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
