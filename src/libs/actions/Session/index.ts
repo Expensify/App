@@ -6,6 +6,7 @@ import {InteractionManager, Linking} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import resetLoggingOutContentShown from '@libs/actions/LoggingOut';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {
@@ -62,7 +63,6 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
-import resetLoggingOutContentShown from '@libs/actions/LoggingOut';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
