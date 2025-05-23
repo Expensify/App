@@ -497,6 +497,172 @@ type OriginalMessageModifiedExpense = {
     newAttendees?: Attendee[];
 };
 
+/** Model of a `travel update` report action */
+type OriginalMessageTravelUpdate = {
+    /** Information about the arrival gate on the airport */
+    arrivalGate?: {
+        /** Specific gate for arrival */
+        gate: string;
+
+        /** Terminal where the gate is located */
+        terminal: string;
+    };
+
+    /** Information about a booked car */
+    carInfo?: {
+        /** Engine specification */
+        engine: string;
+
+        /** Car model name */
+        name: string;
+    };
+
+    /** Deadline when car can be cancelled without charges */
+    cancellationDeadline: string;
+
+    /** Policy of the cancellation */
+    cancellationPolicy: string;
+
+    /** Information about the travel service provider eg. hotel or airlines */
+    company?: {
+        /** Full name of the company */
+        longName: string;
+
+        /** Contact phone number */
+        phone: string;
+
+        /** Short name */
+        shortName: string;
+    };
+
+    /** Array of confirmation details */
+    confirmations?: [
+        {
+            /** Name of the confirmation detail */
+            name: string;
+
+            /** The actual confirmation value */
+            value: string;
+        },
+    ];
+
+    /** Information about the departure gate. */
+    departureGate?: {
+        /** Specific gate for departure. */
+        gated: string;
+
+        /** Terminal where the gate is located. */
+        terminal: string;
+    };
+
+    /** Duration of the route */
+    duration?: number;
+
+    /** Information about the destination */
+    end: {
+        /** Detailed address of the endpoint */
+        address?: string;
+
+        /** Name of the starting-point city (for transport) */
+        cityName?: string;
+
+        /** Date-time when the journey ends */
+        date: string;
+
+        /** Full name of the endpoint */
+        longName?: string;
+
+        /** Similar to address */
+        location?: string;
+
+        /** Short name of the destination */
+        shortName?: string;
+    };
+
+    /** Type or category of purchased fare */
+    fareType?: string;
+
+    /** If it's a new dot version of the app */
+    isNewDot: boolean;
+
+    /** When was the originalMessage last modified */
+    lastModified: string;
+
+    /**
+     * Type of operation
+     * TODO ADD CONST TYPES BOOKING_REBOOKED
+     * */
+    operation: string;
+
+    /** Type of payment used */
+    paymentType?: string;
+
+    /** ID identifying the booking */
+    reservationID?: string;
+
+    /** Class/type of a booked room */
+    roomClass?: string;
+
+    /** Details about flight or train route */
+    route?: {
+        /** Flight code, provided by airline */
+        airlineCode?: string;
+        /** Class of service */
+        class?: string;
+
+        /** Name of a train route */
+        name?: string;
+
+        /** Number of flight */
+        number?: string;
+    };
+
+    /** Coach number in train travel */
+    coachNumber?: string;
+
+    /** Seat number in plane or train */
+    seatNumber?: string;
+
+    /** Information about origin of the trip */
+    start: {
+        /** Detailed address of the starting point */
+        address?: string;
+
+        /** When the journey starts */
+        date: string;
+
+        /** Full name of the starting point */
+        longName?: string;
+
+        /** Short name of the starting point */
+        shortName?: string;
+
+        /** Similar to address */
+        location?: string;
+
+        /** Timezone offset of the starting point (for transport) */
+        timezoneOffset?: string;
+
+        /** Name of the city of departure (for transport) */
+        cityName?: string;
+    };
+
+    /** Information about the traveler */
+    travelerPersonalInfo: {
+        /** Email address */
+        email: string;
+
+        /** Traveller's name */
+        name: string;
+    };
+
+    /** Type of pnr (flight, train, car, or hotel)  */
+    type: string;
+
+    /** Vendor of the service */
+    vendor?: string;
+};
+
 /** Model of the `deleted transaction` report action */
 type OriginalMessageDeletedTransaction = {
     /** The merchant of the transaction */
@@ -812,6 +978,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: never;
+    [CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE]: OriginalMessageTravelUpdate;
     [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: OriginalMessageUnapproved;
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.UNSHARE]: never;
@@ -857,4 +1024,5 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
+    OriginalMessageTravelUpdate,
 };

@@ -17,6 +17,7 @@ import type {
     OriginalMessageIOU,
     OriginalMessageModifiedExpense,
     OriginalMessageMovedTransaction,
+    OriginalMessageTravelUpdate,
     OriginalMessageUnreportedTransaction,
 } from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
@@ -5827,6 +5828,166 @@ function getPolicyChangeMessage(action: ReportAction) {
     });
     return message;
 }
+function getTravelUpdateMessage(action: ReportAction) {
+    const details = getOriginalMessage(action) as OriginalMessageTravelUpdate;
+
+    switch (details?.operation) {
+        case 'BOOKING_TICKETED':
+            return translateLocal('travel.updates.bookingTicketed', {
+                airlineCode: details?.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: details.start.date ?? '',
+                confirmationID: details?.confirmations?.at(0)?.value ?? '',
+            });
+
+        case 'TICKET_VOIDED':
+            return translateLocal('travel.updates.ticketVoided', {
+                airlineCode: details?.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: details.start.date ?? '',
+            });
+
+        case 'TICKET_REFUNDED':
+            return translateLocal('travel.updates.ticketRefunded', {
+                airlineCode: details?.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: details.start.date ?? '',
+            });
+
+        case 'FLIGHT_CANCELLED':
+            return translateLocal('travel.updates.flightCancelled', {
+                airlineCode: details?.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: details.start.date ?? '',
+            });
+
+        case 'FLIGHT_SCHEDULE_CHANGE_PENDING':
+            return translateLocal('travel.updates.flightScheduleChangePending', {
+                airlineCode: details?.route?.airlineCode ?? '',
+            });
+
+        case 'FLIGHT_SCHEDULE_CHANGE_CLOSED':
+            return translateLocal('travel.updates.flightScheduleChangeClosed', {
+                airlineCode: details?.route?.airlineCode ?? '',
+                startDate: details.start.date ?? '',
+            });
+
+        case 'FLIGHT_CHANGED':
+            return translateLocal('travel.updates.flightChanged', {
+                airlineCode: details?.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: details.start.date ?? '',
+            });
+
+        case 'FLIGHT_CABIN_CHANGED':
+            return translateLocal('travel.updates.flightCabinChanged', {
+                airlineCode: details?.route?.airlineCode ?? '',
+                cabinClass: details.route?.class ?? '',
+            });
+
+        case 'FLIGHT_SEAT_CONFIRMED':
+            return translateLocal('travel.updates.flightSeatConfirmed', {
+                airlineCode: details?.route?.airlineCode ?? '',
+            });
+
+        case 'FLIGHT_SEAT_CHANGED':
+            return translateLocal('travel.updates.flightSeatChanged', {
+                airlineCode: details?.route?.airlineCode ?? '',
+            });
+
+        case 'FLIGHT_SEAT_CANCELLED':
+            return translateLocal('travel.updates.flightSeatCancelled', {
+                airlineCode: details?.route?.airlineCode ?? '',
+            });
+
+        case 'PAYMENT_DECLINED':
+            return translateLocal('travel.updates.paymentDeclined');
+
+        case 'BOOKING_CANCELED_BY_TRAVELER':
+            return translateLocal('travel.updates.bookingCancelledByTraveller', {
+                type: details.type ?? '',
+                reservationID: details.reservationID ?? '',
+            });
+
+        case 'BOOKING_CANCELED_BY_VENDOR':
+            return translateLocal('travel.updates.bookingCancelledByVendor', {
+                type: details.type ?? '',
+                reservationID: details.reservationID ?? '',
+            });
+
+        case 'BOOKING_REBOOKED':
+            return translateLocal('travel.updates.bookingRebooked', {
+                type: details.type ?? '',
+                confirmationID: details?.confirmations?.at(0)?.value ?? '' ?? '',
+            });
+
+        case 'BOOKING_UPDATED':
+            return translateLocal('travel.updates.bookingUpdated', {
+                type: details.type ?? '',
+            });
+
+        case 'TRIP_UPDATED':
+            if (details.type === 'car' || details.type === 'hotel') {
+                return translateLocal('travel.updates.defaultUpdate', {
+                    type: details.type,
+                });
+            }
+            if (details.type === 'train') {
+                return translateLocal('travel.updates.railTicketUpdate', {
+                    origin: details.start.cityName ?? details.start.shortName ?? '',
+                    destination: details.end.cityName ?? details.end.shortName ?? '',
+                    startDate: details.start.date,
+                });
+            }
+            return translateLocal('travel.updates.flightChanged', {
+                airlineCode: details?.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: details.start.date ?? '',
+            });
+        case 'BOOKING_OTHER_UPDATE':
+            if (details.type === 'car' || details.type === 'hotel') {
+                return translateLocal('travel.updates.defaultUpdate', {
+                    type: details.type,
+                });
+            }
+            if (details.type === 'train') {
+                return translateLocal('travel.updates.railTicketUpdate', {
+                    origin: details.start.cityName ?? details.start.shortName ?? '',
+                    destination: details.end.cityName ?? details.end.shortName ?? '',
+                    startDate: details.start.date,
+                });
+            }
+            return translateLocal('travel.updates.flightChanged', {
+                airlineCode: details?.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: details.start.date ?? '',
+            });
+
+        case 'REFUND':
+            return translateLocal('travel.updates.railTicketRefund', {
+                origin: details.start.cityName ?? details.start.shortName ?? '',
+                destination: details.end.cityName ?? details.end.shortName ?? '',
+                startDate: details.start.date,
+            });
+
+        case 'EXCHANGE':
+            return translateLocal('travel.updates.railTicketExchange', {
+                origin: details.start.cityName ?? details.start.shortName ?? '',
+                destination: details.end.cityName ?? details.end.shortName ?? '',
+                startDate: details.start.date,
+            });
+
+        default:
+            return 'Unknown trip update';
+    }
+}
 
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
@@ -10877,6 +11038,7 @@ export {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
+    getTravelUpdateMessage,
     getReportDescription,
     getReportFieldKey,
     getReportIDFromLink,

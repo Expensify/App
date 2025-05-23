@@ -1315,6 +1315,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
+                TRAVEL_UPDATE: 'TRAVEL_TRIP_ROOM_UPDATE',
                 TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
