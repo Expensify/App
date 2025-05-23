@@ -949,14 +949,25 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
     // TODO: This option will be enabled soon (removing the && false). We are waiting on BE changes to support this
     // feature, but lets keep the code here for simplicity
     const showPaySuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>(
-            (policy): policy is OnyxTypes.Policy =>
-                !!policy &&
-                policy.role === CONST.POLICY.ROLE.ADMIN &&
-                policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ||
-                    policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL),
-        ).length > 0;
+        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
+            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL) {
+                return false;
+            }
+
+            const reimburser = policy.achAccount?.reimburser;
+            const isReimburser = reimburser === email;
+            const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+
+            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+                return reimburser ? isReimburser : isAdmin;
+            }
+
+            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+                return isAdmin;
+            }
+
+            return false;
+        }).length > 0;
 
     // TODO: This option will be enabled soon (removing the && false). We are waiting on changes to support this
     // feature fully, but lets keep the code here for simplicity
