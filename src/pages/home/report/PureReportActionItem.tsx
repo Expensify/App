@@ -123,11 +123,15 @@ import {
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
     getIconsForParticipants,
+    getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getIOUSubmittedMessage,
+    getIOUUnapprovedMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
-    getUnreportedTransactionMessage,
+    getReportAutomaticallyApprovedMessage,
+    getReportAutomaticallySubmittedMessage,
     getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
@@ -953,25 +957,25 @@ function PureReportActionItem({
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
+                children = <ReportActionItemBasicMessage message={getIOUSubmittedMessage(action, report)} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyApproved')}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
+                children = <ReportActionItemBasicMessage message={getIOUApprovedMessage(action, report)} />;
             }
         } else if (isUnapprovedAction(action)) {
-            children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
+            children = <ReportActionItemBasicMessage message={getIOUUnapprovedMessage(action, report)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
@@ -1008,11 +1012,7 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
-            children = (
-                <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage(action)}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
-            );
+            children = <ReportActionItemBasicMessage message={translate('iou.unreportedTransaction')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
