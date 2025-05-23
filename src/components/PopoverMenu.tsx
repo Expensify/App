@@ -69,11 +69,7 @@ type PopoverMenuItem = MenuItemProps & {
     testID?: string;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
-    Pick<BottomDockedModalProps, 'animationInDelay'> & {
-        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
-        shouldUseNewModal?: boolean;
-    };
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<BottomDockedModalProps, 'animationInDelay'>;
 
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
@@ -203,7 +199,6 @@ function PopoverMenu({
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
-    shouldUseNewModal = true,
     shouldAvoidSafariException = false,
     testID,
 }: PopoverMenuProps) {
@@ -285,6 +280,7 @@ function PopoverMenu({
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
         const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, ...menuItemProps} = item;
+
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key
@@ -418,7 +414,6 @@ function PopoverMenu({
             innerContainerStyle={innerContainerStyle}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
-            shouldUseNewModal={shouldUseNewModal}
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={[menuContainerStyle, containerStyles]}>

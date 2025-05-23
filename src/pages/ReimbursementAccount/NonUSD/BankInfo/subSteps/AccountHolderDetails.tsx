@@ -21,7 +21,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CorpayFormField} from '@src/types/onyx';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
+const {COUNTRY, ACCOUNT_HOLDER_NAME} = INPUT_IDS.ADDITIONAL_DATA;
 
 function getInputComponent(field: CorpayFormField) {
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
@@ -131,6 +131,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                             street: 'accountHolderAddress1',
                             city: 'accountHolderCity',
                         }}
+                        hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
                     />
                 </View>
             );
