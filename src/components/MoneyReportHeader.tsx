@@ -795,7 +795,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             backButtonText: translate('iou.addExpense'),
             icon: Expensicons.Plus,
             value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
-            backButtonText: translate('iou.addExpense'),
             subMenuItems: addExpenseDropdownOptions,
             onSelected: () => {
                 if (!moneyRequestReport?.reportID) {
