@@ -1620,6 +1620,7 @@ export {
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
+    // eslint-disable-next-line deprecation/deprecation
     getTransaction,
     compareDuplicateTransactionFields,
     getTransactionID,
