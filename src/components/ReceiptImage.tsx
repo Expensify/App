@@ -203,6 +203,7 @@ function ReceiptImage({
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
+            shouldShowOfflineIndicator={false}
         />
     );
 }
