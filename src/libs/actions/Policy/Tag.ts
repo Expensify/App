@@ -803,7 +803,7 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     };
 
     const policyTagListsUpdate = Object.keys(policyTags).reduce<Record<string, Partial<PolicyTagList>>>((acc, key) => {
-        if (!policyTags[key].required != requiresTag) {
+        if (!policyTags[key].required !== requiresTag) {
             acc[key] = {required: requiresTag};
         }
         return acc;

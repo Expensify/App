@@ -1855,7 +1855,7 @@ function pushTransactionViolationsOnyxData(
                 transaction,
                 transactionViolations,
                 policy,
-                policyTagLists,
+                optimisticPolicyTagLists,
                 optimisticPolicyCategories,
                 hasDependentTags,
                 isReportAnInvoice,
