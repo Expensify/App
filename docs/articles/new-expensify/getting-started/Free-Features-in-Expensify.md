@@ -10,9 +10,9 @@ You can use Expensify without joining a paid workspace! This guide outlines the 
 
 ---
 
-# Free Features in Expensify
+# Free Features Overview
 
-You can use Expensify without a paid workspace and still access these core tools:
+You can use Expensify without a paid workspace on a free account and still access these core tools:
 
 - **SmartScan receipts:** Scan unlimited receipts
 - **Email receipts:** Send to [receipts@expensify.com](mailto:receipts@expensify.com) for automatic scanning
