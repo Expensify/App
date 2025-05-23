@@ -82,7 +82,6 @@ function BaseModal(
         shouldPreventScrollOnFocus = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-        canBeClosedByOtherModal = true,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -140,9 +139,7 @@ function BaseModal(
         if (isVisible) {
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            if (canBeClosedByOtherModal) {
-                removeOnCloseListener = setCloseModal(onClose);
-            }
+            removeOnCloseListener = setCloseModal(onClose);
         }
 
         return () => {
@@ -151,7 +148,7 @@ function BaseModal(
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type, canBeClosedByOtherModal]);
+    }, [isVisible, wasVisible, onClose, type]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
