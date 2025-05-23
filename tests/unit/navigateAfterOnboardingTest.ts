@@ -136,8 +136,9 @@ describe('navigateAfterOnboarding', () => {
     it('should navigate to Test Drive Modal if user wants to manage a small team', async () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         jest.spyOn(Navigation, 'isNavigationReady').mockReturnValue(Promise.resolve());
-
-        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.MANAGE_TEAM, true, true);
+        const onboardingAdminsChatReportID = '1';
+        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.MANAGE_TEAM, false, true, undefined, undefined, onboardingAdminsChatReportID);
+        await waitFor(() => expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(onboardingAdminsChatReportID)));
         await waitFor(() => expect(navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT));
     });
 });
