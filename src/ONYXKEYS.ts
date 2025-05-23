@@ -527,6 +527,12 @@ const ONYXKEYS = {
     /** Set this gets redirected from global reimbursements flow */
     IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
 
+    /** Stores information for OpenUnreportedEpensesPage API call pagination */
+    HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS: 'hasMoreUnreportedTransactionsResults',
+
+    /** Is unreported trnsactions loading */
+    IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1163,6 +1169,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
     [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
+    [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
+    [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
 };
 
 type OnyxDerivedValuesMapping = {

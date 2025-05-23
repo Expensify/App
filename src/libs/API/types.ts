@@ -480,6 +480,7 @@ const WRITE_COMMANDS = {
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     REOPEN_REPORT: 'ReopenReport',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
+    OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -980,6 +981,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
 
     [WRITE_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
+
+    [WRITE_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
 };
 
 const READ_COMMANDS = {
