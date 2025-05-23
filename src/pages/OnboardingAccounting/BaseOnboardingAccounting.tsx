@@ -243,7 +243,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         // We need to wait the policy is created before navigating out the onboarding flow
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             navigateAfterOnboarding(
-                onboardingPurposeSelected,
                 isSmallScreenWidth,
                 canUseDefaultRooms,
                 policyID,
