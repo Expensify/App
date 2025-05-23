@@ -1,15 +1,17 @@
 import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, ImageStyle, Text as RNText, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
+import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
+import {InteractionManager, Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
 import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
@@ -17,31 +19,47 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
+import {openOldDotLink} from '@libs/actions/Link';
 import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
-import {getNavatticURL} from '@libs/TourUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
+    hash: number;
     type: SearchDataTypes;
     hasResults: boolean;
+};
+
+type EmptySearchViewItem = {
+    headerMedia: DotLottieAnimation;
+    title: string;
+    subtitle?: string;
+    headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
+    lottieWebViewStyles?: React.CSSProperties | undefined;
+    buttons?: EmptyStateButton[];
+    headerStyles?: ViewStyle;
+    titleStyles?: TextStyle;
+    subtitleStyle?: TextStyle;
+    children?: React.ReactNode;
 };
 
 const tripsFeatures: FeatureListItem[] = [
@@ -55,18 +73,27 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
+
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
 
-    const contextMenuAnchor = useRef<RNText>(null);
+    const typeMenuItems = useMemo(() => {
+        return createTypeMenuSections(session, allPolicies)
+            .map((section) => section.menuItems)
+            .flat();
+    }, [session, allPolicies]);
+
     const tripViewChildren = useMemo(() => {
         const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
             showContextMenu({
@@ -125,9 +152,6 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     }, [styles, translate]);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const onboardingPurpose = introSelected?.choice;
-    const {environment} = useEnvironment();
-    const navatticURL = getNavatticURL(environment, onboardingPurpose);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
         canBeMissing: true,
@@ -139,7 +163,29 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isReportArchived);
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
-    const content = useMemo(() => {
+    const content: EmptySearchViewItem = useMemo(() => {
+        // Begin by going through all of our To-do searches, and returning their empty state
+        // if it exists
+        for (const menuItem of typeMenuItems) {
+            const menuHash = buildSearchQueryJSON(menuItem.getSearchQuery())?.hash;
+            if (menuHash === hash && menuItem.emptyState) {
+                return {
+                    headerMedia: menuItem.emptyState.headerMedia,
+                    title: translate(menuItem.emptyState.title),
+                    subtitle: translate(menuItem.emptyState.subtitle),
+                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
+                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
+                    lottieWebViewStyles: styles.emptyStateFireworksWebStyles,
+                    buttons: menuItem.emptyState.buttons?.map((button) => ({
+                        ...button,
+                        buttonText: translate(button.buttonText),
+                    })),
+                };
+            }
+        }
+
+        // If we didn't match a specific search hash, show a specific message
+        // based on the type of the data
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
@@ -162,7 +208,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
-                                              openExternalLink(navatticURL);
+                                              InteractionManager.runAfterInteractions(() => {
+                                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                                              });
                                               setSelfTourViewed();
                                               if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
                                                   completeTask(viewTourTaskReport);
@@ -202,7 +250,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
-                                              openExternalLink(navatticURL);
+                                              InteractionManager.runAfterInteractions(() => {
+                                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                                              });
                                               setSelfTourViewed();
                                               if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
                                                   completeTask(viewTourTaskReport);
@@ -241,18 +291,21 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         }
     }, [
         type,
+        typeMenuItems,
+        hash,
+        translate,
         StyleUtils,
+        theme.todoBG,
         theme.travelBG,
         theme.emptyFolderBG,
-        translate,
+        styles.emptyStateFireworksWebStyles,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
         styles.tripEmptyStateLottieWebView,
         tripViewChildren,
-        hasSeenTour,
-        navatticURL,
-        shouldRedirectToExpensifyClassic,
         hasResults,
+        hasSeenTour,
+        shouldRedirectToExpensifyClassic,
         viewTourTaskReport,
         canModifyTheTask,
         canActionTheTask,
@@ -268,7 +321,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     SkeletonComponent={SearchRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                     headerMedia={content.headerMedia}
-                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden, content.headerStyles]}
                     title={content.title}
                     titleStyles={content.titleStyles}
                     subtitle={content.subtitle}

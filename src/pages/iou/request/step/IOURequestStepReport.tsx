@@ -21,8 +21,7 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action} = route.params;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportID = transaction?.reportID || transaction?.participants?.at(0)?.reportID;
+    const reportID = transaction?.reportID === '0' ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -43,7 +42,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionReport={transactionReport}
+            transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
         />
     );
