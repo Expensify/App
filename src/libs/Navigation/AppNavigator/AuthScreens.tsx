@@ -510,11 +510,41 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
         const subMillisecondsTime = clearAfterTime.getTime() - currentTime.getTime();
         if (subMillisecondsTime > 0) {
-            const timeoutID = setTimeout(() => {
-                clearStatus();
-            }, subMillisecondsTime);
+            let intervalId: NodeJS.Timeout | null = null;
+            let timeoutId: NodeJS.Timeout | null = null;
+
+            if (subMillisecondsTime > CONST.LIMIT_TIMEOUT) {
+                intervalId = setInterval(() => {
+                    const now = new Date();
+                    const remainingTime = clearAfterTime.getTime() - now.getTime();
+
+                    if (remainingTime <= 0) {
+                        clearStatus();
+                        if (intervalId) {
+                            clearInterval(intervalId);
+                        }
+                    } else if (remainingTime <= CONST.LIMIT_TIMEOUT) {
+                        if (intervalId) {
+                            clearInterval(intervalId);
+                        }
+                        timeoutId = setTimeout(() => {
+                            clearStatus();
+                        }, remainingTime);
+                    }
+                }, CONST.LIMIT_TIMEOUT);
+            } else {
+                timeoutId = setTimeout(() => {
+                    clearStatus();
+                }, subMillisecondsTime);
+            }
+
             return () => {
-                clearTimeout(timeoutID);
+                if (intervalId) {
+                    clearInterval(intervalId);
+                }
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
             };
         }
 
