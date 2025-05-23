@@ -13,4 +13,6 @@ function ReportActionsListLoadingSkeleton() {
     );
 }
 
+ReportActionsListLoadingSkeleton.displayName = 'ReportActionsListLoadingSkeleton';
+
 export default ReportActionsListLoadingSkeleton;
