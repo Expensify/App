@@ -213,15 +213,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         getWorkspaceMembers();
     }, [getWorkspaceMembers]);
 
-    // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-        setSelectedEmployees([]);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isFocused]);
-
     useEffect(() => {
         validateSelection();
     }, [preferredLocale, validateSelection]);
