@@ -160,7 +160,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 const newType = item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
                 // If the type has changed, reset the status so we dont have an invalid status selected
                 const newStatus = hasTypeChanged ? CONST.SEARCH.STATUS.EXPENSE.ALL : status;
-                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus});
+                const newGroupBy = hasTypeChanged ? undefined : groupBy;
+                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus, groupBy: newGroupBy});
                 Navigation.setParams({q: query});
             };
 
@@ -174,7 +175,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [queryJSON, status, translate, type],
+        [groupBy, queryJSON, status, translate, type],
     );
 
     const statusComponent = useCallback(
