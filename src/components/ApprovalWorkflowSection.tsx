@@ -94,6 +94,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             icon={Expensicons.UserCheck}
                             iconHeight={20}
                             iconWidth={20}
+                            numberOfLinesDescription={1}
                             iconFill={theme.icon}
                             onPress={onPress}
                             shouldRemoveBackground
