@@ -58,12 +58,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
-import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
-import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-import ListBoundaryLoader from './ListBoundaryLoader';
-import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import FloatingMessageCounter from './FloatingMessageCounter';
+import getInitialNumToRender from './getInitialNumReportActionsToRender';
+import ListBoundaryLoader from './ListBoundaryLoader';
+import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
+import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -401,20 +401,22 @@ function ReportActionsList({
             return;
         }
 
-        if (isListInitiallyLoaded && isReportUnread) {
-            // On desktop, when the notification center is displayed, isVisible will return false.
-            // Currently, there's no programmatic way to dismiss the notification center panel.
-            // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
-            const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            const isScrolledToEnd = scrollingVerticalOffset.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
+        if (!isListInitiallyLoaded || !isReportUnread) {
+            return;
+        }
 
-            if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
-                readNewestAction(report.reportID);
-                if (isFromNotification) {
-                    Navigation.setParams({referrer: undefined});
-                }
-                return;
+        // On desktop, when the notification center is displayed, isVisible will return false.
+        // Currently, there's no programmatic way to dismiss the notification center panel.
+        // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
+        const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+        const isScrolledToEnd = scrollingVerticalOffset.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
+
+        if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
+            readNewestAction(report.reportID);
+            if (isFromNotification) {
+                Navigation.setParams({referrer: undefined});
             }
+            return;
         }
 
         readActionSkipped.current = true;
@@ -767,6 +769,5 @@ function ReportActionsList({
 ReportActionsList.displayName = 'ReportActionsList';
 
 export default memo(ReportActionsList);
-export {onReportActionListLoadedInTests};
 
 export type {ReportActionsListProps};
