@@ -68,6 +68,7 @@ import {
     payInvoice,
     payMoneyRequest,
     reopenReport,
+    retractReport,
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
@@ -744,6 +745,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 } else {
                     setIsDeleteReportModalVisible(true);
                 }
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
+            text: translate('iou.undoSubmit'),
+            icon: Expensicons.CircularArrowBackwards,
+            value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
+            onSelected: () => {
+                retractReport(moneyRequestReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
