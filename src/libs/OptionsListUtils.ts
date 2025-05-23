@@ -74,6 +74,7 @@ import {
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
     isReimbursementDeQueuedOrCanceledAction,
@@ -100,6 +101,7 @@ import {
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
     getMoneyRequestSpendBreakdown,
+    getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
     getPolicyName,
@@ -772,6 +774,8 @@ function getLastMessageTextForReport(
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
+    } else if (isMovedTransactionAction(lastReportAction)) {
+        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
