@@ -160,10 +160,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 ...values,
             };
 
+            // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== filterFormValues.type) {
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
 
+            // If the type is no longer expense, then we need to remove the 'payer' field so we don't get an error
             if (updatedFilterFormValues.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 updatedFilterFormValues.payer = undefined;
             }
