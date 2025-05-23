@@ -5779,12 +5779,12 @@ const styles = (theme: ThemeColors) =>
             flexBasis: 'auto',
         },
 
-        testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
+        testDriveModalContainer: {
             // On small/medium screens, we need to remove the top padding
             paddingTop: 0,
-            // On larger screens, we need to prevent the modal from becoming too big
-            maxWidth: shouldUseNarrowLayout ? undefined : 500,
-        }),
+            // On medium screens, we need to prevent the modal from becoming too big
+            maxWidth: 500,
+        },
 
         backgroundWhite: {
             backgroundColor: colors.white,

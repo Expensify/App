@@ -67,7 +67,13 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);
 
-            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policy.automaticJoiningEnabled ? policy.policyID : undefined, activeWorkspaceID);
+            navigateAfterOnboarding(
+                CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                isSmallScreenWidth,
+                canUseDefaultRooms,
+                policy.automaticJoiningEnabled ? policy.policyID : undefined,
+                activeWorkspaceID,
+            );
         },
         [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, canUseDefaultRooms, activeWorkspaceID],
     );

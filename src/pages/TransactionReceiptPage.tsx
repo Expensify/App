@@ -101,8 +101,8 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             isAuthTokenRequired={!isLocalFile && !isDraftTransaction}
             report={report}
             isReceiptAttachment
-            canEditReceipt={((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt}
-            canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt}
+            canEditReceipt={(canEditReceipt && !readonly) || isDraftTransaction}
+            canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction}
             allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={isDraftTransaction ? transaction?.filename : receiptURIs?.filename}

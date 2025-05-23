@@ -688,10 +688,6 @@ type CurrencyInputDisabledTextParams = {
     currency: string;
 };
 
-type EmployeeInviteMessageParams = {
-    name: string;
-};
-
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfulDescriptionParams,
@@ -937,5 +933,4 @@ export type {
     SubscriptionSettingsSummaryParams,
     ReviewParams,
     CurrencyInputDisabledTextParams,
-    EmployeeInviteMessageParams,
 };

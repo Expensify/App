@@ -1828,9 +1828,7 @@ type MigratedUserModalNavigatorParamList = {
 };
 
 type TestDriveModalNavigatorParamList = {
-    [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
-        bossEmail?: string;
-    };
+    [SCREENS.TEST_DRIVE_MODAL.ROOT]: undefined;
 };
 
 type TestDriveDemoNavigatorParamList = {

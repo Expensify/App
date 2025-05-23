@@ -4,7 +4,7 @@ import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,6 +14,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -23,11 +24,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
+import {openExternalLink, openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
-import {completeTestDriveTask} from '@libs/actions/Task';
+import {canActionTask as canActionTaskUtils, canModifyTask as canModifyTaskUtils, completeTask} from '@libs/actions/Task';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
@@ -43,6 +45,7 @@ import {
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -126,7 +129,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const {canUseSpotnanaTravel, canUseTableReportView} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
+    const {environment} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const navatticURL = getNavatticURL(environment, introSelected?.choice);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
         canBeMissing: true,
@@ -376,6 +381,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         shouldUseNarrowLayout,
     ]);
 
+    const viewTourTaskReportID = introSelected?.viewTour;
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: true});
+
+    const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
+
     const isTravelEnabled = useMemo(() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
             return false;
@@ -489,14 +500,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
                       onSelected: () => {
-                          InteractionManager.runAfterInteractions(() => {
-                              if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
-                                  completeTestDriveTask(isAnonymousUser());
-                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                              } else {
-                                  Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-                              }
-                          });
+                          openExternalLink(navatticURL);
+                          setSelfTourViewed(isAnonymousUser());
+                          if (viewTourTaskReport && canModifyTask && canActionTask) {
+                              completeTask(viewTourTaskReport);
+                          }
                       },
                   },
               ]
