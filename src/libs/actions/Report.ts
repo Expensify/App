@@ -4588,7 +4588,10 @@ function downloadReportPDF(fileName: string, reportName: string) {
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
         currentUserEmail ?? '',
     )}`;
-    fileDownload(addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
+    // The shouldOpenExternalLink parameter must always be set to
+    // true to avoid CORS errors for as long as we use the OD URL.
+    // See https://github.com/Expensify/App/issues/61937
+    fileDownload(addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', true).then(() => setDownload(fileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
