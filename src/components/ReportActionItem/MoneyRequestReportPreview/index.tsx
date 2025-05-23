@@ -60,7 +60,7 @@ function MoneyRequestReportPreview({
     const [currentWidth, setCurrentWidth] = useState<number>(0);
     const [currentWrapperWidth, setCurrentWrapperWidth] = useState<number>(0);
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, currentWrapperWidth, transactions.length),
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
         [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
 

@@ -705,11 +705,19 @@ function MoneyRequestReportPreviewContent({
                                         </View>
                                     </View>
                                     {!currentWidth ? (
-                                        <ActivityIndicator
-                                            color={theme.spinner}
-                                            size={40}
-                                            style={{marginVertical: 20}}
-                                        />
+                                        <View
+                                            style={[
+                                                {
+                                                    height: CONST.REPORT.TRANSACTION_PREVIEW_HEIGHT_WIDE,
+                                                },
+                                                styles.justifyContentCenter,
+                                            ]}
+                                        >
+                                            <ActivityIndicator
+                                                color={theme.spinner}
+                                                size={40}
+                                            />
+                                        </View>
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
                                             <FlatList
