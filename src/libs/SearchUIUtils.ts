@@ -32,7 +32,6 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import Permissions from './Permissions';
 import {createNewReport} from './actions/Report';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -41,6 +40,7 @@ import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
+import Permissions from './Permissions';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
@@ -996,39 +996,41 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                    buttons: Permissions.canUseTableReportView(betas) ? [
-                        {
-                            success: true,
-                            buttonText: 'report.newReport.createReport',
-                            buttonAction: () => {
-                                interceptAnonymousUser(() => {
-                                    const activePolicy = getActivePolicy();
-                                    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
-                                    const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
+                    buttons: Permissions.canUseTableReportView(betas)
+                        ? [
+                              {
+                                  success: true,
+                                  buttonText: 'report.newReport.createReport',
+                                  buttonAction: () => {
+                                      interceptAnonymousUser(() => {
+                                          const activePolicy = getActivePolicy();
+                                          const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+                                          const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
 
-                                    let workspaceIDForReportCreation: string | undefined;
+                                          let workspaceIDForReportCreation: string | undefined;
 
-                                    // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                        workspaceIDForReportCreation = activePolicy.id;
-                                    } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                        workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                    }
+                                          // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                          if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                              workspaceIDForReportCreation = activePolicy.id;
+                                          } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                              workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                          }
 
-                                    if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                        const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
-                                        Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                        });
-                                        return;
-                                    }
+                                          if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
+                                              const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                              Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                              });
+                                              return;
+                                          }
 
-                                    // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
-                                });
-                            },
-                        },
-                    ] : undefined,
+                                          // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
+                                          Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                      });
+                                  },
+                              },
+                          ]
+                        : undefined,
                 },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
