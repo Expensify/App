@@ -1825,7 +1825,12 @@ function pushTransactionViolationsOnyxData(
     }
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
     const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
-        acc[categoryName] = {...policyCategories[categoryName], ...policyCategoriesUpdate[categoryName]};
+        const categoryUpdate = policyCategoriesUpdate?.[categoryName];
+        if (categoryUpdate && categoryUpdate.name) {
+            acc[categoryName] = {...policyCategories[categoryName], ...categoryUpdate};
+        } else {
+            acc[categoryName] = policyCategories[categoryName];
+        }
         return acc;
     }, {}) as PolicyCategories;
 
