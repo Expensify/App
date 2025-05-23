@@ -175,11 +175,11 @@ function ReportActionsList({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
     useEffect(() => {
-        const unsubscriber = Visibility.onVisibilityChange(() => {
+        const unsubscribe = Visibility.onVisibilityChange(() => {
             setIsVisible(Visibility.isVisible());
         });
 
-        return unsubscriber;
+        return unsubscribe;
     }, []);
 
     const scrollingVerticalOffset = useRef(0);
@@ -485,14 +485,12 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
-    const previousLastAction = usePrevious(lastAction);
+    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
+    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
+    const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
+
     useEffect(() => {
-        if (
-            lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER ||
-            lastAction?.reportActionID === previousLastAction?.reportActionID ||
-            !hasNewestReportAction ||
-            scrollingVerticalOffset.current >= AUTOSCROLL_TO_TOP_THRESHOLD
-        ) {
+        if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
         InteractionManager.runAfterInteractions(() => {
@@ -705,8 +703,6 @@ function ReportActionsList({
 
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
-
-    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
 
     return (
         <>
