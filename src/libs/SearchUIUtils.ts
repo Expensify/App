@@ -946,8 +946,6 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             return isPolicyApprover || isSubmittedTo;
         }).length > 0;
 
-    // TODO: This option will be enabled soon (removing the && false). We are waiting on BE changes to support this
-    // feature, but lets keep the code here for simplicity
     const showPaySuggestion =
         Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
             if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL) {

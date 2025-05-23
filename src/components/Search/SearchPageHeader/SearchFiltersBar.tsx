@@ -35,6 +35,7 @@ import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, bu
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
@@ -151,18 +152,34 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     // that react calculates diffs (it doesn't know how to compare objects).
     const filterFormValuesKey = JSON.stringify(filterFormValues);
 
+    const updateFilterForm = useCallback(
+        (values: Partial<SearchAdvancedFiltersForm>) => {
+            const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
+                ...filterFormValues,
+                ...queryJSON,
+                ...values,
+            };
+
+            if (updatedFilterFormValues.type !== filterFormValues.type) {
+                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            }
+
+            if (updatedFilterFormValues.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                updatedFilterFormValues.payer = undefined;
+            }
+
+            const filterString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
+            const searchQueryJSON = buildSearchQueryJSON(filterString);
+            const queryString = buildSearchQueryString(searchQueryJSON);
+
+            Navigation.setParams({q: queryString});
+        },
+        [filterFormValues, queryJSON],
+    );
+
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const value = typeOptions.find((option) => option.value === type) ?? null;
-
-            const onChange = (item: SingleSelectItem<SearchDataTypes> | null) => {
-                const hasTypeChanged = item?.value !== type;
-                const newType = item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-                // If the type has changed, reset the status so we dont have an invalid status selected
-                const newStatus = hasTypeChanged ? CONST.SEARCH.STATUS.EXPENSE.ALL : status;
-                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus});
-                Navigation.setParams({q: query});
-            };
 
             return (
                 <SingleSelectPopup
@@ -170,11 +187,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     value={value}
                     items={typeOptions}
                     closeOverlay={closeOverlay}
-                    onChange={onChange}
+                    onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
                 />
             );
         },
-        [queryJSON, status, translate, type],
+        [translate, type, updateFilterForm],
     );
 
     const statusComponent = useCallback(
@@ -185,8 +202,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
                 const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
-                const query = buildSearchQueryString({...queryJSON, status: newStatus});
-                Navigation.setParams({q: query});
+                updateFilterForm({status: newStatus});
             };
 
             return (
@@ -199,7 +215,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [groupBy, queryJSON, status, translate, type],
+        [groupBy, status, translate, type, updateFilterForm],
     );
 
     const datePickerComponent = useCallback(
@@ -211,19 +227,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             };
 
             const onChange = (selectedDates: DateSelectPopupValue) => {
-                const newFilterFormValues = {
-                    ...filterFormValues,
-                    ...queryJSON,
+                const dateFormValues = {
                     dateAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? undefined,
                     dateBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? undefined,
                     dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON] ?? undefined,
                 };
 
-                const filterString = buildQueryStringFromFilterFormValues(newFilterFormValues);
-                const newJSON = buildSearchQueryJSON(filterString);
-                const queryString = buildSearchQueryString(newJSON);
-
-                Navigation.setParams({q: queryString});
+                updateFilterForm(dateFormValues);
             };
 
             return (
@@ -248,11 +258,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 <UserSelectPopup
                     value={value}
                     closeOverlay={closeOverlay}
-                    onChange={(selectedUsers) => {
-                        const newFilterFormValues = {...filterFormValues, from: selectedUsers};
-                        const queryString = buildQueryStringFromFilterFormValues(newFilterFormValues);
-                        Navigation.setParams({q: queryString});
-                    }}
+                    onChange={(selectedUsers) => updateFilterForm({from: selectedUsers})}
                 />
             );
         },
