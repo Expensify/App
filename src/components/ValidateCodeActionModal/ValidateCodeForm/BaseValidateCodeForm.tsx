@@ -309,7 +309,7 @@ function BaseValidateCodeForm({
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
                 errors={canShowError ? finalValidateError : undefined}
-                errorRowStyles={[styles.mt2, styles.textWrap]}
+                errorRowStyles={[styles.mv2, styles.textWrap]}
                 onClose={() => {
                     clearError();
                     if (!isEmptyObject(validateCodeAction?.errorFields) && validateCodeActionErrorField) {
