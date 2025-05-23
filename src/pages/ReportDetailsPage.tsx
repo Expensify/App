@@ -314,7 +314,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted);
-
     useEffect(() => {
         if (canDeleteRequest) {
             return;
