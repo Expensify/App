@@ -104,6 +104,7 @@ import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticGroupChatReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticMovedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
@@ -4727,10 +4728,24 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         },
     });
 
+    // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
+    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID ?? '-1', policyID, expenseChatReportId, iouReport?.iouReportID ?? '', policyName);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: { [movedReportAction.reportActionID]: movedReportAction },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: { [movedReportAction.reportActionID]: null },
+    });
+
     const parameters: MoveIOUReportToExistingPolicyParams = {
         iouReportID,
         policyID,
-        changePolicyReportActionID: changePolicyReportAction.reportActionID,
+        changePolicyReportAction: changePolicyReportAction.reportActionID,
+        dmMovedReportAction: movedReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
@@ -4961,12 +4976,26 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         },
     });
 
+        // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
+    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID ?? '-1', policyID, optimisticPolicyExpenseChatReportID, iouReport?.iouReportID ?? '', policy.name);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: { [movedReportAction.reportActionID]: movedReportAction },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: { [movedReportAction.reportActionID]: null },
+    });
+
     const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
         iouReportID: reportID,
         policyID,
         policyExpenseChatReportID: optimisticPolicyExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
         policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
-        changePolicyReportActionID: changePolicyReportAction.reportActionID,
+        changePolicyReportAction: changePolicyReportAction.reportActionID,
+        dmMovedReportAction: movedReportAction.reportActionID
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER, parameters, {optimisticData, successData, failureData});
