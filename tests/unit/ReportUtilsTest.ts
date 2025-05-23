@@ -619,7 +619,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted');
+                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
             });
 
             test('Invited/Removed Room Member Action', () => {
@@ -2003,6 +2003,30 @@ describe('ReportUtils', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
         });
+
+        it('should return false when the empty report has deleted action with child comment but isDeletedParentAction is false', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            const iouReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+                childVisibleActionCount: 1,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [iouReportAction.reportActionID]: iouReportAction,
+            });
+            expect(
+                shouldReportBeInOptionList({report, currentReportId: '', isInFocusMode: false, betas: [], policies: {}, doesReportHaveViolations: false, excludeEmptyChats: true}),
+            ).toBeFalsy();
+        });
     });
 
     describe('buildOptimisticChatReport', () => {
@@ -2758,6 +2782,18 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             expect(isReportOutstanding(report, policy.id)).toBe(true);
+        });
+        it('should return false for archived report', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+            expect(isReportOutstanding(report, policy.id)).toBe(false);
         });
     });
 });
