@@ -47,6 +47,7 @@ function ButtonWithDropdownMenu<IValueType>({
     shouldShowSelectedItemCheck = false,
     testID,
     secondLineText = '',
+    icon,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -155,6 +156,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         isSplitButton={isSplitButton}
                         testID={testID}
                         secondLineText={secondLineText}
+                        icon={icon}
                     />
 
                     {isSplitButton && (
@@ -205,6 +207,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     innerStyles={[innerStyleDropButton]}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     secondLineText={secondLineText}
+                    icon={icon}
                 />
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
