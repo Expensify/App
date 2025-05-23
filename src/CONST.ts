@@ -5189,7 +5189,6 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
-        REPORT_ACTIONS_LIST_INITIALLY_LOADED: 'reportActionsListInitiallyLoaded',
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
