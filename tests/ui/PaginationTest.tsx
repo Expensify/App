@@ -333,5 +333,5 @@ describe('Pagination', () => {
 
         // We still have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
-    }, 10000000000);
+    });
 });
