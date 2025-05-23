@@ -62,6 +62,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
+import resetLoggingOutContentShown from '@libs/actions/LoggingOut';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -247,8 +248,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     hideContextMenu(false);
 
     // Reset storage related to the signing out loading state
-    sessionStorage.removeItem('loggingOutContentShown');
-
+    resetLoggingOutContentShown();
     // Navigate to signing out page immediately
     Navigation.navigate(ROUTES.LOGGING_OUT);
 

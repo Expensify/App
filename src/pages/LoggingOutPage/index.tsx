@@ -13,9 +13,8 @@ function LoggingOutPage() {
     // Load for half a second to avoid flashing the content if the sign out process is fast.
     // The half second loading delay is shown only once per sign out by using sessionStorage. It has to be tracked outside of the component because the component hierarchy will be completely
     // remounted when the user is signed out and the AuthScreens are replaced by the public screens.
-    const [isLoading, setIsLoading] = useState(() => {
-        return !sessionStorage.getItem('loggingOutContentShown');
-    });
+    const [isLoading, setIsLoading] = useState(() => !sessionStorage.getItem('loggingOutContentShown'));
+
     useEffect(() => {
         if (!isLoading) {
             return;
