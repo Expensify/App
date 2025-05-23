@@ -20,13 +20,12 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
-import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
+import {canActionTask, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
@@ -159,8 +158,6 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isReportArchived);
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content: EmptySearchViewItem = useMemo(() => {
@@ -212,7 +209,10 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
                                                   Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                                               });
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                              // Even if the viewTourTaskReport doesn't exist in onyx we will still call completeTask without checking
+                                              // canActionTheTask as we don't want to avoid completing the test drive task due to its unavailabilty
+                                              // in onyx until we make the appropriate BE change to make viewTourTaskReport always available.
+                                              if (viewTourTaskReportID && (!viewTourTaskReport || canActionTheTask)) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -254,7 +254,7 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
                                                   Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                                               });
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                              if (viewTourTaskReportID && (!viewTourTaskReport || canActionTheTask)) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -307,7 +307,7 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
         hasSeenTour,
         shouldRedirectToExpensifyClassic,
         viewTourTaskReport,
-        canModifyTheTask,
+        viewTourTaskReportID,
         canActionTheTask,
     ]);
 
