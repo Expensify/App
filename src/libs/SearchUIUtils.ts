@@ -1,6 +1,6 @@
 import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -32,6 +32,7 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
+import Permissions from './Permissions';
 import {createNewReport} from './actions/Report';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -96,6 +97,12 @@ Onyx.connect({
     callback: (session) => {
         currentAccountID = session?.accountID;
     },
+});
+
+let betas: OnyxEntry<OnyxTypes.Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (betas = value),
 });
 
 const emptyPersonalDetails = {
@@ -989,7 +996,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                    buttons: [
+                    buttons: Permissions.canUseTableReportView(betas) ? [
                         {
                             success: true,
                             buttonText: 'report.newReport.createReport',
@@ -1021,7 +1028,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                                 });
                             },
                         },
-                    ],
+                    ] : undefined,
                 },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
