@@ -42,7 +42,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
-import HighlightableIOUMenuItem from './HIghlightableIOUMenuItem';
+import HighlightableIOUMenuItem from './HighlightableIOUMenuItem';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';

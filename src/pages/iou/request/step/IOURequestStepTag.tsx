@@ -162,6 +162,8 @@ function IOURequestStepTag({
                         tagListName={policyTagListName}
                         tagListIndex={tagListIndex}
                         selectedTag={tag}
+                        transactionTag={transactionTag}
+                        hasDependentTags={hasDependentTags}
                         onSubmit={updateTag}
                     />
                 </>

@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 type Props = {
     /** Border radius of the wrapper */
-    borderRadius: number;
+    borderRadius?: number;
 
     /** Height of the item that is to be faded */
     height?: number;

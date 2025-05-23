@@ -22,6 +22,12 @@ type TagPickerProps = {
     /** The selected tag of the expense */
     selectedTag: string;
 
+    /** The selected tag of the expense */
+    transactionTag?: string;
+
+    /** Whether the policy has dependent tags */
+    hasDependentTags?: boolean;
+
     /** The name of tag list we are getting tags for */
     tagListName: string;
 
@@ -38,13 +44,22 @@ type TagPickerProps = {
     tagListIndex: number;
 };
 
-function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, shouldOrderListByTagName = false, onSubmit}: TagPickerProps) {
+function TagPicker({
+    selectedTag,
+    transactionTag,
+    hasDependentTags,
+    tagListName,
+    policyID,
+    tagListIndex,
+    shouldShowDisabledAndSelectedOption = false,
+    shouldOrderListByTagName = false,
+    onSubmit,
+}: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
-
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = getTagList(policyTags, tagListIndex);
     const policyTagsCount = getCountOfEnabledTagsOfList(policyTagList.tags);
@@ -67,13 +82,29 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
     }, [selectedTag]);
 
     const enabledTags: PolicyTags | Array<PolicyTag | SelectedTagOption> = useMemo(() => {
-        if (!shouldShowDisabledAndSelectedOption) {
+        if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
             return policyTagList.tags;
         }
+
+        if (!shouldShowDisabledAndSelectedOption && hasDependentTags) {
+            // Truncate transactionTag to the current level (e.g., "California:North")
+            const parentTag = transactionTag?.split(':').slice(0, tagListIndex).join(':');
+
+            return Object.values(policyTagList.tags).filter((policyTag) => {
+                const filterRegex = policyTag.rules?.parentTagsFilter;
+                if (!filterRegex) {
+                    return policyTagList.tags;
+                }
+
+                const regex = new RegExp(filterRegex);
+                return regex.test(parentTag ?? '');
+            });
+        }
+
         const selectedNames = selectedOptions.map((s) => s.name);
 
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
-    }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
+    }, [shouldShowDisabledAndSelectedOption, hasDependentTags, selectedOptions, policyTagList.tags, transactionTag, tagListIndex]);
 
     const sections = useMemo(() => {
         const tagSections = getTagListSections({
