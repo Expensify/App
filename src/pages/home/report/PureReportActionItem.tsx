@@ -138,7 +138,9 @@ import {
     isArchivedNonExpenseReport,
     isChatThread,
     isCompletedTaskReport,
+    isDM,
     isExpenseReport,
+    isPolicyExpenseChat,
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
@@ -804,7 +806,9 @@ function PureReportActionItem({
 
             // Table Report View does not display these components as separate messages, except for self-DM
             if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
-                if ((report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM && !isDeletedAction(action)) || isSplitInGroupChat) {
+                const isSplitBill = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+                const shouldShowSplitBill = !(isDM(report) || isPolicyExpenseChat(report));
+                if ((report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM && !isDeletedAction(action)) || (isSplitBill && shouldShowSplitBill)) {
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
