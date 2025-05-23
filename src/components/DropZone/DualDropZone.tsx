@@ -22,11 +22,11 @@ type DropZoneProps = {
 function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop}: DropZoneProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     return (
         <DragAndDropConsumer>
-            <View style={[isSmallScreenWidth || isMediumScreenWidth ? styles.flexColumn : styles.flexRow, styles.w100, styles.h100]}>
+            <View style={[shouldUseNarrowLayout || isMediumScreenWidth ? styles.flexColumn : styles.flexRow, styles.w100, styles.h100]}>
                 <DropZoneWrapper onDrop={onAttachmentDrop}>
                     {({isDraggingOver}) => (
                         <DropZoneUI

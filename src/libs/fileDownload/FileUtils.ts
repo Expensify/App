@@ -378,6 +378,16 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
         });
 };
 
+const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undefined) => {
+    if (!attachmentInvalidReason) {
+        return '';
+    }
+    if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+        return translateLocal(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+    }
+    return translateLocal(attachmentInvalidReason);
+};
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -400,4 +410,5 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
+    getConfirmModalPrompt
 };

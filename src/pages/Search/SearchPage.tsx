@@ -54,6 +54,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
+import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -109,17 +110,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-
-    // TODO: to be refactored in step 3
-    const getConfirmModalPrompt = () => {
-        if (!attachmentInvalidReason) {
-            return '';
-        }
-        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
-        }
-        return translate(attachmentInvalidReason);
-    };
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
@@ -587,7 +577,7 @@ function SearchPage({route}: SearchPageProps) {
                             onConfirm={hideReceiptModal}
                             onCancel={hideReceiptModal}
                             isVisible={isAttachmentInvalid}
-                            prompt={getConfirmModalPrompt()}
+                            prompt={getConfirmModalPrompt(attachmentInvalidReason)}
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
