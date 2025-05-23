@@ -169,17 +169,14 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
         [reportActions, sortedTransactions],
     );
 
-    const dateColumnSize = useMemo(() => {
-        const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
-        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
-    }, [transactions]);
-
-    const amountColumnsData = useMemo(() => {
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => isFormattedAmountTooLong(transaction));
         const isTaxAmountColumnWide = transactions.some((transaction) => isTaxAmountTooLong(transaction));
+        const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
         return {
             amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
     }, [transactions]);
 
@@ -211,8 +208,8 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                             sortBy={sortBy}
                             sortOrder={sortOrder}
                             dateColumnSize={dateColumnSize}
-                            amountColumnSize={amountColumnsData.amountColumnSize}
-                            taxAmountColumnSize={amountColumnsData.taxAmountColumnSize}
+                            amountColumnSize={amountColumnSize}
+                            taxAmountColumnSize={taxAmountColumnSize}
                             onSortPress={(selectedSortBy, selectedSortOrder) => {
                                 if (!isSortableColumnName(selectedSortBy)) {
                                     return;
@@ -268,8 +265,8 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                                 transactionItem={transaction}
                                 isSelected={isTransactionSelected(transaction.transactionID)}
                                 dateColumnSize={dateColumnSize}
-                                amountColumnSize={amountColumnsData.amountColumnSize}
-                                taxAmountColumnSize={amountColumnsData.taxAmountColumnSize}
+                                amountColumnSize={amountColumnSize}
+                                taxAmountColumnSize={taxAmountColumnSize}
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                                 shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}

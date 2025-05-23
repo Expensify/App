@@ -558,7 +558,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         navigation.setParams({q: newQuery});
     };
 
-    const tableYearAndAmountWidth = getSearchTableYearAndAmountWidth(searchResults?.data);
+    const {isAmountLengthLong, isTaxAmountLengthLong, shouldShowYear} = getSearchTableYearAndAmountWidth(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
@@ -582,9 +582,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                             onSortPress={onSortPress}
                             sortOrder={sortOrder}
                             sortBy={sortBy}
-                            shouldShowYear={tableYearAndAmountWidth.shouldShowYear}
-                            isAmountColumnWide={tableYearAndAmountWidth.isAmountLengthLong}
-                            isTaxAmountColumnWide={tableYearAndAmountWidth.isTaxAmountLengthLong}
+                            shouldShowYear={shouldShowYear}
+                            isAmountColumnWide={isAmountLengthLong}
+                            isTaxAmountColumnWide={isTaxAmountLengthLong}
                             shouldShowSorting={shouldShowSorting}
                         />
                     )
