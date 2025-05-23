@@ -98,7 +98,7 @@ const getReviewNavigationRoute = (
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-    const reviewingTransaction = allTransactions[reviewingTransactionID ?? ''];
+    const reviewingTransaction = allTransactions[`${reviewingTransactionID}`];
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
     const allDuplicateIDs = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const allDuplicates = allDuplicateIDs.map((id) => allTransactions?.[id]);
