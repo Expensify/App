@@ -1,39 +1,43 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import type {SearchContext, TMoneyRequestReportContext} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import type {SearchReportParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
+import {putOnHold} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
-type SearchHoldReasonPageRouteParams = {
-    /** Link to previous page */
-    backTo: Route;
-};
+type Props = PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP | typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS>;
 
-type SearchHoldReasonPageProps = {
-    /** Navigation route context info provided by react navigation */
-    route: PlatformStackRouteProp<{params?: SearchHoldReasonPageRouteParams}>;
-};
-
-function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
+function SearchHoldReasonPage({route}: Props) {
     const {translate} = useLocalize();
-
-    const {currentSearchHash, selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const {backTo = ''} = route.params ?? {};
+    const shouldUseMoneyRequestContext = route.name !== SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP;
+    const contextValue = useSearchContext(shouldUseMoneyRequestContext);
 
-    const selectedTransactionIDs = Object.keys(selectedTransactions);
-    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        holdMoneyRequestOnSearch(currentSearchHash, selectedTransactionIDs, values.comment);
-        clearSelectedTransactions();
-        Navigation.goBack();
-    };
+    const onSubmit = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
+            if (shouldUseMoneyRequestContext) {
+                const {selectedTransactionsID, setSelectedTransactionsID} = contextValue as TMoneyRequestReportContext;
+                selectedTransactionsID.forEach((transactionID) => putOnHold(transactionID, values.comment, route.params.reportID));
+                setSelectedTransactionsID([]);
+            } else {
+                const {currentSearchHash, selectedTransactions, clearSelectedTransactions} = contextValue as SearchContext;
+                holdMoneyRequestOnSearch(currentSearchHash, Object.keys(selectedTransactions), values.comment);
+                clearSelectedTransactions();
+            }
+            Navigation.goBack();
+        },
+        [contextValue, route.params?.reportID, shouldUseMoneyRequestContext],
+    );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {

@@ -7130,6 +7130,8 @@ const CONST = {
         RESCHEDULED: 'rescheduled',
         CANCELLED: 'cancelled',
     },
+
+    TEMPORARY_MONEY_REQUEST_REPORT_CONTEXT: true,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
