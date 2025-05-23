@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

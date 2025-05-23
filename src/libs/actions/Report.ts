@@ -5021,12 +5021,12 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: { [movedReportAction.reportActionID]: movedReportAction },
+        value: {[movedReportAction.reportActionID]: movedReportAction},
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: { [movedReportAction.reportActionID]: null },
+        value: {[movedReportAction.reportActionID]: null},
     });
 
     const parameters: MoveIOUReportToExistingPolicyParams = {
@@ -5264,17 +5264,17 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         },
     });
 
-        // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
+    // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
     const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID ?? '-1', policyID, optimisticPolicyExpenseChatReportID, iouReport?.iouReportID ?? '', policy.name);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: { [movedReportAction.reportActionID]: movedReportAction },
+        value: {[movedReportAction.reportActionID]: movedReportAction},
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: { [movedReportAction.reportActionID]: null },
+        value: {[movedReportAction.reportActionID]: null},
     });
 
     const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
@@ -5283,7 +5283,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         policyExpenseChatReportID: optimisticPolicyExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
         policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
         changePolicyReportAction: changePolicyReportAction.reportActionID,
-        dmMovedReportAction: movedReportAction.reportActionID
+        dmMovedReportAction: movedReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER, parameters, {optimisticData, successData, failureData});

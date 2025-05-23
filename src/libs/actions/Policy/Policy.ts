@@ -459,7 +459,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 const lastUsedPaymentMethod = getLastUsedPaymentMethod(iouReport?.policyID);
 
                 if (!lastUsedPaymentMethod || !iouReport?.policyID) {
-                    return
+                    return;
                 }
 
                 if (lastUsedPaymentMethod?.iou?.name === policyID) {

@@ -10947,6 +10947,7 @@ export {
     dismissHoldUseExplanation,
     getIOURequestPolicyID,
     initMoneyRequest,
+    checkIfScanFileCanBeRead,
     navigateToStartStepIfScanFileCannotBeRead,
     completePaymentOnboarding,
     payInvoice,
