@@ -3682,7 +3682,7 @@ async function updateIOS(version) {
             [PLIST_KEYS.CF_BUNDLE_SHORT_VERSION]: shortVersion,
             [PLIST_KEYS.CF_BUNDLE_VERSION]: cfVersion,
         });
-        // Update plists
+        // Update plist
         await Promise.all([PLIST_PATH, PLIST_PATH_NSE, PLIST_PATH_SHARE, MOBILE_EXPENSIFY_PLIST_PATH, MOBILE_EXPENSIFY_PLIST_PATH_NSE, MOBILE_EXPENSIFY_PLIST_PATH_SS].map(async (file) => {
             console.log(`Updating ${file}`);
             await exec(`${PLIST_BUDDY} -c "Set :${PLIST_KEYS.CF_BUNDLE_SHORT_VERSION} ${shortVersion}" ${file}`);

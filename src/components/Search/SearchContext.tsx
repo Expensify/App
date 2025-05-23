@@ -14,8 +14,8 @@ const defaultSearchContext: SearchContext = {
     setCurrentSearchHash: () => {},
     setSelectedTransactions: () => {},
     clearSelectedTransactions: () => {},
-    shouldShowStatusBarLoading: false,
-    setShouldShowStatusBarLoading: () => {},
+    shouldShowFiltersBarLoading: false,
+    setShouldShowFiltersBarLoading: () => {},
     lastSearchType: undefined,
     setLastSearchType: () => {},
     shouldShowExportModeOption: false,
@@ -125,7 +125,7 @@ function ContextProvider({children}: ChildrenProps) {
         [searchContextData.currentSearchHash],
     );
 
-    const [shouldShowStatusBarLoading, setShouldShowStatusBarLoading] = useState(false);
+    const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
 
     const searchContext = useMemo<SearchContext>(
@@ -134,8 +134,8 @@ function ContextProvider({children}: ChildrenProps) {
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
-            shouldShowStatusBarLoading,
-            setShouldShowStatusBarLoading,
+            shouldShowFiltersBarLoading,
+            setShouldShowFiltersBarLoading,
             lastSearchType,
             setLastSearchType,
             shouldShowExportModeOption,
@@ -148,7 +148,7 @@ function ContextProvider({children}: ChildrenProps) {
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
-            shouldShowStatusBarLoading,
+            shouldShowFiltersBarLoading,
             lastSearchType,
             shouldShowExportModeOption,
             setShouldShowExportModeOption,

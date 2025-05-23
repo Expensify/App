@@ -312,7 +312,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted);
-
     useEffect(() => {
         if (canDeleteRequest) {
             return;
