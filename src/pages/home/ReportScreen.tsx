@@ -828,7 +828,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
-                                        isLoadingReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                     />
                                 ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (
