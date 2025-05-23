@@ -19,11 +19,6 @@ const navigateAfterOnboarding = (
     setDisableDismissOnEscape(false);
     Navigation.dismissModal();
 
-    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-        InteractionManager.runAfterInteractions(() => Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT));
-        return;
-    }
-
     // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
     // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
     // so we need to specifically navigate to the last accessed report.
@@ -31,6 +26,13 @@ const navigateAfterOnboarding = (
         if (onboardingAdminsChatReportID && !shouldPreventOpenAdminRoom) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingAdminsChatReportID));
         }
+        if (onboardingPurposeSelected !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+            return;
+        }
+    }
+
+    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+        InteractionManager.runAfterInteractions(() => Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT));
         return;
     }
 
