@@ -1379,8 +1379,8 @@ type RBRReasonAndReportAction = {
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, isArchivedReport = false): RBRReasonAndReportAction | null {
-    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isArchivedReport) ?? {};
+function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, isArchivedReport = false): RBRReasonAndReportAction | null {
+    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, transactionViolations, isArchivedReport) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};
