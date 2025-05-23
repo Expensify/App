@@ -20,7 +20,7 @@ import {clearWalletTermsError} from '@userActions/PaymentMethods';
 import {clearIOUError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreviewContent from './TransactionPreviewContent';
 import type {TransactionPreviewProps} from './types';
@@ -37,6 +37,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         iouReportID,
         transactionID: transactionIDFromProps,
         onPreviewPressed,
+        reportPreviewAction,
         contextAction,
     } = props;
 
@@ -45,7 +46,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -82,6 +83,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
     const showCashOrCardTranslation = isTransactionMadeWithCard ? 'iou.card' : 'iou.cash';
+    const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
 
     if (onPreviewPressed) {
         return (
@@ -109,6 +111,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     sessionAccountID={sessionAccountID}
                     walletTermsErrors={walletTerms?.errors}
                     routeName={route.name}
+                    isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
                 />
             </PressableWithoutFeedback>
         );
@@ -130,7 +133,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
-            reportPreviewAction={props.reportPreviewAction}
+            reportPreviewAction={reportPreviewAction}
+            isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
         />
     );
 }

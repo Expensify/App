@@ -36,7 +36,6 @@ import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -154,7 +153,7 @@ type MoneyRequestConfirmationListProps = {
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
 
-    /** A flag for verifying that the current report is a sub-report of a workspace chat */
+    /** A flag for verifying that the current report is a sub-report of a expense chat */
     isPolicyExpenseChat?: boolean;
 
     /** Whether smart scan failed */
@@ -165,9 +164,6 @@ type MoneyRequestConfirmationListProps = {
 
     /** The action to take */
     action?: IOUAction;
-
-    /** Should play sound on confirmation */
-    shouldPlaySound?: boolean;
 
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
@@ -219,7 +215,6 @@ function MoneyRequestConfirmationList({
     reportActionID,
     action = CONST.IOU.ACTION.CREATE,
     shouldDisplayReceipt = false,
-    shouldPlaySound = true,
     isConfirmed,
     isConfirming,
     onPDFLoadError,
@@ -335,7 +330,7 @@ function MoneyRequestConfirmationList({
         ? ''
         : convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
     const formattedAmountPerAttendee =
-        isDistanceRequestWithPendingRoute || isScanRequest
+        isDistanceRequestWithPendingRoute || isScanRequest || isPerDiemRequest
             ? ''
             : convertToDisplayString(
                   (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
@@ -388,7 +383,7 @@ function MoneyRequestConfirmationList({
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
-        // We want this effect to run only when the transaction is moving from Self DM to a workspace chat
+        // We want this effect to run only when the transaction is moving from Self DM to a expense chat
         if (!transactionID || !isDistanceRequest || !isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
             return;
         }
@@ -888,9 +883,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -900,9 +892,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onSendMoney?.(paymentMethod);
             }
         },
@@ -924,7 +913,6 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             onConfirm,
-            shouldPlaySound,
             transactionID,
             reportID,
             policy,

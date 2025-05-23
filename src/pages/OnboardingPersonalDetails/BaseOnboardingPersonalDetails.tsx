@@ -5,7 +5,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -52,7 +51,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {canUseDefaultRooms, canUsePrivateDomainOnboarding} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const isPrivateDomainAndHasAccesiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
+    const isPrivateDomainAndHasAccessiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList);
 
     useEffect(() => {
@@ -91,7 +90,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
 
-            if (isPrivateDomainAndHasAccesiblePolicies && !onboardingPurposeSelected) {
+            if (isPrivateDomainAndHasAccessiblePolicies && !onboardingPurposeSelected) {
                 const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
                 Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
                 return;
@@ -99,7 +98,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             completeOnboarding(firstName, lastName);
         },
-        [isPrivateDomainAndHasAccesiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding],
+        [isPrivateDomainAndHasAccessiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -138,14 +137,13 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom
             testID="BaseOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton={!isPrivateDomainAndHasAccesiblePolicies}
-                progressBarPercentage={isPrivateDomainAndHasAccesiblePolicies ? 20 : 80}
+                shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
+                progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 20 : 80}
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
@@ -193,7 +191,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     />
                 </View>
             </FormProvider>
-            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }

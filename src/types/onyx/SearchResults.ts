@@ -234,6 +234,12 @@ type SearchPolicy = {
     /** Whether the rules feature is enabled */
     areRulesEnabled?: boolean;
 
+    /** Scheduled submit data */
+    harvesting?: {
+        /** Whether the scheduled submit is enabled */
+        enabled: boolean;
+    };
+
     /**
      * The scheduled submit frequency set up on this policy.
      * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
@@ -274,12 +280,12 @@ type SearchPolicy = {
     /** The approver of the policy */
     approver?: string;
 
-    /** A set of rules related to the workpsace */
+    /** A set of rules related to the workspace */
     rules?: {
-        /** A set of rules related to the workpsace approvals */
+        /** A set of rules related to the workspace approvals */
         approvalRules?: ApprovalRule[];
 
-        /** A set of rules related to the workpsace expenses */
+        /** A set of rules related to the workspace expenses */
         expenseRules?: ExpenseRule[];
     };
 };
