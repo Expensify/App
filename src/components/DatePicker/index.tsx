@@ -31,8 +31,8 @@ function DatePicker(
         formID,
         autoFocus = false,
         shouldHideClearButton = false,
-    }: // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    DateInputWithPickerProps,
+    }: DateInputWithPickerProps,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ref: ForwardedRef<View>,
 ) {
     const styles = useThemeStyles();
