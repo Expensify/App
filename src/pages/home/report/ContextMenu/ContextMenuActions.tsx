@@ -85,13 +85,19 @@ import {
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
+    getIOUApprovedMessage,
     getIOUForwardedMessage,
     getIOUReportActionDisplayMessage,
+    getIOUSubmittedMessage,
+    getIOUUnapprovedMessage,
     getOriginalReportID,
+    getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
+    getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
+    getReportAutomaticallySubmittedMessage,
     getReportName,
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
@@ -558,19 +564,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
                     if (harvesting) {
-                        setClipboardMessage(translateLocal('iou.automaticallySubmitted'));
+                        setClipboardMessage(getReportAutomaticallySubmittedMessage(reportAction));
                     } else {
-                        Clipboard.setString(translateLocal('iou.submitted'));
+                        Clipboard.setString(getIOUSubmittedMessage(reportAction));
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
-                        setClipboardMessage(translateLocal('iou.automaticallyApproved'));
+                        setClipboardMessage(getReportAutomaticallyApprovedMessage(reportAction));
                     } else {
-                        Clipboard.setString(translateLocal('iou.approvedMessage'));
+                        Clipboard.setString(getIOUApprovedMessage(reportAction));
                     }
                 } else if (isUnapprovedAction(reportAction)) {
-                    Clipboard.setString(translateLocal('iou.unapproved'));
+                    Clipboard.setString(getIOUUnapprovedMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
@@ -622,6 +628,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, card}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(getRemovedConnectionMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
+                    const displayMessage = getPolicyChangeMessage(reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
