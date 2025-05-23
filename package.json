@@ -132,7 +132,7 @@
     "expo-font": "^13.0.4",
     "expo-image": "^2.0.4",
     "expo-image-manipulator": "^13.0.6",
-    "fast-equals": "^4.0.3",
+    "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "howler": "^2.2.4",
     "htmlparser2": "^7.2.0",
