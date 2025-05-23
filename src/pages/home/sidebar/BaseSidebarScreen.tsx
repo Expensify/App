@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import SidebarLinksData from './SidebarLinksData';
+import SidebarLinksData, {SidebarLinksDataInternal} from './SidebarLinksData';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
@@ -74,19 +74,17 @@ function BaseSidebarScreen() {
             testID={BaseSidebarScreen.displayName}
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
         >
-            {({insets}) => (
-                <>
-                    <TopBar
-                        breadcrumbLabel={translate('common.inbox')}
-                        shouldDisplaySearch={shouldUseNarrowLayout}
-                        shouldDisplayHelpButton={shouldUseNarrowLayout}
-                    />
-                    <View style={[styles.flex1]}>
-                        <SidebarLinksData insets={insets} />
-                    </View>
-                    {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
-                </>
-            )}
+            <TopBar
+                breadcrumbLabel={translate('common.inbox')}
+                shouldDisplaySearch={shouldUseNarrowLayout}
+                shouldDisplayHelpButton={shouldUseNarrowLayout}
+            />
+            <View style={[styles.flex1]}>
+                <SidebarLinksData>
+                    <SidebarLinksDataInternal />
+                </SidebarLinksData>
+            </View>
+            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
         </ScreenWrapper>
     );
 }
