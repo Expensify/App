@@ -41,7 +41,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
-    canJoinChat,
+    canJoinChat, canUserPerformWriteAction,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
     getIcons,
@@ -172,7 +172,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && isAdminRoom(report) && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = !!account && !!account?.guideDetails?.calendarLink && isAdminRoom(report) && canUserPerformWriteAction(report) && !isChatThread;
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
