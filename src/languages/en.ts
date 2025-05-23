@@ -73,6 +73,7 @@ import type {
     EditActionParams,
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
+    EmployeeInviteMessageParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -6372,6 +6373,10 @@ const translations = {
             part1: 'Filter for expenses\nthat ',
             part2: 'need approval',
         },
+        scanTestDriveTooltip: {
+            part1: 'Send this receipt to\n',
+            part2: 'complete the test drive!',
+        },
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
@@ -6409,12 +6414,20 @@ const translations = {
             description: 'Take a quick product tour to get up to speed fast. No pit stops required!',
             confirmText: 'Start test drive',
             helpText: 'Skip',
+            employee: {
+                description:
+                    '<muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and we’ll walk you through sending them a scanned test expense — no more manual entry.</muted-text>',
+                email: "Enter your boss's email",
+                error: 'That member owns a workspace, please input a new member to test.',
+            },
         },
         banner: {
             currentlyTestDrivingExpensify: "You're currently test driving Expensify",
             readyForTheRealThing: 'Ready for the real thing?',
             getStarted: 'Get started',
         },
+        employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
+            `# ${name} invited you to test drive Expensify\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
     },
 };
 
