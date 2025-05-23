@@ -64,7 +64,7 @@ function useSidePanel() {
     const {windowWidth} = useWindowDimensions();
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
-    const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(false);
+    const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
@@ -75,7 +75,6 @@ function useSidePanel() {
 
     useEffect(() => {
         if (shouldHideSidePanel && prevShouldHideSidePanel) {
-            setIsSidePanelTransitionEnded(true);
             sidePanelTranslateX.current.setValue(sidePanelWidth);
             sidePanelOffset.current.setValue(shouldApplySidePanelOffset ? variables.sideBarWidth : 0);
             return;
