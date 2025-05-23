@@ -175,6 +175,7 @@ function ReportPreview({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isOnSearch} = useSearchContext();
+    
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
             hasMissingSmartscanFields: hasMissingSmartscanFieldsReportUtils(iouReportID, transactions),
