@@ -635,10 +635,6 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
-type LastFourDigitsParams = {
-    lastFourDigits: string;
-};
-
 type CompanyCardBankName = {
     bankName: string;
 };
@@ -786,7 +782,6 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
