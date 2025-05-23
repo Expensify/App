@@ -509,8 +509,8 @@ function buildFilterFormValuesFromQuery(
                       .flat();
             const uniqueCategories = new Set(categories);
             uniqueCategories.add(CONST.SEARCH.CATEGORY_EMPTY_VALUE);
-            const EMPTY_VALUE_CATEGORIES = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-            const hasEmptyCategoryInFilter = filterValues.some((val) => EMPTY_VALUE_CATEGORIES.includes(val)) && uniqueCategories.has(CONST.SEARCH.CATEGORY_EMPTY_VALUE);
+            const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
+            const hasEmptyCategoryInFilter = filterValues.some((category) => emptyCategories.includes(category)) && uniqueCategories.has(CONST.SEARCH.CATEGORY_EMPTY_VALUE);
             filtersForm[filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoryInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
