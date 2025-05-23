@@ -323,21 +323,11 @@ function ReportActionsList({
     const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
     const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
 
-    const [isScrolledToStart, setIsScrolledToStart] = useState(true);
     const trackScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         onScroll?.(event);
 
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-
-        // Once we hit the start of the list, we want to trigger the read last message logic, if the message is unread
-        if (scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD) {
-            if (!isScrolledToStart) {
-                setIsScrolledToStart(true);
-            }
-        } else if (isScrolledToStart) {
-            setIsScrolledToStart(false);
-        }
     };
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
@@ -345,7 +335,6 @@ function ReportActionsList({
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
         readActionSkippedRef: readActionSkipped,
-        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
         onTrackScrolling: trackScrolling,
         hasNewerActions,
     });
@@ -381,17 +370,36 @@ function ReportActionsList({
     }, [linkedReportActionID, unreadMarkerReportActionID]);
 
     const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
+
+    const isReportUnread = useMemo(
+        () => isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)),
+        [report, transactionThreadReport, lastAction],
+    );
+
+    // Mark the report as read when the user initially opens the report
+    const didMarkReportAsUnreadOnOpen = useRef(false);
+    useEffect(() => {
+        if (!isListInitiallyLoaded || !isReportUnread || didMarkReportAsUnreadOnOpen.current) {
+            return;
+        }
+
+        readNewestAction(report.reportID);
+        didMarkReportAsUnreadOnOpen.current = true;
+    }, [isListInitiallyLoaded, isReportUnread, report.reportID]);
+
     useEffect(() => {
         if (report.reportID !== prevReportID) {
             return;
         }
 
-        if (isListInitiallyLoaded && (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)))) {
+        if (isListInitiallyLoaded && isReportUnread) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToStart) {
+            const isScrolledToEnd = scrollingVerticalOffset.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
+
+            if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
                 readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
@@ -402,7 +410,7 @@ function ReportActionsList({
 
         readActionSkipped.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isScrolledToStart, isListInitiallyLoaded]);
+    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isListInitiallyLoaded, hasNewerActions]);
 
     useEffect(() => {
         if (linkedReportActionID || unreadMarkerReportActionID) {
@@ -432,7 +440,6 @@ function ReportActionsList({
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
             InteractionManager.runAfterInteractions(() => {
-                setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
@@ -448,6 +455,7 @@ function ReportActionsList({
                     return;
                 }
 
+                setIsFloatingMessageCounterVisible(false);
                 reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(true);
             });
