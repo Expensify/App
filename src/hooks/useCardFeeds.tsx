@@ -31,37 +31,43 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
         const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
         const {companyCards = {}, companyCardNicknames = {}, oAuthAccountDetails = {}} = defaultFeed?.settings ?? {};
 
-        return Object.entries(allFeeds).reduce<CardFeeds & {settings: Required<CardFeeds['settings']>}>(
-            (acc, [onyxKey, feed]) => {
-                if (!feed?.settings?.companyCards) {
-                    return acc;
+        const result: CardFeeds & {settings: Required<CardFeeds['settings']>} = {
+            settings: {
+                companyCards: {...companyCards},
+                companyCardNicknames: {...companyCardNicknames},
+                oAuthAccountDetails: {...oAuthAccountDetails},
+            },
+            isLoading: !defaultFeed || defaultFeed?.isLoading,
+        };
+
+        return Object.entries(allFeeds).reduce<CardFeeds & {settings: Required<CardFeeds['settings']>}>((acc, [onyxKey, feed]) => {
+            if (!feed?.settings?.companyCards) {
+                return acc;
+            }
+
+            Object.entries(feed.settings.companyCards).forEach(([key, feedSettings]) => {
+                const feedName = key as CompanyCardFeed;
+                const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
+                const feedCompanyCardNicknames = feed.settings.companyCardNicknames?.[feedName];
+
+                if (feedSettings.preferredPolicy !== policyID || acc.settings.companyCards[feedName]) {
+                    return;
                 }
 
-                Object.entries(feed.settings.companyCards).forEach(([key, feedSettings]) => {
-                    const feedName = key as CompanyCardFeed;
-                    const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
-                    const feedCompanyCardNicknames = feed.settings.companyCardNicknames?.[feedName];
+                const domainID = onyxKey.split('_').at(-1);
 
-                    if (feedSettings.preferredPolicy !== policyID || acc.settings.companyCards[feedName]) {
-                        return;
-                    }
+                acc.settings.companyCards[feedName] = {...feedSettings, domainID: domainID ? Number(domainID) : undefined};
 
-                    const domainID = onyxKey.split('_').at(-1);
+                if (feedOAuthAccountDetails) {
+                    acc.settings.oAuthAccountDetails[feedName] = feedOAuthAccountDetails;
+                }
+                if (feedCompanyCardNicknames) {
+                    acc.settings.companyCardNicknames[feedName] = feedCompanyCardNicknames;
+                }
+            });
 
-                    acc.settings.companyCards[feedName] = {...feedSettings, domainID: domainID ? Number(domainID) : undefined};
-
-                    if (feedOAuthAccountDetails) {
-                        acc.settings.oAuthAccountDetails[feedName] = feedOAuthAccountDetails;
-                    }
-                    if (feedCompanyCardNicknames) {
-                        acc.settings.companyCardNicknames[feedName] = feedCompanyCardNicknames;
-                    }
-                });
-
-                return acc;
-            },
-            {settings: {companyCards, companyCardNicknames, oAuthAccountDetails}, isLoading: !defaultFeed || defaultFeed?.isLoading},
-        );
+            return acc;
+        }, result);
     }, [allFeeds, policyID, workspaceAccountID]);
 
     return [workspaceFeeds, allFeedsResult];

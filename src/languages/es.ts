@@ -98,7 +98,6 @@ import type {
     InvalidPropertyParams,
     InvalidValueParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
@@ -186,7 +185,6 @@ import type {
     TrialStartedTitleParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
-    UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
     UpdatedCustomFieldParams,
@@ -548,8 +546,21 @@ const translations = {
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
+        explore: 'Explorar',
+        todo: 'Tereas',
+        invoice: 'Factura',
+        expense: 'Gasto',
+        chat: 'Chat',
+        task: 'Tarea',
+        trip: 'Viaje',
+        apply: 'Aplicar',
+        status: 'Estado',
+        on: 'El',
+        before: 'Antes',
+        after: 'Después',
         reschedule: 'Reprogramar',
         general: 'General',
+        never: 'Nunca',
         workspacesTabTitle: 'Espacios',
     },
     supportalNoAccess: {
@@ -653,6 +664,7 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',
         findMember: 'Encuentra un miembro',
+        searchForSomeone: 'Busca a alguien',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -953,7 +965,7 @@ const translations = {
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto a <a href="${reportUrl}">${reportName}</a>`,
-        unreportedTransaction: ({reportUrl, reportName}: UnreportedTransactionParams) => `eliminó este gasto de <a href="${reportUrl}">${reportName}</a>`,
+        unreportedTransaction: 'movió este gasto a tu espacio personal',
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
             other: 'Problemas encontrados',
@@ -1012,6 +1024,8 @@ const translations = {
             one: '¿Estás seguro de que quieres eliminar esta solicitud?',
             other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
         }),
+        deleteReport: 'Eliminar informe',
+        deleteReportConfirmation: '¿Estás seguro de que quieres eliminar este informe?',
         settledExpensify: 'Pagado',
         done: 'Listo',
         settledElsewhere: 'Pagado de otra forma',
@@ -2058,7 +2072,7 @@ const translations = {
         },
         accounting: {
             title: '¿Utilizas algún software de contabilidad?',
-            noneOfAbove: 'Ninguno de los anteriores',
+            none: 'Ninguno',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
@@ -2748,9 +2762,7 @@ const translations = {
         letsDoubleCheck: 'Verifiquemos que todo esté bien.',
         thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo.',
         accountNumber: 'Número de cuenta',
-        chooseFile: 'Elegir archivo',
-        uploadYourLatest: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
-        pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Por favor suba el estado de cuenta mensual más reciente de tu cuenta bancaria comercial que termina en ${lastFourDigits}.`,
+        accountHolderNameDescription: 'Nombre completo del firmante autorizado',
     },
     signerInfoStep: {
         signerInfo: 'Información del firmante',
@@ -4381,6 +4393,9 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            sap: 'SAP',
+            oracle: 'Oracle',
+            microsoftDynamics: 'Microsoft Dynamics',
             talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
             talkToConcierge: 'Chatear con Concierge.',
@@ -4409,7 +4424,7 @@ const translations = {
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
-            other: 'Otras integraciones',
+            other: 'Otro',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar el conector',
@@ -5318,6 +5333,23 @@ const translations = {
                 subtitle: 'Reserva tu primer viaje a continuación.',
                 buttonText: 'Reserva un viaje',
             },
+            emptySubmitResults: {
+                title: 'No hay gastos para enviar',
+                subtitle: 'Todo despejado. ¡Date una vuelta de victoria!',
+                buttonText: 'Crear informe',
+            },
+            emptyApproveResults: {
+                title: 'No hay gastos para aprobar',
+                subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
+            },
+            emptyPayResults: {
+                title: 'No hay gastos para pagar',
+                subtitle: '¡Felicidades! Has cruzado la línea de meta.',
+            },
+            emptyExportResults: {
+                title: 'No hay gastos para exportar',
+                subtitle: 'Es hora de relajarse, buen trabajo.',
+            },
         },
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
@@ -5338,6 +5370,7 @@ const translations = {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Antes de ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Después de ${date ?? ''}`,
+                on: ({date}: OptionalParam<DateParams> = {}) => `En ${date ?? ''}`,
             },
             status: 'Estado',
             keyword: 'Palabra clave',
@@ -6262,7 +6295,8 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
-        receiptNotSmartScanned: 'Escaneo de recibo incompleto. Por favor, verifica los detalles manualmente.',
+        receiptNotSmartScanned:
+            'Detalles del gasto y recibo añadidos manualmente. Por favor, verifica los detalles. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Aprende más</a> sobre la auditoría automática para todos los recibos.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo obligatorio';
             if (formattedLimit ?? category) {
