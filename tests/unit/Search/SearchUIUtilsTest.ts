@@ -1010,4 +1010,32 @@ describe('SearchUIUtils', () => {
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchType)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults.search.type)).toBe(false);
     });
+
+    test('Should determine whether the date, amount, and tax column require wide columns or not', () => {
+        // Test case 1: `isAmountLengthLong` should be false if the current symbol + amount length does not exceed 11 characters
+        // Should return true for `shouldShowYear` because transaction list contains a transaction create in year 2024 (!== currentYear)
+        const {isAmountLengthLong, shouldShowYear} = SearchUIUtils.getSearchTableYearAndAmountWidth(transactionsListItems);
+        expect(isAmountLengthLong).toBe(false);
+        expect(shouldShowYear).toBe(true);
+
+        const transaction = transactionsListItems.at(0);
+
+        // Test case 2: `isAmountLengthLong` should be true when the current symbol + amount length exceeds 11 characters
+        // `isTaxAmountLengthLong` should be false if current symbol + tax amount length does not exceed 11 characters
+        const {isAmountLengthLong: isAmountLengthLong2, isTaxAmountLengthLong} = SearchUIUtils.getSearchTableYearAndAmountWidth([
+            ...transactionsListItems,
+            {...transaction, amount: 99999999.99, taxAmount: 2332.77},
+        ] as TransactionListItemType[]);
+        expect(isAmountLengthLong2).toBe(true);
+        expect(isTaxAmountLengthLong).toBe(false);
+
+        // Test case 3: Both `isAmountLengthLong` and `isTaxAmountLengthLong` should be true
+        // when the current symbol + amount and current symbol + tax amount lengths exceed 11 characters
+        const {isAmountLengthLong: isAmountLengthLong3, isTaxAmountLengthLong: isTaxAmountLengthLong2} = SearchUIUtils.getSearchTableYearAndAmountWidth([
+            ...transactionsListItems,
+            {...transaction, amount: 99999999.99, taxAmount: 45555555.55},
+        ] as TransactionListItemType[]);
+        expect(isAmountLengthLong3).toBe(true);
+        expect(isTaxAmountLengthLong2).toBe(true);
+    });
 });
