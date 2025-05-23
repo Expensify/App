@@ -1,5 +1,6 @@
 import React from 'react';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
@@ -14,7 +15,6 @@ import ValidateLoginPage from '@pages/ValidateLoginPage';
 import CONFIG from '@src/CONFIG';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import defaultScreenOptions from './defaultScreenOptions';
 import PublicRightModalNavigator from './Navigators/PublicRightModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
