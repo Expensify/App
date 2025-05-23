@@ -34,7 +34,6 @@ import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
 import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcierge, getReportRecipientAccountIDs} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
@@ -265,12 +264,10 @@ function ReportActionCompose({
      */
     const submitForm = useCallback(
         (newComment: string) => {
-            playSound(SOUNDS.DONE);
-
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed);
+                addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed, true);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
