@@ -30,7 +30,6 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -463,32 +462,20 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
     };
 
-    const getFullScreenNavigatorOptions =
-        (routesWithEnteringAnimation: Set<string>, defaultOptions: PlatformStackNavigationOptions) =>
-        ({route}: {route: RouteProp<AuthScreensParamList>}) => {
-            // We don't need to do anything special for the wide screen.
-            if (!shouldUseNarrowLayout) {
-                return defaultOptions;
-            }
-            // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
-            const animationEnabled = routesWithEnteringAnimation.has(route.key);
-            return {
-                ...defaultOptions,
-                animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
-            };
+    // Animation is enabled when navigating to any screen different than split central screen
+    const getFullscreenNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
+        // We don't need to do anything special for the wide screen.
+        if (!shouldUseNarrowLayout) {
+            return rootNavigatorScreenOptions.splitNavigator;
+        }
+
+        // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
+        const animationEnabled = screensWithEnteringAnimation.has(route.key);
+        return {
+            ...rootNavigatorScreenOptions.splitNavigator,
+            animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
         };
-
-    // Animation is enabled when navigating to the report screen
-    const getReportsSplitNavigatorOptions = getFullScreenNavigatorOptions(screensWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
-
-    // Animation is enabled when navigating to any screen different than SCREENS.SETTINGS.ROOT
-    const getSettingsSplitNavigatorOptions = getFullScreenNavigatorOptions(screensWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
-
-    // Animation is enabled when navigating to any screen different than SCREENS.WORKSPACE_HUB.ROOT
-    const getWorkspaceHubSplitNavigatorOptions = getFullScreenNavigatorOptions(screensWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
-
-    // Animation is enabled when navigating to SCREENS.SEARCH.MONEY_REQUEST_REPORT
-    const getSearchFullscreenNavigatorOptions = getFullScreenNavigatorOptions(screensWithEnteringAnimation, rootNavigatorScreenOptions.fullScreen);
+    };
 
     const clearStatus = () => {
         User.clearCustomStatus();
@@ -529,22 +516,22 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                    options={getReportsSplitNavigatorOptions}
+                    options={getFullscreenNavigatorOptions}
                     getComponent={loadReportSplitNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                    options={getSettingsSplitNavigatorOptions}
+                    options={getFullscreenNavigatorOptions}
                     getComponent={loadSettingsSplitNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                    options={getSearchFullscreenNavigatorOptions}
+                    options={getFullscreenNavigatorOptions}
                     getComponent={loadSearchNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR}
-                    options={getWorkspaceHubSplitNavigatorOptions}
+                    options={getFullscreenNavigatorOptions}
                     getComponent={loadWorkspaceHubSplitNavigator}
                 />
                 <RootStack.Screen
