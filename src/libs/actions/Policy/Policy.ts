@@ -4333,7 +4333,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
 function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEnabled: boolean) {
     const policy = getPolicy(policyID);
 
-    const originalIsAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled;
+    const originalIsAttendeeTrackingEnabled = !!policy?.isAttendeeTrackingEnabled;
 
     const onyxData: OnyxData = {
         optimisticData: [
