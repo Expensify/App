@@ -306,7 +306,7 @@ function MoneyRequestReportTransactionList({
             <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
                 <Animated.Text
                     style={[styles.textLabelSupporting]}
-                    entering={FadeIn}
+                    entering={hasComments ? undefined : FadeIn}
                     exiting={FadeOut}
                 >
                     {hasComments || isLoadingReportActions ? translate('common.comments') : ''}
