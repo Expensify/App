@@ -43,6 +43,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    wrapperStyle,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -71,7 +72,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}

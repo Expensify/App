@@ -138,6 +138,22 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_CURRENCY.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
+                    exact: true,
+                },
             },
         },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
