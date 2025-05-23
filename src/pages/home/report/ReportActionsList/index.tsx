@@ -50,6 +50,12 @@ import {
 } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
+import getInitialNumToRender from '@pages/home/report/getInitialNumReportActionsToRender';
+import ListBoundaryLoader from '@pages/home/report/ListBoundaryLoader';
+import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
+import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
+import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import variables from '@styles/variables';
 import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import {PersonalDetailsContext} from '@src/components/OnyxProvider';
@@ -58,12 +64,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import FloatingMessageCounter from './FloatingMessageCounter';
-import getInitialNumToRender from './getInitialNumReportActionsToRender';
-import ListBoundaryLoader from './ListBoundaryLoader';
-import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
-import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
+import {onReportActionListLoadedInTests} from './testUtils';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -373,8 +374,8 @@ function ReportActionsList({
     const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
     const handleListInitiallyLoaded = useCallback(() => {
         setIsListInitiallyLoaded(true);
-        DeviceEventEmitter.emit(CONST.EVENTS.REPORT_ACTIONS_LIST_INITIALLY_LOADED);
-    }, []);
+        onReportActionListLoadedInTests(report.reportID);
+    }, [report.reportID]);
 
     const isReportUnread = useMemo(
         () => isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)),
@@ -768,5 +769,6 @@ function ReportActionsList({
 ReportActionsList.displayName = 'ReportActionsList';
 
 export default memo(ReportActionsList);
+export {onReportActionListLoadedInTests};
 
 export type {ReportActionsListProps};

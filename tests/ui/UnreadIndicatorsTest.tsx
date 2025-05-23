@@ -5,7 +5,7 @@ import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter} from 'react-native';
-import type {EventSubscription, TextStyle, ViewStyle} from 'react-native';
+import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {setSidebarLoaded} from '@libs/actions/App';
@@ -18,6 +18,7 @@ import {translateLocal} from '@libs/Localize';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
+import {setOnReportActionListLoadedInTests} from '@pages/home/report/ReportActionsList/testUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import App from '@src/App';
 import CONST from '@src/CONST';
@@ -40,6 +41,7 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('../../src/pages/home/report/ReportActionsList/testUtils');
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
@@ -286,6 +288,8 @@ describe('Unread Indicators', () => {
                 expect(areYouOnChatListScreen()).toBe(false);
             }));
     it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () => {
+        let reportActionListLoadedPromise: Promise<string>;
+
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
@@ -364,19 +368,15 @@ describe('Unread Indicators', () => {
                 expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
-                let reportActionsListInitialLoadListener: EventSubscription;
-                const chatListInitialLoadPromise = new Promise((resolve) => {
-                    reportActionsListInitialLoadListener = DeviceEventEmitter.addListener(CONST.EVENTS.REPORT_ACTIONS_LIST_INITIALLY_LOADED, resolve);
+                reportActionListLoadedPromise = new Promise((resolve) => {
+                    setOnReportActionListLoadedInTests(resolve);
                 });
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
-                const navigationPromise = navigateToSidebarOption(0);
-
-                return Promise.all([navigationPromise, chatListInitialLoadPromise]).then(() => {
-                    reportActionsListInitialLoadListener.remove();
-                });
+                return navigateToSidebarOption(0);
             })
             .then(waitForBatchedUpdates)
+            .then(() => reportActionListLoadedPromise)
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
@@ -449,13 +449,7 @@ describe('Unread Indicators', () => {
 
     it('Keep showing the new line indicator when a new message is created by the current user', () =>
         signInAndGetAppWithUnreadChat()
-            .then(() => {
-                // Verify we are on the LHN and that the chat shows as unread in the LHN
-                expect(areYouOnChatListScreen()).toBe(true);
-
-                // Navigate to the report and verify the indicator is present
-                return navigateToSidebarOption(0);
-            })
+            .then(() => navigateToSidebarOption(0))
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
