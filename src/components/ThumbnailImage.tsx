@@ -145,7 +145,7 @@ function ThumbnailImage({
     }
 
     return (
-        <View style={[style, styles.overflowHidden]}>
+        <View style={[styles.thumbnailImageContainerHighlight, style, styles.overflowHidden]}>
             {!!isDeleted && <AttachmentDeletedIndicator containerStyles={[...sizeStyles]} />}
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
