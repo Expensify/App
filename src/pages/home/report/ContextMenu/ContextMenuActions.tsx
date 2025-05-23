@@ -85,13 +85,18 @@ import {
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
+    getIOUApprovedMessage,
     getIOUForwardedMessage,
     getIOUReportActionDisplayMessage,
+    getIOUSubmittedMessage,
+    getIOUUnapprovedMessage,
     getOriginalReportID,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
+    getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
+    getReportAutomaticallySubmittedMessage,
     getReportName,
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
@@ -558,19 +563,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
                     if (harvesting) {
-                        setClipboardMessage(translateLocal('iou.automaticallySubmitted'));
+                        setClipboardMessage(getReportAutomaticallySubmittedMessage(reportAction));
                     } else {
-                        Clipboard.setString(translateLocal('iou.submitted'));
+                        Clipboard.setString(getIOUSubmittedMessage(reportAction));
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
-                        setClipboardMessage(translateLocal('iou.automaticallyApproved'));
+                        setClipboardMessage(getReportAutomaticallyApprovedMessage(reportAction));
                     } else {
-                        Clipboard.setString(translateLocal('iou.approvedMessage'));
+                        Clipboard.setString(getIOUApprovedMessage(reportAction));
                     }
                 } else if (isUnapprovedAction(reportAction)) {
-                    Clipboard.setString(translateLocal('iou.unapproved'));
+                    Clipboard.setString(getIOUUnapprovedMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
