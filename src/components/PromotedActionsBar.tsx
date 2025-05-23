@@ -11,6 +11,7 @@ import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
@@ -62,7 +63,7 @@ const PromotedActions = {
         translationKey: 'common.message',
         onSelected: () => {
             if (reportID) {
-                Navigation.navigateToReportWithPolicyCheck({reportID});
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 

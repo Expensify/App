@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -25,7 +24,6 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  */
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {canUseDefaultRooms} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
     const [initialReportID] = useState(() => {
@@ -35,7 +33,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
             return reportIdFromPath;
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
+        const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom());
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
