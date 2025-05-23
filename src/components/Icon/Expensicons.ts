@@ -119,11 +119,15 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
+import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
+import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
@@ -278,6 +282,7 @@ export {
     CreditCard,
     CreditCardHourglass,
     CreditCardExclamation,
+    CircleSlash,
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
@@ -431,6 +436,9 @@ export {
     NetSuiteSquare,
     XeroCircle,
     QBOCircle,
+    MicrosoftDynamicsSquare,
+    OracleSquare,
+    SapSquare,
     Filters,
     CalendarSolid,
     Filter,
