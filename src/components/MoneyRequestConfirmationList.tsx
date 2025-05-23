@@ -643,8 +643,8 @@ function MoneyRequestConfirmationList({
                     hideFocusedState={false}
                     hideCurrencySymbol
                     formatAmountOnBlur
-                    prefixContainerStyle={[!isNativePlatform && styles.pv0, styles.h100]}
-                    inputStyle={[styles.optionRowAmountInput]}
+                    prefixContainerStyle={[styles.pv0, styles.h100]}
+                    inputStyle={[styles.optionRowAmountInput, isNativePlatform && {lineHeight: undefined}]}
                     containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
