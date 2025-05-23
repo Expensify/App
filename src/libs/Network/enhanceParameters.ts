@@ -29,6 +29,14 @@ Onyx.connect({
     },
 });
 
+let stashedSupportLogin = '';
+Onyx.connect({
+    key: ONYXKEYS.STASHED_CREDENTIALS,
+    callback: (val) => {
+        stashedSupportLogin = val?.login ?? '';
+    },
+});
+
 /**
  * Does this command require an authToken?
  */
@@ -59,15 +67,14 @@ export default function enhanceParameters(command: string, parameters: Record<st
 
     // Include current user's email in every request and the server logs
     finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
-
     finalParameters.isFromDevEnv = Environment.isDevelopment();
-
     finalParameters.appversion = pkg.version;
-
     finalParameters.clientUpdateID = lastUpdateIDAppliedToClient;
-
     if (delegate) {
         finalParameters.delegate = delegate;
+    }
+    if (stashedSupportLogin) {
+        finalParameters.stashedSupportLogin = stashedSupportLogin;
     }
 
     return finalParameters;
