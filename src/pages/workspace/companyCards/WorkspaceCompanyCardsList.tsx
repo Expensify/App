@@ -91,7 +91,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
 
     const renderListHeader = (
         <>
-            {allCards.length > 0 && (
+            {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.companyCards.findCard')}
                     inputValue={inputValue}
