@@ -10,9 +10,12 @@ import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -37,7 +40,7 @@ import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Performance from '@libs/Performance';
-import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcierge, generateReportID, getReportRecipientAccountIDs} from '@libs/ReportUtils';
+import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcierge, generateReportID, getReportRecipientAccountIDs, isChatRoom} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
@@ -130,16 +133,8 @@ function ReportActionCompose({
     // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
     const {canUseMultiFilesDragAndDrop} = usePermissions();
 
-    const {
-        validateAndResizeFile,
-        setIsAttachmentInvalid,
-        isAttachmentInvalid,
-        attachmentInvalidReason,
-        attachmentInvalidReasonTitle,
-        setUploadReceiptError,
-        pdfFile,
-        setPdfFile,
-    } = useFileValidation();
+    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, attachmentInvalidReason, attachmentInvalidReasonTitle, setUploadReceiptError, pdfFile, setPdfFile} =
+        useFileValidation();
 
     /**
      * Updates the Highlight state of the composer
@@ -207,6 +202,7 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
+    const shouldDisplayDualDropZone = useMemo(() => !isChatRoom(report), [report]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -548,7 +544,7 @@ function ReportActionCompose({
                                         didHideComposerInput={didHideComposerInput}
                                     />
                                     {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
-                                    {canUseMultiFilesDragAndDrop ? (
+                                    {!!canUseMultiFilesDragAndDrop && shouldDisplayDualDropZone && (
                                         <DualDropZone
                                             isEditing={false}
                                             onAttachmentDrop={(event: DragEvent) => {
@@ -563,7 +559,27 @@ function ReportActionCompose({
                                             }}
                                             onReceiptDrop={initScanRequest}
                                         />
-                                    ) : (
+                                    )}
+                                    {!!canUseMultiFilesDragAndDrop && !shouldDisplayDualDropZone && (
+                                        <DragAndDropConsumer
+                                            onDrop={(event: DragEvent) => {
+                                                if (isAttachmentPreviewActive) {
+                                                    return;
+                                                }
+                                                const data = event.dataTransfer?.files[0];
+                                                if (data) {
+                                                    data.uri = URL.createObjectURL(data);
+                                                    displayFileInModal(data);
+                                                }
+                                            }}
+                                        >
+                                            <DropZoneUI
+                                                icon={Expensicons.MessageInABottle}
+                                                isDraggingOver
+                                            />
+                                        </DragAndDropConsumer>
+                                    )}
+                                    {!canUseMultiFilesDragAndDrop && (
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {
