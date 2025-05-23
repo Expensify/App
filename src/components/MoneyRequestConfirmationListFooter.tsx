@@ -51,6 +51,7 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
 import ShowMoreButton from './ShowMoreButton';
+import { setTransactionReport } from '@libs/actions/Transaction';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -299,6 +300,10 @@ function MoneyRequestConfirmationListFooter({
     if (!reportName) {
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
+    }
+
+    if (!shouldUseTransactionReport && firstOutstandingReport?.reportID) {
+        setTransactionReport(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, firstOutstandingReport.reportID, true);
     }
     const outstandingReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {});
     const shouldReportBeEditable = outstandingReports.length > 1 || (outstandingReports.length === 1 && outstandingReports.at(0)?.reportID !== transaction?.reportID);
