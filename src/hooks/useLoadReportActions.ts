@@ -32,15 +32,15 @@ type UseLoadReportActionsArguments = {
  * Used in the report displaying components
  */
 function useLoadReportActions({reportID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseLoadReportActionsArguments) {
-    const didLoadNewerChats = useRef(false);
-    const didLoadOlderChats = useRef(false);
+    const isLoadingNewerChats = useRef(false);
+    const isLoadingOlderChats = useRef(false);
 
-    const resetDidLoadOlderChats = () => {
-        didLoadOlderChats.current = false;
+    const resetIsLoadingOlderChats = () => {
+        isLoadingOlderChats.current = false;
     };
 
-    const resetDidLoadNewerChats = () => {
-        didLoadNewerChats.current = false;
+    const resetIsLoadingNewerChats = () => {
+        isLoadingNewerChats.current = false;
     };
 
     const {isOffline} = useNetwork();
@@ -62,7 +62,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
     const loadOlderChats = useCallback(
         (force = false) => {
             // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
-            if (!force && isOffline) {
+            if (!force && (isOffline || isLoadingOlderChats.current)) {
                 return;
             }
 
@@ -71,7 +71,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 return;
             }
 
-            didLoadOlderChats.current = true;
+            isLoadingOlderChats.current = true;
             const getOlderActionsPromises: Array<Promise<Response | void>> = [];
 
             if (!isEmptyObject(transactionThreadReport)) {
@@ -87,7 +87,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 getOlderActionsPromises.push(getOlderActions(reportID, oldestReportAction.reportActionID));
             }
 
-            Promise.all(getOlderActionsPromises).then(resetDidLoadOlderChats);
+            Promise.all(getOlderActionsPromises).then(resetIsLoadingOlderChats);
         },
         [isOffline, oldestReportAction, reportID, reportActionIDMap, transactionThreadReport, hasOlderActions],
     );
@@ -100,6 +100,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                     !newestReportAction ||
                     !hasNewerActions ||
                     isOffline ||
+                    isLoadingNewerChats.current ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
                     newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
@@ -107,7 +108,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 return;
             }
 
-            didLoadNewerChats.current = true;
+            isLoadingNewerChats.current = true;
             const getNewerActionsPromises: Array<Promise<Response | void>> = [];
 
             // If this is a one transaction report, ensure we load newer actions for both this report and the report associated with the transaction
@@ -124,7 +125,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 getNewerActionsPromises.push(getNewerActions(reportID, newestReportAction.reportActionID));
             }
 
-            Promise.all(getNewerActionsPromises).then(resetDidLoadNewerChats);
+            Promise.all(getNewerActionsPromises).then(resetIsLoadingNewerChats);
         },
         [isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
     );
