@@ -335,6 +335,7 @@ function ReportActionsList({
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
         readActionSkippedRef: readActionSkipped,
+        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
         onTrackScrolling: trackScrolling,
         hasNewerActions,
     });

@@ -17,6 +17,9 @@ type Args = {
     /** The initial value for visibility of floating message button */
     floatingMessageVisibleInitialValue: boolean;
 
+    /** Whether the unread marker is displayed for any report action */
+    hasUnreadMarkerReportAction: boolean;
+
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
 
@@ -28,6 +31,7 @@ export default function useReportUnreadMessageScrollTracking({
     reportID,
     currentVerticalScrollingOffsetRef,
     floatingMessageVisibleInitialValue,
+    hasUnreadMarkerReportAction,
     hasNewerActions,
     readActionSkippedRef,
     onTrackScrolling,
@@ -44,8 +48,8 @@ export default function useReportUnreadMessageScrollTracking({
 
         const isScrolledToEnd = currentVerticalScrollingOffsetRef.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
 
-        // Display floating button if we're scrolled more than the offset
-        if (!isScrolledToEnd && !isFloatingMessageCounterVisible) {
+        // When we have an unread message, display floating button if we're scrolled more than the offset
+        if (hasUnreadMarkerReportAction && !isScrolledToEnd && !isFloatingMessageCounterVisible) {
             setIsFloatingMessageCounterVisible(true);
         }
 
