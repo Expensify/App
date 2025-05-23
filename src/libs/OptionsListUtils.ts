@@ -95,7 +95,10 @@ import {
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
     getIcons,
+    getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getIOUSubmittedMessage,
+    getIOUUnapprovedMessage,
     getMoneyRequestSpendBreakdown,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
@@ -103,7 +106,9 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
+    getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
+    getReportAutomaticallySubmittedMessage,
     getReportLastMessage,
     getReportName,
     getReportNotificationPreference,
@@ -778,19 +783,19 @@ function getLastMessageTextForReport(
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? getOriginalMessage(lastReportAction)?.harvesting ?? false : false;
         if (wasSubmittedViaHarvesting) {
-            lastMessageTextFromReport = translateLocal('iou.automaticallySubmitted');
+            lastMessageTextFromReport = getReportAutomaticallySubmittedMessage(lastReportAction);
         } else {
-            lastMessageTextFromReport = translateLocal('iou.submitted');
+            lastMessageTextFromReport = getIOUSubmittedMessage(lastReportAction);
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
-            lastMessageTextFromReport = translateLocal('iou.automaticallyApproved');
+            lastMessageTextFromReport = getReportAutomaticallyApprovedMessage(lastReportAction);
         } else {
-            lastMessageTextFromReport = translateLocal('iou.approvedMessage');
+            lastMessageTextFromReport = getIOUApprovedMessage(lastReportAction);
         }
     } else if (isUnapprovedAction(lastReportAction)) {
-        lastMessageTextFromReport = translateLocal('iou.unapproved');
+        lastMessageTextFromReport = getIOUUnapprovedMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
