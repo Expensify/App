@@ -7,15 +7,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-type ShouldShowSearchColumnFn = (isIOUReport: boolean) => boolean;
-
 type ColumnConfig = {
     columnName: SortableColumnName;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
 };
 
-const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnFn> = {
+const shouldShowColumnConfig: Record<SortableColumnName, (isIOUReport: boolean) => boolean> = {
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
@@ -32,7 +30,6 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: () => false,
 };
 
 const columnConfig: ColumnConfig[] = [
