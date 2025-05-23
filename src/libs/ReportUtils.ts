@@ -5143,6 +5143,17 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, b
     Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
 }
 
+function navigateOnDeleteExpense(backToRoute: Route) {
+    const rootState = navigationRef.getRootState();
+    const focusedRoute = findFocusedRoute(rootState);
+    if (focusedRoute?.params && 'backTo' in focusedRoute.params) {
+        Navigation.goBack(focusedRoute.params.backTo as Route);
+        return;
+    }
+
+    Navigation.goBack(backToRoute);
+}
+
 /**
  * Generate a random reportID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
  * There were approximately 98,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly one billionth of the space for these numbers,
@@ -11150,6 +11161,7 @@ export {
     findReportIDForAction,
     isWorkspaceEligibleForReportChange,
     getReportAttributes,
+    navigateOnDeleteExpense,
 };
 
 export type {
