@@ -64,7 +64,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterL
             onSearchRouterFocus={onSearchRouterFocus}
             queryJSON={queryJSON}
             hideSearchRouterList={hideSearchRouterList}
-            inputRightComponent={InputRightComponent}
+            inputRightComponent={queryJSON.inputQuery === buildCannedSearchQuery() ? undefined : InputRightComponent}
             handleSearch={handleSearch}
         />
     );
