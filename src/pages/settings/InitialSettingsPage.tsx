@@ -9,7 +9,6 @@ import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -39,6 +38,7 @@ import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_T
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
+import * as HybridAppActions from '@userActions/HybridApp';
 import {openExternalLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -99,7 +99,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
@@ -205,10 +204,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.ExpensifyLogoNew,
                     ...(CONFIG.IS_HYBRID_APP
                         ? {
-                              action: () => {
-                                  HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                                  setRootStatusBarEnabled(false);
-                              },
+                              action: () => HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true}),
                           }
                         : {
                               action() {
@@ -245,11 +241,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.Exit,
                     action: () => {
                         signOut(false);
+                        HybridAppActions.resetSignInFlow();
                     },
                 },
             ],
         };
-    }, [styles.pt4, setRootStatusBarEnabled, shouldOpenSurveyReasonPage, signOut]);
+    }, [styles.pt4, shouldOpenSurveyReasonPage, signOut]);
 
     /**
      * Return JSX.Element with menu items
