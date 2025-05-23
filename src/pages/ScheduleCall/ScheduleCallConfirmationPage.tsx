@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetails} from '@src/types/onyx';
 
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
@@ -52,9 +53,16 @@ function ScheduleCallConfirmationPage() {
         );
     }, [currentUserPersonalDetails, scheduleCallDraft, userTimezone]);
 
-    const guideDetails = useMemo(
-        () => (scheduleCallDraft?.guide?.accountID ? personalDetails?.[scheduleCallDraft?.guide?.accountID] : null),
-        [personalDetails, scheduleCallDraft?.guide?.accountID],
+    const guideDetails: PersonalDetails | null = useMemo(
+        () =>
+            scheduleCallDraft?.guide?.accountID
+                ? personalDetails?.[scheduleCallDraft.guide.accountID] ?? {
+                      accountID: scheduleCallDraft.guide.accountID,
+                      login: scheduleCallDraft.guide.email,
+                      displayName: scheduleCallDraft.guide.email,
+                  }
+                : null,
+        [personalDetails, scheduleCallDraft?.guide?.accountID, scheduleCallDraft?.guide?.email],
     );
 
     const dateTimeString = useMemo(() => {
