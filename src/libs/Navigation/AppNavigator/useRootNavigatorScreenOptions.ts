@@ -4,6 +4,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import variables from '@styles/variables';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
@@ -78,7 +79,10 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
-                cardStyle: StyleUtils.getNavigationModalCardStyle(),
+                cardStyle: {
+                    ...StyleUtils.getNavigationModalCardStyle(),
+                    marginLeft: shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize,
+                },
             },
         },
         fullScreen: {
