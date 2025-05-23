@@ -1810,7 +1810,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
 
 /**
  * Pushes optimistic transaction violations to OnyxData for the given policy and categories onyx update.
- * 
+ *
  * @param policyUpdate Changed policy properties, if none pass empty object
  * @param policyCategoriesUpdate Changed categories properties, if none pass empty object
  */
