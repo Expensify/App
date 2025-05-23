@@ -9674,10 +9674,15 @@ function hasForwardedAction(reportID: string): boolean {
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
-function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined): boolean {
+function isReportOutstanding(
+    iouReport: OnyxInputOrEntry<Report>,
+    policyID: string | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
+): boolean {
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
     }
+    const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     return (
         isExpenseReport(iouReport) &&
         iouReport?.stateNum !== undefined &&
@@ -9685,7 +9690,8 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
         iouReport?.policyID === policyID &&
         iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
         iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
-        !hasForwardedAction(iouReport.reportID)
+        !hasForwardedAction(iouReport.reportID) &&
+        !isArchivedReport(reportNameValuePair)
     );
 }
 
@@ -9696,12 +9702,17 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
  * @param reports - Collection of reports to filter
  * @returns Array of outstanding expense reports sorted by name
  */
-function getOutstandingReportsForUser(policyID: string | undefined, reportOwnerAccountID: number | undefined, reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
+function getOutstandingReportsForUser(
+    policyID: string | undefined,
+    reportOwnerAccountID: number | undefined,
+    reports: OnyxCollection<Report> = allReports,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
+): Array<OnyxEntry<Report>> {
     if (!reports) {
         return [];
     }
     return Object.values(reports)
-        .filter((report) => isReportOutstanding(report, policyID) && report?.ownerAccountID === reportOwnerAccountID)
+        .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
