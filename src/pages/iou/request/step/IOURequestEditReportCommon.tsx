@@ -56,10 +56,10 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 if (!policyID) {
                     return [];
                 }
-                const reports = getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {});
+                const reports = getOutstandingReportsForUser(policyID, transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
                 return reports;
             }),
-        [allPoliciesID, allReports, currentUserPersonalDetails.accountID],
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID],
     );
 
     const reportOptions: ReportListItem[] = useMemo(() => {
