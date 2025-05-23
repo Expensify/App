@@ -1,16 +1,24 @@
 import truncate from 'lodash/truncate';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
+import {extractCollectionItemID} from './CollectionUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {getOriginalMessage, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
+import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
+import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
+import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {hasActionsWithErrors, hasReportViolations, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isReportOwner, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
+    compareDuplicateTransactionFields,
     getFormattedCreated,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
@@ -29,6 +37,32 @@ import {
     isPerDiemRequest,
     isReceiptBeingScanned,
 } from './TransactionUtils';
+
+const allTransactions: Record<string, OnyxTypes.Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    callback: (transaction, key) => {
+        if (!key || !transaction) {
+            return;
+        }
+        const transactionID = extractCollectionItemID(key);
+        allTransactions[transactionID] = transaction;
+    },
+});
+
+let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allTransactionViolations = {};
+            return;
+        }
+
+        allTransactionViolations = value;
+    },
+});
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -53,6 +87,52 @@ function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: bool
           }
         : undefined;
 }
+
+const getReviewNavigationRoute = (
+    route: PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, 'Transaction_Duplicate_Review'>,
+    report: OnyxEntry<OnyxTypes.Report>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    duplicates: string[],
+) => {
+    const backTo = route.params.backTo;
+
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const reviewingTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+    const reviewingTransaction = allTransactions[reviewingTransactionID ?? ''];
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
+    const allDuplicateIDs = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const allDuplicates = allDuplicateIDs.map((id) => allTransactions?.[id]);
+
+    // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
+    // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
+    abandonReviewDuplicateTransactions();
+    const comparisonResult = compareDuplicateTransactionFields(reviewingTransaction, allDuplicates, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
+    setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
+
+    if (comparisonResult.change.merchant) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.category) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.tag) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.description) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.taxCode) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.billable) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.reimbursable) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+
+    return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID, backTo);
+};
 
 type TranslationPathOrText = {
     translationPath?: TranslationPaths;
@@ -316,6 +396,7 @@ function createTransactionPreviewConditionals({
 }
 
 export {
+    getReviewNavigationRoute,
     getIOUData,
     getTransactionPreviewTextAndTranslationPaths,
     createTransactionPreviewConditionals,

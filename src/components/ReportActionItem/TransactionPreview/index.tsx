@@ -9,9 +9,10 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getOriginalTransactionIfBillIsSplit} from '@libs/TransactionPreviewUtils';
+import {getOriginalTransactionIfBillIsSplit, getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
@@ -20,6 +21,7 @@ import {clearIOUError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreviewContent from './TransactionPreviewContent';
 import type {TransactionPreviewProps} from './types';
@@ -42,6 +44,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -79,6 +82,17 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const {originalTransactionID} = transaction?.comment ?? {};
     const [originalTransactionOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {canBeMissing: true});
 
+    const navigateToReviewFields = useCallback(() => {
+        Navigation.navigate(
+            getReviewNavigationRoute(
+                route,
+                report,
+                transaction,
+                (duplicates.filter((duplicate) => !!duplicate) as Transaction[]).map((duplicate) => duplicate?.transactionID),
+            ),
+        );
+    }, [duplicates, report, route, transaction]);
+
     const {isBillSplit, originalTransaction} = getOriginalTransactionIfBillIsSplit(transaction, originalTransactionOnyx);
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
@@ -107,6 +121,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     iouReport={iouReport}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
+                    navigateToReviewFields={navigateToReviewFields}
                     areThereDuplicates={areThereDuplicates}
                     sessionAccountID={sessionAccountID}
                     walletTermsErrors={walletTerms?.errors}
@@ -128,6 +143,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             iouReport={iouReport}
             violations={violations}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
+            navigateToReviewFields={navigateToReviewFields}
             areThereDuplicates={areThereDuplicates}
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}
