@@ -5,6 +5,7 @@ import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import {putOnHold} from '@libs/actions/IOU';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -13,11 +14,13 @@ import {
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticReportPreview,
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
     buildTransactionThread,
     canDeleteReportAction,
     canEditWriteCapability,
+    canHoldUnholdReportAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
     getApprovalChain,
@@ -1393,6 +1396,65 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canHoldUnholdReportAction', () => {
+        it.only('should return canUnholdRequest as true for a held duplicate transaction', async () => {
+            const chatReport: Report = {reportID: '1'};
+            const reportPreviewReportActionID = '8';
+            const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', undefined, reportPreviewReportActionID);
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const reportPreview = buildOptimisticReportPreview(chatReport, expenseReport, '', expenseTransaction, expenseReport.reportID, reportPreviewReportActionID);
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
+            expenseCreatedAction.childReportID = transactionThreadReport.reportID;
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                currentUserAccountID: {
+                    accountID: currentUserAccountID,
+                    displayName: currentUserEmail,
+                    login: currentUserEmail,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, {...expenseTransaction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`, transactionThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [expenseCreatedAction.reportActionID]: expenseCreatedAction,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reportPreview.reportActionID]: reportPreview,
+            });
+            // Given a transaction with duplicate transaction violation
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${expenseTransaction.transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                },
+            ]);
+
+            expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: true, canUnholdRequest: false});
+
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID);
+            await waitForBatchedUpdates();
+
+            // canUnholdRequest should be true after the transaction is held.
+            expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: false, canUnholdRequest: true});
+        });
+    });
+
     describe('getQuickActionDetails', () => {
         it('if the report is archived, the quick action will hide the subtitle and avatar', () => {
             // Create a fake archived report as quick action report
@@ -1940,6 +2002,30 @@ describe('ReportUtils', () => {
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
+        });
+
+        it('should return false when the empty report has deleted action with child comment but isDeletedParentAction is false', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            const iouReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+                childVisibleActionCount: 1,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [iouReportAction.reportActionID]: iouReportAction,
+            });
+            expect(
+                shouldReportBeInOptionList({report, currentReportId: '', isInFocusMode: false, betas: [], policies: {}, doesReportHaveViolations: false, excludeEmptyChats: true}),
+            ).toBeFalsy();
         });
     });
 
@@ -2581,6 +2667,7 @@ describe('ReportUtils', () => {
         it('should exclude hidden participants', () => {
             const report: Report = {
                 ...createRandomReport(1),
+                chatType: 'policyRoom',
                 participants: {
                     1: {notificationPreference: 'hidden'},
                     2: {notificationPreference: 'always'},
