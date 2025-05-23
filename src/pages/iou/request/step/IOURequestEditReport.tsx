@@ -38,7 +38,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionReport={transactionReport}
+            transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
         />
     );

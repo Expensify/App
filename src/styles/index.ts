@@ -2110,6 +2110,7 @@ const styles = (theme: ThemeColors) =>
 
         optionRowCompact: {
             height: variables.optionRowHeightCompact,
+            minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
         },
@@ -3075,9 +3076,8 @@ const styles = (theme: ThemeColors) =>
 
         sectionTitle: {
             ...spacing.pt2,
-            ...spacing.pr3,
             ...spacing.pb4,
-            paddingLeft: 13,
+            ...spacing.ph2,
             fontSize: 13,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: 16,
@@ -3208,6 +3208,7 @@ const styles = (theme: ThemeColors) =>
 
         dividerLine: {
             height: 1,
+            maxHeight: 1,
             backgroundColor: theme.border,
             flexGrow: 1,
             ...spacing.mh5,
@@ -5100,7 +5101,8 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        searchStatusBarContainer: {
+        searchFiltersBarContainer: {
+            marginTop: 8,
             flexDirection: 'row',
             alignItems: 'center',
         },
@@ -5182,6 +5184,15 @@ const styles = (theme: ThemeColors) =>
             // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
             flexBasis: '35%',
             marginTop: 12,
+        },
+        onboardingAccountingItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: '35%',
         },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
@@ -5601,6 +5612,13 @@ const styles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        emptyStateFireworksWebStyles: {
+            width: 250,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...display.dFlex,
+        },
+
         tripEmptyStateLottieWebView: {
             width: 335,
             height: 220,
@@ -5734,6 +5752,26 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 20,
         }),
 
+        getSelectionListPopoverHeight: (itemCount: number) => ({
+            height: itemCount * variables.optionRowHeightCompact,
+            ...sizing.mh65vh,
+        }),
+
+        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
+            const SEARCHBAR_HEIGHT = 50;
+            const SEARCHBAR_MARGIN = 14;
+            const BUTTON_HEIGHT = 40;
+            const PADDING = 44 - (shouldUseNarrowLayout ? 32 : 0);
+
+            const listHeight = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
+
+            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
+            // the listHeight or 65% of the window height
+            const height = Math.min(listHeight, windowHeight * 0.65);
+
+            return {height};
+        },
+
         earlyDiscountButton: {
             flexGrow: 1,
             flexShrink: 1,
@@ -5777,6 +5815,14 @@ const styles = (theme: ThemeColors) =>
             flexShrink: 1,
             // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
             flexBasis: '35%',
+        },
+
+        thumbnailImageContainerHover: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        thumbnailImageContainerHighlight: {
+            backgroundColor: theme.highlightBG,
         },
     } satisfies Styles);
 

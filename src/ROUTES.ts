@@ -71,7 +71,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
     SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
-    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -124,6 +123,7 @@ const ROUTES = {
         },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
+    MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
