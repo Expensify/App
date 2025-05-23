@@ -744,6 +744,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 <RootStack.Screen
                     name={SCREENS.LOGGING_OUT}
                     component={LoggingOutPage}
+                    options={{
+                        animation: Animations.NONE,
+                    }}
                 />
             </RootStack.Navigator>
             <SearchRouterModal />

@@ -14,6 +14,7 @@ import ValidateLoginPage from '@pages/ValidateLoginPage';
 import CONFIG from '@src/CONFIG';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import defaultScreenOptions from './defaultScreenOptions';
 import PublicRightModalNavigator from './Navigators/PublicRightModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
@@ -71,6 +72,9 @@ function PublicScreens() {
             <RootStack.Screen
                 name={SCREENS.LOGGING_OUT}
                 component={LoggingOutPage}
+                options={{
+                    animation: Animations.NONE,
+                }}
             />
         </RootStack.Navigator>
     );
