@@ -26,18 +26,20 @@ import {
     getCardIssuedMessage,
     getExportIntegrationMessageHTML,
     getIOUReportIDFromReportActionPreview,
+    getJoinRequestMessage,
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
-    getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
-    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getPolicyChangeLogUpdateEmployee,
     getRemovedConnectionMessage,
     getRenamedAction,
+    getReopenedMessage,
     getReportActionMessageText,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
@@ -50,6 +52,7 @@ import {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    isActionableJoinRequest,
     isActionableMentionWhisper,
     isActionableTrackExpense,
     isActionOfType,
@@ -88,6 +91,7 @@ import {
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
     getOriginalReportID,
+    getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
@@ -537,7 +541,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
                     setClipboardMessage(getWorkspaceUpdateFieldMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
-                    Clipboard.setString(getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(reportAction));
+                    Clipboard.setString(getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
                     Clipboard.setString(getPolicyChangeLogMaxExpenseAmountMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
@@ -610,11 +614,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogAddEmployeeMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-                    setClipboardMessage(getPolicyChangeLogChangeRoleMessage(reportAction));
+                    setClipboardMessage(getPolicyChangeLogUpdateEmployee(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogDeleteMemberMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
                     setClipboardMessage(getDeletedTransactionMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
+                    setClipboardMessage(getReopenedMessage());
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     const {label, errorMessage} = getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
                     setClipboardMessage(translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
@@ -622,6 +628,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, card}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(getRemovedConnectionMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
+                    const displayMessage = getPolicyChangeMessage(reportAction);
+                    Clipboard.setString(displayMessage);
+                } else if (isActionableJoinRequest(reportAction)) {
+                    const displayMessage = getJoinRequestMessage(reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
@@ -649,7 +661,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: ({type, reportAction, menuTarget}) => {
             const isAttachment = isReportActionAttachment(reportAction);
 
-            // Only hide the copylink menu item when context menu is opened over img element.
+            // Only hide the copy link menu item when context menu is opened over img element.
             const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction);
         },

@@ -193,7 +193,7 @@ const ONYXKEYS = {
     /** Store the billing status */
     NVP_PRIVATE_BILLING_STATUS: 'nvp_private_billingStatus',
 
-    /** Store preferred skintone for emoji */
+    /** Store preferred skin tone for emoji */
     PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
 
     /** Store frequently used emojis for this user */
@@ -205,7 +205,7 @@ const ONYXKEYS = {
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
 
-    /** The NVP containing all information necessary to connect with Spontana */
+    /** The NVP containing all information necessary to connect with Spotnana */
     NVP_TRAVEL_SETTINGS: 'nvp_travelSettings',
 
     /** The start date (yyyy-MM-dd HH:mm:ss) of the workspace owner’s free trial period. */
@@ -390,7 +390,7 @@ const ONYXKEYS = {
     /** Indicates whether an forced upgrade is required */
     UPDATE_REQUIRED: 'updateRequired',
 
-    /** Indicates whether an forced reset is required. Used in emergency situations where we must completely erase the Onyx data in the client because it is in a bad state. This will clear Oynx data without signing the user out. */
+    /** Indicates whether an forced reset is required. Used in emergency situations where we must completely erase the Onyx data in the client because it is in a bad state. This will clear Onyx data without signing the user out. */
     RESET_REQUIRED: 'resetRequired',
 
     /** Stores the logs of the app for debugging purposes */
@@ -414,7 +414,7 @@ const ONYXKEYS = {
     /** Holds the checks used while transferring the ownership of the workspace */
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
 
-    // These statuses below are in separate keys on purpose - it allows us to have different behaviours of the banner based on the status
+    // These statuses below are in separate keys on purpose - it allows us to have different behaviors of the banner based on the status
 
     /** Indicates whether ClearOutstandingBalance failed */
     SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED: 'subscriptionRetryBillingStatusFailed',
@@ -431,7 +431,7 @@ const ONYXKEYS = {
     /** Stores the last export method for policy */
     LAST_EXPORT_METHOD: 'lastExportMethod',
 
-    /** Stores the information about the state of addint a new company card */
+    /** Stores the information about the state of adding a new company card */
     ADD_NEW_COMPANY_CARD: 'addNewCompanyCard',
 
     /** Stores the information about the state of assigning a company card */
@@ -445,7 +445,7 @@ const ONYXKEYS = {
     /** Stores the information about currently edited advanced approval workflow */
     APPROVAL_WORKFLOW: 'approvalWorkflow',
 
-    /** Stores the user search value for persistance across the screens */
+    /** Stores the user search value for persistence across the screens */
     ROOM_MEMBERS_USER_SEARCH_PHRASE: 'roomMembersUserSearchPhrase',
     /** Stores information about recently uploaded spreadsheet file */
     IMPORTED_SPREADSHEET: 'importedSpreadsheet',
@@ -621,7 +621,7 @@ const ONYXKEYS = {
         /**  Whether the bank account chosen for Expensify Card in on verification waitlist */
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
 
-        NVP_EXPENSIFY_REPORT_PDFFILENAME: 'nvp_expensify_report_PDFFilename_',
+        NVP_EXPENSIFY_REPORT_PDF_FILENAME: 'nvp_expensify_report_PDFFilename_',
 
         /** Stores the information about the state of issuing a new card */
         ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
@@ -644,6 +644,8 @@ const ONYXKEYS = {
         WORKSPACE_TAG_FORM_DRAFT: 'workspaceTagFormDraft',
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
         WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
+        WORKSPACE_MEMBER_CUSTOM_FIELD_FORM: 'WorkspaceMemberCustomFieldForm',
+        WORKSPACE_MEMBER_CUSTOM_FIELD_FORM_DRAFT: 'WorkspaceMemberCustomFieldFormDraft',
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
         WORKSPACE_TAX_CUSTOM_NAME: 'workspaceTaxCustomName',
         WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
@@ -880,6 +882,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
+    [ONYXKEYS.FORMS.WORKSPACE_MEMBER_CUSTOM_FIELD_FORM]: FormTypes.WorkspaceMemberCustomFieldsForm;
     [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS]: FormTypes.AdditionalDetailStepForm;
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM]: FormTypes.WorkspaceNewTaxForm;
@@ -965,7 +968,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: OnyxTypes.SelectedTabRequest;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
-    [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME]: string;
+    [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
