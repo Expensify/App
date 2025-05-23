@@ -28,7 +28,7 @@ type CalendarPickerProps = {
     maxDate?: Date;
 
     /** Restrict selection to only specific dates */
-    selectedableDates?: string[];
+    selectableDates?: string[];
 
     /** Day component to render for dates */
     DayComponent?: typeof Day;
@@ -55,7 +55,7 @@ function CalendarPicker({
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
     DayComponent = Day,
-    selectedableDates,
+    selectableDates,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -258,7 +258,7 @@ function CalendarPicker({
                             const currentDate = new Date(currentYearView, currentMonthView, day);
                             const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
-                            const isSelectable = selectedableDates ? selectedableDates?.some((date) => isSameDay(parseISO(date), currentDate)) : true;
+                            const isSelectable = selectableDates ? selectableDates?.some((date) => isSameDay(parseISO(date), currentDate)) : true;
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate || !isSelectable;
                             const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
                             const handleOnPress = () => {
