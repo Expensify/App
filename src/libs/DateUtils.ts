@@ -358,7 +358,7 @@ function getCurrentTimezone(): Required<Timezone> {
 }
 
 /**
- * @returns [January, Fabruary, March, April, May, June, July, August, ...]
+ * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(preferredLocale: Locale): string[] {
     if (preferredLocale) {
@@ -374,7 +374,7 @@ function getMonthNames(preferredLocale: Locale): string[] {
 }
 
 /**
- * @returns [Monday, Thuesday, Wednesday, ...]
+ * @returns [Monday, Tuesday, Wednesday, ...]
  */
 function getDaysOfWeek(preferredLocale: Locale): string[] {
     if (preferredLocale) {
@@ -964,11 +964,30 @@ const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean =
     return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
 };
 
+/**
+ * Converts a date to a string in the format MMMM d, yyyy
+ */
+const formatToReadableString = (date: string): string => {
+    const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+    return format(parsedDate, 'MMMM d, yyyy');
+};
+
+const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, formatStr, options?) => {
+    try {
+        return formatInTimeZone(date, timeZone, formatStr, options);
+        // On macOs and iOS devices some platform use deprecated old timezone values which results in invalid time string error.
+        // Try with backward timezone values on error.
+    } catch {
+        return formatInTimeZone(date, timezoneBackwardMap[timeZone], formatStr, options);
+    }
+};
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
+    formatToReadableString,
     getZoneAbbreviation,
     datetimeToRelative,
     datetimeToCalendarTime,
@@ -1021,6 +1040,7 @@ const DateUtils = {
     isFutureDay,
     getFormattedDateRangeForPerDiem,
     isCurrentTimeWithinRange,
+    formatInTimeZoneWithFallback,
 };
 
 export default DateUtils;

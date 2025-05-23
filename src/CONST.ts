@@ -69,6 +69,10 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
     quickbooksDesktop: 'QuickBooks Desktop',
+    sap: 'SAP',
+    oracle: 'Oracle',
+    microsoftDynamics: 'Microsoft Dynamics',
+    other: 'Other',
 };
 
 const connectionsVideoPaths = {
@@ -273,7 +277,7 @@ type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
 type OnboardingCompanySize = ValueOf<typeof onboardingCompanySize>;
 
-type OnboardingAccounting = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -404,6 +408,9 @@ const CONST = {
         horizontal: 12 + variables.navigationTabBarSize,
         vertical: 72,
     },
+    POPOVER_DROPDOWN_WIDTH: 336,
+    POPOVER_DROPDOWN_MIN_HEIGHT: 0,
+    POPOVER_DROPDOWN_MAX_HEIGHT: 476,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -415,7 +422,9 @@ const CONST = {
     ANIMATION_THUMBS_UP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
+    IMAGE_SVG_TRANSITION_DURATION: 200,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
+    LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
@@ -702,6 +711,7 @@ const CONST = {
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
+        CORPAY_UNDEFINED_OPTION_VALUE: 'Undefined',
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -816,7 +826,9 @@ const CONST = {
         RETRACT_NEWDOT: 'retractNewDot',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
+        NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
     },
     BUTTON_STATES: {
@@ -857,7 +869,7 @@ const CONST = {
         ANDROID: 'android',
         WEB: 'web',
         DESKTOP: 'desktop',
-        MOBILEWEB: 'mobileweb',
+        MOBILE_WEB: 'mobileweb',
     },
     PLATFORM_SPECIFIC_KEYS: {
         CTRL: {
@@ -1191,7 +1203,7 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
-        SPLIT_REPORTID: '-2',
+        SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -1404,10 +1416,22 @@ const CONST = {
             // Used when displaying reportActions list to handle unread messages icon/button
             SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
             ACTION_VISIBLE_THRESHOLD: 250,
+            MAX_GROUPING_TIME: 300000,
         },
         TRANSACTION_LIST: {
             COLUMNS: {
                 COMMENTS: 'comments',
+                RECEIPT: 'receipt',
+                DATE: 'date',
+                MERCHANT: 'merchant',
+                FROM: 'from',
+                TO: 'to',
+                CATEGORY: 'category',
+                TAG: 'tag',
+                TOTAL_AMOUNT: 'amount',
+                TYPE: 'type',
+                ACTION: 'action',
+                TAX: 'tax',
             },
         },
         CANCEL_PAYMENT_REASONS: {
@@ -1713,7 +1737,7 @@ const CONST = {
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
-        ENSURE_BUGBOT: 'ENSURE_BUGBOT',
+        ENSURE_BUG_BOT: 'ENSURE_BUGBOT',
         PUSHER_ERROR: 'PusherError',
         WEB_SOCKET_ERROR: 'WebSocketError',
         NETWORK_REQUEST_FAILED: 'Network request failed',
@@ -1997,7 +2021,7 @@ const CONST = {
         // Video MimeTypes allowed by iOS photos app.
         VIDEO: /\.(mov|mp4)$/,
     },
-    IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
+    IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_ITEM_TYPES: {
@@ -2766,11 +2790,11 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 8,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
-            SCANREADY: 'SCANREADY',
+            SCAN_READY: 'SCANREADY',
             OPEN: 'OPEN',
             SCANNING: 'SCANNING',
-            SCANCOMPLETE: 'SCANCOMPLETE',
-            SCANFAILED: 'SCANFAILED',
+            SCAN_COMPLETE: 'SCANCOMPLETE',
+            SCAN_FAILED: 'SCANFAILED',
         },
         FILE_TYPES: {
             HTML: 'html',
@@ -2874,6 +2898,9 @@ const CONST = {
             TAX: 'tax',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
+        DEFAULT_FIELD_LIST_TYPE: 'formula',
+        DEFAULT_FIELD_LIST_TARGET: 'expense',
+        DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
@@ -3018,6 +3045,10 @@ const CONST = {
                 financialForce: 'FinancialForce',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
+                sap: 'SAP',
+                oracle: 'Oracle',
+                microsoftDynamics: 'Microsoft Dynamics',
+                other: 'Other',
             },
             AUTH_HELP_LINKS: {
                 intacct:
@@ -3176,6 +3207,7 @@ const CONST = {
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
+        LARGE_NORMAL: 'large-normal',
     },
     COMPANY_CARD: {
         FEED_BANK_NAME: {
@@ -3266,6 +3298,7 @@ const CONST = {
             BANK_CONNECTION: 'BankConnection',
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
+            PLAID_CONNECTION: 'PlaidConnection',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -3407,7 +3440,7 @@ const CONST = {
         PRICING_TYPE_2025: 'team2025Pricing',
         TYPE: {
             ANNUAL: 'yearly2018',
-            PAYPERUSE: 'monthly2018',
+            PAY_PER_USE: 'monthly2018',
         },
     },
     get SUBSCRIPTION_PRICES() {
@@ -3415,44 +3448,44 @@ const CONST = {
             [this.PAYMENT_CARD_CURRENCY.USD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 900,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1800,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1800,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1500,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3000,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3000,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 800,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3200,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3200,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
                 },
             },
@@ -3560,7 +3593,7 @@ const CONST = {
          * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
          * Group 3: Title is remaining characters
          */
-        TASK_TITLE_WITH_OPTONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN.source}))?\\s*([\\s\\S]*)`,
+        TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN.source}))?\\s*([\\s\\S]*)`,
     },
 
     PRONOUNS: {
@@ -3722,7 +3755,7 @@ const CONST = {
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
         EXPENSE_REPORTS_URL: `${USE_EXPENSIFY_URL}/expense-reports`,
         COMPANY_CARD_URL: `${USE_EXPENSIFY_URL}/company-credit-card`,
-        RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
+        RECEIPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
         BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
         INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
         PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
@@ -6404,7 +6437,10 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
-        LAST_VISITED_WORKSPACES_TAB_PATH: 'LAST_VISITED_WORKSPACES_TAB_PATH',
+        LAST_VISITED_TAB_PATH: {
+            WORKSPACES: 'LAST_VISITED_WORKSPACES_TAB_PATH',
+            SETTINGS: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        },
     },
 
     RESERVATION_TYPE: {
@@ -6458,6 +6494,7 @@ const CONST = {
     },
 
     SEARCH: {
+        NEVER: 'never',
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
             EXPENSE: 'expense',
@@ -6482,11 +6519,13 @@ const CONST = {
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
+            CHANGE_REPORT: 'changeReport',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
             CARD: 'card',
             DISTANCE: 'distance',
+            PER_DIEM: 'perDiem',
         },
         SORT_ORDER: {
             ASC: 'asc',
@@ -6552,7 +6591,6 @@ const CONST = {
             TAX_AMOUNT: 'taxAmount',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             IN: 'in',
         },
         SYNTAX_OPERATORS: {
@@ -6581,6 +6619,8 @@ const CONST = {
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
+            PAYER: 'payer',
+            EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
             TAX_RATE: 'taxRate',
@@ -6596,7 +6636,6 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
@@ -6622,6 +6661,8 @@ const CONST = {
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
+            PAYER: 'payer',
+            EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
             TAX_RATE: 'tax-rate',
@@ -6637,13 +6678,13 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'created-by',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
+            ON: 'On',
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
@@ -7029,8 +7070,7 @@ const CONST = {
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
-        OUTSANDING_FILTER: 'outstandingFilter',
-        WORKSPACES_SETTINGS: 'workspacesSettings',
+        OUTSTANDING_FILTER: 'outstandingFilter',
         GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
@@ -7083,6 +7123,12 @@ const CONST = {
         ONBOARDING_TASK_NAME: getTestDriveTaskName(),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
+    },
+
+    SCHEDULE_CALL_STATUS: {
+        CREATED: 'created',
+        RESCHEDULED: 'rescheduled',
+        CANCELLED: 'cancelled',
     },
 } as const;
 

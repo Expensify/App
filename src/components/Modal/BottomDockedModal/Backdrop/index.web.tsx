@@ -16,6 +16,7 @@ function Backdrop({
     onBackdropPress,
     animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
     animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
+    isBackdropVisible,
     backdropOpacity = variables.overlayOpacity,
 }: BackdropProps) {
     const styles = useThemeStyles();
@@ -54,29 +55,30 @@ function Backdrop({
 
     if (!customBackdrop) {
         return (
+            <PressableWithoutFeedback
+                accessible
+                accessibilityLabel={translate('modal.backdropLabel')}
+                onPress={onBackdropPress}
+            >
+                {isBackdropVisible && (
+                    <Animated.View
+                        style={[styles.modalBackdrop, backdropStyle, style]}
+                        entering={Entering}
+                        exiting={Exiting}
+                    />
+                )}
+            </PressableWithoutFeedback>
+        );
+    }
+    return (
+        isBackdropVisible && (
             <Animated.View
-                style={[styles.modalBackdrop, backdropStyle, style]}
                 entering={Entering}
                 exiting={Exiting}
             >
-                <PressableWithoutFeedback
-                    accessible
-                    accessibilityLabel={translate('modal.backdropLabel')}
-                    onPress={onBackdropPress}
-                >
-                    <View style={[styles.modalBackdrop, backdropStyle, style]} />
-                </PressableWithoutFeedback>
+                <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
             </Animated.View>
-        );
-    }
-
-    return (
-        <Animated.View
-            entering={Entering}
-            exiting={Exiting}
-        >
-            <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
-        </Animated.View>
+        )
     );
 }
 
