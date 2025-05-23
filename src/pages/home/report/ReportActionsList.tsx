@@ -371,6 +371,10 @@ function ReportActionsList({
     }, [linkedReportActionID, unreadMarkerReportActionID]);
 
     const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
+    const handleListInitiallyLoaded = useCallback(() => {
+        setIsListInitiallyLoaded(true);
+        DeviceEventEmitter.emit(CONST.EVENTS.REPORT_ACTIONS_LIST_INITIALLY_LOADED);
+    }, []);
 
     const isReportUnread = useMemo(
         () => isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)),
@@ -747,7 +751,7 @@ function ReportActionsList({
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
-                    onInitiallyLoaded={() => setIsListInitiallyLoaded(true)}
+                    onInitiallyLoaded={handleListInitiallyLoaded}
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={onScrollToIndexFailed}

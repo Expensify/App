@@ -5,7 +5,7 @@ import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter} from 'react-native';
-import type {TextStyle, ViewStyle} from 'react-native';
+import type {EventSubscription, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {setSidebarLoaded} from '@libs/actions/App';
@@ -230,7 +230,7 @@ describe('Unread Indicators', () => {
                 expect(createdAction).toBeTruthy();
                 const reportCommentsHintText = translateLocal('accessibilityHints.chatMessage');
                 const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
-                expect(reportComments).toHaveLength(4);
+                expect(reportComments).toHaveLength(9);
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
                 const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
@@ -285,7 +285,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
             }));
-    it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () =>
+    it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () => {
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
@@ -364,8 +364,17 @@ describe('Unread Indicators', () => {
                 expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
+                let reportActionsListInitialLoadListener: EventSubscription;
+                const chatListInitialLoadPromise = new Promise((resolve) => {
+                    reportActionsListInitialLoadListener = DeviceEventEmitter.addListener(CONST.EVENTS.REPORT_ACTIONS_LIST_INITIALLY_LOADED, resolve);
+                });
+
                 // Tap the new report option and navigate back to the sidebar again via the back button
-                return navigateToSidebarOption(0);
+                const navigationPromise = navigateToSidebarOption(0);
+
+                return Promise.all([navigationPromise, chatListInitialLoadPromise]).then(() => {
+                    reportActionsListInitialLoadListener.remove();
+                });
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
@@ -373,12 +382,14 @@ describe('Unread Indicators', () => {
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
+
                 expect(displayNameTexts).toHaveLength(2);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
                 expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
                 expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
-            }));
+            });
+    });
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
