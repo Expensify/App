@@ -18,7 +18,6 @@ import {translateLocal} from '@libs/Localize';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
-import {setOnReportActionListLoadedInTests} from '@pages/home/report/ReportActionsList/testUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import App from '@src/App';
 import CONST from '@src/CONST';
@@ -41,7 +40,6 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('../../src/pages/home/report/ReportActionsList/testUtils');
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
@@ -287,10 +285,8 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
             }));
-    it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () => {
-        let reportActionListLoadedPromise: Promise<string>;
-
-        return signInAndGetAppWithUnreadChat()
+    it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () =>
+        signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
                 // We set the created date 5 seconds in the past to ensure that time has passed when we open the report
@@ -368,14 +364,9 @@ describe('Unread Indicators', () => {
                 expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
-                reportActionListLoadedPromise = new Promise((resolve) => {
-                    setOnReportActionListLoadedInTests(resolve);
-                });
-
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
             })
-            .then(() => reportActionListLoadedPromise)
             .then(waitForBatchedUpdates)
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
@@ -388,8 +379,7 @@ describe('Unread Indicators', () => {
                 expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
                 expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
-            });
-    });
+            }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()

@@ -132,22 +132,13 @@ jest.mock(
     '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
-            private renderInfo: RenderInfo | undefined = undefined;
-
             private handler: ((info: unknown) => void) | undefined = undefined;
 
-            add(info: RenderInfo, startRendering = true) {
-                this.renderInfo = info;
-
-                if (startRendering) {
-                    this.handler?.(info);
-                }
+            add(info: RenderInfo) {
+                this.handler?.(info);
             }
 
-            start() {
-                this.handler?.(this.renderInfo);
-                this.renderInfo = undefined;
-            }
+            start() {}
 
             setHandler(handler: (info: unknown) => void) {
                 this.handler = handler;
@@ -158,8 +149,6 @@ jest.mock(
             cancel() {}
         },
 );
-
-jest.mock('@components/InvertedFlatList/BaseInvertedFlatList/useInitialListEventMocks');
 
 jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention

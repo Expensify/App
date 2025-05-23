@@ -64,7 +64,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {onReportActionListLoadedInTests} from './testUtils';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -374,8 +373,7 @@ function ReportActionsList({
     const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
     const handleListInitiallyLoaded = useCallback(() => {
         setIsListInitiallyLoaded(true);
-        onReportActionListLoadedInTests(report.reportID);
-    }, [report.reportID]);
+    }, []);
 
     const isReportUnread = useMemo(
         () => isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)),
