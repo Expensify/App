@@ -1,10 +1,11 @@
+/* eslint-disable no-console */
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import {updateLastAccessedWorkspaceSwitcher} from '@libs/actions/Policy/Policy';
 import * as Localize from '@libs/Localize';
-import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {isFullScreenName, isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -13,9 +14,7 @@ import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
     handleOpenWorkspaceSplitAction,
-    handlePushReportSplitAction,
-    handlePushSearchPageAction,
-    handlePushSettingsSplitAction,
+    handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
     handleSwitchPolicyIDAction,
 } from './GetStateForActionHandlers';
@@ -105,18 +104,8 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
             }
 
-            if (isPushAction(action)) {
-                if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    return handlePushReportSplitAction(state, action, configOptions, stackRouter);
-                }
-
-                if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-                    return handlePushSearchPageAction(state, action, configOptions, stackRouter);
-                }
-
-                if (action.payload.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
-                    return handlePushSettingsSplitAction(state, action, configOptions, stackRouter);
-                }
+            if (isPushAction(action) && isFullScreenName(action.payload.name)) {
+                return handlePushFullscreenAction(state, action, configOptions, stackRouter);
             }
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
