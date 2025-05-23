@@ -334,6 +334,10 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
+    if (!policy?.isAttendeeTrackingEnabled) {
+        return false;
+    }
+
     return (
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM)
     );
