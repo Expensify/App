@@ -6,6 +6,7 @@ import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import type {RenderInfo} from './RenderTaskQueue';
 import RenderTaskQueue from './RenderTaskQueue';
+import useInitialListEventMocks from './useInitialListEventMocks';
 
 const INITIAL_SCROLL_DELAY = 200;
 
@@ -201,6 +202,8 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             },
         ) as RNFlatList;
     });
+
+    useInitialListEventMocks({handleStartReached, handleContentSizeChange});
 
     return (
         <FlatList

@@ -6,6 +6,7 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
+import type {RenderInfo} from '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
@@ -131,27 +132,34 @@ jest.mock(
     '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
+            private renderInfo: RenderInfo | undefined = undefined;
+
             private handler: ((info: unknown) => void) | undefined = undefined;
 
-            private onEndReached: (() => void) | undefined = undefined;
+            add(info: RenderInfo, startRendering = true) {
+                this.renderInfo = info;
 
-            add(info: unknown) {
-                this.handler?.(info);
+                if (startRendering) {
+                    this.handler?.(info);
+                }
             }
 
-            start() {}
+            start() {
+                this.handler?.(this.renderInfo);
+                this.renderInfo = undefined;
+            }
 
             setHandler(handler: (info: unknown) => void) {
                 this.handler = handler;
             }
 
-            setOnEndReached(onEndReached: (() => void) | undefined) {
-                this.onEndReached = onEndReached;
-            }
+            setOnEndReached() {}
 
             cancel() {}
         },
 );
+
+jest.mock('@components/InvertedFlatList/BaseInvertedFlatList/useInitialListEventMocks');
 
 jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention

@@ -290,7 +290,7 @@ describe('Unread Indicators', () => {
     it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () => {
         let reportActionListLoadedPromise: Promise<string>;
 
-        signInAndGetAppWithUnreadChat()
+        return signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
                 // We set the created date 5 seconds in the past to ensure that time has passed when we open the report
@@ -375,8 +375,8 @@ describe('Unread Indicators', () => {
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
             })
-            .then(waitForBatchedUpdates)
             .then(() => reportActionListLoadedPromise)
+            .then(waitForBatchedUpdates)
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
@@ -449,7 +449,13 @@ describe('Unread Indicators', () => {
 
     it('Keep showing the new line indicator when a new message is created by the current user', () =>
         signInAndGetAppWithUnreadChat()
-            .then(() => navigateToSidebarOption(0))
+            .then(() => {
+                // Verify we are on the LHN and that the chat shows as unread in the LHN
+                expect(areYouOnChatListScreen()).toBe(true);
+
+                // Navigate to the report and verify the indicator is present
+                return navigateToSidebarOption(0);
+            })
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
