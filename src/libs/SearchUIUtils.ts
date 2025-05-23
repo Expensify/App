@@ -956,7 +956,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 policy.type !== CONST.POLICY.TYPE.PERSONAL &&
                 (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ||
                     policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL),
-        ).length > 0 && false;
+        ).length > 0;
 
     // TODO: This option will be enabled soon (removing the && false). We are waiting on changes to support this
     // feature fully, but lets keep the code here for simplicity
