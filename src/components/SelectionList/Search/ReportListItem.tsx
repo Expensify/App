@@ -149,7 +149,7 @@ function ReportListItem<TItem extends ListItem>({
                             onPress={() => setIsExpanded(!isExpanded)}
                             style={[styles.p0, styles.pr3]}
                             hoverStyle={[styles.bgTransparent]}
-                            large
+                            shouldUseAutoHitSlop
                         />
                     </View>
                     {isEmptyReport ? (
