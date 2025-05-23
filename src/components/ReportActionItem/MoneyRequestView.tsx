@@ -61,6 +61,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
+    isScanRequest as isScanRequestTransactionUtils,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -163,16 +164,24 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
+    const isScanRequest = isScanRequestTransactionUtils(transaction);
     const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
     const isReceiptBeingScanned = hasReceipt && isReceiptBeingScannedTransactionUtils(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
-    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!transactionAmount) && transactionAmount !== undefined;
+    let shouldDisplayTransactionAmount = false;
+
+    if (transactionAmount !== undefined) {
+        if (isDistanceRequest && !hasRoute) {
+            shouldDisplayTransactionAmount = false;
+        } else if (isScanRequest && (isReceiptBeingScanned || !didReceiptScanSucceed)) {
+            shouldDisplayTransactionAmount = false;
+        } else {
+            shouldDisplayTransactionAmount = true;
+        }
+    }
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const formattedPerAttendeeAmount =
-        shouldDisplayTransactionAmount && ((hasReceipt && !isReceiptBeingScanned && didReceiptScanSucceed) || !isPerDiemRequest)
-            ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency)
-            : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString((transactionAmount ?? 0) / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);

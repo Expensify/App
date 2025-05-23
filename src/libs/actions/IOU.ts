@@ -11182,5 +11182,6 @@ export {
     canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
+    computePerDiemExpenseAmount,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
