@@ -12,6 +12,7 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
+    OUTSTANDING_FILTER,
     GBR_RBR_CHAT,
     ACCOUNT_SWITCHER,
     EXPENSE_REPORTS_FILTER,
@@ -38,8 +39,8 @@ type TooltipData = {
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part2', isBold: true},
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCIERGE_LHN_GBR,
@@ -159,6 +160,16 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: SCAN_TEST_CONFIRMATION,
         priority: 1100,
         shouldShow: () => true,
+    },
+    [OUTSTANDING_FILTER]: {
+        content: [
+            {text: 'productTrainingTooltip.outstandingFilter.part1', isBold: false},
+            {text: 'productTrainingTooltip.outstandingFilter.part2', isBold: true},
+        ],
+        onHideTooltip: () => dismissProductTraining(OUTSTANDING_FILTER),
+        name: OUTSTANDING_FILTER,
+        priority: 1925,
+        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
     },
 };
 

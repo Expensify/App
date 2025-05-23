@@ -68,6 +68,7 @@ describe('actions/Report', () => {
     beforeEach(() => {
         HttpUtils.xhr = originalXHR;
         const promise = Onyx.clear().then(jest.useRealTimers);
+
         if (getIsUsingFakeTimers()) {
             // flushing pending timers
             // Onyx.clear() promise is resolved in batch which happens after the current microtasks cycle
@@ -1008,7 +1009,7 @@ describe('actions/Report', () => {
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.isRollbacked).toBeTruthy();
+        expect(PersistedRequests.getAll().at(0)?.isRollback).toBeTruthy();
         const newComment = PersistedRequests.getAll().at(1);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
@@ -1604,6 +1605,47 @@ describe('actions/Report', () => {
             });
             const derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
             expect(derivedConciergeChatReportID).toBe(conciergeChatReport2.reportID);
+        });
+    });
+
+    describe('completeOnboarding', () => {
+        const TEST_USER_LOGIN = 'test@gmail.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        it('should set "isOptimisticAction" to false/null for all actions in admins report after completing onboarding setup', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const adminsChatReportID = '7957055873634067';
+            const onboardingPolicyID = 'A70D00C752416807';
+            const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+
+            Report.completeOnboarding({
+                engagementChoice,
+                onboardingMessage: CONST.ONBOARDING_MESSAGES[engagementChoice],
+                adminsChatReportID,
+                onboardingPolicyID,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: null,
+            });
+
+            await waitForBatchedUpdates();
+
+            const reportActions: OnyxEntry<OnyxTypes.ReportActions> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                    callback: (id) => {
+                        Onyx.disconnect(connection);
+                        resolve(id);
+                    },
+                });
+            });
+            expect(reportActions).not.toBeNull();
+            expect(reportActions).not.toBeUndefined();
+            Object.values(reportActions ?? {}).forEach((action) => {
+                expect(action.isOptimisticAction).toBeFalsy();
+            });
         });
     });
 });

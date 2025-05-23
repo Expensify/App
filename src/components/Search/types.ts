@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -13,6 +13,9 @@ type SelectedTransactionInfo = {
 
     /** If the transaction can be put on hold */
     canHold: boolean;
+
+    /** If the transaction can be moved to other report */
+    canChangeReport: boolean;
 
     /** Whether the transaction is currently held */
     isHeld: boolean;
@@ -57,7 +60,9 @@ type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
-type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | Array<ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus>;
+type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
+type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | TaskSearchStatus;
+type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 
@@ -66,11 +71,11 @@ type SearchContext = {
     selectedTransactions: SelectedTransactions;
     selectedReports: SelectedReports[];
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => void;
+    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]) => void;
     clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
     shouldTurnOffSelectionMode: boolean;
-    shouldShowStatusBarLoading: boolean;
-    setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
+    shouldShowFiltersBarLoading: boolean;
+    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
     shouldShowExportModeOption: boolean;
@@ -147,6 +152,11 @@ type SearchAutocompleteQueryRange = {
     value: string;
 };
 
+type SearchParams = {
+    queryJSON: SearchQueryJSON;
+    offset: number;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -167,9 +177,12 @@ export type {
     InvoiceSearchStatus,
     TripSearchStatus,
     ChatSearchStatus,
+    TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
+    SearchParams,
     TableColumnSize,
     SearchGroupBy,
+    SingularSearchStatus,
 };
