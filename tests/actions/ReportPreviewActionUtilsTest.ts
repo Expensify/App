@@ -9,7 +9,7 @@ import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
@@ -193,6 +193,31 @@ describe('getReportPreviewAction', () => {
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('getReportPreviewAction should return view when waiting on the employee bank acount to be setup', async () => {
+
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(0),
+            type: CONST.POLICY.TYPE.CORPORATE,
+            connections: {} as Connections,
+        };
+
+        const fakeReport: Report = {
+            ...createRandomReport(REPORT_ID),
+            isWaitingOnBankAccount: true,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+
+        const fakeTransaction = {reportID: `${REPORT_ID}`} as Transaction;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, fakeReport);
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(fakeReport?.parentReportID));
+        expect(getReportPreviewAction(VIOLATIONS, fakeReport, fakePolicy, [fakeTransaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+       
     });
 
     it('canExport should return true for finished reports', async () => {
