@@ -93,6 +93,7 @@ function BaseGenericTooltip({
             anchorAlignment,
             wrapperStyle,
             isEducationTooltip,
+            computeHorizontalShiftForNative,
         ],
     );
 
