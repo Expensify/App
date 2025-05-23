@@ -42,6 +42,7 @@ function ScheduleCallPage() {
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
@@ -76,21 +77,50 @@ function ScheduleCallPage() {
         if (!calendlySchedule?.data) {
             return {};
         }
-        const guides = Object.keys(calendlySchedule?.data);
+        const guides = Object.keys(calendlySchedule.data);
 
-        const allTimeSlots = guides?.reduce((allSlots, guideAccountID) => {
+        const uniqueSlotTimeSet = new Set<string>();
+        const primaryGuideAccountID = guides.find((guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
-            guideSchedule?.timeSlots.forEach((timeSlot) => {
-                allSlots.push({
-                    guideAccountID: Number(guideAccountID),
-                    guideEmail: guideSchedule.guideEmail,
-                    startTime: timeSlot.startTime,
-                    scheduleURL: timeSlot.schedulingURL,
-                });
-            });
-            return allSlots;
-        }, [] as TimeSlot[]);
+            return guideSchedule?.guideEmail === account?.guideDetails?.email;
+        });
 
+        // Separately process the primary Guide Time slots to always keep them
+        const primaryGuideSchedule = primaryGuideAccountID ? calendlySchedule?.data[primaryGuideAccountID] : null;
+        const primaryGuideSlots: TimeSlot[] = !primaryGuideSchedule
+            ? []
+            : primaryGuideSchedule.timeSlots.map((timeSlot) => ({
+                  guideAccountID: Number(primaryGuideAccountID),
+                  guideEmail: primaryGuideSchedule.guideEmail,
+                  startTime: timeSlot.startTime,
+                  scheduleURL: timeSlot.schedulingURL,
+              }));
+
+        primaryGuideSlots.forEach((slot) => uniqueSlotTimeSet.add(slot.startTime));
+
+        const otherGuidesTimeSlots = guides
+            .filter((guideAccountID) => guideAccountID !== primaryGuideAccountID)
+            .reduce((allSlots, guideAccountID) => {
+                const guideSchedule = calendlySchedule?.data?.[guideAccountID];
+                guideSchedule?.timeSlots.forEach((timeSlot) => {
+                    // Only add if this startTime hasn't been added by the primary guide or another guide yet
+                    if (uniqueSlotTimeSet.has(timeSlot.startTime)) {
+                        return;
+                    }
+                    allSlots.push({
+                        guideAccountID: Number(guideAccountID),
+                        guideEmail: guideSchedule.guideEmail,
+                        startTime: timeSlot.startTime,
+                        scheduleURL: timeSlot.schedulingURL,
+                    });
+                    uniqueSlotTimeSet.add(timeSlot.startTime);
+                });
+                return allSlots;
+            }, [] as TimeSlot[]);
+
+        const allTimeSlots = [...primaryGuideSlots, ...otherGuidesTimeSlots];
+
+        // Group timeslots by date to render per day slots on calender
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         allTimeSlots.forEach((timeSlot) => {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
@@ -99,8 +129,14 @@ function ScheduleCallPage() {
             }
             timeSlotMap[timeSlotDate].push(timeSlot);
         });
+
+        // Sort time slots within each date array to have in chronological order
+        Object.values(timeSlotMap).forEach((slots) => {
+            slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+        });
+
         return timeSlotMap;
-    }, [calendlySchedule, userTimezone]);
+    }, [account?.guideDetails?.email, calendlySchedule?.data, userTimezone]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
