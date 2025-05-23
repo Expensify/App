@@ -16,6 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -23,7 +24,6 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,22 +94,24 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? ''), [translate]);
 
     const [sections] = useMemo(() => {
-        const previewText = getTransactionPreviewTextAndTranslationPaths({
-            transaction,
-            transactionDetails: getTransactionDetails(draftTransaction) ?? {},
-            iouReport: undefined,
-            action: undefined,
-            violations: [],
-            isBillSplit: false,
-            shouldShowRBR: false,
-        });
+        const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
+        const isTransactionMadeWithCard = isCardTransaction(transaction);
+        const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
 
-        const headerText = previewText.previewHeaderText.reduce((text, currentKey) => {
-            return `${text}${getTranslatedText(currentKey)}`;
-        }, '');
+        const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
+            const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
 
-        const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map(
-            (item): SplitListItemType => ({
+            const date = DateUtils.formatWithUTCTimeZone(
+                item.created,
+                DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            );
+            previewHeaderText.unshift({text: date}, dotSeparator);
+
+            const headerText = previewHeaderText.reduce((text, currentKey) => {
+                return `${text}${getTranslatedText(currentKey)}`;
+            }, '');
+
+            return {
                 ...item,
                 headerText,
                 originalAmount: transactionDetailsAmount,
@@ -121,8 +123,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseAmountChange,
                 isTransactionLinked: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-            }),
-        );
+            };
+        });
 
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
 

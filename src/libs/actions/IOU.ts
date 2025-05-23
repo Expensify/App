@@ -11171,12 +11171,14 @@ function updateSplitExpenseField(splitExpenseDraftTransaction: OnyxEntry<OnyxTyp
 
     const splitExpenses = draftTransaction?.comment?.splitExpenses?.map((item) => {
         if (item.transactionID === splitExpenseTransactionID) {
+            const transactionDetails = getTransactionDetails(splitExpenseDraftTransaction);
+
             return {
                 ...item,
-                description: splitExpenseDraftTransaction?.comment?.comment,
-                category: splitExpenseDraftTransaction?.category,
+                description: transactionDetails?.comment,
+                category: transactionDetails?.category,
                 tags: splitExpenseDraftTransaction?.tag ? [splitExpenseDraftTransaction?.tag] : [],
-                created: splitExpenseDraftTransaction?.created,
+                created: transactionDetails?.created ?? DateUtils.getDBTime(),
             };
         }
         return item;
@@ -11308,6 +11310,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
         value: {
+            ...originalTransaction,
             reportID: CONST.REPORT.SPLIT_REPORT_ID,
         },
     });
