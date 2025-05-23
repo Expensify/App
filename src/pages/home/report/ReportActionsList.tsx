@@ -50,12 +50,6 @@ import {
 } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
-import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
-import getInitialNumToRender from '@pages/home/report/getInitialNumReportActionsToRender';
-import ListBoundaryLoader from '@pages/home/report/ListBoundaryLoader';
-import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
-import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
-import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import variables from '@styles/variables';
 import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import {PersonalDetailsContext} from '@src/components/OnyxProvider';
@@ -64,6 +58,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
+import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
+import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import ListBoundaryLoader from './ListBoundaryLoader';
+import getInitialNumToRender from './getInitialNumReportActionsToRender';
+import FloatingMessageCounter from './FloatingMessageCounter';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
