@@ -5,13 +5,13 @@ import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
+import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useSidePanel from './useSidePanel';
-import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
