@@ -355,7 +355,7 @@ function WorkspacesListPage() {
                         {translate('workspace.common.workspaceOwner')}
                     </Text>
                 </View>
-                <View style={[styles.flexRow, styles.workspaceTypeSectionTitle, styles.workspaceTypeWidth]}>
+                <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.flexGrow1, styles.textLabelSupporting]}

@@ -3633,10 +3633,7 @@ const styles = (theme: ThemeColors) =>
         workspaceTypeWrapper: {
             margin: 3,
         },
-
-        workspaceTypeWidth: {
-            width: 100,
-        },
+        
 
         workspaceTypeSectionTitle: {
             marginLeft: 3,

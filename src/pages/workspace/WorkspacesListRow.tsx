@@ -266,7 +266,7 @@ function WorkspacesListRow({
                         </>
                     )}
                 </View>
-                <View style={[styles.flexRow, isWide && styles.workspaceTypeWidth, styles.gap2, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     <Icon
                         src={workspaceTypeIcon(workspaceType)}
                         width={variables.workspaceTypeIconWidth}
