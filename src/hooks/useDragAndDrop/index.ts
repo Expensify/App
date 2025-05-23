@@ -104,7 +104,7 @@ const useDragAndDrop: UseDragAndDrop = ({
                     break;
             }
         },
-        [isFocused, isDisabled, shouldAcceptDrop, isDraggingOver, onDrop, handleDragEvent],
+        [isFocused, isDisabled, shouldAcceptDrop, shouldPropagate, handleDragEvent, isDraggingOver, onDrop],
     );
 
     useEffect(() => {

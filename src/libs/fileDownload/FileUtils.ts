@@ -410,5 +410,5 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
-    getConfirmModalPrompt
+    getConfirmModalPrompt,
 };

@@ -39,6 +39,7 @@ import {
     search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
+import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -54,7 +55,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
-import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
