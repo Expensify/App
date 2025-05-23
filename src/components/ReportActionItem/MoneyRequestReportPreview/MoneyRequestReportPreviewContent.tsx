@@ -407,7 +407,7 @@ function MoneyRequestReportPreviewContent({
 
     // The button should expand up to transaction width
     const buttonMaxWidth =
-        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW_WIDTH_WIDE
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDTH_WIDE
             ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width}
             : {};
 
@@ -708,7 +708,7 @@ function MoneyRequestReportPreviewContent({
                                         <View
                                             style={[
                                                 {
-                                                    height: CONST.REPORT.TRANSACTION_PREVIEW_HEIGHT_WIDE,
+                                                    height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.HEIGHT_WIDE,
                                                 },
                                                 styles.justifyContentCenter,
                                             ]}

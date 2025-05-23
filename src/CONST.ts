@@ -1526,8 +1526,15 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
-        TRANSACTION_PREVIEW_WIDTH_WIDE: 303,
-        TRANSACTION_PREVIEW_HEIGHT_WIDE: 259,
+        TRANSACTION_PREVIEW: {
+            CAROUSEL: {
+                WIDTH_WIDE: 303,
+                HEIGHT_WIDE: 259,
+            },
+            DUPLICATE: {
+                HEIGHT_WIDE: 347,
+            },
+        },
         CAROUSEL_MAX_WIDTH_WIDE: 680,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
