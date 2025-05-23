@@ -213,7 +213,7 @@ import {buildOptimisticPolicyRecentlyUsedCategories} from './Policy/Category';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from './Policy/Member';
 import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
-import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
+import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
@@ -679,6 +679,13 @@ Onyx.connect({
     callback: (value) => {
         allNextSteps = value ?? {};
     },
+});
+
+let allPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
 });
 
 const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
@@ -4108,8 +4115,14 @@ function getUpdateMoneyRequestParams(
             value: {...iouReport, ...(isTotalIndeterminate && {pendingFields: {total: null}})},
         });
     }
+    const hasModifiedComment = 'comment' in transactionChanges;
 
-    if (policy && isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)) {
+    if (
+        policy &&
+        isPaidGroupPolicy(policy) &&
+        updatedTransaction &&
+        (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)
+    ) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
@@ -9899,6 +9912,8 @@ function detachReceipt(transactionID: string | undefined) {
         return;
     }
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
     const newTransaction = transaction
         ? {
               ...transaction,
@@ -9946,7 +9961,28 @@ function detachReceipt(transactionID: string | undefined) {
             },
         },
     ];
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
+
+    if (policy && isPaidGroupPolicy(policy) && newTransaction) {
+        const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`];
+        const policyTagList = getPolicyTagsData(policy.id);
+        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+            newTransaction,
+            currentTransactionViolations,
+            policy,
+            policyTagList ?? {},
+            policyCategories ?? {},
+            hasDependentTags(policy, policyTagList ?? {}),
+            isInvoiceReportReportUtils(expenseReport),
+        );
+        optimisticData.push(violationsOnyxData);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
+    }
+
     const updatedReportAction = buildOptimisticDetachReceipt(expenseReport?.reportID, transactionID, transaction?.merchant);
 
     optimisticData.push({
@@ -10001,12 +10037,14 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
     }
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
-
+    const newTransaction = transaction && {...transaction, receipt: receiptOptimistic, filename: file.name};
     const retryParams = {transactionID, file: undefined, source};
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
@@ -10052,6 +10090,26 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
         },
     ];
 
+    if (policy && isPaidGroupPolicy(policy) && newTransaction) {
+        const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`];
+        const policyTagList = getPolicyTagsData(policy.id);
+        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+            newTransaction,
+            currentTransactionViolations,
+            policy,
+            policyTagList ?? {},
+            policyCategories ?? {},
+            hasDependentTags(policy, policyTagList ?? {}),
+            isInvoiceReportReportUtils(expenseReport),
+        );
+        optimisticData.push(violationsOnyxData);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
+    }
     if (currentSearchQueryJSON?.hash) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
