@@ -400,6 +400,7 @@ function BaseTextInput(
                             )}
                             {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
                                 <TextInputClearButton
+                                    style={styles.mt4}
                                     onPressButton={() => {
                                         setValue('');
                                         onClearInput?.();
