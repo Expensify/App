@@ -214,8 +214,8 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
-    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
+    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED.BASE);
+    Timing.end(CONST.TIMING.SIDEBAR_LOADED.BASE);
 }
 
 function setAppLoading(isLoading: boolean) {
