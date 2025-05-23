@@ -7,7 +7,6 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -61,7 +60,10 @@ const searchResults: OnyxTypes.SearchResults = {
             },
             autoReimbursementLimit: 0,
             autoReporting: true,
-            autoReportingFrequency: 'instant',
+            autoReportingFrequency: 'immediate',
+            harvesting: {
+                enabled: false,
+            },
             preventSelfApproval: false,
             owner: adminEmail,
             reimbursementChoice: 'reimburseManual',
@@ -934,8 +936,11 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuItems(null, undefined);
-            expect(menuItems).toHaveLength(5);
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, {})
+                .map((section) => section.menuItems)
+                .flat();
+
+            expect(menuItems).toHaveLength(3);
             expect(menuItems).toStrictEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
@@ -944,7 +949,7 @@ describe('SearchUIUtils', () => {
                         icon: Expensicons.Receipt,
                     }),
                     expect.objectContaining({
-                        translationPath: 'common.expenseReports',
+                        translationPath: 'common.reports',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         icon: Expensicons.Document,
                     }),
@@ -953,33 +958,23 @@ describe('SearchUIUtils', () => {
                         type: CONST.SEARCH.DATA_TYPES.CHAT,
                         icon: Expensicons.ChatBubbles,
                     }),
-                    expect.objectContaining({
-                        translationPath: 'common.tasks',
-                        type: CONST.SEARCH.DATA_TYPES.TASK,
-                        icon: Expensicons.Task,
-                    }),
-                    expect.objectContaining({
-                        translationPath: 'travel.trips',
-                        type: CONST.SEARCH.DATA_TYPES.TRIP,
-                        icon: Expensicons.Suitcase,
-                    }),
                 ]),
             );
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuItems(null, undefined);
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, {})
+                .map((section) => section.menuItems)
+                .flat();
 
-            const expectedRoutes = [
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc groupBy:reports'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:chat status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:task status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:trip status:all sortBy:date sortOrder:desc'}),
+            const expectedQueries = [
+                'type:expense status:all sortBy:date sortOrder:desc',
+                'type:expense status:all sortBy:date sortOrder:desc groupBy:reports',
+                'type:chat status:all sortBy:date sortOrder:desc',
             ];
 
             menuItems.forEach((item, index) => {
-                expect(item.getRoute()).toStrictEqual(expectedRoutes.at(index));
+                expect(item.getSearchQuery()).toStrictEqual(expectedQueries.at(index));
             });
         });
     });
