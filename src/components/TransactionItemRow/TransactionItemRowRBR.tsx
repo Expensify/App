@@ -27,13 +27,16 @@ type TransactionItemRowRBRProps = {
 /**
  * Extracts unique error messages from errors and actions
  */
-const extractErrorMessages = (errors: Errors | ReceiptErrors | undefined, errorActions: ReportAction[] | undefined, translate: LocaleContextProps['translate']): string[] => {
+const extractErrorMessages = (errors: Errors | ReceiptErrors, errorActions: ReportAction[], translate: LocaleContextProps['translate']): string[] => {
     const uniqueMessages = new Set<string>();
 
     // Combine transaction and action errors
-    let allErrors: Record<string, string | Errors | ReceiptError | null | undefined> = {...(errors ?? {})};
-    (errorActions ?? []).forEach((action) => {
-        allErrors = {...allErrors, ...(action.errors ?? {})};
+    let allErrors: Record<string, string | Errors | ReceiptError | null | undefined> = {...errors};
+    errorActions.forEach((action) => {
+        if (!action.errors) {
+            return;
+        }
+        allErrors = {...allErrors, ...action.errors};
     });
 
     // Extract error messages
@@ -46,7 +49,7 @@ const extractErrorMessages = (errors: Errors | ReceiptErrors | undefined, errorA
         } else if (isReceiptError(errorValue)) {
             uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
         } else {
-            Object.values(errorValue ?? {}).forEach((nestedErrorValue) => {
+            Object.values(errorValue).forEach((nestedErrorValue) => {
                 if (!nestedErrorValue) {
                     return;
                 }
@@ -73,7 +76,10 @@ function TransactionItemRowRBR({transaction, containerStyles}: TransactionItemRo
     );
 
     const RBRMessages = [
-        ...getErrorMessages(transaction?.errors, transactionThreadActions?.filter((e) => !!e.errors) ?? []),
+        ...getErrorMessages(
+            transaction?.errors,
+            transactionThreadActions?.filter((e) => !!e.errors),
+        ),
         // Some violations end with a period already so lets make sure the connected messages have only single period between them
         // and end with a single dot.
         ...transactionViolations.map((violation) => {
