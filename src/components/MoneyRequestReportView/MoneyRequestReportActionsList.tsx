@@ -45,6 +45,7 @@ import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
+import variables from '@styles/variables';
 import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,6 +78,9 @@ type MoneyRequestReportListProps = {
     /** List of transactions belonging to this report */
     transactions?: OnyxTypes.Transaction[];
 
+    /** List of transactions that arrived when the report was open */
+    newTransactions: OnyxTypes.Transaction[];
+
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
 
@@ -99,6 +103,7 @@ function MoneyRequestReportActionsList({
     policy,
     reportActions = [],
     transactions = [],
+    newTransactions,
     hasNewerActions,
     hasOlderActions,
     isLoadingInitialReportActions,
@@ -163,6 +168,8 @@ function MoneyRequestReportActionsList({
     const previousLastIndex = useRef(lastActionIndex);
 
     const scrollingVerticalBottomOffset = useRef(0);
+    const scrollingVerticalTopOffset = useRef(0);
+    const wrapperViewRef = useRef<View>(null);
     const readActionSkipped = useRef(false);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
@@ -287,6 +294,9 @@ function MoneyRequestReportActionsList({
              * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
              */
             scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
+
+            // We additionally track the top offset to be able to scroll to the new transaction when it's added
+            scrollingVerticalTopOffset.current = contentOffset.y;
         },
     });
 
@@ -344,11 +354,11 @@ function MoneyRequestReportActionsList({
     }, [lastAction?.created, unreadMarkerReportActionID, unreadMarkerTime]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
-        (isFromCurrentUser: boolean) => {
+        (isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
             InteractionManager.runAfterInteractions(() => {
                 setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
-                if (!isFromCurrentUser) {
+                if (!isFromCurrentUser || reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
                     return;
                 }
 
@@ -430,13 +440,28 @@ function MoneyRequestReportActionsList({
         readNewestAction(report.reportID);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
 
+    const scrollToNewTransaction = useCallback(
+        (pageY: number) => {
+            wrapperViewRef.current?.measureInWindow((x, y, w, height) => {
+                // If the new transaction is already visible, we don't need to scroll to it
+                if (pageY > 0 && pageY < height) {
+                    return;
+                }
+                reportScrollManager.scrollToOffset(scrollingVerticalTopOffset.current + pageY - variables.scrollToNewTransactionOffset);
+            });
+        },
+        [reportScrollManager],
+    );
     const reportHasComments = visibleReportActions.length > 0;
 
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
     return (
-        <View style={[styles.flex1]}>
+        <View
+            style={[styles.flex1]}
+            ref={wrapperViewRef}
+        >
             {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
                 <>
                     <ButtonWithDropdownMenu
@@ -490,7 +515,7 @@ function MoneyRequestReportActionsList({
                     />
                 </>
             )}
-            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pv4]}>
+            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                 <FloatingMessageCounter
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
@@ -525,13 +550,16 @@ function MoneyRequestReportActionsList({
                                 <MoneyRequestReportTransactionList
                                     report={report}
                                     transactions={transactions}
+                                    newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
+                                    scrollToNewTransaction={scrollToNewTransaction}
                                 />
                             </>
                         }
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}
+                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
                         ref={reportScrollManager.ref}
                     />
                 )}

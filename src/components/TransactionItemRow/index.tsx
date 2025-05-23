@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -63,6 +63,7 @@ function TransactionItemRow({
     onButtonPress = () => {},
     isParentHovered,
     columnWrapperStyles,
+    scrollToNewTransaction,
 }: {
     transactionItem: TransactionWithOptionalSearchFields;
     shouldUseNarrowLayout: boolean;
@@ -75,11 +76,14 @@ function TransactionItemRow({
     onButtonPress?: () => void;
     isParentHovered?: boolean;
     columnWrapperStyles?: ViewStyle[];
+    scrollToNewTransaction?: ((offset: number) => void) | undefined;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const pendingAction = getTransactionPendingAction(transactionItem);
+    const viewRef = useRef<View>(null);
+
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
 
@@ -105,6 +109,16 @@ function TransactionItemRow({
 
     const merchantName = getMerchant(transactionItem);
     const isMerchantEmpty = isPartialMerchant(merchantName);
+
+    useEffect(() => {
+        if (!transactionItem.shouldBeHighlighted || !scrollToNewTransaction) {
+            return;
+        }
+        viewRef?.current?.measure((x, y, width, height, pageX, pageY) => {
+            scrollToNewTransaction?.(pageY);
+        });
+    }, [scrollToNewTransaction, transactionItem.shouldBeHighlighted]);
+
     const columnComponent: ColumnComponents = useMemo(
         () => ({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: (
@@ -228,6 +242,7 @@ function TransactionItemRow({
             style={[styles.flex1]}
             onMouseLeave={bindHover.onMouseLeave}
             onMouseEnter={bindHover.onMouseEnter}
+            ref={viewRef}
         >
             <OfflineWithFeedback
                 pendingAction={pendingAction}
