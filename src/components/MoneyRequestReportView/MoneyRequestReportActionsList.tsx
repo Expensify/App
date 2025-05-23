@@ -10,7 +10,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import FlatList from '@components/FlatList';
+import BaseFlatList from '@components/FlatList/BaseFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -114,9 +114,11 @@ function MoneyRequestReportActionsList({
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const shouldScrollToEnd = useRef(true);
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
+    const reportActionID = route?.params?.reportActionID;
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -529,7 +531,7 @@ function MoneyRequestReportActionsList({
                         <SearchMoneyRequestReportEmptyState />
                     </>
                 ) : (
-                    <FlatList
+                    <BaseFlatList
                         initialNumToRender={INITIAL_NUM_TO_RENDER}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         testID="money-request-report-actions-list"
@@ -561,6 +563,14 @@ function MoneyRequestReportActionsList({
                         onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
                         ref={reportScrollManager.ref}
+                        onLayout={() => {
+                            if (!shouldScrollToEnd.current) {
+                                return;
+                            }
+                            reportScrollManager.scrollToEnd();
+                            shouldScrollToEnd.current = false;
+                        }}
+                        initialScrollKey={reportActionID}
                     />
                 )}
             </View>
