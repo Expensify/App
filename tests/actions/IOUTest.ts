@@ -96,6 +96,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getReportRouteByID: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(),
+    getActiveRoute: jest.fn(),
 }));
 
 jest.mock('@src/libs/Navigation/navigationRef', () => ({
