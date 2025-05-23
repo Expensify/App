@@ -1,6 +1,8 @@
 import groovy.json.JsonSlurper
 import java.util.concurrent.TimeUnit
 
+apply from: "ExpensiLog.gradle"
+
 class PatchedArtifactsConfig {
     String version = null
     String packageName = null
@@ -11,21 +13,9 @@ class PatchedArtifactsConfig {
 
 def patchedArtifacts = settings.getExtensions().create('patchedArtifacts', PatchedArtifactsConfig)
 
-def lifecycle(message) {
-    logger.lifecycle("\u001B[34m[PatchedArtifacts] $message\u001B[0m")
-}
-
-def warn(message) {
-    logger.warn("\u001B[33m[PatchedArtifacts] $message\u001B[0m")
-}
-
-def error(message) {
-    logger.error("\u001B[31m[PatchedArtifacts] $message\u001B[0m")
-}
-
 def warnIfNotConfigured(reason) {
-    warn("$reason")
-    warn("For setup instructions, refer to: https://github.com/Expensify/App?tab=readme-ov-file#enabling-prebuilt-react-native-artifacts-on-android")
+    ExpensiLog.warn("$reason")
+    ExpensiLog.warn("For setup instructions, refer to: https://github.com/Expensify/App?tab=readme-ov-file#enabling-prebuilt-react-native-artifacts-on-android")
 }
 
 def getNewDotRootDir() {
@@ -118,15 +108,16 @@ def findMatchingArtifactsVersion(packageName, githubToken) {
             }
         }
     } catch (Exception e) {
-        error("Failed to find matching artifacts version for ${packageName}. Reason: $e")
+        ExpensiLog.error("Failed to find matching artifacts version for ${packageName}. Reason: $e")
         return null
     }
 }
 
 settings.extensions.configure(PatchedArtifactsConfig) { config ->
+    ExpensiLog.setPrefix("PatchedArtifacts")
     config.buildFromSource = getProperty('patchedArtifacts.forceBuildFromSource') == 'true'
     if(config.buildFromSource) {
-        lifecycle("Forcing build from source.")
+        ExpensiLog.lifecycle("Forcing build from source.")
         return
     }
 
@@ -141,10 +132,10 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
 
     if(config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) {
         config.buildFromSource = true
-        lifecycle("No matching artifacts version found for ${config.packageName}. Buillding react-native from source.")
+        ExpensiLog.lifecycle("No matching artifacts version found for ${config.packageName}. Buillding react-native from source.")
     }
     else {
         config.buildFromSource = false
-        lifecycle("Using patched react-native artifacts: ${config.packageName}:${config.version}")
+        ExpensiLog.lifecycle("Using patched react-native artifacts: ${config.packageName}:${config.version}")
     }
 }
