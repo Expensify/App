@@ -289,7 +289,8 @@ function MoneyRequestConfirmationListFooter({
     const policyID = selectedParticipants?.at(0)?.policyID;
     const reportOwnerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
-    const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}).at(0);
+    const outstandingReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {});
+    const firstOutstandingReport = outstandingReports.at(0);
     let reportName: string | undefined;
     if (shouldUseTransactionReport) {
         reportName = transactionReport.reportName;
@@ -302,11 +303,10 @@ function MoneyRequestConfirmationListFooter({
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
     }
 
-    if (!shouldUseTransactionReport && firstOutstandingReport?.reportID) {
+    if (!shouldUseTransactionReport && firstOutstandingReport) {
         setTransactionReport(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, firstOutstandingReport.reportID, true);
     }
-    const outstandingReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {});
-    const shouldReportBeEditable = outstandingReports.length > 1 || (outstandingReports.length === 1 && outstandingReports.at(0)?.reportID !== transaction?.reportID);
+    const shouldReportBeEditable = outstandingReports.length > 1 || (outstandingReports.length === 1 && firstOutstandingReport?.reportID !== transaction?.reportID);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
