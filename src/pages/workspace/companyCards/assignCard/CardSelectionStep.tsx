@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getBankName, getCardFeedIcon, getFilteredCardList, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,7 +104,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     }));
 
     const searchedListOptions = useMemo(() => {
-        return cardListOptions.filter((option) => option.text.toLowerCase().includes(searchText));
+        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
     }, [searchText, cardListOptions]);
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
