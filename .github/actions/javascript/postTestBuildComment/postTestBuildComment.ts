@@ -46,10 +46,9 @@ ${
         ? `\n| Desktop :computer: | Web :spider_web: |
 | ------------- | ------------- |
 | ${result.DESKTOP.link}  | ${result.WEB.link}  |
-| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |`
+| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |\n`
         : ''
 }
-
 ---
 
 :eyes: [View the workflow run that generated this build](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) :eyes:

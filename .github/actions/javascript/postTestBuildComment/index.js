@@ -11536,9 +11536,8 @@ ${appPr
         ? `\n| Desktop :computer: | Web :spider_web: |
 | ------------- | ------------- |
 | ${result.DESKTOP.link}  | ${result.WEB.link}  |
-| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |`
+| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |\n`
         : ''}
-
 ---
 
 :eyes: [View the workflow run that generated this build](https://github.com/${github_1.context.repo.owner}/${github_1.context.repo.repo}/actions/runs/${github_1.context.runId}) :eyes:
