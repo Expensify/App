@@ -5141,6 +5141,15 @@ const translations = {
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
+        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
+            if (!newValue) {
+                return `updated the category "${categoryName}" by removing the Description Hint (previously "${oldValue}")`;
+            }
+
+            return !oldValue
+                ? `updated the category "${categoryName}" by adding a Description Hint of "${newValue}"`
+                : `updated the category "${categoryName}" by changing the Description Hint to "${newValue}" (previously "${oldValue}")`;
+        },
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
