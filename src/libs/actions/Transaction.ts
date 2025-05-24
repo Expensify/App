@@ -16,8 +16,10 @@ import {
     buildOptimisticCreatedReportAction,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
+    buildOptimisticSelfDMReport,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
+    findSelfDMReportID,
 } from '@libs/ReportUtils';
 import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -599,9 +601,6 @@ function setTransactionReport(transactionID: string, reportID: string, isDraft: 
 
 function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (!newReport) {
-        return;
-    }
 
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
@@ -610,6 +609,88 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
+
+    const existingSelfDMReportID = findSelfDMReportID();
+    let selfDMReport: Report;
+    let selfDMCreatedReportAction: ReportAction;
+
+    if (!existingSelfDMReportID) {
+        const currentTime = DateUtils.getDBTime();
+        selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+
+        // Add optimistic updates for self DM report
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: {
+                    ...selfDMReport,
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: {isOptimisticReport: true},
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: {
+                    [selfDMCreatedReportAction.reportActionID]: selfDMCreatedReportAction,
+                },
+            },
+        );
+
+        // Add success data for self DM report
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: {isOptimisticReport: false},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: {
+                    [selfDMCreatedReportAction.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        );
+
+        // Add failure data for self DM report
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: null,
+            },
+        );
+    }
 
     let transactionsMoved = false;
 
@@ -646,7 +727,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         if (oldReportID) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : oldReport?.total ?? 0) + transactionAmount;
         }
-        if (reportID) {
+        if (reportID && newReport) {
             updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : newReport.total ?? 0) - transactionAmount;
         }
 
@@ -662,9 +743,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         };
 
         if (oldIOUAction) {
+            const targetReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? existingSelfDMReportID ?? selfDMReport.reportID : reportID;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
                 value: {
                     [newIOUAction.reportActionID]: newIOUAction,
                 },
@@ -725,7 +807,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             value: {
                 parentReportID: reportID,
                 parentReportActionID: optimisticMoneyRequestReportActionID,
-                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
             },
         });
 
@@ -825,7 +907,8 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             value: {[movedAction?.reportActionID]: null},
         });
 
-        transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+        // Create base transaction data object
+        const baseTransactionData = {
             movedReportActionID: movedAction.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
             ...(oldIOUAction && !oldIOUAction.childReportID
@@ -835,6 +918,17 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                   }
                 : {}),
         };
+
+        if (!existingSelfDMReportID) {
+            // Add self DM data to transaction data
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+                ...baseTransactionData,
+                selfDMReportID: selfDMReport.reportID,
+                selfDMCreatedReportActionID: selfDMCreatedReportAction.reportActionID,
+            };
+        } else {
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
+        }
     });
 
     if (!transactionsMoved) {
