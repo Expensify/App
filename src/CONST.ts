@@ -7130,7 +7130,7 @@ const CONST = {
         TALK_TO_SALES: 'talkToSales',
         REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
-    
+
     SCHEDULE_CALL_STATUS: {
         CREATED: 'created',
         RESCHEDULED: 'rescheduled',

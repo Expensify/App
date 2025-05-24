@@ -1,23 +1,30 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption, OnboardingHelpType} from '@components/ButtonWithDropdownMenu/types';
+import {Close, Monitor, Phone} from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {initializeOpenAIRealtime, stopConnection} from '@libs/actions/OpenAI';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
-import {Close, Monitor, Phone} from './Icon/Expensicons';
 
-type TalkToSalesButtonProps = {
+type OnboardingHelpButtonProps = {
+    /** The ID of onboarding chat report */
     reportID: string | undefined;
+
+    /** Whether we should display the Onboarding help button as in narrow layout */
     shouldUseNarrowLayout: boolean;
+
+    /** Should show Talk to Sales option */
     shouldShowTalkToSales: boolean;
+
+    /** Should show Register for Webinar option */
     shouldShowRegisterForWebinar: boolean;
 };
 
-function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowTalkToSales, shouldShowRegisterForWebinar}: TalkToSalesButtonProps) {
+function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowTalkToSales, shouldShowRegisterForWebinar}: OnboardingHelpButtonProps) {
     const {translate} = useLocalize();
     const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES, {canBeMissing: false});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: false});

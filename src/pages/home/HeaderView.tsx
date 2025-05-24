@@ -136,7 +136,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {canUseTalkToAISales} = usePermissions();
     const isNativePlatform = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
-    const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report) && !isNativePlatform;
+    const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
@@ -223,7 +223,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || isAdminRoom(report));
-    const shouldShowOnBoardingHelpDropdownButton = shouldShowTalkToSales || shouldShowRegisterForWebinar;
+    const shouldShowOnBoardingHelpDropdownButton = (shouldShowTalkToSales && !isNativePlatform) || shouldShowRegisterForWebinar;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
