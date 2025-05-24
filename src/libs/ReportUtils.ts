@@ -856,11 +856,11 @@ getEnvironment().then((env) => {
 // Example case: when we need to get a report name of a thread which is dependent on a report action message.
 const parsedReportActionMessageCache: Record<string, string> = {};
 
-let conciergeChatReportID: OnyxEntry<string>;
+let conciergeReportID: OnyxEntry<string>;
 Onyx.connect({
-    key: ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID,
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => {
-        conciergeChatReportID = value;
+        conciergeReportID = value;
     },
 });
 
@@ -1715,7 +1715,7 @@ function getReportNotificationPreference(report: OnyxEntry<Report>): ValueOf<typ
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
-    return !!report && report?.reportID === conciergeChatReportID;
+    return !!report && report?.reportID === conciergeReportID;
 }
 
 function findSelfDMReportID(): string | undefined {

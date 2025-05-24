@@ -87,6 +87,7 @@ describe('navigateAfterOnboarding', () => {
             reportName: 'Concierge',
             type: CONST.REPORT.TYPE.CHAT,
         };
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, REPORT_ID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, lastAccessedReport);
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
