@@ -366,6 +366,7 @@ function FeatureTrainingModal({
             <Wrapper
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
                 contentContainerStyle={shouldUseScrollView ? styles.pb5 : undefined}
+                keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
             >
