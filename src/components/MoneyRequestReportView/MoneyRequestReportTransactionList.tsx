@@ -28,7 +28,7 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
-import {compareValues} from '@libs/SearchUIUtils';
+import {compareValues, isFormattedAmountTooLong, isTaxAmountTooLong} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -181,9 +181,15 @@ function MoneyRequestReportTransactionList({
         [reportActions, sortedTransactions],
     );
 
-    const dateColumnSize = useMemo(() => {
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
+        const isAmountColumnWide = transactions.some((transaction) => isFormattedAmountTooLong(transaction));
+        const isTaxAmountColumnWide = transactions.some((transaction) => isTaxAmountTooLong(transaction));
         const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
-        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+        return {
+            amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+        };
     }, [transactions]);
 
     const pressableStyle = [styles.overflowHidden];
@@ -214,6 +220,8 @@ function MoneyRequestReportTransactionList({
                             sortBy={sortBy}
                             sortOrder={sortOrder}
                             dateColumnSize={dateColumnSize}
+                            amountColumnSize={amountColumnSize}
+                            taxAmountColumnSize={taxAmountColumnSize}
                             onSortPress={(selectedSortBy, selectedSortOrder) => {
                                 if (!isSortableColumnName(selectedSortBy)) {
                                     return;
@@ -269,6 +277,8 @@ function MoneyRequestReportTransactionList({
                                 transactionItem={transaction}
                                 isSelected={isTransactionSelected(transaction.transactionID)}
                                 dateColumnSize={dateColumnSize}
+                                amountColumnSize={amountColumnSize}
+                                taxAmountColumnSize={taxAmountColumnSize}
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                                 shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}

@@ -33,7 +33,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
-import {convertToDisplayString} from './CurrencyUtils';
+import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -62,7 +62,14 @@ import {
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
-import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
+import {
+    getCurrency,
+    getTaxAmount,
+    getAmount as getTransactionAmount,
+    getCreated as getTransactionCreatedDate,
+    getMerchant as getTransactionMerchant,
+    isPendingCardOrScanningTransaction,
+} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
 const transactionColumnNamesToSortingProperty = {
@@ -256,57 +263,94 @@ function isReportActionListItemType(item: SearchListItem): item is ReportActionL
     return reportActionListItem.reportActionID !== undefined;
 }
 
+function isAmountTooLong(amount: number, currencyCode: string, maxLength = 11): boolean {
+    const currencyLength = getCurrencySymbol(currencyCode)?.length ?? 0;
+    return Math.abs(amount).toString().length + currencyLength >= maxLength;
+}
+
+function isFormattedAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const amount = Math.abs(transactionItem.modifiedAmount || transactionItem.amount);
+    return isAmountTooLong(amount, getCurrency(transactionItem));
+}
+
+function isTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
+    const reportType = (transactionItem as TransactionListItemType)?.reportType;
+    const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
+    const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
+    return isAmountTooLong(taxAmount, getCurrency(transactionItem));
+}
+
 /**
- * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
+ * Determines whether the year should be shown for items based on their creation date,
+ * and whether the amount display requires extra space due to its length.
+ *
+ * Returns an object with:
+ * - shouldShowYear: true if any item is from a previous year.
+ * - isAmountLengthLong: true if any item's formatted amount is too long to fit normally.
  */
-function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
+function getSearchTableYearAndAmountWidth(data: TransactionListItemType[] | ReportListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
+    const result = {shouldShowYear: false, isAmountLengthLong: false, isTaxAmountLengthLong: false};
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
-        return data.some((item: TransactionListItemType | ReportListItemType | TaskListItemType) => {
+        for (const item of data) {
             if (isTaskListItemType(item)) {
                 const taskYear = new Date(item.created).getFullYear();
-                return taskYear !== currentYear;
+                result.shouldShowYear ||= taskYear !== currentYear;
             }
 
             if (isReportListItemType(item)) {
-                // If the item is a ReportListItemType, iterate over its transactions and check them
-                return item.transactions.some((transaction) => {
+                for (const transaction of item.transactions) {
                     const transactionYear = new Date(getTransactionCreatedDate(transaction)).getFullYear();
-                    return transactionYear !== currentYear;
-                });
-            }
-
-            const createdYear = new Date(item?.modifiedCreated ? item.modifiedCreated : item?.created || '').getFullYear();
-            return createdYear !== currentYear;
-        });
-    }
-
-    for (const key in data) {
-        if (isTransactionEntry(key)) {
-            const item = data[key];
-            if (shouldShowTransactionYear(item)) {
-                return true;
-            }
-        } else if (isReportActionEntry(key)) {
-            const item = data[key];
-            for (const action of Object.values(item)) {
-                const date = action.created;
-
-                if (DateUtils.doesDateBelongToAPastYear(date)) {
-                    return true;
+                    result.shouldShowYear ||= transactionYear !== currentYear;
+                    result.isAmountLengthLong ||= isFormattedAmountTooLong(transaction);
+                    result.isTaxAmountLengthLong ||= isTaxAmountTooLong(transaction);
                 }
             }
-        } else if (isReportEntry(key)) {
-            const item = data[key];
-            const date = item.created;
 
-            if (date && DateUtils.doesDateBelongToAPastYear(date)) {
-                return true;
+            if (isTransactionListItemType(item)) {
+                const createdYear = new Date(item?.modifiedCreated ?? item?.created ?? '').getFullYear();
+                result.shouldShowYear ||= createdYear !== currentYear;
+                result.isAmountLengthLong ||= isFormattedAmountTooLong(item);
+                result.isTaxAmountLengthLong ||= isTaxAmountTooLong(item);
+            }
+
+            if (result.shouldShowYear && result.isAmountLengthLong && result.isTaxAmountLengthLong) {
+                return result;
+            }
+        }
+    } else if (typeof data === 'object') {
+        for (const key in data) {
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+                if (result.shouldShowYear && result.isAmountLengthLong && result.isTaxAmountLengthLong) {
+                    return result;
+                }
+
+                if (isTransactionEntry(key)) {
+                    const item = data[key];
+                    result.isAmountLengthLong ||= isFormattedAmountTooLong(item);
+                    result.shouldShowYear ||= shouldShowTransactionYear(item);
+                    result.isTaxAmountLengthLong ||= isTaxAmountTooLong(item);
+                } else if (isReportActionEntry(key)) {
+                    const item = data[key];
+                    for (const action of Object.values(item)) {
+                        if (DateUtils.doesDateBelongToAPastYear(action.created)) {
+                            result.shouldShowYear = true;
+                            break;
+                        }
+                    }
+                } else if (isReportEntry(key)) {
+                    const item = data[key];
+                    if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+                        result.shouldShowYear = true;
+                    }
+                }
             }
         }
     }
-    return false;
+
+    return result;
 }
 
 /**
@@ -340,7 +384,7 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
  */
 function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const searchTableYearAndAmountWidth = getSearchTableYearAndAmountWidth(data);
 
     return Object.keys(data)
         .filter(isTransactionEntry)
@@ -369,7 +413,9 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
-                shouldShowYear: doesDataContainAPastYearTransaction,
+                shouldShowYear: searchTableYearAndAmountWidth.shouldShowYear,
+                isAmountColumnWide: searchTableYearAndAmountWidth.isAmountLengthLong,
+                isTaxAmountColumnWide: searchTableYearAndAmountWidth.isTaxAmountLengthLong,
             };
         });
 }
@@ -495,7 +541,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                 const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
                 const parentReport = getReportOrDraftReport(taskItem.parentReportID);
 
-                const doesDataContainAPastYearTransaction = shouldShowYear(data);
+                const doesDataContainAPastYearTransaction = getSearchTableYearAndAmountWidth(data).shouldShowYear;
                 const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
                 const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
 
@@ -598,7 +644,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
-    const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const searchTableYearAndAmountWidth = getSearchTableYearAndAmountWidth(data);
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
@@ -647,7 +693,9 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
-                shouldShowYear: doesDataContainAPastYearTransaction,
+                shouldShowYear: searchTableYearAndAmountWidth.shouldShowYear,
+                isAmountColumnWide: searchTableYearAndAmountWidth.isAmountLengthLong,
+                isTaxAmountColumnWide: searchTableYearAndAmountWidth.isTaxAmountLengthLong,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
@@ -1149,7 +1197,7 @@ export {
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
-    shouldShowYear,
+    getSearchTableYearAndAmountWidth,
     getExpenseTypeTranslationKey,
     getOverflowMenu,
     isCorrectSearchUserName,
@@ -1161,5 +1209,7 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    isFormattedAmountTooLong,
+    isTaxAmountTooLong,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower};
