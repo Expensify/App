@@ -6,7 +6,7 @@ inputs:
         default: App
     APP_PR_NUMBER:
         description: "Pull request number for Expensify/App repository"
-        required: true
+        required: false
     MOBILE_EXPENSIFY_PR_NUMBER:
         description: "Pull request number for Expensify/Mobile-Expensify repository"
         required: false

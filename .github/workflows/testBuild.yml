@@ -3,9 +3,11 @@ name: Build and deploy apps for testing
 on:
   workflow_dispatch:
     inputs:
+      # If not specified, only build iOS and Android apps from the main branch of Expensify/App
       APP_PULL_REQUEST_NUMBER:
         description: Expensify/App PR number for correct placement of apps
-        required: true
+        required: false
+        default: ''
       # Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
       MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER:
         description: Expensify/Mobile-Expensify PR number. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
@@ -41,7 +43,7 @@ jobs:
   prep:
     runs-on: ubuntu-latest
     outputs:
-      APP_REF: ${{ steps.getHeadRef.outputs.REF }}
+      APP_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
     steps:
       - name: Checkout
         # v4
@@ -59,12 +61,23 @@ jobs:
           echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
           exit 1
 
+      - name: Check if either App or Mobile-Expensify pull request number is provided
+        if: ${{ inputs.APP_PULL_REQUEST_NUMBER || inputs.MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER }}
+        id: checkPRs
+        run: |
+          echo "::error::🕵️‍♀️ Please provide either App or Mobile-Expensify pull request number"
+          exit 1
+
       - name: Check if App pull request number is correct
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: getHeadRef
         run: |
           set -e
-          echo "REF=$(gh pr view ${{ inputs.APP_PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          if [ -z "${{ inputs.APP_PULL_REQUEST_NUMBER }}" ]; then
+            echo "REF=" >> "$GITHUB_OUTPUT"
+          else
+            echo "REF=$(gh pr view ${{ inputs.APP_PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
     
@@ -127,12 +140,12 @@ jobs:
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     secrets: inherit
     with:
-      APP_PULL_REQUEST_NUMBER: ${{ github.event.number || inputs.APP_PULL_REQUEST_NUMBER }}
+      APP_PULL_REQUEST_NUMBER: ${{ inputs.APP_PULL_REQUEST_NUMBER }}
       MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER }}
 
   desktop:
     name: Build and deploy Desktop for testing
-    if: ${{ inputs.DESKTOP }}
+    if: ${{ inputs.DESKTOP && inputs.APP_PULL_REQUEST_NUMBER }}
     needs: [prep]
     runs-on: macos-14-large
     steps:
@@ -186,7 +199,7 @@ jobs:
 
   web:
     name: Build and deploy Web
-    if: ${{ inputs.WEB }}
+    if: ${{ inputs.WEB && inputs.APP_PULL_REQUEST_NUMBER }}
     needs: [prep]
     runs-on: ubuntu-latest-xl
     steps:
@@ -232,7 +245,7 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
-          ref: ${{ needs.prep.outputs.APP_REF || 'main' }}
+          ref: ${{ needs.prep.outputs.APP_REF }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Checkout Mobile-Expensify to specified branch or commit
@@ -347,7 +360,7 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
-          ref: ${{ needs.prep.outputs.APP_REF || 'main'}}
+          ref: ${{ needs.prep.outputs.APP_REF }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Checkout Mobile-Expensify to specified branch or commit
@@ -460,9 +473,11 @@ jobs:
         # v4
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
 
-      - name: Publish links to apps for download
+      - name: Publish links to apps for download on Expensify/App PR
+        if: ${{ inputs.APP_PULL_REQUEST_NUMBER }}
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
+          REPO: App
           APP_PR_NUMBER: ${{ inputs.APP_PULL_REQUEST_NUMBER }}
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
           GITHUB_TOKEN: ${{ github.token }}
@@ -474,3 +489,15 @@ jobs:
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ inputs.APP_PULL_REQUEST_NUMBER }}/NewExpensify.dmg
           IOS_LINK: ${{ needs.iosHybrid.outputs.IOS_PATH }}
           WEB_LINK: https://${{ inputs.APP_PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
+
+      - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
+        if: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
+        uses: ./.github/actions/javascript/postTestBuildComment
+        with:
+          REPO: Mobile-Expensify
+          MOBILE_EXPENSIFY_PR_NUMBER: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
+          GITHUB_TOKEN: ${{ github.token }}
+          ANDROID: ${{ needs.androidHybrid.result }}
+          IOS: ${{ needs.iosHybrid.result }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.IOS_PATH }}
