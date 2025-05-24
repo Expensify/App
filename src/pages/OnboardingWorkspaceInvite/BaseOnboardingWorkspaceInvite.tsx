@@ -214,43 +214,40 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         setSelectedOptions(newSelectedOptions);
     };
 
-    const completeOnboarding = useCallback(
-        (isInvited = false) => {
-            completeOnboardingReport({
-                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                onboardingMessage: CONST.ONBOARDING_MESSAGES[`${CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}${isInvited ? 'Invited' : ''}`],
-                firstName: currentUserPersonalDetails.firstName,
-                lastName: currentUserPersonalDetails.lastName,
-                adminsChatReportID: onboardingAdminsChatReportID,
-                onboardingPolicyID,
-            });
-
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
-
-            navigateAfterOnboarding(
-                CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                isSmallScreenWidth,
-                canUseDefaultRooms,
-                onboardingPolicyID,
-                activeWorkspaceID,
-                onboardingAdminsChatReportID,
-                // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-                // See https://github.com/Expensify/App/issues/57167 for more details
-                (session?.email ?? '').includes('+'),
-            );
-        },
-        [
-            currentUserPersonalDetails.firstName,
-            currentUserPersonalDetails.lastName,
-            onboardingAdminsChatReportID,
+    const completeOnboarding = useCallback(() => {
+        completeOnboardingReport({
+            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
+            firstName: currentUserPersonalDetails.firstName,
+            lastName: currentUserPersonalDetails.lastName,
+            adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
+        });
+
+        setOnboardingAdminsChatReportID();
+        setOnboardingPolicyID();
+
+        navigateAfterOnboarding(
+            CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             isSmallScreenWidth,
             canUseDefaultRooms,
+            onboardingPolicyID,
             activeWorkspaceID,
-            session?.email,
-        ],
-    );
+            onboardingAdminsChatReportID,
+            // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
+            // See https://github.com/Expensify/App/issues/57167 for more details
+            (session?.email ?? '').includes('+'),
+        );
+    }, [
+        currentUserPersonalDetails.firstName,
+        currentUserPersonalDetails.lastName,
+        onboardingAdminsChatReportID,
+        onboardingPolicyID,
+        isSmallScreenWidth,
+        canUseDefaultRooms,
+        activeWorkspaceID,
+        session?.email,
+    ]);
 
     const inviteUser = useCallback(() => {
         let isValid = true;
@@ -274,7 +271,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         });
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, onboardingPolicyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER);
-        completeOnboarding(true);
+        completeOnboarding();
     }, [completeOnboarding, onboardingPolicyID, policy?.employeeList, selectedOptions, welcomeNote, welcomeNoteSubject]);
 
     useEffect(() => {
