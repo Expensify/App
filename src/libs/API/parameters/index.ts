@@ -47,6 +47,7 @@ export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePa
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
 export type {default as OpenReportParams} from './OpenReportParams';
 export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPageParams';
+export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompanyCardLoginParams';
 export type {default as OpenSidePanelParams} from './OpenSidePanelParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
 export type {default as PusherPingParams} from './PusherPingParams';
