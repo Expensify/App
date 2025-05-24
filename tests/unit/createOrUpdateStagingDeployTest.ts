@@ -31,7 +31,7 @@ beforeAll(() => {
     }));
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 create: jest.fn().mockImplementation((arg: Arguments) =>
@@ -62,7 +62,7 @@ beforeAll(() => {
             .fn()
             .mockImplementation((objectMethod: (args: Record<string, unknown>) => Promise<{data: unknown}>, args: Record<string, unknown>) => objectMethod(args).then(({data}) => data)),
     } as unknown as InternalOctokit;
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
@@ -86,6 +86,7 @@ afterAll(() => {
 const LABELS = {
     STAGING_DEPLOY_CASH: {
         id: 2783847782,
+        // cspell:disable-next-line
         node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
         url: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/labels/StagingDeployCash`,
         name: CONST.LABELS.STAGING_DEPLOY,
@@ -95,6 +96,7 @@ const LABELS = {
     },
     DEPLOY_BLOCKER_CASH: {
         id: 2810597462,
+        // cspell:disable-next-line
         node_id: 'MDU6TGFiZWwyODEwNTk3NDYy',
         url: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/labels/DeployBlockerCash`,
         name: CONST.LABELS.DEPLOY_BLOCKER,

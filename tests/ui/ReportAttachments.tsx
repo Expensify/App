@@ -183,7 +183,7 @@ describe('ReportAttachments', () => {
             accountID: TEST_USER_ACCOUNT_ID.toString(),
         };
 
-        // And ReportAttachmments is opened
+        // And ReportAttachments is opened
         renderPage(SCREENS.ATTACHMENTS, params);
 
         await waitForBatchedUpdatesWithAct();
@@ -203,7 +203,7 @@ describe('ReportAttachments', () => {
             accountID: TEST_USER_ACCOUNT_ID.toString(),
         };
 
-        // And ReportAttachmments is opened
+        // And ReportAttachments is opened
         renderPage(SCREENS.ATTACHMENTS, params);
         await waitForBatchedUpdates();
 
