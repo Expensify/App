@@ -1,5 +1,7 @@
 pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
+apply from: "${rootDir}/../gradleUtils/PatchedArtifactsSettings.gradle"
+
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand(['npx', 'rnef', 'config', '-p', 'android']) }
 rootProject.name = 'NewExpensify'
 include ':react-native-webview'
@@ -12,12 +14,15 @@ include ':react-native-plaid-link-sdk'
 project(':react-native-plaid-link-sdk').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-plaid-link-sdk/android')
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
-includeBuild('../node_modules/react-native') {
-    dependencySubstitution {
-        substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
-        substitute(module("com.facebook.react:react-native")).using(project(":packages:react-native:ReactAndroid"))
-        substitute(module("com.facebook.react:hermes-android")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
-        substitute(module("com.facebook.react:hermes-engine")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+
+if(settings.extensions.patchedArtifacts.buildFromSource) {
+    includeBuild('../node_modules/react-native') {
+        dependencySubstitution {
+            substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
+            substitute(module("com.facebook.react:react-native")).using(project(":packages:react-native:ReactAndroid"))
+            substitute(module("com.facebook.react:hermes-android")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+            substitute(module("com.facebook.react:hermes-engine")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+        }
     }
 }
 
