@@ -2,6 +2,7 @@ import type {LinkingOptions} from '@react-navigation/native';
 import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
 import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
 import type {RootNavigatorParamList} from '@navigation/types';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
@@ -1746,9 +1747,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: {
             initialRouteName: SCREENS.SHARE.ROOT,
             screens: {
-                [SCREENS.SHARE.ROOT]: {path: ROUTES.SHARE_ROOT},
-                [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
-                [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
+                [SCREENS.SHARE.ROOT]: {
+                    path: ROUTES.SHARE_ROOT,
+                    screens: {
+                        [CONST.TAB.SHARE.SHARE]: {
+                            path: ROUTES.SHARE_ROOT_SHARE,
+                            exact: true,
+                        },
+                        [CONST.TAB.SHARE.SUBMIT]: {
+                            path: ROUTES.SHARE_ROOT_SUBMIT,
+                            exact: true,
+                        },
+                    },
+                },
             },
         },
     },
