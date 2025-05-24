@@ -91,7 +91,6 @@ Built from Mobile-Expensify PR Expensify/Mobile-Expensify#13.
 | ${androidLink}  | ${iOSLink}  |
 | ${androidQRCode}  | ${iOSQRCode}  |
 
-
 ---
 
 :eyes: [View the workflow run that generated this build](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/1234) :eyes:
