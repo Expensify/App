@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Attachment from '@libs/actions/Attachment';
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openExternalLink, openLink} from '@libs/actions/Link';
 import {isAnonymousUser} from '@libs/actions/Session';
 import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
@@ -47,6 +48,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const tNodeChild = tnode?.domNode?.children?.at(0);
     const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
+    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
     const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
     const internalNewExpensifyPath = getInternalNewExpensifyPath(attrHref);
     const internalExpensifyPath = getInternalExpensifyPath(attrHref);
@@ -110,11 +112,13 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     }
 
     if (isAttachment && !isVideo) {
+        const source = tryResolveUrlFromApiRoot(attrHref);
+        const attachmentSource = Attachment.getAttachmentSource(attachmentID, source);
         return (
             <AnchorForAttachmentsOnly
-                source={tryResolveUrlFromApiRoot(attrHref)}
+                attachmentID={attachmentID}
+                source={attachmentSource}
                 displayName={displayName}
-                isDeleted={isDeleted}
             />
         );
     }

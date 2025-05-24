@@ -5,6 +5,7 @@ import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -24,7 +25,6 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const type = route.params.type;
     const hashKey = route.params.hashKey;
     const accountID = route.params.accountID;
-    const isAuthTokenRequired = route.params.isAuthTokenRequired;
     const attachmentLink = route.params.attachmentLink;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -55,6 +55,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
     const source = Number(route.params.source) || tryResolveUrlFromApiRoot(decodeURIComponent(route.params.source));
+    const isAuthTokenRequired = !!route.params.isAuthTokenRequired && !isLocalFile(source);
 
     const fetchReport = useCallback(() => {
         openReport(reportID, reportActionID);

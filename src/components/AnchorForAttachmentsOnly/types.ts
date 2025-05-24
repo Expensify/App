@@ -4,6 +4,8 @@ type AnchorForAttachmentsOnlyProps = {
     /** The URL of the attachment */
     source?: string;
 
+    attachmentID?: string;
+
     /** Filename for attachments. */
     displayName?: string;
 
