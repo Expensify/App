@@ -156,7 +156,7 @@ function useSelectedTransactionsActions({
         }
 
         options.push({
-            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
             text: translate('common.downloadAsCSV'),
             icon: Expensicons.Download,
             onSelected: () => {

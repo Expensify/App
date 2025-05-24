@@ -509,6 +509,7 @@ const translations = {
         userID: 'User ID',
         disable: 'Disable',
         export: 'Export',
+        basicExport: 'Basic export',
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
