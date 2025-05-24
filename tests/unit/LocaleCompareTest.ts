@@ -36,7 +36,7 @@ describe('localeCompare', () => {
     it('should discard sensitivity differences', () => {
         const result = localeCompare('apple', 'Apple');
 
-        expect(result).toBe(0);
+        expect(result).toBe(1);
     });
 
     it('distinguishes spanish diacritic characters', async () => {

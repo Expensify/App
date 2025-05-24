@@ -1,12 +1,11 @@
-import lodashSortBy from 'lodash/sortBy';
 import CONST from '@src/CONST';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import localeCompare from './LocaleCompare';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
+import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
-import * as OptionsListUtils from './OptionsListUtils';
-import * as PolicyUtils from './PolicyUtils';
+import {getCleanedTagName} from './PolicyUtils';
 
 type SelectedTagOption = {
     name: string;
@@ -24,7 +23,7 @@ type SelectedTagOption = {
 function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'>>, selectedOptions?: SelectedTagOption[]): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
-        const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
+        const cleanedName = getCleanedTagName(tag.name);
         return {
             text: cleanedName,
             keyForList: tag.name,
@@ -84,8 +83,8 @@ function getTagListSections({
     }
 
     if (searchValue) {
-        const enabledSearchTags = enabledTagsWithoutSelectedOptions.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchValue.toLowerCase()));
-        const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchValue.toLowerCase()));
+        const enabledSearchTags = enabledTagsWithoutSelectedOptions.filter((tag) => getCleanedTagName(tag.name.toLowerCase()).includes(searchValue.toLowerCase()));
+        const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => getCleanedTagName(tag.name.toLowerCase()).includes(searchValue.toLowerCase()));
         const tagsForSearch = [...selectedSearchTags, ...enabledSearchTags];
 
         tagSections.push({
@@ -130,7 +129,7 @@ function getTagListSections({
 
         tagSections.push({
             // "Recent" section
-            title: Localize.translateLocal('common.recent'),
+            title: translateLocal('common.recent'),
             shouldShow: true,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
@@ -138,7 +137,7 @@ function getTagListSections({
 
     tagSections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
+        title: translateLocal('common.all'),
         shouldShow: true,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
@@ -155,15 +154,14 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
         .map(({tags}) => Object.values(tags))
         .flat();
 
-    return OptionsListUtils.hasEnabledOptions(policyTagValueList);
+    return hasEnabledOptions(policyTagValueList);
 }
 
 /**
  * Sorts tags alphabetically by name.
  */
 function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
-    // Use lodash's sortBy to ensure consistency with oldDot.
-    return lodashSortBy(tags, 'name', localeCompare) as PolicyTag[];
+    return Object.values(tags ?? {}).sort((a, b) => localeCompare(a.name, b.name)) as PolicyTag[];
 }
 
 export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags};
