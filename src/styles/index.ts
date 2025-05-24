@@ -3994,7 +3994,6 @@ const styles = (theme: ThemeColors) =>
 
         dropInnerWrapper: {
             borderWidth: 2,
-            flex: 1,
             borderStyle: 'dashed',
         },
 
