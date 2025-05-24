@@ -1,0 +1,128 @@
+import React, {useEffect} from 'react';
+import {useOnyx} from 'react-native-onyx';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ImportSpreadsheet from '@components/ImportSpreadsheet';
+import {View} from 'react-native';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import Switch from '@components/Switch';
+import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import { importMultiLevelTags, setImportedSpreadsheetIsFirstLineHeader, setImportedSpreadsheetIsGLAdjacent, setImportedSpreadsheetIsImportingIndependentMultiLevelTags } from '@libs/actions/Policy/Tag';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+
+type ImportMultiLevelTagsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS>;
+
+function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsPageProps) {
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
+    const backTo = route.params.backTo;
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+
+    useEffect(() => {
+
+        setImportedSpreadsheetIsFirstLineHeader(true);
+        setImportedSpreadsheetIsImportingIndependentMultiLevelTags(true);
+        setImportedSpreadsheetIsGLAdjacent(false);
+        
+    }, []);
+
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
+
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
+        return;
+    }
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
+        >
+            <ScreenWrapper
+                shouldEnableKeyboardAvoidingView={false}
+                testID={ImportSpreadsheet.displayName}
+                shouldEnableMaxHeight={canUseTouchScreen()}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.tags.importTags')}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                />
+                <FullPageOfflineBlockingView>
+                <Text style={[styles.textSupporting, styles.textNormal, styles.ph5]}>{translate('workspace.tags.importMultiLevelTagsSupportingText')}</Text>
+
+                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <Text style={[styles.textNormal]}>{translate('workspace.tags.importMultiLevelTags.firstRowTitle')}</Text>
+                    <Switch
+                        isOn={spreadsheet?.isFirstLineHeader ?? true}
+                        accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
+                        onToggle={(value) => {setImportedSpreadsheetIsFirstLineHeader(value);}}
+                    />
+                </View>
+
+                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <Text style={[styles.textNormal]}>{translate('workspace.tags.importMultiLevelTags.independentTags')}</Text>
+                    <Switch
+                        isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
+                        accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
+                        onToggle={(value) => {setImportedSpreadsheetIsImportingIndependentMultiLevelTags(value);}}
+                    />
+                </View>
+
+                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <Text style={[styles.textNormal]}>{translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}</Text>
+                    <Switch
+                        isOn={spreadsheet?.isGLAdjacent ?? false}
+                        accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
+                        onToggle={(value) => {setImportedSpreadsheetIsGLAdjacent(value);}}
+                    />
+                </View>
+
+               <FixedFooter style={[styles.mtAuto]}
+                    addBottomSafeAreaPadding>
+                <Button
+                    text={spreadsheet?.isImportingIndependentMultiLevelTags ? translate('common.next') : translate('common.import')}
+                    onPress={() => {
+                        if(spreadsheet?.isImportingIndependentMultiLevelTags) {
+                           
+                        } else {
+                            importMultiLevelTags(policyID, spreadsheet)
+                        }
+                    }}
+                    success
+                    large
+                />
+                </FixedFooter>
+                </FullPageOfflineBlockingView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+ImportMultiLevelTagsSettingsPage.displayName = 'ImportMultiLevelTagsSettingsPage';
+
+export default ImportMultiLevelTagsSettingsPage;

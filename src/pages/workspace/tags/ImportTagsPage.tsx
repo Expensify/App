@@ -10,6 +10,9 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { useOnyx } from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ImportTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT>;
 
@@ -19,7 +22,12 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
     const backTo = route.params.backTo;
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const isQuickSettingsFlow = !!backTo;
-
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    
+    
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
+        return;
+    }
     if (hasAccountingConnections) {
         return <NotFoundPage />;
     }
@@ -32,7 +40,15 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
         >
             <ImportSpreadsheet
                 backTo={backTo}
-                goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORTED.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID)}
+                goTo={(() => {
+                    if (isQuickSettingsFlow) {
+                        return ROUTES.SETTINGS_TAGS_IMPORTED.getRoute(policyID, backTo);
+                    }
+                    if (spreadsheet?.isImportingMultiLevelTags) {
+                        return ROUTES.WORKSPACE_MULTI_LEVEL_TAGS_IMPORT_SETTINGS.getRoute(policyID);
+                    }
+                    return ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID);
+                })()}
             />
         </AccessOrNotFoundWrapper>
     );
