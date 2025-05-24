@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useInitial from '@hooks/useInitial';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
@@ -21,13 +22,15 @@ import TransactionStartDateStep from './TransactionStartDateStep';
 type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const currentStep = assignCard?.currentStep;
 
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
+    const firstAssigneeEmail = useInitial(assignCard?.data?.email);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
 
     useEffect(() => {
         return () => {
@@ -83,7 +86,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             return (
                 <ConfirmationStep
                     policyID={policyID}
-                    backTo={backTo}
+                    backTo={shouldUseBackToParam ? backTo : undefined}
                 />
             );
         default:
