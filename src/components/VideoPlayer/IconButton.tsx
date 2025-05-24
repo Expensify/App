@@ -15,10 +15,12 @@ type IconButtonProps = {
     style?: StyleProp<ViewStyle>;
     hoverStyle?: StyleProp<ViewStyle>;
     small?: boolean;
+    large?: boolean;
+    shouldUseAutoHitSlop?: boolean;
     shouldForceRenderingTooltipBelow?: boolean;
 };
 
-function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false}: IconButtonProps) {
+function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, large = false, shouldUseAutoHitSlop = false, shouldForceRenderingTooltipBelow = false}: IconButtonProps) {
     const styles = useThemeStyles();
     return (
         <Tooltip
@@ -31,11 +33,13 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
                 style={[styles.videoIconButton, style]}
                 hoverStyle={[styles.videoIconButtonHovered, hoverStyle]}
                 role={CONST.ROLE.BUTTON}
+                shouldUseAutoHitSlop={shouldUseAutoHitSlop}
             >
                 <Icon
                     src={src}
                     fill={fill}
                     small={small}
+                    large={large}
                 />
             </PressableWithFeedback>
         </Tooltip>

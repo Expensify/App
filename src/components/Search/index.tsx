@@ -584,6 +584,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                             sortBy={sortBy}
                             shouldShowYear={shouldShowYear}
                             shouldShowSorting={shouldShowSorting}
+                            shouldShowExpand={shouldGroupByReports}
                         />
                     )
                 }

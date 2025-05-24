@@ -193,7 +193,7 @@ function ReportListItemHeader<TItem extends ListItem>({
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
     };
     return !isLargeScreenWidth ? (
-        <View>
+        <View style={styles.flex1}>
             <FirstHeaderRow
                 item={item}
                 report={moneyRequestReport}
@@ -241,7 +241,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             </View>
         </View>
     ) : (
-        <View>
+        <View style={styles.flex1}>
             <FirstHeaderRow
                 item={item}
                 report={moneyRequestReport}
@@ -253,9 +253,6 @@ function ReportListItemHeader<TItem extends ListItem>({
                 handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
             />
-            <View style={[styles.mr3, styles.ml3, styles.pv2]}>
-                <View style={[styles.borderBottom]} />
-            </View>
         </View>
     );
 }

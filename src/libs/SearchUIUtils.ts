@@ -88,6 +88,7 @@ const taskColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedCreatedBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: 'formattedAssignee' as const,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPAND]: null,
 };
 
 let currentAccountID: number | undefined;

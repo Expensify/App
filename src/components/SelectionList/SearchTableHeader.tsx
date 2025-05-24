@@ -35,6 +35,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPAND]: () => true,
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -141,10 +142,11 @@ type SearchTableHeaderProps = {
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldShowYear: boolean;
     shouldShowSorting: boolean;
-    canSelectMultiple: boolean;
+    canSelectMultiple?: boolean;
+    shouldShowExpand?: boolean;
 };
 
-function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting, canSelectMultiple}: SearchTableHeaderProps) {
+function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting, canSelectMultiple, shouldShowExpand = false}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -153,7 +155,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
             const shouldShowFun = shouldShowColumnConfig[columnName];
-            return shouldShowFun(data, metadata);
+            return shouldShowFun?.(data, metadata);
         },
         [data, metadata],
     );
@@ -162,11 +164,22 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
         return;
     }
 
-    const columnConfig = SearchColumns[metadata.type];
-
-    if (!columnConfig) {
+    if (!SearchColumns[metadata.type]) {
         return;
     }
+
+    const columnConfig = [
+        ...(SearchColumns[metadata.type] ?? []),
+        ...(shouldShowExpand
+            ? [
+                  {
+                      columnName: CONST.SEARCH.TABLE_COLUMNS.EXPAND,
+                      translationKey: undefined,
+                      isColumnSortable: false,
+                  },
+              ]
+            : []),
+    ];
 
     return (
         <SortableTableHeader
