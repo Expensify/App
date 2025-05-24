@@ -93,8 +93,6 @@ const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
 
 function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return expenseStatusOptions;
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return chatStatusOptions;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -103,6 +101,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return tripStatusOptions;
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
             return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions;
     }
