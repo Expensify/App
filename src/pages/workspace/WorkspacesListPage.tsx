@@ -17,6 +17,7 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -51,7 +52,7 @@ import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicy
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceHubSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getAllSelfApprovers, getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, isPolicyAuditor, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -166,6 +167,13 @@ function WorkspacesListPage() {
     const isSupportalAction = isSupportAuthToken();
 
     const [isSupportalActionRestrictedModalOpen, setIsSupportalActionRestrictedModalOpen] = useState(false);
+
+    const personalDetails = usePersonalDetails();
+    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+    const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
+    const policyToLeave = getPolicy(policyIDToLeave);
+    const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
+
     const hideSupportalModal = () => {
         setIsSupportalActionRestrictedModalOpen(false);
     };
@@ -184,6 +192,46 @@ function WorkspacesListPage() {
         }
     };
 
+    const confirmLeaveAndHideModal = () => {
+        if (!policyIDToLeave) {
+            return;
+        }
+
+        leaveWorkspace(policyIDToLeave);
+        setIsLeaveModalOpen(false);
+    };
+
+    const getLeaveWorkspaceConfirmation = () => {
+        const intacctConfig = policyToLeave?.connections?.intacct.config.export;
+        const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+        const technicalContact = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`]?.technicalContact;
+
+        if (technicalContact === session?.email) {
+            return translate('common.leaveWorkspaceConfirmationForTechnicalContact', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (intacctConfig?.exporter === session?.email) {
+            return translate('common.leaveWorkspaceConfirmationForExporter', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (getAllSelfApprovers(policyToLeave).includes(session?.email ?? '')) {
+            return translate('common.leaveWorkspaceConfirmationForApprover', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+        if (isPolicyAdmin(policyToLeave)) {
+            return translate('common.leaveWorkspaceConfirmationForAdmin');
+        }
+        if (isPolicyAuditor(policyToLeave)) {
+            return translate('common.leaveWorkspaceConfirmationForAuditor');
+        }
+
+        return translate('common.leaveWorkspaceConfirmation');
+    };
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
 
     const resetLoadingSpinnerIconIndex = useCallback(() => {
@@ -241,11 +289,20 @@ function WorkspacesListPage() {
                 });
             }
 
-            if (!(isAdmin || isOwner)) {
+            if (!isOwner) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
-                    onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
+                    onSelected: callFunctionIfActionIsAllowed(() => {
+                        const isReimburser = getPolicy(item.policyID)?.achAccount?.reimburser === session?.email;
+                        if (isReimburser) {
+                            setIsCannotLeaveWorkspaceModalOpen(true);
+                            return;
+                        }
+
+                        setPolicyIDToLeave(item.policyID);
+                        setIsLeaveModalOpen(true);
+                    }),
                 });
             }
 
@@ -313,21 +370,21 @@ function WorkspacesListPage() {
             );
         },
         [
-            isLessThanMediumScreen,
+            session?.email,
+            session?.accountID,
+            activePolicyID,
+            translate,
+            styles.ph5,
             styles.mb2,
             styles.mh5,
-            styles.ph5,
             styles.hoveredComponentBG,
-            translate,
             styles.offlineFeedback.deleted,
-            session?.accountID,
-            session?.email,
-            activePolicyID,
+            loadingSpinnerIconIndex,
+            shouldCalculateBillNewDot,
             isSupportalAction,
             setIsDeletingPaidWorkspace,
+            isLessThanMediumScreen,
             isLoadingBill,
-            shouldCalculateBillNewDot,
-            loadingSpinnerIconIndex,
             resetLoadingSpinnerIconIndex,
         ],
     );
@@ -572,6 +629,27 @@ function WorkspacesListPage() {
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isLeaveModalOpen}
+                onConfirm={confirmLeaveAndHideModal}
+                onCancel={() => setIsLeaveModalOpen(false)}
+                prompt={getLeaveWorkspaceConfirmation()}
+                confirmText={translate('common.leaveWorkspace')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isCannotLeaveWorkspaceModalOpen}
+                onConfirm={() => {
+                    setIsCannotLeaveWorkspaceModalOpen(false);
+                }}
+                prompt={translate('common.leaveWorkspaceReimburser')}
+                confirmText={translate('common.buttonConfirm')}
+                success
+                shouldShowCancelButton={false}
             />
             <SupportalActionRestrictedModal
                 isModalOpen={isSupportalActionRestrictedModalOpen}
