@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
@@ -24,28 +25,30 @@ function WorkspaceHubSplitNavigator() {
 
     return (
         <FocusTrapForScreens>
-            <Split.Navigator
-                persistentScreens={[SCREENS.WORKSPACE_HUB.ROOT]}
-                sidebarScreen={SCREENS.WORKSPACE_HUB.ROOT}
-                defaultCentralScreen={SCREENS.WORKSPACE_HUB.WORKSPACES}
-                parentRoute={route}
-                screenOptions={splitNavigatorScreenOptions.centralScreen}
-            >
-                <Split.Screen
-                    name={SCREENS.WORKSPACE_HUB.ROOT}
-                    getComponent={loadWorkspaceHubInitialPage}
-                    options={splitNavigatorScreenOptions.sidebarScreen}
-                />
-                {Object.entries(CENTRAL_PANE_WORKSPACE_HUB_SCREENS).map(([screenName, componentGetter]) => {
-                    return (
-                        <Split.Screen
-                            key={screenName}
-                            name={screenName as keyof Screens}
-                            getComponent={componentGetter}
-                        />
-                    );
-                })}
-            </Split.Navigator>
+            <View style={{flex: 1}}>
+                <Split.Navigator
+                    persistentScreens={[SCREENS.WORKSPACE_HUB.ROOT]}
+                    sidebarScreen={SCREENS.WORKSPACE_HUB.ROOT}
+                    defaultCentralScreen={SCREENS.WORKSPACE_HUB.WORKSPACES}
+                    parentRoute={route}
+                    screenOptions={splitNavigatorScreenOptions.centralScreen}
+                >
+                    <Split.Screen
+                        name={SCREENS.WORKSPACE_HUB.ROOT}
+                        getComponent={loadWorkspaceHubInitialPage}
+                        options={splitNavigatorScreenOptions.sidebarScreen}
+                    />
+                    {Object.entries(CENTRAL_PANE_WORKSPACE_HUB_SCREENS).map(([screenName, componentGetter]) => {
+                        return (
+                            <Split.Screen
+                                key={screenName}
+                                name={screenName as keyof Screens}
+                                getComponent={componentGetter}
+                            />
+                        );
+                    })}
+                </Split.Navigator>
+            </View>
         </FocusTrapForScreens>
     );
 }
