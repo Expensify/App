@@ -2139,5 +2139,6 @@ export type {
     TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
     TestDriveDemoNavigatorParamList,
+    SetParamsAction,
     WorkspacesTabNavigatorName,
 };
