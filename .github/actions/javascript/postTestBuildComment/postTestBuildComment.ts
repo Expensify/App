@@ -79,13 +79,13 @@ async function run() {
     const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}));
     const REPO = String(core.getInput('REPO', {required: true}));
 
-    if (!APP_PR_NUMBER && !MOBILE_EXPENSIFY_PR_NUMBER) {
-        core.setFailed('Please provide either App or Mobile-Expensify pull request number');
+    if (REPO !== CONST.APP_REPO && REPO !== CONST.MOBILE_EXPENSIFY_REPO) {
+        core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
         return;
     }
 
-    if (REPO !== CONST.APP_REPO && REPO !== CONST.MOBILE_EXPENSIFY_REPO) {
-        core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
+    if ((REPO === CONST.APP_REPO && !APP_PR_NUMBER) || (REPO === CONST.MOBILE_EXPENSIFY_REPO && !MOBILE_EXPENSIFY_PR_NUMBER)) {
+        core.setFailed(`Please provide ${REPO} pull request number`);
         return;
     }
 
