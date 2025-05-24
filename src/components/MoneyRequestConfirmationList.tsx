@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     adjustRemainingSplitShares,
+    computePerDiemExpenseAmount,
     resetSplitShares,
     setCustomUnitRateID,
     setIndividualShare,
@@ -268,6 +269,8 @@ function MoneyRequestConfirmationList({
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
 
+    const subRates = transaction?.comment?.customUnit?.subRates ?? [];
+
     useEffect(() => {
         if (customUnitRateID !== '-1' || !isDistanceRequest || !transactionID || !policy?.id) {
             return;
@@ -291,6 +294,7 @@ function MoneyRequestConfirmationList({
     const prevUnit = usePrevious(unit);
     const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
     const prevCurrency = usePrevious(currency);
+    const prevSubRates = usePrevious(subRates);
 
     // A flag for showing the categories field
     const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -330,20 +334,27 @@ function MoneyRequestConfirmationList({
 
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
 
+    const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
+
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-    const formattedAmount = isDistanceRequestWithPendingRoute
-        ? ''
-        : convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
+    const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
+
+    let amount = iouAmount;
+
+    if (shouldCalculateDistanceAmount) {
+        amount = distanceRequestAmount;
+    } else if (shouldCalculatePerDiemAmount) {
+        amount = perDiemRequestAmount;
+    }
+
+    const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amount, isDistanceRequest ? currency : iouCurrencyCode);
     const formattedAmountPerAttendee =
-        isDistanceRequestWithPendingRoute || isScanRequest || isPerDiemRequest
+        isDistanceRequestWithPendingRoute || isScanRequest
             ? ''
-            : convertToDisplayString(
-                  (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
-                  isDistanceRequest ? currency : iouCurrencyCode,
-              );
+            : convertToDisplayString(amount / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1), isDistanceRequest ? currency : iouCurrencyCode);
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
