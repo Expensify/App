@@ -142,7 +142,7 @@ describe('Post test build comments action tests', () => {
         expect(createCommentMock).toBeCalledWith(CONST.APP_REPO, 12, message);
     });
 
-    test('Test GH action when input is not complete', async () => {
+    test('Test GH action when only App PR number is provided', async () => {
         when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.APP_REPO);
         when(core.getInput).calledWith('APP_PR_NUMBER', {required: false}).mockReturnValue('12');
         when(core.getInput).calledWith('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}).mockReturnValue('');
@@ -178,6 +178,7 @@ describe('Post test build comments action tests', () => {
 
     test('Test GH action when only Mobile-Expensify PR number is provided', async () => {
         when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.MOBILE_EXPENSIFY_REPO);
+        when(core.getInput).calledWith('APP_PR_NUMBER', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}).mockReturnValue('13');
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('success');
