@@ -754,6 +754,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Scrolls the selected item to the top when selected, if enabled. */
+    shouldScrollToSelectedItemToTop?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

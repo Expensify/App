@@ -47,41 +47,29 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     }, [initiallySelectedItems]);
 
     const {sections, noResultsFound} = useMemo(() => {
-        const selectedItemsSection = selectedItems
-            .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+        const filteredAndSortedItems = items
+            .filter((item) => item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
-                isSelected: true,
+                isSelected: selectedItems.some((selectedItem) => selectedItem.value === item.value),
                 value: item.value,
             }));
-        const remainingItemsSection = items
-            .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a, b))
-            .map((item) => ({
-                text: item.name,
-                keyForList: item.name,
-                isSelected: false,
-                value: item.value,
-            }));
-        const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
+
+        const hasNoMatches = filteredAndSortedItems.length === 0;
+
         return {
-            sections: isEmpty
+            sections: hasNoMatches
                 ? []
                 : [
                       {
-                          title: undefined,
-                          data: selectedItemsSection,
-                          shouldShow: selectedItemsSection.length > 0,
-                      },
-                      {
                           title: pickerTitle,
-                          data: remainingItemsSection,
-                          shouldShow: remainingItemsSection.length > 0,
+                          data: filteredAndSortedItems,
+                          shouldShow: true,
                       },
                   ],
-            noResultsFound: isEmpty,
+            noResultsFound: hasNoMatches,
         };
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
 
