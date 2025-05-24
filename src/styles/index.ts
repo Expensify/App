@@ -3626,9 +3626,14 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 6,
         },
 
+        workspaceOwnerMinWidth: {
+            minWidth: 180,
+        },
+
         workspaceTypeWrapper: {
             margin: 3,
         },
+        
 
         workspaceTypeSectionTitle: {
             marginLeft: 3,
