@@ -152,8 +152,8 @@ function MoneyRequestPreviewContent({
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = hasViolationTransactionUtils(transaction, violations, true);
-    const hasNoticeTypeViolations = hasNoticeTypeViolationTransactionUtils(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
-    const hasWarningTypeViolations = hasWarningTypeViolationTransactionUtils(transaction?.transactionID, violations, true);
+    const hasNoticeTypeViolations = hasNoticeTypeViolationTransactionUtils(transaction, violations, true) && isPaidGroupPolicy(iouReport);
+    const hasWarningTypeViolations = hasWarningTypeViolationTransactionUtils(transaction, violations, true);
 
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -169,13 +169,7 @@ function MoneyRequestPreviewContent({
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
-    const allDuplicates = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
-
-    // Remove settled transactions from duplicates
-    const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
-
-    // When there are no settled transactions in duplicates, show the "Keep this one" button
-    const shouldShowKeepButton = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
+    const allDuplicateIDs = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
 
     const shouldShowTag = !!tag && isPolicyExpenseChat;
     const shouldShowCategory = !!category && isPolicyExpenseChat;
@@ -189,6 +183,32 @@ function MoneyRequestPreviewContent({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = isMoneyRequestActionReportActionsUtils(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+    const [reviewingTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewingTransactionID}`, {canBeMissing: true});
+    const [reviewingTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (allTransactionViolations) => allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`],
+        canBeMissing: true,
+    });
+    const duplicateIDs = reviewingTransactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+
+    const [[allDuplicates, reviewingTransactionDuplicates] = []] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        selector: (allTransactions) => {
+            return [
+                allDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
+                duplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
+            ];
+        },
+        canBeMissing: true,
+    });
+    // Remove settled transactions from duplicates
+    const duplicates = useMemo(
+        () =>
+            removeSettledAndApprovedTransactions(allDuplicates ?? [])
+                .filter((transactionObj) => !!transactionObj?.transactionID)
+                .map((transactionObj) => transactionObj?.transactionID) as string[],
+        [allDuplicates],
+    );
+    // When there are no settled transactions in duplicates, show the "Keep this one" button
+    const shouldShowKeepButton = !!(allDuplicateIDs.length && duplicates.length && allDuplicateIDs.length === duplicates.length);
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -334,7 +354,12 @@ function MoneyRequestPreviewContent({
         // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
         // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
         abandonReviewDuplicateTransactions();
-        const comparisonResult = compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
+        const comparisonResult = compareDuplicateTransactionFields(
+            reviewingTransaction,
+            reviewingTransactionDuplicates,
+            transaction?.reportID,
+            transaction?.transactionID ?? reviewingTransactionID,
+        );
         setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
 
         if ('merchant' in comparisonResult.change) {
