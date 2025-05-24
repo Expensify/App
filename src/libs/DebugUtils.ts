@@ -947,6 +947,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'reimbursable':
         case 'participantsAutoAssigned':
         case 'isFromGlobalCreate':
+        case 'isFromReportsPageDragAndDrop':
         case 'hasEReceipt':
         case 'shouldShowOriginalAmount':
         case 'managedCard':
@@ -1046,6 +1047,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isFromReportsPageDragAndDrop: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     parentTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION,

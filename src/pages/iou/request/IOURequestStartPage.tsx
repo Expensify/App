@@ -78,7 +78,13 @@ function IOURequestStartPage({
             if (transaction?.reportID === reportID || isLoadingSelectedTab || prevTransactionReportID !== transaction?.reportID) {
                 return;
             }
-            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
+            initMoneyRequest({
+                reportID,
+                policy,
+                isFromGlobalCreate,
+                currentIouRequestType: transaction?.iouRequestType,
+                newIouRequestType: transactionRequestType,
+            });
         }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
     );
 
@@ -95,7 +101,13 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
+            initMoneyRequest({
+                reportID,
+                policy,
+                isFromGlobalCreate,
+                currentIouRequestType: transaction?.iouRequestType,
+                newIouRequestType: newIOUType,
+            });
         },
         [policy, reportID, isFromGlobalCreate, transaction],
     );

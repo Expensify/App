@@ -240,6 +240,15 @@ type BaseTransactionParams = {
     customUnitRateID?: string;
 };
 
+type InitMoneyRequestParams = {
+    reportID: string;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    isFromGlobalCreate?: boolean;
+    isFromReportsPageDragAndDrop?: boolean;
+    currentIouRequestType?: IOURequestType | undefined;
+    newIouRequestType: IOURequestType;
+};
+
 type MoneyRequestInformation = {
     payerAccountID: number;
     payerEmail: string;
@@ -813,11 +822,11 @@ Onyx.connect({
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
  * It is a helper function used only in this file.
  */
-function dismissModalAndOpenReportInInboxTab(reportID?: string) {
+function dismissModalAndOpenReportInInboxTab(reportID?: string, shouldResetSearchPageTab?: boolean) {
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     if (isSearchPageTopmostFullScreenRoute || !reportID) {
         Navigation.dismissModal();
-        if (isSearchPageTopmostFullScreenRoute) {
+        if (isSearchPageTopmostFullScreenRoute && shouldResetSearchPageTab) {
             const query = buildCannedSearchQuery();
             InteractionManager.runAfterInteractions(() => {
                 Navigation.setParams({q: query});
@@ -850,13 +859,7 @@ function getReportPreviewAction(chatReportID: string | undefined, iouReportID: s
  * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
  */
-function initMoneyRequest(
-    reportID: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    isFromGlobalCreate: boolean,
-    currentIouRequestType: IOURequestType | undefined,
-    newIouRequestType: IOURequestType,
-) {
+function initMoneyRequest({reportID, policy, isFromGlobalCreate, isFromReportsPageDragAndDrop, currentIouRequestType, newIouRequestType}: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const personalPolicy = getPolicy(getPersonalPolicy()?.id);
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -873,6 +876,7 @@ function initMoneyRequest(
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
             reportID,
             isFromGlobalCreate,
+            isFromReportsPageDragAndDrop,
             created,
             currency,
             transactionID: newTransactionID,
@@ -925,6 +929,7 @@ function initMoneyRequest(
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        isFromReportsPageDragAndDrop,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
     });
@@ -5295,7 +5300,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     if (shouldHandleNavigation) {
         InteractionManager.runAfterInteractions(() => removeDraftTransactions());
         if (!requestMoneyInformation.isRetry) {
-            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
+            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID, !!transaction.isFromReportsPageDragAndDrop);
         }
 
         const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
@@ -10652,6 +10657,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
     const currentReportID = getDisplayedReportID(reportID);
     notifyNewAction(currentReportID, userAccountID);
 }
+
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
     receiptFilename: string | undefined,
