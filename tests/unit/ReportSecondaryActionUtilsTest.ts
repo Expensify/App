@@ -1,8 +1,12 @@
 import Onyx from 'react-native-onyx';
 import {getSecondaryReportActions, getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
+import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
+import {getOriginalMessage} from '@src/libs/ReportActionsUtils';
+import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import {actionR14932} from '../../__mocks__/reportData/actions';
 
 const EMPLOYEE_ACCOUNT_ID = 1;
 const EMPLOYEE_EMAIL = 'employee@mail.com';
@@ -395,7 +399,9 @@ describe('getSecondaryAction', () => {
         } as unknown as Transaction;
         const policy = {} as unknown as Policy;
 
-        const result = getSecondaryReportActions(report, [transaction], {}, policy);
+        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce((getOriginalMessage(actionR14932) as OriginalMessageIOU).IOUTransactionID);
+        const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, [actionR14932]);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
@@ -668,7 +674,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const report = {} as unknown as Report;
 
         const result = [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS];
-        expect(getSecondaryTransactionThreadActions(report, {} as Transaction)).toEqual(result);
+        expect(getSecondaryTransactionThreadActions(report, {} as Transaction, [])).toEqual(result);
     });
 
     it('include HOLD option ', () => {
@@ -684,7 +690,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             comment: {},
         } as unknown as Transaction;
 
-        const result = getSecondaryTransactionThreadActions(report, transaction);
+        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
+        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932]);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
@@ -699,7 +706,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(report, {} as Transaction);
+        const result = getSecondaryTransactionThreadActions(report, {} as Transaction, []);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 });
