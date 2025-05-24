@@ -6,6 +6,7 @@ import {InteractionManager, Linking} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import resetLoggingOutContentShown from '@libs/actions/LoggingOut';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {
@@ -246,6 +247,11 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
+    // Reset storage related to the signing out loading state
+    resetLoggingOutContentShown();
+    // Navigate to signing out page immediately
+    Navigation.navigate(ROUTES.LOGGING_OUT);
+
     if (isAnonymousUser()) {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             if (shouldResetToHome) {
@@ -325,25 +331,25 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 
     // Wait for signOut (if called), then redirect and update Onyx.
     signOutPromise
-        .then((response) => {
-            if (response?.hasOldDotAuthCookies) {
-                Log.info('Redirecting to OldDot sign out');
-                asyncOpenURL(
-                    redirectToSignIn().then(() => {
-                        Onyx.multiSet(onyxSetParams);
-                    }),
-                    `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
-                    true,
-                    true,
-                );
-            } else {
+        .then(() => {
+            // Sign out from classic as well so the user does not get logged back in when visiting expensify.com and subsequently auto redirected back to New Expensify
+            const oldDotSignOutUrl = new URL(CONST.OLDDOT_URLS.SIGN_OUT, CONFIG.EXPENSIFY.EXPENSIFY_URL);
+            oldDotSignOutUrl.searchParams.set('clean', 'true');
+
+            // Redirect back to New Expensify after classic sign out so the user is not confused by being redirected to a different site
+            oldDotSignOutUrl.searchParams.set('signedOutFromNewExpensify', 'true');
+
+            asyncOpenURL(
                 redirectToSignIn().then(() => {
                     Onyx.multiSet(onyxSetParams);
+                }),
+                oldDotSignOutUrl.toString(),
+                true,
+                true,
+            );
 
-                    if (hasSwitchedAccountInHybridMode) {
-                        openApp();
-                    }
-                });
+            if (hasSwitchedAccountInHybridMode) {
+                openApp();
             }
         })
         .catch((error: string) => Log.warn('Error during sign out process:', error));

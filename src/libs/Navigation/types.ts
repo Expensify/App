@@ -1856,6 +1856,7 @@ type SharedScreensParamList = {
         validateCode: string;
         exitTo?: Routes | HybridAppRoute;
     };
+    [SCREENS.LOGGING_OUT]: undefined;
 };
 
 type ShareNavigatorParamList = {

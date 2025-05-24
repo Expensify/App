@@ -6409,6 +6409,10 @@ const translations = {
         },
         callScheduled: 'Call scheduled',
     },
+    loggingOutPage: {
+        title: 'Logging out...',
+        subtitle: 'One moment, please.',
+    },
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Take a 2-minute test drive',

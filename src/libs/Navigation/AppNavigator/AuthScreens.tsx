@@ -40,6 +40,7 @@ import * as SessionUtils from '@libs/SessionUtils';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import LoggingOutPage from '@pages/LoggingOutPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import * as App from '@userActions/App';
@@ -769,6 +770,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.BANK_CONNECTION_COMPLETE}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.LOGGING_OUT}
+                    component={LoggingOutPage}
+                    options={{
+                        animation: Animations.NONE,
+                    }}
                 />
             </RootStack.Navigator>
             <SearchRouterModal />

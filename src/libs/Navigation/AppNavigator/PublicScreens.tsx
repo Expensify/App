@@ -1,8 +1,10 @@
 import React from 'react';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
+import LoggingOutPage from '@pages/LoggingOutPage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
@@ -66,6 +68,13 @@ function PublicScreens() {
                 name={NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR}
                 component={PublicRightModalNavigator}
                 options={rootNavigatorScreenOptions.rightModalNavigator}
+            />
+            <RootStack.Screen
+                name={SCREENS.LOGGING_OUT}
+                component={LoggingOutPage}
+                options={{
+                    animation: Animations.NONE,
+                }}
             />
         </RootStack.Navigator>
     );
