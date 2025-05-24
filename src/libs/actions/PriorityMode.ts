@@ -19,8 +19,14 @@ import type {Report} from '@src/types/onyx';
  *     - Reports to load (in ReconnectApp or OpenApp). As we check the count of the reports to determine whether the user is eligible to be automatically switched.
  */
 
-let resolveIsReadyPromise: (args?: unknown[]) => void;
-let isReadyPromise = new Promise((resolve) => {
+type FocusModeState = {
+    allReports: OnyxCollection<Report>;
+    hasTriedFocusMode: boolean;
+    isInFocusMode: boolean;
+}
+
+let resolveIsReadyPromise: (state: FocusModeState) => void;
+let isReadyPromise = new Promise<FocusModeState>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
@@ -35,7 +41,6 @@ Onyx.connect({
 /**
  * Debounce the prompt to promote focus mode as many reports updates could happen in a short burst
  */
-// eslint-disable-next-line @typescript-eslint/no-use-before-define
 const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
 
 let isLoadingReportData = true;
@@ -44,8 +49,6 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
     },
 });
@@ -55,8 +58,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (priorityMode) => {
         isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
     },
 });
@@ -66,8 +67,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     callback: (val) => {
         hasTriedFocusMode = val;
-
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
     },
 });
@@ -94,11 +93,11 @@ function checkRequiredData() {
         return;
     }
 
-    resolveIsReadyPromise();
+    resolveIsReadyPromise({allReports, hasTriedFocusMode, isInFocusMode});
 }
 
 function tryFocusModeUpdate() {
-    isReadyPromise.then(() => {
+    isReadyPromise.then((state) => {
         // User is signed out so do not try to switch them
         if (!currentUserAccountID) {
             return;
@@ -114,13 +113,13 @@ function tryFocusModeUpdate() {
         }
 
         // Check to see if the user is using #focus mode, has tried it before, or we have already switched them over automatically.
-        if ((isInFocusMode ?? false) || hasTriedFocusMode) {
+        if ((state.isInFocusMode ?? false) || state.hasTriedFocusMode) {
             Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
             return;
         }
 
         const validReports = [];
-        Object.keys(allReports ?? {}).forEach((key) => {
+        Object.keys(state.allReports ?? {}).forEach((key) => {
             const report = allReports?.[key];
             if (!report) {
                 return;
@@ -149,4 +148,9 @@ function tryFocusModeUpdate() {
     });
 }
 
-export {resetHasReadRequiredDataFromStorage, autoSwitchToFocusMode};
+function setFocusModeNotification(value: boolean) {
+    Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, value);
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {setFocusModeNotification};
