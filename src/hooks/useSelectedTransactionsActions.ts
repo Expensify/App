@@ -107,7 +107,7 @@ function useSelectedTransactionsActions({
         let canUnholdTransactions = selectedTransactions.length > 0 && isMoneyRequestReport;
 
         selectedTransactions.forEach((selectedTransaction) => {
-            if (!canHoldTransactions && !canHoldTransactions) {
+            if (!canHoldTransactions && !canUnholdTransactions) {
                 return;
             }
 
