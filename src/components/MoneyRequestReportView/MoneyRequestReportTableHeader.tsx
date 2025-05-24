@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {SortOrder, TableColumnSize} from '@components/Search/types';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
@@ -11,6 +11,25 @@ type ColumnConfig = {
     columnName: SortableColumnName;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
+};
+
+const shouldShowColumnConfig: Record<SortableColumnName, (isIOUReport: boolean) => boolean> = {
+    [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.TYPE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: (isIOUReport) => !isIOUReport,
+    [CONST.SEARCH.TABLE_COLUMNS.TAG]: (isIOUReport) => !isIOUReport,
+    [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.IN]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.TO]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => false,
 };
 
 const columnConfig: ColumnConfig[] = [
@@ -57,14 +76,22 @@ type SearchTableHeaderProps = {
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
     dateColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
+    isIOUReport: boolean;
 };
 
-// At this moment with new Report View we have no extra logic for displaying columns
-const shouldShowColumn = () => true;
-
-function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, isIOUReport}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
+    const shouldShowColumn = useCallback(
+        (columnName: SortableColumnName) => {
+            const shouldShowFun = shouldShowColumnConfig[columnName];
+            if (!shouldShowFun) {
+                return false;
+            }
+            return shouldShowFun(isIOUReport);
+        },
+        [isIOUReport],
+    );
     return (
         <View style={[styles.dFlex, styles.flex5]}>
             <SortableTableHeader
