@@ -440,6 +440,7 @@ const transactionsListItems = [
         transactionID: '1',
         transactionThreadReportID: '456',
         transactionType: 'cash',
+        isPolicyExpenseChat: false,
     },
     {
         accountID: 18439984,
@@ -493,6 +494,7 @@ const transactionsListItems = [
         transactionID: '2',
         transactionThreadReportID: '456',
         transactionType: 'cash',
+        isPolicyExpenseChat: false,
     },
     {
         accountID: 18439984,
@@ -544,6 +546,7 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        isPolicyExpenseChat: false,
     },
     {
         accountID: 18439984,
@@ -595,6 +598,7 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        isPolicyExpenseChat: false,
     },
 ] as TransactionListItemType[];
 
@@ -683,6 +687,7 @@ const reportsListItems = [
                 transactionID: '1',
                 transactionThreadReportID: '456',
                 transactionType: 'cash',
+                isPolicyExpenseChat: false,
             },
         ],
         type: 'expense',
@@ -772,6 +777,7 @@ const reportsListItems = [
                 transactionID: '2',
                 transactionThreadReportID: '456',
                 transactionType: 'cash',
+                isPolicyExpenseChat: false,
             },
         ],
         type: 'expense',
