@@ -13,7 +13,6 @@ import {HandCard} from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -142,7 +141,26 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
-    const renderListHeader = useCallback(() => <WorkspaceCardListHeader cardSettings={cardSettings} />, [cardSettings]);
+    const renderListHeader = (
+        <>
+            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
+                <WorkspaceCardListLabels
+                    policyID={policyID}
+                    cardSettings={cardSettings}
+                />
+                {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.expensifyCard.findCard')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={isSearchEmpty}
+                        style={[styles.mb0, styles.mt5]}
+                    />
+                )}
+            </View>
+            {!isSearchEmpty && <WorkspaceCardListHeader cardSettings={cardSettings} />}
+        </>
+    );
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
 
@@ -178,32 +196,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             {isEmptyObject(cardsList) ? (
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                >
-                    <View style={styles.appBG}>
-                        <WorkspaceCardListLabels
-                            policyID={policyID}
-                            cardSettings={cardSettings}
-                        />
-                        {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
-                            <SearchBar
-                                label={translate('workspace.expensifyCard.findCard')}
-                                inputValue={inputValue}
-                                onChangeText={setInputValue}
-                                shouldShowEmptyState={isSearchEmpty}
-                                style={[styles.mb0, styles.mt5]}
-                            />
-                        )}
-                    </View>
-                    <FlatList
-                        data={filteredSortedCards}
-                        renderItem={renderItem}
-                        ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
-                        contentContainerStyle={bottomSafeAreaPaddingStyle}
-                    />
-                </ScrollView>
+                <FlatList
+                    data={filteredSortedCards}
+                    renderItem={renderItem}
+                    ListHeaderComponent={renderListHeader}
+                    contentContainerStyle={bottomSafeAreaPaddingStyle}
+                />
             )}
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
