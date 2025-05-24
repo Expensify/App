@@ -5144,6 +5144,7 @@ const translations = {
             objects: 'Objetos',
             symbols: 'Símbolos',
             flags: 'Banderas',
+            customEmojis: 'Emojis personalizados',
         },
     },
     newRoomPage: {

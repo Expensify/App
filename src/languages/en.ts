@@ -5094,6 +5094,7 @@ const translations = {
             objects: 'Objects',
             symbols: 'Symbols',
             flags: 'Flags',
+            customEmojis: 'Custom Emojis',
         },
     },
     newRoomPage: {
