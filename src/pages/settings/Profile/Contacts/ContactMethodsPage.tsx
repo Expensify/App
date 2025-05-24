@@ -7,6 +7,7 @@ import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LockedAccountModal from '@components/LockedAccountModal';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -37,6 +38,10 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
+
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
@@ -95,6 +100,10 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             setIsNoDelegateAccessMenuVisible(true);
             return;
         }
+        if (isAccountLocked) {
+            setIsLockedAccountModalOpen(true);
+            return;
+        }
 
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo)));
@@ -102,7 +111,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
         }
 
         Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
-    }, [navigateBackTo, isActingAsDelegate, isUserValidated]);
+    }, [navigateBackTo, isActingAsDelegate, isAccountLocked, isUserValidated]);
 
     return (
         <ScreenWrapper
@@ -138,6 +147,10 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+            <LockedAccountModal
+                isLockedAccountModalOpen={isLockedAccountModalOpen}
+                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </ScreenWrapper>
     );
