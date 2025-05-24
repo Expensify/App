@@ -48,7 +48,7 @@ function IOURequestStartPage({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [selectedTab = CONST.TAB_REQUEST.SCAN, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID}`, {canBeMissing: true});
@@ -75,7 +75,7 @@ function IOURequestStartPage({
     useFocusEffect(
         useCallback(() => {
             // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-            if (transaction?.reportID === reportID || isLoadingSelectedTab || prevTransactionReportID !== transaction?.reportID) {
+            if (transaction?.reportID === reportID || isLoadingSelectedTab || !transactionRequestType || prevTransactionReportID !== transaction?.reportID) {
                 return;
             }
             initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
