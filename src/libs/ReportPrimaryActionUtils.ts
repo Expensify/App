@@ -6,10 +6,9 @@ import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
-    hasAccountingConnections,
+    getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isPreferredExporter,
 } from './PolicyUtils';
@@ -164,8 +163,8 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
         return false;
     }
 
-    const hasAccountingConnection = hasAccountingConnections(policy);
-    if (!hasAccountingConnection) {
+    const connectedIntegration = getValidConnectedIntegration(policy);
+    if (!connectedIntegration) {
         return false;
     }
 
@@ -174,7 +173,6 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
         return false;
     }
 
-    const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const isExported = isExportedUtil(reportActions);
     if (isExported) {
@@ -183,6 +181,10 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
 
     const hasExportError = hasExportErrorUtil(reportActions);
     if (syncEnabled && !hasExportError) {
+        return false;
+    }
+
+    if (report.isWaitingOnBankAccount) {
         return false;
     }
 
