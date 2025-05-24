@@ -553,22 +553,23 @@ function removeMembers(accountIDs: number[], policyID: string) {
         const currentTime = DateUtils.getDBTime();
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
         Object.values(reportActions).forEach((action) => {
-            if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
-                    value: {
-                        private_isArchived: currentTime,
-                    },
-                });
-                failureData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
-                    value: {
-                        private_isArchived: null,
-                    },
-                });
+            if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                return
             }
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                value: {
+                    private_isArchived: currentTime,
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                value: {
+                    private_isArchived: null,
+                },
+            });
         });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
