@@ -78,6 +78,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the modal is shown */
     onModalShow?: () => void;
 
+    /** Callback method fired when the modal is hidden */
+    onModalHide?: () => void;
+
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
@@ -174,6 +177,7 @@ function PopoverMenu({
     anchorRef,
     onClose,
     onModalShow,
+    onModalHide,
     headerText,
     fromSidebarMediumScreen,
     anchorAlignment = {
@@ -354,7 +358,8 @@ function PopoverMenu({
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWebOrDesktop && isVisible, shouldPreventDefault: false});
 
-    const onModalHide = () => {
+    const handleModalHide = () => {
+        onModalHide?.();
         setFocusedIndex(currentMenuItemsFocusedIndex);
     };
 
@@ -397,7 +402,7 @@ function PopoverMenu({
                 onClose();
             }}
             isVisible={isVisible}
-            onModalHide={onModalHide}
+            onModalHide={handleModalHide}
             onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}

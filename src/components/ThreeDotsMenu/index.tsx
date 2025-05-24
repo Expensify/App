@@ -18,6 +18,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ThreeDotsMenuProps from './types';
+import BaseModalProps from '@components/Modal/types';
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -46,6 +47,7 @@ function ThreeDotsMenu({
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
@@ -140,15 +142,20 @@ function ThreeDotsMenu({
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
+                onModalHide={() => setRestoreFocusType(undefined)}
                 isVisible={isPopupMenuVisible && !isBehindModal}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
-                onItemSelected={hidePopoverMenu}
+                onItemSelected={(item) => {
+                    setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE); 
+                    hidePopoverMenu(item);
+                }}
                 menuItems={menuItems}
                 withoutOverlay={!shouldOverlay}
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                restoreFocusType={restoreFocusType}
             />
         </>
     );
