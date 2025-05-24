@@ -309,6 +309,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
+    const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const getHeaderButtons = () => {
         const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -317,7 +318,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTags.length === 0) {
             return (
                 <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                    {!hasAccountingConnections && !isMultiLevelTags && (
+                    {!hasAccountingConnections && hasVisibleTags && !isMultiLevelTags && (
                         <Button
                             success
                             onPress={navigateToCreateTagPage}
@@ -418,7 +419,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const navigateToImportSpreadsheet = useCallback(() => {
+        if (isOffline) {
+            close(() => setIsOfflineModalVisible(true));
+            return;
+        }
+        Navigation.navigate(
+            isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+        );
+    }, [backTo, isOffline, isQuickSettingsFlow, policyID]);
 
     const threeDotsMenuItems = useMemo(() => {
         const menuItems: PopoverMenuItem[] = [];
@@ -426,17 +435,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
-                onSelected: () => {
-                    if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                    );
-                },
+                onSelected: navigateToImportSpreadsheet,
             });
         }
 
@@ -465,7 +464,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo, canUseMultiLevelTags, hasIndependentTags]);
+    }, [policy, hasVisibleTags, translate, isOffline, policyID, canUseMultiLevelTags, hasIndependentTags, navigateToImportSpreadsheet]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -576,6 +575,21 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                     headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                                     lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                                     headerContentStyles={styles.emptyStateFolderWebStyles}
+                                    buttons={[
+                                        {
+                                            success: true,
+                                            buttonAction: navigateToCreateTagPage,
+                                            icon: Expensicons.Plus,
+                                            buttonText: translate('workspace.tags.addTag'),
+                                            style: [!shouldUseNarrowLayout && styles.flexBasisAuto],
+                                        },
+                                        {
+                                            icon: Expensicons.Table,
+                                            buttonText: translate('spreadsheet.importSpreadsheet'),
+                                            buttonAction: navigateToImportSpreadsheet,
+                                            style: [!shouldUseNarrowLayout && styles.flexBasisAuto],
+                                        },
+                                    ]}
                                 />
                             </ScrollView>
                         )}
