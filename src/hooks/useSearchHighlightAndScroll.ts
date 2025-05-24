@@ -8,6 +8,7 @@ import {isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import useDebounce from './useDebounce';
 import usePrevious from './usePrevious';
 
 type UseSearchHighlightAndScroll = {
@@ -34,8 +35,20 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const initializedRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
+    const performSearch = useCallback(() => {
+        triggeredByHookRef.current = true;
+        search({queryJSON, offset});
+        searchTriggeredRef.current = true;
+    }, [queryJSON, offset]);
+
+    const debouncedSearch = useDebounce(performSearch, 150);
+
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
+        if (searchTriggeredRef.current) {
+            return;
+        }
+
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
@@ -46,17 +59,15 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             .map((actions) => Object.keys(actions ?? {}))
             .flat();
 
-        if (searchTriggeredRef.current) {
+        // Only proceed if we have previous data to compare against
+        // This prevents triggering on initial data load
+        if (previousTransactionsIDs.length === 0 && previousReportActionsIDs.length === 0) {
             return;
         }
+
         const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
         const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
 
-        // NOTE: This if statement should NOT assume report actions can only change
-        // in one type, i.e.: isChat && hasReportActionsIDsChange
-        // because they can also change in other types such as CONST.SEARCH.DATA_TYPES.EXPENSE.
-        // Assuming they can only change in one type leads to issues such as
-        // https://github.com/Expensify/App/issues/57605
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
@@ -64,21 +75,14 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // We don't want to highlight these old items, even if they appear new in the current search results.
             hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
 
-            // Set the flag indicating the search is triggered by the hook
-            triggeredByHookRef.current = true;
-
-            // Trigger the search
-            search({queryJSON, offset});
-
-            // Set the ref to prevent further triggers until reset
-            searchTriggeredRef.current = true;
+            debouncedSearch();
         }
 
         // Reset the ref when transactions or report actions in chat search type are updated
         return () => {
             searchTriggeredRef.current = false;
         };
-    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
+    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, debouncedSearch]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
