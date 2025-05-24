@@ -40,6 +40,9 @@ type IssueNewCardFlowData = {
 
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Should invite the assignee to workspace */
+    shouldInviteAssigneeToWorkspace?: boolean;
 };
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
@@ -363,12 +366,13 @@ function getCardDefaultName(userName?: string) {
     return `${userName}'s Card`;
 }
 
-function setIssueNewCardStepAndData({data, isEditing, step, policyID}: IssueNewCardFlowData) {
+function setIssueNewCardStepAndData({data, isEditing, step, policyID, shouldInviteAssigneeToWorkspace}: IssueNewCardFlowData) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         data,
         isEditing,
         currentStep: step,
         errors: null,
+        shouldInviteAssigneeToWorkspace,
     });
 }
 
