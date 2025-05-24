@@ -9,7 +9,7 @@ import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
