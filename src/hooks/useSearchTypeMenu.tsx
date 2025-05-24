@@ -115,16 +115,11 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             .flat();
     }, [typeMenuSections, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.icon, theme.border, singleExecution]);
 
-    const processSavedSearches = useCallback(() => {
+    const savedSearchItems = useMemo(() => {
         if (!savedSearches) {
-            setProcessedMenuItems(popoverMenuItems);
-            return;
+            return [];
         }
-
-        const items = [];
-        items.push(...popoverMenuItems);
-
-        const savedSearchItems = Object.entries(savedSearches).map(([key, item], index) => {
+        return Object.entries(savedSearches).map(([key, item], index) => {
             let savedSearchTitle = item.name;
 
             if (savedSearchTitle === item.query) {
@@ -161,6 +156,16 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 shouldIconUseAutoWidthStyle: false,
             };
         });
+    }, [savedSearches, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies]);
+
+    const processSavedSearches = useCallback(() => {
+        if (!savedSearches) {
+            setProcessedMenuItems(popoverMenuItems);
+            return;
+        }
+
+        const items = [];
+        items.push(...popoverMenuItems);
 
         if (savedSearchItems.length > 0) {
             items.push({
@@ -172,7 +177,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         }
 
         setProcessedMenuItems(items as PopoverMenuItem[]);
-    }, [savedSearches, popoverMenuItems, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies, translate]);
+    }, [savedSearches, popoverMenuItems, savedSearchItems, styles.textSupporting, translate]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);
