@@ -1814,9 +1814,13 @@ function buildPolicyData(
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
     const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+        !introSelected?.choice ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
+    // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -2100,7 +2104,12 @@ function buildPolicyData(
         companySize,
     };
 
-    if (introSelected !== undefined && !introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
+    if (
+        introSelected !== undefined &&
+        (introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !introSelected?.createWorkspace) &&
+        engagementChoice &&
+        shouldAddOnboardingTasks
+    ) {
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -5236,6 +5245,7 @@ export {
     updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
+    getAdminPolicies,
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
