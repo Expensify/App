@@ -737,7 +737,7 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 
 function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+    const hasAtLeastOneTag = PolicyUtils.hasAtLeastOneTag(policyTags);
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -782,7 +782,7 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
         ],
     };
 
-    if (isMultiLevelTags) {
+    if (hasAtLeastOneTag) {
         const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
