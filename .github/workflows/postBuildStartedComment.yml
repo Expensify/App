@@ -4,11 +4,11 @@ on:
   workflow_call:
     inputs:
       APP_PULL_REQUEST_NUMBER:
-        description: Number of the Pull Request in the App repository where the comment will be posted
+        description: Number of the Pull Request in Expensify/App repository where the comment will be posted
         type: string
         required: false
-      HYBRIDAPP_PULL_REQUEST_NUMBER:
-        description: Number of the Pull Request in the Mobile-Expensify repository where the comment will be posted
+      MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER:
+        description: Number of the Pull Request in Expensify/Mobile-Expensify repository where the comment will be posted
         type: string
         required: false
 
@@ -16,7 +16,7 @@ jobs:
     postGitHubCommentBuildStarted:
         runs-on: ubuntu-latest
         steps:
-        - name: Add build start comment to ND PR
+        - name: Add build start comment to Expensify/App PR
           if: ${{ inputs.APP_PULL_REQUEST_NUMBER != ''}}
           # v7
           uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
@@ -28,11 +28,11 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: ${{ inputs.APP_PULL_REQUEST_NUMBER }},
-                body: `🚧 @${{ github.actor }} has triggered a test app build. You can view the [workflow run here](${workflowURL}).`
+                body: `🚧 @${{ github.actor }} has triggered a test Expensify/App build. You can view the [workflow run here](${workflowURL}).`
                 });
 
-        - name: Add build start comment to OD PR
-          if: ${{ inputs.HYBRIDAPP_PULL_REQUEST_NUMBER != '' }}
+        - name: Add build start comment to Expensify/Mobile-Expensify PR
+          if: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER != '' }}
           # v7
           uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
           with:
@@ -42,6 +42,6 @@ jobs:
                 github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: 'Mobile-Expensify',
-                issue_number: ${{ inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }},
-                body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
+                issue_number: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER }},
+                body: `🚧 @${{ github.actor }} has triggered a test Expensify/Mobile-Expensify build. You can view the [workflow run here](${workflowURL}).`
                 });
