@@ -11110,13 +11110,18 @@ function dismissDeclineUseExplanation() {
     });
 }
 
-function declineMoneyRequest(params: DeclineMoneyRequestParams) {
-    const {transactionID, reportID, comment, removedFromReportActionID, declinedActionReportActionID, declinedCommentReportActionID, autoAddedActionReportActionID} = params;
+function declineMoneyRequest(transactionID: string, reportID: string, comment: string) {
     const currentUserAccountID = getCurrentUserAccountID();
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policy = getPolicy(report?.policyID);
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isPolicyInstantSubmit = isInstantSubmitEnabled(policy);
+
+    const autoAddedActionReportActionID = '';
+    const removedFromReportActionID = '';
+    const declinedActionReportActionID = '-1';
+    const declinedCommentReportActionID = '-2';
+
     let movedToReportID;
 
     const hasMultipleExpenses = (() => {
@@ -11241,7 +11246,7 @@ function declineMoneyRequest(params: DeclineMoneyRequestParams) {
                 [declinedCommentReportActionID]: declineCommentAction,
             },
         }
-    );    
+    );
 
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(declineAction.created, 1);
     optimisticData.push({

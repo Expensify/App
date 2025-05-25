@@ -1,13 +1,9 @@
 import React, {useCallback, useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as FormActions from '@userActions/FormActions';
 import * as IOU from '@userActions/IOU';
@@ -24,22 +20,9 @@ function DeclineReasonPage({route}: DeclineReasonPageProps) {
     const {translate} = useLocalize();
 
     const {transactionID, reportID, backTo} = route.params;
-
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
-
-    // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
-    // For personal requests, we need to allow both users to put the request on hold
-    const isWorkspaceRequest = ReportUtils.isReportInGroupPolicy(report);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-
+    
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
-        // as we do not allow requestee to edit fields like description and amount.
-        // But, we still want the requestee to be able to put the request on hold
-        if (ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
-            return;
-        }
-
+        IOU.declineMoneyRequest(transactionID, reportID, values.comment);
         Navigation.goBack(backTo);
     };
 
@@ -50,18 +33,9 @@ function DeclineReasonPage({route}: DeclineReasonPageProps) {
             if (!values.comment) {
                 errors.comment = translate('common.error.fieldRequired');
             }
-            // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
-            // as we do not allow requestee to edit fields like description and amount.
-            // But, we still want the requestee to be able to put the request on hold
-            if (ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
-                const formErrors = {};
-                ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
-                FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
-            }
-
             return errors;
         },
-        [parentReportAction, isWorkspaceRequest, translate],
+        [translate],
     );
 
     useEffect(() => {
