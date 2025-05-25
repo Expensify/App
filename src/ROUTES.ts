@@ -2522,7 +2522,7 @@ const ROUTES = {
     },
     DECLINE_MONEY_REQUEST_REASON: {
         route: 'decline/reason/:transactionID',
-        getRoute: (transactionID: string, reportID: string, backTo?: string) => getUrlWithBackToParam(`decline/reason/${transactionID}?reportID=${reportID}`, backTo),
+        getRoute: (transactionID: string, reportID: string, backTo?: string) => `decline/reason/${transactionID}?reportID=${reportID}&backTo=${backTo}`,
     },
     SCHEDULE_CALL_BOOK: {
         route: 'r/:reportID/schedule-call/book',

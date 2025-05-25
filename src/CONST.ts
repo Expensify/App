@@ -1226,7 +1226,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
-            DECLINE: 'decline'
+            DECLINE: 'decline',
             REOPEN: 'reopen',
             MOVE_EXPENSE: 'moveExpense',
         },
