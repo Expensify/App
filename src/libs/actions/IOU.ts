@@ -11190,54 +11190,7 @@ function declineMoneyRequest(params: DeclineMoneyRequestParams) {
         });
     }
 
-    // Handle violation if expense is not an IOU
-    if (!isMoneyRequestAction(report)) {
-        // Move expense to another report based on Scheduled Submit
-        const newReportID = movedToReportID ?? `-${Date.now()}`;
-        const newReport = movedToReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`] : buildOptimisticExpenseReport(newReportID, policy?.id ?? '', report?.ownerAccountID ?? 0, 0, transaction?.currency ?? '');
-        
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${newReportID}`,
-                value: {
-                    ...newReport,
-                    total: (newReport?.total ?? 0) + (transaction?.amount ?? 0),
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    reportID: newReportID,
-                },
-            }
-        );
-
-        // Add rejectedExpense violation
-        const currentTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
-            value: [
-                ...currentTransactionViolations,
-                {
-                    name: CONST.VIOLATIONS.REJECTED_EXPENSE,
-                    type: CONST.VIOLATION_TYPES.VIOLATION,
-                    data: {
-                        rejectReason: comment ?? ''
-                    }
-                }
-            ],
-        });
-    }
+    // TODO: add violations code
 
     // Create system messages in both expense report and expense thread
     const declineAction = {
