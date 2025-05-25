@@ -96,7 +96,7 @@ function ReportFooter({
                 return new Date(dateString) >= new Date();
             } catch (error) {
                 // If the NVP is malformed, we'll assume the user is not blocked from chat. This is not expected, so if it happens we'll log an alert.
-                Log.alert(`[${CONST.ERROR.ENSURE_BUGBOT}] Found malformed ${ONYXKEYS.NVP_BLOCKED_FROM_CHAT} nvp`, dateString);
+                Log.alert(`[${CONST.ERROR.ENSURE_BUG_BOT}] Found malformed ${ONYXKEYS.NVP_BLOCKED_FROM_CHAT} nvp`, dateString);
                 return false;
             }
         },
@@ -122,7 +122,7 @@ function ReportFooter({
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
-            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
             if (!match) {
                 return false;
             }
@@ -164,7 +164,7 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            addComment(report.reportID, text);
+            addComment(report.reportID, text, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],

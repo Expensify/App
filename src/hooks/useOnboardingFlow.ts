@@ -10,6 +10,7 @@ import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import usePermissions from './usePermissions';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -21,8 +22,10 @@ function useOnboardingFlowRouter() {
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         canBeMissing: true,
     });
+
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const startedOnboardingFlowRef = useRef(false);
-    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
         canBeMissing: true,
     });
@@ -31,6 +34,8 @@ function useOnboardingFlowRouter() {
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
+    const {canUsePrivateDomainOnboarding} = usePermissions();
+
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         InteractionManager.runAfterInteractions(() => {
@@ -38,7 +43,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata, dismissedProductTrainingMetadata)) {
                 return;
             }
 
@@ -49,7 +54,7 @@ function useOnboardingFlowRouter() {
                 const defaultCannedQuery = buildCannedSearchQuery();
                 const query = defaultCannedQuery;
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
-                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
+                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
                 return;
             }
 
@@ -74,21 +79,31 @@ function useOnboardingFlowRouter() {
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                     startedOnboardingFlowRef.current = true;
-                    startOnboardingFlow(undefined, onboardingValues);
+                    startOnboardingFlow({
+                        canUsePrivateDomainOnboarding,
+                        onboardingValuesParam: onboardingValues,
+                        isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                        hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                    });
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                 startedOnboardingFlowRef.current = true;
-                startOnboardingFlow(undefined, onboardingValues);
+                startOnboardingFlow({
+                    canUsePrivateDomainOnboarding,
+                    onboardingValuesParam: onboardingValues,
+                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                });
             }
         });
     }, [
         isLoadingApp,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
-        tryNewDotdMetadata,
+        tryNewDotMetadata,
         isSingleNewDotEntryMetadata,
         isSingleNewDotEntry,
         hasBeenAddedToNudgeMigration,
@@ -96,6 +111,9 @@ function useOnboardingFlowRouter() {
         dismissedProductTraining?.migratedUserWelcomeModal,
         onboardingValues,
         dismissedProductTraining,
+        canUsePrivateDomainOnboarding,
+        account?.isFromPublicDomain,
+        account?.hasAccessibleDomainPolicies,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};

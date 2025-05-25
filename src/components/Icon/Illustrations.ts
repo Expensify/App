@@ -102,6 +102,7 @@ import FolderOpen from '@assets/images/simple-illustrations/simple-illustration_
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import HandEarth from '@assets/images/simple-illustrations/simple-illustration__handearth.svg';
+import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import HotDogStand from '@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
@@ -223,6 +224,7 @@ export {
     ThumbsUpStars,
     Hands,
     HandEarth,
+    HeadSet,
     SmartScan,
     Hourglass,
     CommentBubbles,
