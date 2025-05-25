@@ -77,6 +77,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type MoneyRequestViewProps = {
     /** The report currently being looked at */
@@ -111,6 +112,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {isOffline} = useNetwork();
     const {canUseTableReportView} = usePermissions();
     const {translate, toLocaleDigit} = useLocalize();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const policyID = report?.policyID;
@@ -548,6 +550,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             }}
                             isThumbnail={!canEditReceipt}
                             isInMoneyRequestView
+                            shouldUseAspectRatio
                         />
                     </OfflineWithFeedback>
                 )}
@@ -574,7 +577,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         dismissError={dismissReceiptError}
                     >
                         {hasReceipt && (
-                            <View style={[styles.moneyRequestViewImage, styles.expenseViewImage]}>
+                            <View style={[styles.moneyRequestViewImage, isSmallScreenWidth ? styles.expenseViewImageSmall : styles.expenseViewImage]}>
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
                                     fileExtension={receiptURIs?.fileExtension}

@@ -751,7 +751,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={styles.moneyRequestImage}>
+            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -921,6 +921,7 @@ function MoneyRequestConfirmationListFooter({
 
                                   Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                               }}
+                              shouldUseAspectRatio
                           />
                       ))}
             {primaryFields}
