@@ -120,6 +120,7 @@ import {
     buildOptimisticUnHoldReportAction,
     canBeAutoReimbursed,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getAllPolicyReports,
     getApprovalChain,
@@ -11110,15 +11111,24 @@ function dismissDeclineUseExplanation() {
 }
 
 function declineMoneyRequest(params: DeclineMoneyRequestParams) {
-    const {transactionID, reportID, comment, removedFromReportActionID, declinedActionReportActionID, declinedCommentReportActionID, movedToReportID, autoAddedActionReportActionID} = params;
-
+    const {transactionID, reportID, comment, removedFromReportActionID, declinedActionReportActionID, declinedCommentReportActionID, autoAddedActionReportActionID} = params;
     const currentUserAccountID = getCurrentUserAccountID();
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policy = getPolicy(report?.policyID);
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isPolicyInstantSubmit = isInstantSubmitEnabled(policy);
+    let movedToReportID;
 
-    const hasMultipleExpenses = Object.keys(allTransactions ?? {}).filter((key) => allTransactions?.[key]?.reportID === reportID).length > 1;
+    const hasMultipleExpenses = (() => {
+        let count = 0;
+        for (const key in allTransactions ?? {}) {
+            if (allTransactions?.[key]?.reportID === reportID) {
+                count++;
+                if (count > 1) {return true;}
+            }
+        }
+        return false;
+    })();
 
     // Build optimistic data updates
     const optimisticData: OnyxUpdate[] = [];
@@ -11138,13 +11148,9 @@ function declineMoneyRequest(params: DeclineMoneyRequestParams) {
         } else {
             // For reports with single expense: Delete the report
             optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    reportID: null,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                },
+                value: null
             });
         }
     } else if (hasMultipleExpenses) {
@@ -11152,8 +11158,8 @@ function declineMoneyRequest(params: DeclineMoneyRequestParams) {
         // 1. Update report total
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
-        const newReportID = movedToReportID ?? `-${Date.now()}`;
-        const newReport = movedToReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`] : buildOptimisticExpenseReport(newReportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, transaction?.currency ?? '');
+        movedToReportID = generateReportID();
+        const movedToReport = buildOptimisticExpenseReport(movedToReportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, transaction?.currency ?? '');
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -11164,17 +11170,17 @@ function declineMoneyRequest(params: DeclineMoneyRequestParams) {
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${newReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`,
                 value: {
-                    ...newReport,
-                    total: (newReport?.total ?? 0) + (transaction?.amount ?? 0),
+                    ...movedToReport,
+                    total: (movedToReport?.total ?? 0) + (transaction?.amount ?? 0),
                 },
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
-                    reportID: newReportID,
+                    reportID: movedToReportID,
                 },
             }
         );
