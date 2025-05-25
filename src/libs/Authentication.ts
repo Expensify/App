@@ -105,10 +105,10 @@ function reauthenticate(command = ''): Promise<void> | undefined {
             return;
         }
 
-        // If we reauthenticated due to an expired delegate token, restore the delegate's original account.
+        // If we reauthenticate due to an expired delegate token, restore the delegate's original account.
         // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
         if (isConnectedAsDelegate()) {
-            Log.info('Reauthenticated while connected as a delegate. Restoring original account.');
+            Log.info('Reauthenticate while connected as a delegate. Restoring original account.');
             restoreDelegateSession(response);
             return;
         }

@@ -11,6 +11,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ import {getReportName} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -36,6 +38,16 @@ import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report, WorkspaceCardsList} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+type SectionType = {
+    titleTranslationKey: TranslationPaths;
+    items: Array<{
+        key: SearchFilterKey;
+        title: string | undefined;
+        description: string;
+        onPress: () => void;
+    }>;
+};
 
 const baseFilterConfig = {
     date: {
@@ -148,11 +160,6 @@ const baseFilterConfig = {
         description: 'common.assignee' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_ASSIGNEE,
     },
-    createdBy: {
-        getTitle: getFilterParticipantDisplayTitle,
-        description: 'common.createdBy' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_CREATED_BY,
-    },
     reimbursable: {
         getTitle: getFilterDisplayTitle,
         description: 'common.reimbursable' as const,
@@ -176,7 +183,7 @@ const baseFilterConfig = {
  */
 const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -186,11 +193,12 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -200,7 +208,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -209,9 +217,10 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -221,7 +230,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -230,9 +239,10 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -243,23 +253,23 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
         [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
     [CONST.SEARCH.DATA_TYPES.TASK]: [
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
 
@@ -330,20 +340,25 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         // the value of date filter is a combination of dateBefore + dateAfter values
         const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
         const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+        const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
         const dateBefore = filters[keyBefore];
         const dateAfter = filters[keyAfter];
-        let dateValue = '';
+        const dateOn = filters[keyOn];
+        const dateValue = [];
+
         if (dateBefore) {
-            dateValue = translate('search.filters.date.before', {date: dateBefore});
-        }
-        if (dateBefore && dateAfter) {
-            dateValue += ', ';
-        }
-        if (dateAfter) {
-            dateValue += translate('search.filters.date.after', {date: dateAfter});
+            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
         }
 
-        return dateValue;
+        if (dateOn) {
+            dateValue.push(dateOn === CONST.SEARCH.NEVER ? translate('common.never') : translate('search.filters.date.on', {date: dateOn}));
+        }
+
+        if (dateAfter) {
+            dateValue.push(translate('search.filters.date.after', {date: dateAfter}));
+        }
+
+        return dateValue.join(', ');
     }
 
     const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY>;
@@ -549,9 +564,11 @@ function AdvancedSearchFilters() {
             return section
                 .map((key) => {
                     // 'feed' filter row does not appear in advanced filters, it is created using selected cards
-                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+                    // 'payer' and 'reimburser' do not appear in advanced filters, they are created using suggested searches
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
                         return;
                     }
+
                     const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
                     let filterTitle;
                     if (
@@ -596,12 +613,7 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-                    } else if (
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY
-                    ) {
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
@@ -626,21 +638,45 @@ function AdvancedSearchFilters() {
         .filter((section) => !!section.length);
     const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
 
+    const sections: SectionType[] = [
+        {
+            titleTranslationKey: 'common.general',
+            items: filters.at(0) ?? [],
+        },
+        {
+            titleTranslationKey: 'common.expenses',
+            items: filters.at(1) ?? [],
+        },
+        {
+            titleTranslationKey: 'common.reports',
+            items: filters.at(2) ?? [],
+        },
+    ];
+
+    sections.forEach((section) => {
+        section.items.sort((a, b) => localeCompare(a.description, b.description));
+    });
+
     return (
         <>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
-                    {filters.map((section, index) => {
+                    {sections.map((section, index) => {
+                        if (section.items.length === 0) {
+                            return;
+                        }
+
                         return (
                             // eslint-disable-next-line react/no-array-index-key
-                            <View key={`${section.at(0)?.key}-${index}`}>
+                            <View key={`${section.items.at(0)?.key}-${index}`}>
                                 {index !== 0 && (
                                     <SpacerView
                                         shouldShow
                                         style={[styles.reportHorizontalRule]}
                                     />
                                 )}
-                                {section.map((item) => {
+                                <Text style={[styles.headerText, styles.reportHorizontalRule, index === 0 ? null : styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                                {section.items.map((item) => {
                                     return (
                                         <MenuItemWithTopDescription
                                             key={item.description}

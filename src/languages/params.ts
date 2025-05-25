@@ -129,11 +129,6 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
-type UnreportedTransactionParams = {
-    reportUrl: string;
-    reportName?: string;
-};
-
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -155,8 +150,6 @@ type PayerOwesParams = {payer: string};
 type CompanyCardFeedNameParams = {feedName: string};
 
 type PayerPaidAmountParams = {payer?: string; amount: number | string};
-
-type DisplayNameParams = {displayName: string};
 
 type ApprovedAmountParams = {amount: number | string};
 
@@ -372,6 +365,8 @@ type UnshareParams = {to: string};
 
 type StripePaidParams = {amount: string; currency: string};
 
+type UnapprovedParams = {amount: string};
+
 type RemoveMembersWarningPrompt = {
     memberName: string;
     ownerName: string;
@@ -415,6 +410,8 @@ type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkTex
 type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
+
+type UpdatedCustomFieldParams = {email: string; previousValue: string; newValue: string};
 
 type LeftWorkspaceParams = {nameOrEmail: string};
 
@@ -591,7 +588,7 @@ type InvalidValueParams = {
     expectedValues: string;
 };
 
-type ImportTagsSuccessfullDescriptionParams = {
+type ImportTagsSuccessfulDescriptionParams = {
     tags: number;
 };
 
@@ -599,12 +596,12 @@ type ImportedTagsMessageParams = {
     columnCounts: number;
 };
 
-type ImportMembersSuccessfullDescriptionParams = {
+type ImportMembersSuccessfulDescriptionParams = {
     added: number;
     updated: number;
 };
 
-type ImportPerDiemRatesSuccessfullDescriptionParams = {
+type ImportPerDiemRatesSuccessfulDescriptionParams = {
     rates: number;
 };
 
@@ -636,10 +633,6 @@ type WorkspaceMemberList = {
 
 type FileLimitParams = {
     fileLimit: number;
-};
-
-type LastFourDigitsParams = {
-    lastFourDigits: string;
 };
 
 type CompanyCardBankName = {
@@ -695,11 +688,15 @@ type CurrencyInputDisabledTextParams = {
     currency: string;
 };
 
+type EmployeeInviteMessageParams = {
+    name: string;
+};
+
 export type {
     AuthenticationErrorParams,
-    ImportMembersSuccessfullDescriptionParams,
+    ImportMembersSuccessfulDescriptionParams,
     ImportedTagsMessageParams,
-    ImportTagsSuccessfullDescriptionParams,
+    ImportTagsSuccessfulDescriptionParams,
     MissingPropertyParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -766,7 +763,6 @@ export type {
     AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
-    DisplayNameParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -790,7 +786,6 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -826,7 +821,6 @@ export type {
     RequestCountParams,
     DeleteTransactionParams,
     MovedTransactionParams,
-    UnreportedTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -885,6 +879,7 @@ export type {
     ShareParams,
     UnshareParams,
     StripePaidParams,
+    UnapprovedParams,
     RemoveMembersWarningPrompt,
     ApprovalWorkflowErrorParams,
     ConnectionNameParams,
@@ -894,6 +889,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
+    UpdatedCustomFieldParams,
     LeftWorkspaceParams,
     RemoveMemberParams,
     DateParams,
@@ -908,7 +904,7 @@ export type {
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
-    ImportPerDiemRatesSuccessfullDescriptionParams,
+    ImportPerDiemRatesSuccessfulDescriptionParams,
     CurrencyCodeParams,
     WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
@@ -941,4 +937,5 @@ export type {
     SubscriptionSettingsSummaryParams,
     ReviewParams,
     CurrencyInputDisabledTextParams,
+    EmployeeInviteMessageParams,
 };

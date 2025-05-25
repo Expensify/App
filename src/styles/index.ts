@@ -269,7 +269,7 @@ const styles = (theme: ThemeColors) =>
             marginTop: 4,
             marginBottom: 4,
 
-            // Overwrite default HTML margin for blockquotes
+            // Overwrite default HTML margin for blockquote
             marginLeft: 0,
         },
 
@@ -383,6 +383,20 @@ const styles = (theme: ThemeColors) =>
 
         textAlignLeft: {
             textAlign: 'left',
+        },
+
+        textWithMiddleEllipsisContainer: {
+            width: '100%',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            flexDirection: 'row',
+        },
+
+        textWithMiddleEllipsisText: {
+            overflow: 'hidden',
+            textOverflow: 'clip',
+            whiteSpace: 'nowrap',
         },
 
         verticalAlignTopText: {
@@ -517,7 +531,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeightSizeH2,
         },
 
         textHeadlineH1: {
@@ -525,7 +539,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh1,
+            lineHeight: variables.lineHeightSizeH1,
         },
 
         textWhite: {
@@ -671,7 +685,7 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
             flexShrink: 1,
 
-            // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
+            // It is needed to unset the line height. We don't need it for buttons as button always contains single line of text.
             // It allows to vertically center the text.
             lineHeight: undefined,
 
@@ -844,6 +858,10 @@ const styles = (theme: ThemeColors) =>
 
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
+        },
+
+        hoveredComponentBG2: {
+            backgroundColor: 'black',
         },
 
         activeComponentBG: {
@@ -1074,7 +1092,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderBottomWidth: 2,
             borderColor: theme.borderLighter,
-            // Adding browser specefic style to bring consistency between Safari and other platforms.
+            // Adding browser specific style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
             ...(getBrowser()
                 ? {
@@ -1528,6 +1546,12 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
+        textDropZone: {
+            ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
+            textAlign: 'center',
+        },
+
         subTextFileUpload: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
@@ -1665,7 +1689,7 @@ const styles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.navigationTabBarSize,
+            marginLeft: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
         },
 
         searchSidebar: {
@@ -1674,6 +1698,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
+            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles
@@ -2085,6 +2110,7 @@ const styles = (theme: ThemeColors) =>
 
         optionRowCompact: {
             height: variables.optionRowHeightCompact,
+            minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
         },
@@ -2693,6 +2719,14 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        reportSearchHeaderBar: {
+            overflow: 'hidden',
+            justifyContent: 'center',
+            display: 'flex',
+            width: '100%',
+            height: 52,
+        },
+
         searchResultsHeaderBar: {
             display: 'flex',
             height: variables.contentHeaderDesktopHeight,
@@ -3036,21 +3070,14 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pt0,
         },
 
-        workspaceSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
-            ...spacing.pt4,
-        },
-
         centralPaneAnimation: {
             height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
         },
 
         sectionTitle: {
             ...spacing.pt2,
-            ...spacing.pr3,
             ...spacing.pb4,
-            paddingLeft: 13,
+            ...spacing.ph2,
             fontSize: 13,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: 16,
@@ -3181,6 +3208,7 @@ const styles = (theme: ThemeColors) =>
 
         dividerLine: {
             height: 1,
+            maxHeight: 1,
             backgroundColor: theme.border,
             flexGrow: 1,
             ...spacing.mh5,
@@ -3959,6 +3987,17 @@ const styles = (theme: ThemeColors) =>
             height: 200,
         },
 
+        dropWrapper: {
+            zIndex: 2,
+            backgroundColor: theme.dropWrapperBG,
+        },
+
+        dropInnerWrapper: {
+            borderWidth: 2,
+            flex: 1,
+            borderStyle: 'dashed',
+        },
+
         reportDropOverlay: {
             backgroundColor: theme.dropUIBG,
             zIndex: 2,
@@ -3966,7 +4005,31 @@ const styles = (theme: ThemeColors) =>
 
         fileDropOverlay: {
             backgroundColor: theme.fileDropUIBG,
+        },
+
+        attachmentDropOverlay: {
+            backgroundColor: theme.attachmentDropUIBG,
+        },
+
+        attachmentDropText: {
+            color: theme.textAttachmentDropZone,
+        },
+
+        attachmentDropInnerWrapper: {
+            borderColor: theme.attachmentDropBorderColor,
+        },
+
+        receiptDropOverlay: {
+            backgroundColor: theme.receiptDropUIBG,
             zIndex: 2,
+        },
+
+        receiptDropText: {
+            color: theme.textReceiptDropZone,
+        },
+
+        receiptDropInnerWrapper: {
+            borderColor: theme.receiptDropBorderColor,
         },
 
         isDraggingOver: {
@@ -5039,7 +5102,8 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        searchStatusBarContainer: {
+        searchFiltersBarContainer: {
+            marginTop: 8,
             flexDirection: 'row',
             alignItems: 'center',
         },
@@ -5121,6 +5185,15 @@ const styles = (theme: ThemeColors) =>
             // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
             flexBasis: '35%',
             marginTop: 12,
+        },
+        onboardingAccountingItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: '35%',
         },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
@@ -5426,6 +5499,17 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        emptyStateMoneyRequestPreviewReport: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            height: 168,
+            width: '100%',
+            boxSizing: 'border-box',
+            ...borders.br4,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,
@@ -5527,6 +5611,18 @@ const styles = (theme: ThemeColors) =>
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
+        },
+
+        emptyStateFireworksWebStyles: {
+            width: 250,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...display.dFlex,
+        },
+
+        tripEmptyStateLottieWebView: {
+            width: 335,
+            height: 220,
         },
 
         workflowApprovalVerticalLine: {
@@ -5651,18 +5747,44 @@ const styles = (theme: ThemeColors) =>
             right: 0,
         },
 
+        getSearchBarStyle: (shouldUseNarrowLayout: boolean) => ({
+            maxWidth: shouldUseNarrowLayout ? '100%' : 300,
+            marginHorizontal: 20,
+            marginBottom: 20,
+        }),
+
+        getSelectionListPopoverHeight: (itemCount: number) => ({
+            height: itemCount * variables.optionRowHeightCompact,
+            ...sizing.mh65vh,
+        }),
+
+        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
+            const SEARCHBAR_HEIGHT = 50;
+            const SEARCHBAR_MARGIN = 14;
+            const BUTTON_HEIGHT = 40;
+            const PADDING = 44 - (shouldUseNarrowLayout ? 32 : 0);
+
+            const listHeight = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
+
+            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
+            // the listHeight or 65% of the window height
+            const height = Math.min(listHeight, windowHeight * 0.65);
+
+            return {height};
+        },
+
         earlyDiscountButton: {
             flexGrow: 1,
             flexShrink: 1,
             flexBasis: 'auto',
         },
 
-        testDriveModalContainer: {
+        testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
             // On small/medium screens, we need to remove the top padding
             paddingTop: 0,
-            // On medium screens, we need to prevent the modal from becoming too big
-            maxWidth: 500,
-        },
+            // On larger screens, we need to prevent the modal from becoming too big
+            maxWidth: shouldUseNarrowLayout ? undefined : 500,
+        }),
 
         backgroundWhite: {
             backgroundColor: colors.white,
@@ -5681,8 +5803,27 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
+        unreportedExpenseCreateExpenseButton: {
+            ...flex.alignSelfStart,
+        },
+
         testDriveBannerGap: {
             height: CONST.DESKTOP_HEADER_PADDING * 2,
+        },
+
+        twoColumnLayoutCol: {
+            flexGrow: 1,
+            flexShrink: 1,
+            // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
+            flexBasis: '35%',
+        },
+
+        thumbnailImageContainerHover: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        thumbnailImageContainerHighlight: {
+            backgroundColor: theme.highlightBG,
         },
     } satisfies Styles);
 

@@ -65,7 +65,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
-    const [shouldSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
+    const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -147,8 +147,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
      * @param contextMenuAnchor - popoverAnchor
      * @param reportID - Active Report Id
      * @param reportActionID - ReportAction for ContextMenu
-     * @param originalReportID - The currrent Report Id of the reportAction
-     * @param draftMessage - ReportAction Draftmessage
+     * @param originalReportID - The current Report Id of the reportAction
+     * @param draftMessage - ReportAction draft message
      * @param [onShow] - Run a callback when Menu is shown
      * @param [onHide] - Run a callback when Menu is hidden
      * @param isArchivedRoom - Whether the provided report is an archived room
@@ -221,7 +221,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             setIsChatPinned(isPinnedChat);
             setHasUnreadMessages(isUnreadChat);
             setIsThreadReportParentAction(isThreadReportParentActionParam);
-            setShoudSwitchPositionIfOverflow(isOverflowMenu);
+            setShouldSwitchPositionIfOverflow(isOverflowMenu);
         });
     };
 
@@ -341,7 +341,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
-                shouldUseNewModal
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}
