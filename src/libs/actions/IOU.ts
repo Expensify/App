@@ -11153,7 +11153,7 @@ function declineMoneyRequest(params: DeclineMoneyRequestParams) {
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
         const newReportID = movedToReportID ?? `-${Date.now()}`;
-        const newReport = movedToReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`] : buildOptimisticExpenseReport(newReportID, policy?.id, report?.ownerAccountID, 0, transaction?.currency ?? '');
+        const newReport = movedToReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`] : buildOptimisticExpenseReport(newReportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, transaction?.currency ?? '');
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -11180,12 +11180,19 @@ function declineMoneyRequest(params: DeclineMoneyRequestParams) {
         );
     } else {
         // For reports with single expense: Change report state to DRAFT
+        // First remove from reports collection
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: null
+        });
+
+        // Then add to report_draft collection
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`,
             value: {
-                stateNum: CONST.REPORT.STATE_NUM.DRAFT,
-                statusNum: CONST.REPORT.STATUS_NUM.DRAFT,
+                ...report,
             },
         });
     }
