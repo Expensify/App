@@ -236,6 +236,7 @@ function getOrderedReportIDs(
             });
             return;
         }
+
         const isSystemChat = isSystemChatUtil(report);
         const shouldOverrideHidden =
             hasValidDraftComment(report.reportID) ||

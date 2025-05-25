@@ -21,6 +21,11 @@ type ReportAttributes = {
      * Whether the report requires attention from current user.
      */
     requiresAttention: boolean;
+
+    /**
+     * Archive reason for the report, if any.
+     */
+    archiveReason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | null | undefined;
 };
 
 /**

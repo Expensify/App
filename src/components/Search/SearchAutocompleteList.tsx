@@ -156,6 +156,7 @@ function SearchAutocompleteList(
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates();
 
@@ -526,7 +527,10 @@ function SearchAutocompleteList(
         }
 
         handleSearch(autocompleteQueryWithoutFilters);
-    }, [autocompleteQueryWithoutFilters, handleSearch]);
+        // Avoid removing the reportAttributes dependency.
+        // It's used to detect archived Concierge chats.
+        // https://github.com/Expensify/App/issues/61853
+    }, [autocompleteQueryWithoutFilters, reportAttributes, handleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];

@@ -74,7 +74,7 @@ import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyReques
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged} from './actions/Report';
+import {getNewerActions, handleReportChanged} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
@@ -1718,6 +1718,26 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     return !!report && report?.reportID === conciergeChatReportID;
 }
 
+/**
+ * Returns true if the report is a Concierge chat report from another account due to account merge, returns false otherwise.
+ *
+ * Returns null if it couldn't currently determine if the report is a merged concierge chat (probably due to a loading request).
+ */
+function isMergedConciergeChatReport(reportOrID: OnyxInputOrEntry<Report> | Report['reportID'], reportAttributes?: ReportAttributesDerivedValue['reports']): boolean | null {
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
+    if (!report) {
+        return null;
+    }
+
+    const finalReportAttributes = (reportAttributes ?? reportAttributesDerivedValue)?.[report?.reportID];
+
+    if (typeof finalReportAttributes?.archiveReason === 'undefined') {
+        return null;
+    }
+
+    return chatIncludesConcierge(report) && finalReportAttributes?.archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED;
+}
+
 function findSelfDMReportID(): string | undefined {
     if (!allReports) {
         return;
@@ -1904,7 +1924,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
             // eslint-disable-next-line deprecation/deprecation
             const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
 
-            return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs);
+            return !isSystemChat(report) && (!isArchivedReport(reportNameValuePairs) || isMergedConciergeChatReport(report));
         }) ?? [];
 
     // At least two reports remain: self DM and Concierge chat.
@@ -1942,7 +1962,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    return !(isExpenseReport(report) || isExpenseRequest(report)) && !!reportNameValuePairs?.private_isArchived;
+    return (!(isExpenseReport(report) || isExpenseRequest(report)) && !!reportNameValuePairs?.private_isArchived) || !!isMergedConciergeChatReport(report);
 }
 
 /**
@@ -2889,6 +2909,16 @@ function getIcons(
     invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>,
 ): Icon[] {
     const ownerDetails = report?.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
+    if (isMergedConciergeChatReport(report)) {
+        const conciergeIcon: Icon = {
+            source: allPersonalDetails?.[CONST.ACCOUNT_ID.CONCIERGE]?.avatar ?? CONST.CONCIERGE_ICON_URL,
+            type: CONST.ICON_TYPE_AVATAR,
+            name: allPersonalDetails?.[CONST.ACCOUNT_ID.CONCIERGE]?.displayName ?? CONST.CONCIERGE_DISPLAY_NAME,
+            id: CONST.ACCOUNT_ID.CONCIERGE,
+        };
+
+        return [conciergeIcon];
+    }
 
     if (isEmptyObject(report)) {
         const fallbackIcon: Icon = {
@@ -3362,7 +3392,7 @@ function getReasonAndReportActionThatRequiresAttention(
 
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID)) || isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID))) {
+    if (isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID)) || isMergedConciergeChatReport(optionOrReport.reportID)) {
         return null;
     }
 
@@ -4927,6 +4957,10 @@ function getReportNameInternal({
     // eslint-disable-next-line deprecation/deprecation
     if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
         formattedName += ` (${translateLocal('common.archived')})`;
+    }
+
+    if (isMergedConciergeChatReport(report)) {
+        return `${CONST.CONCIERGE_CHAT_NAME} (${translateLocal('common.archived')})`;
     }
 
     if (isSelfDM(report)) {
@@ -10713,11 +10747,13 @@ function generateReportAttributes({
     reportActions,
     transactionViolations,
     reportNameValuePairs,
+    currentArchiveReason,
 }: {
     report: OnyxEntry<Report>;
     reportActions?: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    currentArchiveReason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | null | undefined;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -10732,6 +10768,16 @@ function generateReportAttributes({
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
     const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction);
     const isReportArchived = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
+    let archiveReason = getArchiveReason(reportActionsList);
+    // The BE sometimes doesn't tell us whether Concierge chats are archived,
+    // so if we don't already have the reason, we need to get the newer actions
+    // and then try to get the reason again. if currentArchiveReason is null,
+    // it means we've already fetched it and it's not archived.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (!archiveReason && chatIncludesConcierge(report) && currentArchiveReason !== null) {
+        getNewerActions(report?.reportID, getLastVisibleAction(report?.reportID)?.reportActionID);
+        archiveReason = getArchiveReason(reportActionsList);
+    }
 
     return {
         doesReportHasViolations,
@@ -10743,6 +10789,7 @@ function generateReportAttributes({
         parentReportAction,
         requiresAttention,
         isReportArchived,
+        archiveReason: archiveReason ?? null,
     };
 }
 
@@ -11162,6 +11209,7 @@ export {
     isWorkspaceEligibleForReportChange,
     getReportAttributes,
     navigateOnDeleteExpense,
+    isMergedConciergeChatReport,
 };
 
 export type {

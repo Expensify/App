@@ -34,6 +34,7 @@ import {
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
     isConciergeChatReport,
     isGroupChat,
+    isMergedConciergeChatReport,
     isOneOnOneChat,
     isPolicyExpenseChat,
     isSystemChat,
@@ -307,7 +308,8 @@ function OptionRowLHN({
                                                         !!optionItem.isMoneyRequestReport ||
                                                         !!optionItem.isInvoiceReport ||
                                                         isGroupChat(report) ||
-                                                        isSystemChat(report)
+                                                        isSystemChat(report) ||
+                                                        !!isMergedConciergeChatReport(report)
                                                     }
                                                 />
                                                 {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}

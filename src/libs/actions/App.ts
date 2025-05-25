@@ -137,6 +137,11 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
+    // Avoid removing the ONYXKEYS.DERIVED.REPORT_ATTRIBUTES key.
+    // It's used to keep archived Concierge chats when switching
+    // between most recent and focus mode.
+    // https://github.com/Expensify/App/issues/61853
+    ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
 ];
 
 Onyx.connect({

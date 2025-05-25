@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import {generateIsEmptyReport, generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
@@ -8,6 +9,16 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
 let recentlyUpdated: string[] = [];
+
+// Archive reason sometimes needs more report actions data, so when we don't have it, we fetch it.
+// This callback makes sure we recompute the archive reason when we've fetched more data.
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: false,
+    callback: () => {
+        isFullyComputed = false;
+    },
+});
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -110,11 +121,12 @@ export default createOnyxDerivedValueConfig({
             }
 
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const {hasAnyViolations, requiresAttention, isReportArchived} = generateReportAttributes({
+            const {hasAnyViolations, requiresAttention, isReportArchived, archiveReason} = generateReportAttributes({
                 report,
                 reportActions,
                 transactionViolations,
                 reportNameValuePairs,
+                currentArchiveReason: currentValue?.reports?.[report.reportID]?.archiveReason,
             });
 
             let brickRoadStatus;
@@ -132,6 +144,7 @@ export default createOnyxDerivedValueConfig({
                 isEmpty: generateIsEmptyReport(report),
                 brickRoadStatus,
                 requiresAttention,
+                archiveReason,
             };
 
             return acc;
