@@ -17,6 +17,7 @@ import {
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {
     canAddTransaction,
+    canDeclineReportAction,
     canEditFieldOfMoneyRequest,
     canEditReportPolicy,
     isArchivedReport,
@@ -368,33 +369,6 @@ function isDeleteAction(report: Report): boolean {
     return isReportOpen || isProcessingReport;
 }
 
-function isDeclineAction(report: Report, policy?: Policy): boolean {
-    const currentUserAccountID = getCurrentUserAccountID();
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserAccountID;
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
-    const isProcessingReport = isProcessingReportUtils(report);
-    const isReportApproved = isReportApprovedUtils({report});
-    const isPayer = isPayerUtils(getSession(), report, false, policy);
-
-    // If user is not a manager/approver and not a payer, they can't decline
-    if (!isCurrentUserManager && !isPayer) {
-        return false;
-    }
-
-    // If user is a manager/approver, they can only decline when report is processing
-    if (isCurrentUserManager && isReportApprover && isProcessingReport) {
-        return true;
-    }
-
-    // If user is a payer, they can only decline when report is approved
-    if (isPayer && isReportApproved) {
-        return true;
-    }
-
-    return false;
-}
-
 function isReopenAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     if (!isExpenseReport) {
@@ -481,7 +455,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
-    if (isDeclineAction(report, policy)) {
+    if (canDeclineReportAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DECLINE);
     }
 
@@ -503,4 +477,4 @@ function getSecondaryTransactionThreadActions(parentReport: Report, reportTransa
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, isDeclineAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction};

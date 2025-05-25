@@ -72,6 +72,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
+import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
@@ -98,6 +99,7 @@ import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
+import {getSession} from './SessionUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
 import {
@@ -10803,6 +10805,33 @@ function getReportAttributes(reportID: string | undefined, reportAttributes?: Re
     return attributes[reportID];
 }
 
+function canDeclineReportAction(report: Report, policy?: Policy): boolean {
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const isReportBeingProcessed = isProcessingReport(report);
+    const isApproved = isReportApproved({report});
+    const isReportPayer = isPayer(getSession(), report, false, policy);
+
+    // If user is not a manager/approver and not a payer, they can't decline
+    if (!isCurrentUserManager && !isPayer) {
+        return false;
+    }
+
+    // If user is a manager/approver, they can only decline when report is processing
+    if (isCurrentUserManager && isReportApprover && isReportBeingProcessed) {
+        return true;
+    }
+
+    // If user is a payer, they can only decline when report is approved
+    if (isReportPayer && isApproved) {
+        return true;
+    }
+
+    return false;
+}
+
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11184,6 +11213,7 @@ export {
     isWorkspaceEligibleForReportChange,
     getReportAttributes,
     navigateOnDeleteExpense,
+    canDeclineReportAction
 };
 
 export type {
