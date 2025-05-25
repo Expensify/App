@@ -88,6 +88,15 @@ const restrictedImportPaths = [
         message: "Please use '@src/libs/memoize' instead.",
     },
     {
+        name: 'lodash/isEqual',
+        message: "Please use 'deepEqual' from 'fast-equals' instead.",
+    },
+    {
+        name: 'lodash',
+        importNames: ['isEqual'],
+        message: "Please use 'deepEqual' from 'fast-equals' instead.",
+    },
+    {
         name: 'react-native-animatable',
         message: "Please use 'react-native-reanimated' instead.",
     },

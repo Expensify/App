@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -49,8 +49,8 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         if (searchTriggeredRef.current) {
             return;
         }
-        const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
-        const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
+        const hasTransactionsIDsChange = !deepEqual(transactionsIDs, previousTransactionsIDs);
+        const hasReportActionsIDsChange = !deepEqual(reportActionsIDs, previousReportActionsIDs);
 
         // NOTE: This if statement should NOT assume report actions can only change
         // in one type, i.e.: isChat && hasReportActionsIDsChange

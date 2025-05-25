@@ -1,4 +1,4 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
@@ -481,4 +481,4 @@ function MoneyRequestParticipantsSelector({
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
+export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
