@@ -14,6 +14,7 @@ import type {
     CreateDistanceRequestParams,
     CreatePerDiemRequestParams,
     CreateWorkspaceParams,
+    DeclineMoneyRequestParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
     MergeDuplicatesParams,
@@ -71,6 +72,7 @@ import {
     getSubmitToAccountID,
     hasDependentTags,
     isControlPolicy,
+    isInstantSubmitEnabled,
     isPaidGroupPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
@@ -11107,6 +11109,201 @@ function dismissDeclineUseExplanation() {
     });
 }
 
+function declineMoneyRequest(params: DeclineMoneyRequestParams) {
+    const {transactionID, reportID, comment, removedFromReportActionID, declinedActionReportActionID, declinedCommentReportActionID, movedToReportID, autoAddedActionReportActionID} = params;
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const policy = getPolicy(report?.policyID);
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const isPolicyInstantSubmit = isInstantSubmitEnabled(policy);
+
+    const hasMultipleExpenses = Object.keys(allTransactions ?? {}).filter((key) => allTransactions?.[key]?.reportID === reportID).length > 1;
+
+    // Build optimistic data updates
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    if (isPolicyInstantSubmit) {
+        if (hasMultipleExpenses) {
+            // For reports with multiple expenses: Update report total
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                },
+            });
+        } else {
+            // For reports with single expense: Delete the report
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    reportID: null,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                },
+            });
+        }
+    } else if (hasMultipleExpenses) {
+        // For reports with multiple expenses:
+        // 1. Update report total
+        // 2. Remove expense from report
+        // 3. Add to existing draft report or create new one
+        const newReportID = movedToReportID ?? `-${Date.now()}`;
+        const newReport = movedToReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`] : buildOptimisticExpenseReport(newReportID, policy?.id, report?.ownerAccountID, 0, transaction?.currency ?? '');
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${newReportID}`,
+                value: {
+                    ...newReport,
+                    total: (newReport?.total ?? 0) + (transaction?.amount ?? 0),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    reportID: newReportID,
+                },
+            }
+        );
+    } else {
+        // For reports with single expense: Change report state to DRAFT
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.DRAFT,
+                statusNum: CONST.REPORT.STATUS_NUM.DRAFT,
+            },
+        });
+    }
+
+    // Handle violation if expense is not an IOU
+    if (!isMoneyRequestAction(report)) {
+        // Move expense to another report based on Scheduled Submit
+        const newReportID = movedToReportID ?? `-${Date.now()}`;
+        const newReport = movedToReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`] : buildOptimisticExpenseReport(newReportID, policy?.id ?? '', report?.ownerAccountID ?? 0, 0, transaction?.currency ?? '');
+        
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${newReportID}`,
+                value: {
+                    ...newReport,
+                    total: (newReport?.total ?? 0) + (transaction?.amount ?? 0),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    reportID: newReportID,
+                },
+            }
+        );
+
+        // Add rejectedExpense violation
+        const currentTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
+            value: [
+                ...currentTransactionViolations,
+                {
+                    name: CONST.VIOLATIONS.REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {
+                        rejectReason: comment ?? ''
+                    }
+                }
+            ],
+        });
+    }
+
+    // Create system messages in both expense report and expense thread
+    const declineAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.DECLINED,
+        actorAccountID: currentUserAccountID,
+        created: DateUtils.getDBTime(),
+        reportActionID: declinedActionReportActionID,
+        message: [
+            {
+                type: 'TEXT',
+                text: Localize.translateLocal('common.decline'),
+            },
+        ],
+    };
+
+    const declineCommentAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        actorAccountID: currentUserAccountID,
+        created: DateUtils.getDBTime(),
+        reportActionID: declinedCommentReportActionID,
+        message: [
+            {
+                type: 'TEXT',
+                text: comment,
+            },
+        ],
+    };
+
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [declinedActionReportActionID]: declineAction,
+                [declinedCommentReportActionID]: declineCommentAction,
+            },
+        }
+    );    
+
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(declineAction.created, 1);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            lastReadTime,
+        },
+    });
+
+    // Build API parameters
+    const parameters: DeclineMoneyRequestParams = {
+        transactionID,
+        reportID,
+        comment,
+        movedToReportID,
+        autoAddedActionReportActionID,
+        removedFromReportActionID,
+        declinedActionReportActionID,
+        declinedCommentReportActionID,
+    };
+
+    // Make API call
+    API.write(WRITE_COMMANDS.DECLINE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});    
+
+}
+    
+
 export {
     adjustRemainingSplitShares,
     getNextApproverAccountID,
@@ -11201,6 +11398,7 @@ export {
     canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
-    dismissDeclineUseExplanation
+    dismissDeclineUseExplanation,
+    declineMoneyRequest
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
