@@ -12,6 +12,7 @@ import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
@@ -29,6 +30,7 @@ import {
     getSettingsTabStateFromSessionStorage,
     getWorkspacesTabStateFromSessionStorage,
 } from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import {getPolicy, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -61,6 +63,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {orderedReports} = useSidebarOrderedReports();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
@@ -181,6 +184,15 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             if (lastWorkspacesTabNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
                 const params = workspacesTabState?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
                 // Screens of this navigator should always have policyID
+                const policy = getPolicy(params.policyID);
+                const shouldShowPolicy = shouldShowPolicyUtil(policy, false, currentUserLogin);
+                const isPendingDelete = isPendingDeletePolicy(policy);
+
+                if (!shouldShowPolicy || isPendingDelete) {
+                    Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
+                    return;
+                }
+
                 if (params.policyID) {
                     const workspaceScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceTabScreen() : SCREENS.WORKSPACE.INITIAL;
                     // This action will put settings split under the workspace split to make sure that we can swipe back to settings split.
@@ -213,7 +225,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             // Otherwise we should simply open the workspace hub navigator.
             Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
         });
-    }, [shouldUseNarrowLayout]);
+    }, [shouldUseNarrowLayout, currentUserLogin]);
 
     if (!shouldUseNarrowLayout) {
         return (
