@@ -1,5 +1,5 @@
-import React, {useMemo} from 'react';
-import Animated, {Easing, Keyframe} from 'react-native-reanimated';
+import React, {useEffect, useMemo} from 'react';
+import Animated, {Easing, Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ModalProps from '@components/Modal/BottomDockedModal/types';
 import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,18 +8,28 @@ const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
 function Container({style, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, ...props}: ModalProps & ContainerProps) {
     const styles = useThemeStyles();
+    const opacity = useSharedValue(0);
+    const isInitiated = useSharedValue(false);
 
-    const Entering = useMemo(() => {
-        const FadeIn = new Keyframe({
-            from: {opacity: 0},
-            to: {
-                opacity: 1,
-                easing,
-            },
-        });
+    useEffect(() => {
+        if (isInitiated.get()) {
+            return;
+        }
+        isInitiated.set(true);
+        opacity.set(
+            withTiming(1, {duration: animationInTiming}, () => {
+                'worklet';
 
-        return FadeIn.duration(animationInTiming).withCallback(onOpenCallBack);
-    }, [animationInTiming, onOpenCallBack]);
+                runOnJS(onOpenCallBack)();
+            }),
+        );
+    }, [animationInTiming, onOpenCallBack, opacity, isInitiated]);
+
+    const animatedStyles = useAnimatedStyle(() => {
+        'worklet';
+
+        return {opacity: opacity.get()};
+    }, [opacity]);
 
     const Exiting = useMemo(() => {
         const FadeOut = new Keyframe({
@@ -35,9 +45,8 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
 
     return (
         <Animated.View
-            style={[style, styles.modalContainer, styles.modalAnimatedContainer]}
+            style={[style, styles.modalContainer, styles.modalAnimatedContainer, animatedStyles]}
             exiting={Exiting}
-            entering={Entering}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
