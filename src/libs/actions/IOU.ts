@@ -11430,18 +11430,23 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: updatedReportAction,
         });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${draftTransaction?.reportID}`,
+            value: {
+                [firstIOU.reportActionID]: {
+                    ...firstIOU,
+                    pendingAction: null,
+                },
+            },
+        });
     }
 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
         value: originalTransaction,
-    });
-
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${draftTransaction?.reportID}`,
-        value: iouActions,
     });
 
     optimisticData.push({
