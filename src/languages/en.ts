@@ -1536,7 +1536,7 @@ const translations = {
             description: "You can't merge into other accounts because it's not validated. Please validate the account and try again.",
         },
         mergeFailureSelfMerge: {
-            description: "You cannot merge an account into itself.",
+            description: 'You cannot merge an account into itself.',
         },
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
