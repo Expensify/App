@@ -206,7 +206,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
-        [autocompleteSubstitutions, setTextInputValue, textInputValue],
+        [autocompleteSubstitutions, textInputValue],
     );
 
     const submitSearch = useCallback(
@@ -297,7 +297,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 });
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
+        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue, setTextAndUpdateSelection],
     );
 
     const updateAutocompleteSubstitutions = useCallback(
