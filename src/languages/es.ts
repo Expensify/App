@@ -1533,7 +1533,7 @@ const translations = {
             description: 'No puedes fusionarte con otras cuentas porque no está validada. Por favor, valida la cuenta e inténtalo de nuevo.',
         },
         mergeFailureSelfMerge: {
-            description: "",
+            description: "No puedes combinar una cuenta consigo misma.",
         },
         mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
     },
