@@ -11388,7 +11388,53 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     API.write(WRITE_COMMANDS.DECLINE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});    
 
 }
-    
+
+function markDeclineViolationAsResolved(transactionID: string, markedAsResolvedReportActionID: string) {
+    const transaction = allTransactions?.[transactionID];
+    if (!transaction) {
+        return;
+    }
+
+    const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const updatedViolations = currentViolations?.filter(violation => violation.name !== CONST.VIOLATIONS.REJECTED_EXPENSE);
+
+    // Build optimistic data
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: updatedViolations,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: updatedViolations,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentViolations,
+        },
+    ];
+
+    const parameters = {
+        transactionID,
+        markedAsResolvedReportActionID,
+    };
+
+    // Make API call
+    API.write(WRITE_COMMANDS.MARK_TRANSACTION_VIOLATION_AS_RESOLVED, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
 
 export {
     adjustRemainingSplitShares,
@@ -11485,6 +11531,7 @@ export {
     submitPerDiemExpense,
     calculateDiffAmount,
     dismissDeclineUseExplanation,
-    declineMoneyRequest
+    declineMoneyRequest,
+    markDeclineViolationAsResolved
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
