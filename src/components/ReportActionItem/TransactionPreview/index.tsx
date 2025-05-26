@@ -78,7 +78,13 @@ function TransactionPreview(props: TransactionPreviewProps) {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
+    let transactionPreview = transaction;
+
     const {originalTransaction, isBillSplit} = getOriginalTransactionIfItIsSplit(transaction);
+
+    if (isBillSplit) {
+        transactionPreview = originalTransaction;
+    }
 
     const iouAction = isBillSplit && originalTransaction ? getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action : action;
 
@@ -105,7 +111,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
-                    transaction={originalTransaction}
+                    transaction={transactionPreview}
                     iouReport={iouReport}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
