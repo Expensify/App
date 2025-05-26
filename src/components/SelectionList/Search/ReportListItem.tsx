@@ -151,19 +151,19 @@ function ReportListItem<TItem extends ListItem>({
                             hoverStyle={[styles.bgTransparent]}
                         />
                     </View>
-                    {isEmptyReport ? (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                            <Text
-                                style={[styles.textLabelSupporting]}
-                                numberOfLines={1}
-                            >
-                                {translate('search.moneyRequestReport.emptyStateTitle')}
-                            </Text>
-                        </View>
-                    ) : (
-                        <>
-                            {isExpanded && <View style={[styles.threadDividerLine, styles.mv2, styles.mr2]} />}
-                            <Collapsible isOpened={isExpanded}>
+                    {isExpanded && <View style={[styles.threadDividerLine, styles.mv2, styles.mr2]} />}
+                    <Collapsible isOpened={isExpanded}>
+                        {isEmptyReport ? (
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                                <Text
+                                    style={[styles.textLabelSupporting]}
+                                    numberOfLines={1}
+                                >
+                                    {translate('search.moneyRequestReport.emptyStateTitle')}
+                                </Text>
+                            </View>
+                        ) : (
+                            <>
                                 {reportItem.transactions.map((transaction) => (
                                     <View>
                                         <TransactionItemRow
@@ -183,9 +183,9 @@ function ReportListItem<TItem extends ListItem>({
                                         />
                                     </View>
                                 ))}
-                            </Collapsible>
-                        </>
-                    )}
+                            </>
+                        )}
+                    </Collapsible>
                 </View>
             )}
         </BaseListItem>
