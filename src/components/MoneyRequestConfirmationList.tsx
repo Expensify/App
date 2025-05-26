@@ -650,7 +650,7 @@ function MoneyRequestConfirmationList({
                     hideCurrencySymbol
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0, styles.h100]}
-                    inputStyle={[styles.optionRowAmountInput, {lineHeight: undefined}]}
+                    inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
                     containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
@@ -674,6 +674,7 @@ function MoneyRequestConfirmationList({
         styles.h100,
         styles.textLabel,
         styles.pv0,
+        styles.lineHeightUndefined,
         styles.optionRowAmountInput,
         styles.textInputContainer,
         styles.ml3,

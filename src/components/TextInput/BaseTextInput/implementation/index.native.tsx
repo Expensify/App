@@ -252,6 +252,7 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
     }, []);
 
+    const shouldAddPaddingBottom = autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge;
     const hasLabel = !!label?.length;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
@@ -269,6 +270,7 @@ function BaseTextInput(
         isAutoGrowHeightMarkdown && styles.pb2,
         inputProps.disabled && styles.textInputDisabledContainer,
         !hasLabel && styles.pt0,
+        shouldAddPaddingBottom && styles.pb1,
     ]);
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
@@ -276,7 +278,6 @@ function BaseTextInput(
 
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
-    const shouldAddPaddingBottom = autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge;
 
     return (
         <>
@@ -293,7 +294,7 @@ function BaseTextInput(
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
                             styles.autoGrowHeightInputContainer(
-                                textInputHeight + (shouldAddPaddingBottom ? 8 : 0),
+                                textInputHeight + (shouldAddPaddingBottom ? styles.textInputContainer.padding : 0),
                                 variables.componentSizeLarge,
                                 typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
                             ),
@@ -391,7 +392,6 @@ function BaseTextInput(
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
-                                    shouldAddPaddingBottom && styles.pb1,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={maxLength}

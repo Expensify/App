@@ -405,12 +405,19 @@ const styles = (theme: ThemeColors) =>
         verticalAlignTop: {
             verticalAlign: 'top',
         },
+
+        lineHeightUndefined: {
+            lineHeight: undefined,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
+
         lineHeightXLarge: {
             lineHeight: variables.lineHeightXLarge,
         },
+
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,

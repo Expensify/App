@@ -257,6 +257,7 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
 
+    const shouldAddPaddingBottom = autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge;
     const hasLabel = !!label?.length;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
@@ -273,6 +274,7 @@ function BaseTextInput(
         isAutoGrowHeightMarkdown && styles.pb2,
         inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
         !hasLabel && styles.pt0,
+        shouldAddPaddingBottom && styles.pb1,
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
@@ -300,7 +302,11 @@ function BaseTextInput(
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
-                            styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
+                            styles.autoGrowHeightInputContainer(
+                                textInputHeight + (shouldAddPaddingBottom ? styles.textInputContainer.padding : 0),
+                                variables.componentSizeLarge,
+                                typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
+                            ),
                         isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
