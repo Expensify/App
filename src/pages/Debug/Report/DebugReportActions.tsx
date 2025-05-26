@@ -26,13 +26,14 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const {translate, datetimeToCalendarTime} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(reportID);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report);
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
         selector: (allReportActions) => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true),
+        canBeMissing: true,
     });
 
     const getReportActionDebugText = useCallback(

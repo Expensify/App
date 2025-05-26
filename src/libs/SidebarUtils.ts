@@ -79,7 +79,6 @@ import {
     getReportAttributes,
     getReportDescription,
     getReportName,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -379,6 +378,9 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
     if (transactionThreadReportID) {
         const transactionID = getTransactionID(transactionThreadReportID);
+
+        // This will get removed as part of https://github.com/Expensify/App/issues/61910
+        // eslint-disable-next-line deprecation/deprecation
         const transaction = getTransaction(transactionID);
         if (hasReceiptError(transaction)) {
             return {
@@ -387,6 +389,9 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         }
     }
     const transactionID = getTransactionID(report.reportID);
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/61910
+    // eslint-disable-next-line deprecation/deprecation
     const transaction = getTransaction(transactionID);
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
         return {
