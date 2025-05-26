@@ -740,12 +740,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
-                if (Object.keys(transactions).length > 1 && canUseTableReportView) {
-                    setIsDeleteReportModalVisible(true);
-                } else {
+                if (Object.keys(transactions).length === 1) {
                     setIsDeleteExpenseModalVisible(true);
+                } else {
+                    setIsDeleteReportModalVisible(true);
                 }
             },
+            shouldShow: canUseTableReportView,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
             text: translate('iou.undoClose'),
@@ -774,7 +775,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
+    const applicableSecondaryActions = secondaryActions
+    .map((action) => secondaryActionsImplementation[action])
+    .filter((action) => action?.shouldShow !== false);
 
     useEffect(() => {
         if (!transactionThreadReportID) {
