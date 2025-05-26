@@ -1,6 +1,7 @@
 import type {RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -18,8 +19,6 @@ type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTI
 
 type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
-type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
-
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
@@ -35,8 +34,13 @@ type DropdownOption<TValueType> = {
     numberOfLinesTitle?: number;
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
+    description?: string;
+    descriptionTextStyle?: StyleProp<TextStyle>;
+    wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;
-    shouldPreserveSelectionAfterHideModal?: boolean;
+    subMenuItems?: PopoverMenuItem[];
+    backButtonText?: string;
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -126,6 +130,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** The second line text displays under the first line */
     secondLineText?: string;
+
+    /** Icon for main button */
+    icon?: IconAsset;
 };
 
 export type {
@@ -137,5 +144,4 @@ export type {
     ButtonWithDropdownMenuProps,
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
-    OnboardingHelpType,
 };

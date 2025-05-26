@@ -8,8 +8,6 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
-import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST, {getTestDriveTaskName} from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -189,7 +187,7 @@ describe('actions/Task', () => {
     describe('completeTestDriveTask', () => {
         const accountID = 2;
         const conciergeChatReport: Report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
-        const testDriveTaskReport: Report = LHNTestUtils.getFakeReport();
+        const testDriveTaskReport: Report = {...LHNTestUtils.getFakeReport(), ownerAccountID: accountID};
         const testDriveTaskAction: ReportAction = {
             ...LHNTestUtils.getFakeReportAction(),
             childType: CONST.REPORT.TYPE.TASK,
@@ -213,16 +211,14 @@ describe('actions/Task', () => {
             await Onyx.multiSet({
                 ...reportCollectionDataSet,
                 ...reportActionsCollectionDataSet,
+                [ONYXKEYS.NVP_INTRO_SELECTED]: {
+                    viewTour: testDriveTaskReport.reportID,
+                },
+                [ONYXKEYS.SESSION]: {
+                    accountID,
+                },
             });
             await waitForBatchedUpdates();
-        });
-
-        it('Uses concierge room', () => {
-            const getChatUsedForOnboardingSpy = jest.spyOn(ReportUtils, 'getChatUsedForOnboarding');
-
-            completeTestDriveTask();
-
-            expect(getChatUsedForOnboardingSpy).toHaveReturnedWith(conciergeChatReport);
         });
 
         it('Completes test drive task', () => {

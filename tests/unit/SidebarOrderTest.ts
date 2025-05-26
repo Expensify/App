@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import {addComment} from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -28,12 +29,13 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('Sidebar', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+        });
+        initOnyxDerivedValues();
+    });
 
     beforeEach(() => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
