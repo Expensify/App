@@ -1130,7 +1130,6 @@ const translations = {
             quantityGreaterThanZero: 'Quantity must be greater than zero',
             invalidSubrateLength: 'There must be at least one subrate',
             invalidRate: 'Rate not valid for this workspace. Please select an available rate from the workspace.',
-            reopenError: 'This report has already been reopened',
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',

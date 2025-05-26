@@ -9417,7 +9417,7 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
                 [optimisticReopenedReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.reopenError'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
                 },
             },
         },
