@@ -462,7 +462,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
     };
 
-    // Animation is enabled when navigating to any screen different than split central screen
+    // Animation is enabled when navigating to any screen different than split sidebar screen
     const getFullscreenNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         // We don't need to do anything special for the wide screen.
         if (!shouldUseNarrowLayout) {
