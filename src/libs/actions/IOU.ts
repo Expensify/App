@@ -11123,6 +11123,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const declinedActionReportActionID = '-1';
     const declinedCommentReportActionID = '-2';
     let movedToReportID;
+    let movedToReport;
 
     const hasMultipleExpenses = (() => {
         let count = 0;
@@ -11168,7 +11169,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
         movedToReportID = generateReportID();
-        const movedToReport = buildOptimisticExpenseReport(movedToReportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, transaction?.currency ?? '');
+        movedToReport = buildOptimisticExpenseReport(movedToReportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, transaction?.currency ?? '');
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -11215,34 +11216,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     // Add rter transaction violation
     // TODO: Clarify move the expense to another report based on "Scheduled Submit"
     if (!isIOUReport(report)) {
-        movedToReportID = generateReportID();
-        const newReport = buildOptimisticExpenseReport(movedToReportID, policy?.id ?? '', report?.ownerAccountID ?? 0, 0, transaction?.currency ?? '');
-
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`,
-                value: {
-                    ...newReport,
-                    total: (newReport?.total ?? 0) + (transaction?.amount ?? 0),
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    reportID: movedToReportID,
-                },
-            }
-        );
-
         // Add rejectedExpense violation
         const currentTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
         optimisticData.push({
