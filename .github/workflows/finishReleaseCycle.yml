@@ -49,6 +49,12 @@ jobs:
             Sorry, only members of @Expensify/Mobile-Deployers can close deploy checklists.
             Reopening!
 
+      - name: Fail on non-deployer
+        if: ${{ !fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) }}
+        run: |
+          echo "User is not authorized to deploy; aborting release cycle."
+          exit 1      
+
       - name: Check for any deploy blockers
         if: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) }}
         id: checkDeployBlockers
@@ -67,6 +73,12 @@ jobs:
             This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval.
             Reopening!
 
+      - name: Fail on deploy blockers
+        if: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS || 'false') }}
+        run: |
+          echo "Deploy blocked; aborting release cycle."
+          exit 1
+
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
@@ -76,7 +88,6 @@ jobs:
   # Update the production branch to trigger the production deploy.
   updateProduction:
     needs: validate
-    if: ${{ fromJSON(needs.validate.outputs.isValid) }}
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:
