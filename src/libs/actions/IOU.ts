@@ -9380,7 +9380,6 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
                 [optimisticRetractReportAction.reportActionID]: {
-                    pendingAction: null,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
                 },
             },
