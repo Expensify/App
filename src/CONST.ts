@@ -1244,6 +1244,7 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            MARK_AS_RESOLVED: 'markAsResolved'
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',

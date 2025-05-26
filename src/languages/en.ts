@@ -1233,6 +1233,7 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+        markAsResolved: 'Mark as resolved',
         decline: {
             educationalTitle: 'Should you',
             questionMark: '?',
