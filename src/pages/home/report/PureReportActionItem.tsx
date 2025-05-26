@@ -133,7 +133,6 @@ import {
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
     getTravelUpdateMessage,
-    getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
@@ -240,7 +239,7 @@ type PureReportActionItemProps = {
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
 
-    /** ReportAction Draftmessage */
+    /** ReportAction draft message */
     draftMessage?: string;
 
     /** The IOU/Expense report we are paying */
@@ -650,7 +649,6 @@ function PureReportActionItem({
                     onPress: () => {
                         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
                     },
-                    isMediumSized: true,
                     isPrimary: true,
                 },
             ];
@@ -688,7 +686,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.categorize',
@@ -696,7 +693,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.share',
@@ -704,7 +700,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.nothing',
@@ -712,7 +707,6 @@ function PureReportActionItem({
                     onPress: () => {
                         dismissTrackExpenseActionableWhisper(reportID, action);
                     },
-                    isMediumSized: true,
                 },
             ];
         }
@@ -1025,11 +1019,7 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
-            children = (
-                <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage(action)}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
-            );
+            children = <ReportActionItemBasicMessage message={translate('iou.unreportedTransaction')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
