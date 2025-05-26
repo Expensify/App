@@ -1884,7 +1884,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     });
 
     if (searchUpdate) {
-        optimisticData.push({...searchUpdate});
+        if (searchUpdate.optimisticData) {
+            optimisticData.push(...searchUpdate.optimisticData);
+        }
+        if (searchUpdate.successData) {
+            successData.push(...searchUpdate.successData);
+        }
     }
 
     // We don't need to compute violations unless we're on a paid policy
@@ -2309,7 +2314,12 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
     });
 
     if (searchUpdate) {
-        optimisticData.push({...searchUpdate});
+        if (searchUpdate.optimisticData) {
+            optimisticData.push(...searchUpdate.optimisticData);
+        }
+        if (searchUpdate.successData) {
+            successData.push(...searchUpdate.successData);
+        }
     }
 
     // We don't need to compute violations unless we're on a paid policy
@@ -2767,7 +2777,12 @@ function buildOnyxDataForTrackExpense({
     });
 
     if (searchUpdate) {
-        optimisticData.push({...searchUpdate});
+        if (searchUpdate.optimisticData) {
+            optimisticData.push(...searchUpdate.optimisticData);
+        }
+        if (searchUpdate.successData) {
+            successData.push(...searchUpdate.successData);
+        }
     }
 
     // We don't need to compute violations unless we're on a paid policy
@@ -11047,7 +11062,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
 }
 
-function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdateParams) {
+function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdateParams): OnyxData | undefined {
     const toAccountID = participant?.accountID;
     const fromAccountID = currentUserPersonalDetails?.accountID;
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
@@ -11058,31 +11073,57 @@ function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdatePara
             currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(currentSearchQueryJSON.type) && currentSearchQueryJSON.flatFilters.length === 0;
 
         if (shouldOptimisticallyUpdate) {
+            const isOptimisticToData = isOptimisticPersonalDetail(toAccountID);
             return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
-                value: {
-                    data: {
-                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                            [toAccountID]: {
-                                accountID: toAccountID,
-                                displayName: participant?.displayName,
-                                login: participant?.login,
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                        value: {
+                            data: {
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                                    [toAccountID]: {
+                                        accountID: toAccountID,
+                                        displayName: participant?.displayName,
+                                        login: participant?.login,
+                                    },
+                                    [fromAccountID]: {
+                                        accountID: fromAccountID,
+                                        avatar: currentUserPersonalDetails?.avatar,
+                                        displayName: currentUserPersonalDetails?.displayName,
+                                        login: currentUserPersonalDetails?.login,
+                                    },
+                                },
+                                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                                    accountID: fromAccountID,
+                                    managerID: toAccountID,
+                                    ...transaction,
+                                },
                             },
-                            [fromAccountID]: {
-                                accountID: fromAccountID,
-                                avatar: currentUserPersonalDetails?.avatar,
-                                displayName: currentUserPersonalDetails?.displayName,
-                                login: currentUserPersonalDetails?.login,
-                            },
-                        },
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                            accountID: fromAccountID,
-                            managerID: toAccountID,
-                            ...transaction,
                         },
                     },
-                },
+                ],
+                ...(isOptimisticToData
+                    ? {
+                          successData: [
+                              {
+                                  onyxMethod: Onyx.METHOD.MERGE,
+                                  key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                                  value: {
+                                      data: {
+                                          [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                                              [toAccountID]: {
+                                                  accountID: toAccountID,
+                                                  displayName: participant?.displayName,
+                                                  login: participant?.login,
+                                              },
+                                          },
+                                      },
+                                  },
+                              },
+                          ],
+                      }
+                    : {}),
             };
         }
     }
