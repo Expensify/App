@@ -311,7 +311,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             if (isDelegateAccessRestricted) {
                 setIsNoDelegateAccessMenuVisible(true);
             } else if (isAnyTransactionOnHold) {
-                setIsHoldMenuVisible(true);
+                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
             } else if (isInvoiceReport) {
                 startAnimation();
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
