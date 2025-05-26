@@ -614,7 +614,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     let selfDMReport: Report;
     let selfDMCreatedReportAction: ReportAction;
 
-    if (!existingSelfDMReportID) {
+    if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
         selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
@@ -919,7 +919,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                 : {}),
         };
 
-        if (!existingSelfDMReportID) {
+        if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             // Add self DM data to transaction data
             transactionIDToReportActionAndThreadData[transaction.transactionID] = {
                 ...baseTransactionData,
