@@ -740,10 +740,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
-                if (Object.keys(transactions).length === 1) {
-                    setIsDeleteExpenseModalVisible(true);
-                } else {
+                if (Object.keys(transactions).length > 1 && canUseTableReportView) {
                     setIsDeleteReportModalVisible(true);
+                } else {
+                    setIsDeleteExpenseModalVisible(true);
                 }
             },
         },
