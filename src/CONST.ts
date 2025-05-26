@@ -1421,6 +1421,9 @@ const CONST = {
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
+                REJECTED_TRANSACTION_REMOVEDFROMREPORT: 'REJECTEDTRANSACTIONREMOVEDFROMREPORT',
+                REJECT_TRANSACTION: 'REJECTTRANSACTION',
+                REJECTED_TRANSACTION_AUTOADDED: 'REJECTEDTRANSACTIONAUTOADDED',
             },
             THREAD_DISABLED: ['CREATED'],
             // Used when displaying reportActions list to handle unread messages icon/button

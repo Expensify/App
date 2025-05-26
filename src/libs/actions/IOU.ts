@@ -126,6 +126,7 @@ import {
     getApprovalChain,
     getChatByParticipants,
     getDisplayedReportID,
+    getDisplayNameForParticipant,
     getInvoiceChatByParticipants,
     getMoneyRequestSpendBreakdown,
     getOptimisticDataForParentReportAction,
@@ -11118,10 +11119,10 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isPolicyInstantSubmit = isInstantSubmitEnabled(policy);
 
-    const autoAddedActionReportActionID = '';
-    const removedFromReportActionID = '';
-    const declinedActionReportActionID = '-1';
-    const declinedCommentReportActionID = '-2';
+    const autoAddedActionReportActionID = rand64();
+    const removedFromReportActionID = rand64();
+    const declinedActionReportActionID = rand64();
+    const declinedCommentReportActionID = rand64();
     let movedToReportID;
     let movedToReport;
 
@@ -11145,6 +11146,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
+    // Add all system messages to the expense report
+    
     if (isPolicyInstantSubmit) {
         if (hasMultipleExpenses) {
             // For reports with multiple expenses: Update report total
@@ -11261,16 +11264,104 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         ],
     };
 
-    optimisticData.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [declinedActionReportActionID]: declineAction,
-                [declinedCommentReportActionID]: declineCommentAction,
+    const approverName = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldUseShortForm: true});
+    const merchantName = getMerchant(transaction);
+
+    // Add system message in expense report: "[Approver] removed [$X.XX from Merchant]"
+    const removedFromReportAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_REMOVEDFROMREPORT,
+        actorAccountID: currentUserAccountID,
+        created: DateUtils.getDBTime(),
+        reportActionID: removedFromReportActionID,
+        message: [
+            {
+                type: 'TEXT',
+                text: Localize.translateLocal('iou.decline.removedFromReport', {
+                    approver: approverName,
+                    amount: convertToDisplayString(transaction?.amount ?? 0, transaction?.currency ?? ''),
+                    merchant: merchantName,
+                }),
             },
-        }
-    );
+        ],
+        originalMessage: {
+            amount: transaction?.amount,
+            currency: transaction?.currency,
+            merchant: merchantName,
+            transactionID,
+        },
+    };
+
+    // Add system message in transaction thread: "[Approver] declined this expense"
+    const rejectTransactionAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.REJECT_TRANSACTION,
+        actorAccountID: currentUserAccountID,
+        created: DateUtils.getDBTime(),
+        reportActionID: rand64(),
+        message: [
+            {
+                type: 'TEXT',
+                text: Localize.translateLocal('iou.decline.declinedExpense', {
+                    approver: approverName
+                }),
+            },
+        ],
+    };
+
+    // Add system message for auto-added expense if applicable
+    if (movedToReportID) {
+        const autoAddedAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_AUTOADDED,
+            actorAccountID: currentUserAccountID,
+            created: DateUtils.getDBTime(),
+            reportActionID: autoAddedActionReportActionID,
+            message: [
+                {
+                    type: 'TEXT',
+                    text: Localize.translateLocal('iou.decline.autoAddedToReport', {
+                        approver: approverName,
+                        amount: convertToDisplayString(transaction?.amount ?? 0, transaction?.currency ?? ''),
+                        merchant: merchantName,
+                    }),
+                },
+            ],
+            originalMessage: {
+                amount: transaction?.amount,
+                currency: transaction?.currency,
+                merchant: merchantName,
+                transactionID,
+            },
+        };
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${movedToReportID}`,
+            value: {
+                [autoAddedActionReportActionID]: autoAddedAction,
+            },
+        });
+    }
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [removedFromReportActionID]: removedFromReportAction,
+            [declinedActionReportActionID]: declineAction,
+            [declinedCommentReportActionID]: declineCommentAction,
+        },
+    });
+
+    // Add system messages to the transaction thread
+    if (transaction?.transactionThreadReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.transactionThreadReportID}`,
+            value: {
+                [rejectTransactionAction.reportActionID]: rejectTransactionAction,
+            },
+        });
+    }
+
 
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(declineAction.created, 1);
     optimisticData.push({

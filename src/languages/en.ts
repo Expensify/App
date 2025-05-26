@@ -1246,6 +1246,9 @@ const translations = {
             reasonPageTitle: 'Decline expense',
             reasonPageDescription1: 'Decline an expense if you don\'t ever plan on approving or paying it. Otherwise, use "hold" to pause the epxnse and ask for more context.',
             reasonPageDescription2: 'If you\'re going to decline the expense, please add a comment to explain why:',
+            removedFromReport: ({ approver, amount, merchant}: {approver: string, amount: string, merchant: string}) => `${approver} removed ${amount} from ${merchant}`,
+            declinedExpense: ({approver}: {approver: string}) => `${approver} declined this expense`,
+            autoAddedToReport: ({ approver, amount, merchant}: {approver: string, amount: string, merchant: string}) => `${approver} auto-added ${amount} from ${merchant}`
         },
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
     },
