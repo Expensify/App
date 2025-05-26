@@ -134,7 +134,6 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
             data={filteredSortedCards}
             renderItem={renderItem}
             ListHeaderComponent={renderListHeader}
-            stickyHeaderIndices={[0]}
         />
     );
 }

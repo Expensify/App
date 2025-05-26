@@ -189,6 +189,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const getCustomListHeader = () => {
+        if (filteredCategoryList.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -489,9 +492,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onCheckboxPress={toggleCategory}
                         onSelectRow={navigateToCategorySettings}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onSelectAll={toggleAllCategories}
+                        onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
                         ListItem={TableListItem}
-                        headerContent={headerContent}
+                        listHeaderContent={headerContent}
+                        shouldShowListEmptyContent={false}
                         onDismissError={dismissError}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}

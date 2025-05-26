@@ -226,6 +226,9 @@ function WorkspaceTaxesPage({
     };
 
     const getCustomListHeader = () => {
+        if (filteredTaxesList.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -412,9 +415,10 @@ function WorkspaceTaxesPage({
                     selectedItems={selectedTaxesIDs}
                     onCheckboxPress={toggleTax}
                     onSelectRow={navigateToEditTaxRate}
-                    onSelectAll={toggleAllTaxes}
+                    onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     ListItem={TableListItem}
-                    headerContent={headerContent}
+                    listHeaderContent={headerContent}
+                    shouldShowListEmptyContent={false}
                     customListHeader={getCustomListHeader()}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}

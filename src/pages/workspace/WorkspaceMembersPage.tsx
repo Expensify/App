@@ -538,6 +538,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     });
 
     const getCustomListHeader = () => {
+        if (filteredData.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -790,12 +793,13 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         onSelectRow={openMemberDetails}
                         shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
-                        onSelectAll={() => toggleAllUsers(filteredData)}
+                        onSelectAll={filteredData.length > 0 ? () => toggleAllUsers(filteredData) : undefined}
                         onDismissError={dismissError}
                         showLoadingPlaceholder={isLoading}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         textInputRef={textInputRef}
-                        headerContent={headerContent}
+                        listHeaderContent={headerContent}
+                        shouldShowListEmptyContent={false}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}

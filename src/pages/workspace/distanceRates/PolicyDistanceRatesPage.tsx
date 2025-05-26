@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -265,6 +264,9 @@ function PolicyDistanceRatesPage({
     };
 
     const getCustomListHeader = () => {
+        if (filteredDistanceRatesList.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -394,39 +396,35 @@ function PolicyDistanceRatesPage({
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                >
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
-                        />
-                    )}
-                    {Object.values(customUnitRates).length > 0 && (
-                        <SelectionListWithModal
-                            addBottomSafeAreaPadding
-                            canSelectMultiple={canSelectMultiple}
-                            turnOnSelectionModeOnLongPress
-                            onTurnOnSelectionMode={(item) => item && toggleRate(item)}
-                            sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
-                            shouldUseDefaultRightHandSideCheckmark={false}
-                            selectedItems={selectedDistanceRates}
-                            onCheckboxPress={toggleRate}
-                            onSelectRow={openRateDetails}
-                            onSelectAll={toggleAllRates}
-                            onDismissError={dismissError}
-                            ListItem={TableListItem}
-                            headerContent={headerContent}
-                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            showScrollIndicator={false}
-                        />
-                    )}
-                </ScrollView>
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
+                    />
+                )}
+                {Object.values(customUnitRates).length > 0 && (
+                    <SelectionListWithModal
+                        addBottomSafeAreaPadding
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
+                        sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        selectedItems={selectedDistanceRates}
+                        onCheckboxPress={toggleRate}
+                        onSelectRow={openRateDetails}
+                        onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
+                        onDismissError={dismissError}
+                        ListItem={TableListItem}
+                        listHeaderContent={headerContent}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        customListHeader={getCustomListHeader()}
+                        shouldShowListEmptyContent={false}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        showScrollIndicator={false}
+                    />
+                )}
                 <ConfirmModal
                     onConfirm={() => setIsWarningModalVisible(false)}
                     onCancel={() => setIsWarningModalVisible(false)}

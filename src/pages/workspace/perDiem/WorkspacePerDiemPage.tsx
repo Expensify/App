@@ -228,6 +228,9 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const getCustomListHeader = () => {
+        if (filteredSubRatesList.length === 0) {
+            return null;
+        }
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
                 <View style={styles.flex3}>
@@ -457,9 +460,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         onCheckboxPress={toggleSubRate}
                         onSelectRow={openSubRateDetails}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onSelectAll={toggleAllSubRates}
+                        onSelectAll={filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}
                         ListItem={TableListItem}
-                        headerContent={headerContent}
+                        listHeaderContent={headerContent}
+                        shouldShowListEmptyContent={false}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listItemTitleContainerStyles={styles.flex3}

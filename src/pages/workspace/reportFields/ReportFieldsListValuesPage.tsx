@@ -197,6 +197,9 @@ function ReportFieldsListValuesPage({
     };
 
     const getCustomListHeader = () => {
+        if (filteredListValues.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -375,10 +378,11 @@ function ReportFieldsListValuesPage({
                         shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
-                        onSelectAll={toggleAllValues}
+                        onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
                         ListItem={TableListItem}
-                        headerContent={headerContent}
+                        listHeaderContent={headerContent}
                         customListHeader={getCustomListHeader()}
+                        shouldShowListEmptyContent={false}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}

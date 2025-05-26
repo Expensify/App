@@ -537,7 +537,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     >
                         {!shouldUseNarrowLayout && getHeaderButtons()}
                     </HeaderWithBackButton>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}=
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     {isLoading && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -557,11 +557,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onCheckboxPress={toggleTag}
                             onSelectRow={navigateToTagSettings}
                             shouldSingleExecuteRowSelect={!canSelectMultiple}
-                            onSelectAll={toggleAllTags}
+                            onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                             ListItem={TableListItem}
-                            headerContent={headerContent}
-                            customListHeader={getCustomListHeader()}
+                            customListHeader={filteredTagList.length > 0 ? getCustomListHeader() : undefined}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            listHeaderContent={headerContent}
+                            shouldShowListEmptyContent={false}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                             onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
                             showScrollIndicator={false}
