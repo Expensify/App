@@ -11103,6 +11103,9 @@ function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdatePara
                         },
                     },
                 ],
+                // The optimistic personal detail is removed on the API's success data but we can't change the managerID of the transaction in the snapshot.
+                // So we need to add the optimistic personal detail back to the snapshot in success data to prevent the flickering.
+                // After that, it will be cleared via Search API.
                 ...(isOptimisticToData
                     ? {
                           successData: [
