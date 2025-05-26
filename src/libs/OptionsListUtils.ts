@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +23,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
+    PolicyTagLists,
     Report,
     ReportAction,
     ReportActions,
@@ -33,6 +35,7 @@ import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
+import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -45,7 +48,7 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
+import {canSendInvoiceFromWorkspace, getCountOfEnabledTagsOfList, getCountOfRequiredTagLists, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -67,6 +70,7 @@ import {
     isActionOfType,
     isClosedAction,
     isCreatedTaskReportAction,
+    isDeletedAction,
     isDeletedParentAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -98,6 +102,7 @@ import {
     getIOUUnapprovedMessage,
     getMoneyRequestSpendBreakdown,
     getParticipantsAccountIDsForDisplay,
+    getPolicyChangeMessage,
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
@@ -805,11 +810,7 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getUpgradeWorkspaceMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
-    } else if (
-        isActionableAddPaymentCard(lastReportAction) ||
-        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) ||
-        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED)
-    ) {
+    } else if (isActionableAddPaymentCard(lastReportAction) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
@@ -826,10 +827,16 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getRetractedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         lastMessageTextFromReport = getReopenedMessage();
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
+        lastMessageTextFromReport = getPolicyChangeMessage(lastReportAction);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
-    if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+    if (
+        reportID &&
+        !isArchivedReport(reportNameValuePairs) &&
+        (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
+    ) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
 
@@ -1120,11 +1127,48 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
     return Object.keys(loginList ?? {}).some((login) => login.toLowerCase() === userDetailsLogin.toLowerCase());
 }
 
-/**
- * Calculates count of all enabled options
- */
-function getEnabledCategoriesCount(options: PolicyCategories): number {
-    return Object.values(options).filter((option) => option.enabled).length;
+function isDisablingOrDeletingLastEnabledCategory(
+    policy: Policy | undefined,
+    policyCategories: PolicyCategories | undefined,
+    selectedCategories: Array<PolicyCategory | undefined>,
+): boolean {
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
+
+    if (!enabledCategoriesCount) {
+        return false;
+    }
+
+    if (policy?.requiresCategory && selectedCategories.filter((selectedCategory) => selectedCategory?.enabled).length === enabledCategoriesCount) {
+        return true;
+    }
+
+    return false;
+}
+
+function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagList | undefined, selectedTags: Array<PolicyTag | undefined>): boolean {
+    const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagList?.tags);
+
+    if (!enabledTagsCount) {
+        return false;
+    }
+
+    if (policyTagList?.required && selectedTags.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
+        return true;
+    }
+    return false;
+}
+
+function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyTags: PolicyTagLists | undefined, selectedTagLists: Array<PolicyTagList | undefined>): boolean {
+    const requiredTagsCount = getCountOfRequiredTagLists(policyTags);
+
+    if (!requiredTagsCount) {
+        return false;
+    }
+
+    if (policy?.requiresTag && selectedTagLists.filter((selectedTagList) => selectedTagList?.required).length === requiredTagsCount) {
+        return true;
+    }
+    return false;
 }
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
@@ -2409,7 +2453,6 @@ export {
     shouldOptionShowTooltip,
     getLastActorDisplayName,
     getLastMessageTextForReport,
-    getEnabledCategoriesCount,
     hasEnabledOptions,
     sortAlphabetically,
     formatMemberForList,
@@ -2445,6 +2488,9 @@ export {
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
     shouldShowLastActorDisplayName,
+    isDisablingOrDeletingLastEnabledCategory,
+    isDisablingOrDeletingLastEnabledTag,
+    isMakingLastRequiredTagListOptional,
     processReport,
 };
 
