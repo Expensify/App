@@ -29,6 +29,7 @@ import {
     isExported as isExportedUtil,
     isInvoiceReport,
     isIOUReport,
+    isOpenExpenseReport,
     isOpenReport,
     isPayer,
     isProcessingReport,
@@ -39,7 +40,7 @@ import {
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isReceiptBeingScanned, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
-function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
+function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpen = isOpenReport(report);
@@ -59,7 +60,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && isManualSubmitEnabled && (!hasAnyViolations || !shouldConsiderViolations) && !isAnyReceiptBeingScanned;
+    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && isManualSubmitEnabled && !hasAnyViolations && !isAnyReceiptBeingScanned;
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
@@ -181,14 +182,13 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
         hasNoticeTypeViolations(report.reportID, violations, true) ||
         hasWarningTypeViolations(report.reportID, violations, true);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isOpen = isOpenExpenseReport(report);
     const isReimbursed = isSettled(report);
 
     if (
         !hasAnyViolations ||
         isReimbursed ||
-        (!(isSubmitter && canSubmit(report, violations, policy, transactions, false)) &&
-            !canApprove(report, violations, policy, transactions, false) &&
-            !canPay(report, violations, policy, isReportArchived, policy, false))
+        (!(isSubmitter && isOpen) && !canApprove(report, violations, policy, transactions, false) && !canPay(report, violations, policy, isReportArchived, policy, false))
     ) {
         return false;
     }
