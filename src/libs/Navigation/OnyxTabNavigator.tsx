@@ -47,6 +47,9 @@ type OnyxTabNavigatorProps = ChildrenProps & {
 
     /** Disable swipe between tabs */
     disableSwipe?: boolean;
+
+    /** Whether to lazy load the tab screens */
+    lazy?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -70,6 +73,7 @@ function OnyxTabNavigator({
     screenListeners,
     shouldShowLabelWhenInactive = true,
     disableSwipe = false,
+    lazy = false,
     ...rest
 }: OnyxTabNavigatorProps) {
     // Mapping of tab name to focus trap container element
@@ -144,6 +148,7 @@ function OnyxTabNavigator({
                 screenOptions={{
                     ...defaultScreenOptions,
                     swipeEnabled: !disableSwipe,
+                    lazy,
                 }}
             >
                 {children}
