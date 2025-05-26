@@ -21,7 +21,6 @@ import {clearIOUError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreviewContent from './TransactionPreviewContent';
 import type {TransactionPreviewProps} from './types';
@@ -88,7 +87,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 route,
                 report,
                 transaction,
-                (duplicates.filter((duplicate) => !!duplicate) as Transaction[]).map((duplicate) => duplicate?.transactionID),
+                duplicates.map((duplicate) => duplicate?.transactionID),
             ),
         );
     }, [duplicates, report, route, transaction]);
