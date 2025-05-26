@@ -185,6 +185,10 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
         return false;
     }
 
+    if (report.isWaitingOnBankAccount) {
+        return false;
+    }
+
     const isReportReimbursed = isSettled(report);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
