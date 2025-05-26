@@ -4773,7 +4773,9 @@ function deleteAppReport(reportID: string | undefined) {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
                 value: {
                     [newReportActionID]: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         originalMessage: {
+                            IOUTransactionID: transactionID,
                             movedToReportID: selfDMReportID,
                         },
                     },
