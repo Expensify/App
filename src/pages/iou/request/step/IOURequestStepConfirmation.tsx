@@ -346,6 +346,10 @@ function IOURequestStepConfirmation({
             return;
         }
         if (isPerDiemRequest) {
+            if (isMovingTransactionFromTrackExpense) {
+                Navigation.goBack();
+                return;
+            }
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, initialTransactionID, reportID));
             return;
         }
@@ -388,6 +392,7 @@ function IOURequestStepConfirmation({
         initialTransactionID,
         reportID,
         participantsAutoAssignedFromRoute,
+        isMovingTransactionFromTrackExpense,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {
