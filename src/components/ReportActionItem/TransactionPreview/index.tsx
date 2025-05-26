@@ -20,7 +20,7 @@ import {clearWalletTermsError} from '@userActions/PaymentMethods';
 import {clearIOUError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreviewContent from './TransactionPreviewContent';
@@ -100,7 +100,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
     const showCashOrCardTranslation = isTransactionMadeWithCard ? 'iou.card' : 'iou.cash';
-    const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
 
     if (onPreviewPressed) {
         return (
@@ -129,7 +128,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     sessionAccountID={sessionAccountID}
                     walletTermsErrors={walletTerms?.errors}
                     routeName={route.name}
-                    isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
                 />
             </PressableWithoutFeedback>
         );
@@ -153,7 +151,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
             reportPreviewAction={reportPreviewAction}
-            isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
         />
     );
 }

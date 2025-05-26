@@ -343,6 +343,7 @@ function FeatureTrainingModal({
 
     return (
         <Modal
+            id="FeatureTrainingModal"
             avoidKeyboard={avoidKeyboard}
             isVisible={isModalVisible}
             type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
@@ -365,6 +366,7 @@ function FeatureTrainingModal({
             <Wrapper
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
                 contentContainerStyle={shouldUseScrollView ? styles.pb5 : undefined}
+                keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
             >
