@@ -8,6 +8,7 @@ import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
@@ -33,6 +34,7 @@ function ShareTab() {
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const isTabFocused = useTabNavigatorFocus({tabIndex: 0});
 
     const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -115,6 +117,7 @@ function ShareTab() {
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}
+            textInputAutoFocus={isTabFocused}
         />
     );
 }

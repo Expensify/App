@@ -65,6 +65,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
+
+    /** Whether text input should be focused */
+    textInputAutoFocus?: boolean;
 };
 
 function MoneyRequestParticipantsSelector({
@@ -75,6 +78,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    textInputAutoFocus = true,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -482,10 +486,15 @@ function MoneyRequestParticipantsSelector({
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
             isLoadingNewOptions={!!isSearchingForReports}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
+            textInputAutoFocus={textInputAutoFocus}
         />
     );
 }
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
+export default memo(
+    MoneyRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType && !!prevProps.textInputAutoFocus === !!nextProps.textInputAutoFocus,
+);
