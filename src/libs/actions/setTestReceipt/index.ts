@@ -16,7 +16,7 @@ const setTestReceipt: SetTestReceipt = (asset, assetExtension, onFileRead, onFil
         (error) => {
             Log.warn('Error reading test receipt:', {message: error});
 
-            onFileError(error);
+            onFileError?.(error);
         },
         CONST.TEST_RECEIPT.FILE_TYPE,
     );

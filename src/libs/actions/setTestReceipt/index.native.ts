@@ -34,7 +34,7 @@ const setTestReceipt: SetTestReceipt = (asset, assetExtension, onFileRead, onFil
         .catch((error) => {
             Log.warn('Error reading test receipt:', {message: error});
 
-            onFileError(error);
+            onFileError?.(error);
         });
 };
 
