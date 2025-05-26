@@ -342,19 +342,19 @@ function MoneyRequestConfirmationList({
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
     const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
 
-    let amount = iouAmount;
+    let amountToBeUsed = iouAmount;
 
     if (shouldCalculateDistanceAmount) {
-        amount = distanceRequestAmount;
+        amountToBeUsed = distanceRequestAmount;
     } else if (shouldCalculatePerDiemAmount) {
-        amount = perDiemRequestAmount;
+        amountToBeUsed = perDiemRequestAmount;
     }
 
-    const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amount, isDistanceRequest ? currency : iouCurrencyCode);
+    const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
     const formattedAmountPerAttendee =
         isDistanceRequestWithPendingRoute || isScanRequest
             ? ''
-            : convertToDisplayString(amount / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1), isDistanceRequest ? currency : iouCurrencyCode);
+            : convertToDisplayString(amountToBeUsed / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1), isDistanceRequest ? currency : iouCurrencyCode);
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
