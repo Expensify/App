@@ -4479,6 +4479,8 @@ const styles = (theme: ThemeColors) =>
         shareCodeContainer: {
             width: '100%',
             alignItems: 'center',
+            paddingHorizontal: variables.qrShareHorizontalPadding,
+            paddingVertical: 20,
             borderRadius: 20,
             overflow: 'hidden',
             borderColor: theme.borderFocus,
@@ -4486,16 +4488,12 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
-        shareCodeContainerPadding: {
-            paddingHorizontal: variables.qrShareHorizontalPadding,
-            paddingVertical: 20,
-        },
-
         shareCodeContainerDownloadPadding: {
-            padding: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
         },
 
-        qrCodeAdditionalStyles: {
+        qrCodeAppDownloadLinksStyles: {
             width: 200,
             height: 200,
             margin: 'auto',

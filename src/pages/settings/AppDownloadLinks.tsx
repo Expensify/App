@@ -5,8 +5,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
-import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
-import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
+import QRShare from '@components/QRShare';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
@@ -27,7 +26,6 @@ function AppDownloadLinksPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
-    const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
     const menuItems: DownloadMenuItem[] = [
         {
@@ -66,15 +64,14 @@ function AppDownloadLinksPage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
 
-            <QRShareWithDownload
-                ref={qrCodeRef}
+            <QRShare
                 url="https://expensify.com/mobile"
                 svgLogo={Illustrations.ExpensifyMobileApp}
                 logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
                 logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
                 shouldShowExpensifyLogo={false}
-                additionalStyles={styles.qrCodeAdditionalStyles}
-                isFromDownloadPage
+                additionalStyles={[styles.qrCodeAppDownloadLinksStyles, styles.shareCodeContainerDownloadPadding]}
+                size={CONST.QR_CODE_SIZE.APP_DOWNLOAD_LINKS}
             />
 
             <ScrollView style={[styles.mt3]}>

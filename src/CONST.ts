@@ -3201,6 +3201,10 @@ const CONST = {
         LARGE: 'large',
     },
 
+    QR_CODE_SIZE: {
+        APP_DOWNLOAD_LINKS: 172,
+    },
+
     AVATAR_SIZE: {
         X_LARGE: 'xlarge',
         LARGE: 'large',

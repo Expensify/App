@@ -15,20 +15,7 @@ import variables from '@styles/variables';
 import type {QRShareHandle, QRShareProps} from './types';
 
 function QRShare(
-    {
-        url,
-        title,
-        subtitle,
-        logo,
-        svgLogo,
-        svgLogoFillColor,
-        logoBackgroundColor,
-        logoRatio,
-        logoMarginRatio,
-        shouldShowExpensifyLogo = true,
-        additionalStyles,
-        isFromDownloadPage = false,
-    }: QRShareProps,
+    {url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBackgroundColor, logoRatio, logoMarginRatio, shouldShowExpensifyLogo = true, additionalStyles, size}: QRShareProps,
     ref: ForwardedRef<QRShareHandle>,
 ) {
     const styles = useThemeStyles();
@@ -55,7 +42,7 @@ function QRShare(
 
     return (
         <View
-            style={[styles.shareCodeContainer, additionalStyles, isFromDownloadPage ? styles.shareCodeContainerDownloadPadding : styles.shareCodeContainerPadding]}
+            style={[styles.shareCodeContainer, additionalStyles]}
             onLayout={onLayout}
         >
             {shouldShowExpensifyLogo && (
@@ -75,7 +62,7 @@ function QRShare(
                 svgLogoFillColor={svgLogoFillColor}
                 logoBackgroundColor={logoBackgroundColor}
                 logo={logo}
-                size={isFromDownloadPage ? 172 : qrCodeSize}
+                size={size ?? qrCodeSize}
                 logoRatio={logoRatio}
                 logoMarginRatio={logoMarginRatio}
             />

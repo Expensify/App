@@ -1,7 +1,9 @@
 import type React from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import type {Svg, SvgProps} from 'react-native-svg';
+import type {ValueOf} from 'type-fest';
 import type {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
+import type CONST from '@src/CONST';
 
 type QRShareProps = {
     /**
@@ -61,9 +63,9 @@ type QRShareProps = {
     additionalStyles?: StyleProp<ViewStyle>;
 
     /**
-     * If true, the QR code will be displayed in a different size
+     * The size of the QR code
      */
-    isFromDownloadPage?: boolean;
+    size?: ValueOf<typeof CONST.QR_CODE_SIZE>;
 };
 
 type QRShareHandle = {
