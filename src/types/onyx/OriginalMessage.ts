@@ -589,10 +589,8 @@ type OriginalMessageTravelUpdate = {
     lastModified: string;
 
     /**
-     * Type of operation
-     * TODO ADD CONST TYPES BOOKING_REBOOKED
-     * */
-    operation: string;
+     * Type of operation */
+    operation: ValueOf<typeof CONST.TRAVEL.UPDATE_OPERATION_TYPE>;
 
     /** Type of payment used */
     paymentType?: string;
