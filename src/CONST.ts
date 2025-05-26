@@ -1534,13 +1534,11 @@ const CONST = {
         TRANSACTION_PREVIEW: {
             CAROUSEL: {
                 WIDTH_WIDE: 303,
-                HEIGHT_WIDE: 259,
             },
             DUPLICATE: {
                 HEIGHT_WIDE: 347,
             },
         },
-        CAROUSEL_MAX_WIDTH_WIDE: 680,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
