@@ -398,3 +398,4 @@ export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishC
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
+export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
