@@ -77,7 +77,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: {
-                    path: ROUTES.MIGRATED_USER_WELCOME_MODAL,
+                    path: ROUTES.MIGRATED_USER_WELCOME_MODAL.route,
                     exact: true,
                 },
             },
@@ -86,7 +86,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
-                    path: ROUTES.TEST_DRIVE_MODAL_ROOT,
+                    path: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
                     exact: true,
                 },
             },
@@ -196,10 +196,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 login: (login: string) => decodeURIComponent(login),
                             },
                         },
-                        [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
@@ -282,6 +278,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: {
@@ -1305,6 +1305,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT]: ROUTES.SETTINGS_TAGS_ROOT.route,
+                        [SCREENS.MONEY_REQUEST.EDIT_REPORT]: ROUTES.MONEY_REQUEST_EDIT_REPORT.route,
                         [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: ROUTES.MONEY_REQUEST_STEP_SEND_FROM.route,
                         [SCREENS.MONEY_REQUEST.STEP_REPORT]: ROUTES.MONEY_REQUEST_STEP_REPORT.route,
                         [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.route,
@@ -1457,6 +1458,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
+                        [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
@@ -1604,7 +1606,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SCHEDULE_CALL_BOOK.route,
                         },
                         [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {
-                            path: ROUTES.SCHEDULE_CALL_CONFIRMATON.route,
+                            path: ROUTES.SCHEDULE_CALL_CONFIRMATION.route,
                         },
                     },
                 },
