@@ -66,7 +66,7 @@ import {
 } from '@userActions/IOU';
 import type {GpsPoint} from '@userActions/IOU';
 import {generateTransactionID} from '@userActions/Transaction';
-import {createDraftTransaction} from '@userActions/TransactionEdit';
+import {createDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -76,6 +76,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
+import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
 import type {ReceiptFile} from './types';
 
@@ -100,7 +101,6 @@ function IOURequestStepScan({
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     // TODO: remove when multi-scan functionality is removed from beta
     const {canUseMultiScan} = usePermissions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -133,6 +133,8 @@ function IOURequestStepScan({
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(transactions.length > 1);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -590,6 +592,20 @@ function IOURequestStepScan({
         });
     };
 
+    const submitReceipts = useCallback(() => {
+        if (shouldSkipConfirmation) {
+            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+            if (gpsRequired) {
+                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                if (beginLocationPermissionFlow) {
+                    setStartLocationPermissionFlow(true);
+                    return;
+                }
+            }
+        }
+        navigateToConfirmationStep(receiptFiles, false);
+    }, [initialTransaction, iouType, navigateToConfirmationStep, receiptFiles, shouldSkipConfirmation]);
+
     const capturePhoto = useCallback(() => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
             askForPermissions();
@@ -651,19 +667,14 @@ function IOURequestStepScan({
                                 }
 
                                 const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
+                                setReceiptFiles(newReceiptFiles);
 
-                                if (shouldSkipConfirmation) {
-                                    setReceiptFiles(newReceiptFiles);
-                                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                                    if (gpsRequired) {
-                                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                                        if (beginLocationPermissionFlow) {
-                                            setStartLocationPermissionFlow(true);
-                                            return;
-                                        }
-                                    }
+                                if (isMultiScanEnabled) {
+                                    setDidCapturePhoto(false);
+                                    return;
                                 }
-                                navigateToConfirmationStep(newReceiptFiles, false);
+
+                                submitReceipts();
                             },
                             () => {
                                 setDidCapturePhoto(false);
@@ -681,24 +692,23 @@ function IOURequestStepScan({
     }, [
         cameraPermissionStatus,
         didCapturePhoto,
+        isMultiScanEnabled,
         translate,
         flash,
         hasFlash,
         isPlatformMuted,
+        submitReceipts,
         receiptFiles,
         buildOptimisticTransaction,
         initialTransaction,
         initialTransactionID,
         isEditing,
-        shouldSkipConfirmation,
-        navigateToConfirmationStep,
         updateScanAndNavigate,
-        iouType,
     ]);
 
     const toggleMultiScan = () => {
         if (isMultiScanEnabled) {
-            // TODO: clear out taken photos when multi scan is turning off
+            removeDraftTransactions(true);
         }
         setIsMultiScanEnabled(!isMultiScanEnabled);
     };
@@ -798,11 +808,10 @@ function IOURequestStepScan({
                                         />
                                         <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                         {canUseMultiScan ? (
-                                            <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess]}>
+                                            <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
                                                 <PressableWithFeedback
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('receipt.flash')}
-                                                    style={!hasFlash && styles.opacity0}
                                                     disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                                                     onPress={() => setFlash((prevFlash) => !prevFlash)}
                                                 >
@@ -810,7 +819,7 @@ function IOURequestStepScan({
                                                         height={16}
                                                         width={16}
                                                         src={Expensicons.Bolt}
-                                                        fill={flash ? theme.white : theme.textSupporting}
+                                                        fill={theme.white}
                                                     />
                                                 </PressableWithFeedback>
                                             </View>
@@ -894,6 +903,9 @@ function IOURequestStepScan({
                         </PressableWithFeedback>
                     )}
                 </View>
+
+                {isMultiScanEnabled && <ReceiptPreviews submit={submitReceipts} />}
+
                 {startLocationPermissionFlow && !!receiptFiles.length && (
                     <LocationPermissionModal
                         startPermissionFlow={startLocationPermissionFlow}

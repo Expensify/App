@@ -4042,6 +4042,14 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green400,
         },
 
+        receiptPlaceholder: {
+            height: 52,
+            marginRight: 8,
+            width: variables.w44,
+            borderRadius: variables.componentBorderRadiusSmall,
+            backgroundColor: colors.productLight300,
+        },
+
         isDraggingOver: {
             backgroundColor: theme.fileDropUIBG,
         },

@@ -83,7 +83,7 @@ function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseMultiScan(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_SCAN) || canUseAllBetas(betas);
+    return true;
 }
 
 function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
