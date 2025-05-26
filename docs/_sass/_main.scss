@@ -634,6 +634,9 @@ button {
                     background-repeat: no-repeat;
                     background-position: center;
                     background-size: contain;
+                    border: none !important;
+                    outline: none !important;
+                    box-shadow: none !important;
                 }
 
                 .vjs-paused {
@@ -641,6 +644,9 @@ button {
                     background-repeat: no-repeat;
                     background-position: center;
                     background-size: contain;
+                    border: none !important;
+                    outline: none !important;
+                    box-shadow: none !important;
                 }
 
                 .vjs-icon-placeholder:before {
