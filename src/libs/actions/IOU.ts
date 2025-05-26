@@ -11390,14 +11390,17 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
 
 }
 
-function markDeclineViolationAsResolved(transactionID: string, markedAsResolvedReportActionID: string) {
+function markDeclineViolationAsResolved(transactionID: string) {
     const transaction = allTransactions?.[transactionID];
     if (!transaction) {
         return;
     }
 
+    const markedAsResolvedReportActionID = rand64();
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const updatedViolations = currentViolations?.filter(violation => violation.name !== CONST.VIOLATIONS.REJECTED_EXPENSE);
+    const currentUserAccountID = getCurrentUserAccountID();
+    const currentUser = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldUseShortForm: true});
 
     // Build optimistic data
     const optimisticData: OnyxUpdate[] = [
@@ -11412,20 +11415,20 @@ function markDeclineViolationAsResolved(transactionID: string, markedAsResolvedR
             value: {
                 [markedAsResolvedReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED,
-                    actorAccountID: getCurrentUserAccountID(),
+                    actorAccountID: currentUserAccountID,
                     avatar: currentUserPersonalDetails?.avatar,
                     created: DateUtils.getDBTime(),
                     message: [{
                         type: 'TEXT',
                         text: Localize.translateLocal('iou.decline.markedAsResolved', {
-                            user: 'Test',
+                            user: currentUser,
                         })
                     }],
                     person: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                             style: 'strong',
-                            text: 'Test',
+                            text: currentUser,
                         },
                     ],
                     reportActionID: markedAsResolvedReportActionID,
