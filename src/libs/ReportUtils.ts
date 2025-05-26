@@ -3671,10 +3671,7 @@ function getMoneyRequestReportName({
     policy?: OnyxEntry<Policy> | SearchPolicy;
     invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy;
 }): string {
-    const reportFields = getReportFieldsByPolicyID(report?.policyID);
-    const titleReportField = Object.values(reportFields ?? {}).find((reportField) => reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID);
-
-    if (titleReportField && report?.reportName && isPaidGroupPolicyExpenseReport(report)) {
+    if (report?.reportName && isExpenseReport(report)) {
         return report.reportName;
     }
 
