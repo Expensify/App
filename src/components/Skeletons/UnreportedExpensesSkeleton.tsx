@@ -45,15 +45,15 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
             return (
                 <>
                     <Rect
-                        x={16}
+                        x={12}
                         y={22}
                         width={20}
                         height={20}
-                        rx={4}
-                        ry={4}
+                        rx={2}
+                        ry={2}
                     />
                     <Rect
-                        x={48}
+                        x={44}
                         y={12}
                         width={36}
                         height={40}
@@ -61,7 +61,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
                         ry={4}
                     />
                     <Rect
-                        x={96}
+                        x={92}
                         y={26}
                         width={getMessageSkeletonWidth(args.itemIndex)}
                         height={12}
