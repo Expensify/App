@@ -132,7 +132,6 @@ import {
     getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
-    getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
@@ -1013,11 +1012,7 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
-            children = (
-                <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage(action)}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
-            );
+            children = <ReportActionItemBasicMessage message={translate('iou.unreportedTransaction')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
