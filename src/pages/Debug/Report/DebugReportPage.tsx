@@ -19,7 +19,6 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {hasReportViolations, isReportOwner, shouldDisplayViolationsRBRInLHN} from '@libs/ReportUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -53,7 +52,6 @@ function DebugReportPage({
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -62,11 +60,8 @@ function DebugReportPage({
             return [];
         }
 
-        const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(reportID);
-        const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
-        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations, isReportArchived) ?? {};
+        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
@@ -114,7 +109,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, reportID, transactionViolations, translate, isReportArchived]);
+    }, [report, reportActions, translate, isReportArchived]);
 
     const DebugDetailsTab = useCallback(
         () => (
