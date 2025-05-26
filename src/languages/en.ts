@@ -1248,7 +1248,8 @@ const translations = {
             reasonPageDescription2: 'If you\'re going to decline the expense, please add a comment to explain why:',
             removedFromReport: ({ approver, amount, merchant}: {approver: string, amount: string, merchant: string}) => `${approver} removed ${amount} from ${merchant}`,
             declinedExpense: ({approver}: {approver: string}) => `${approver} declined this expense`,
-            autoAddedToReport: ({ approver, amount, merchant}: {approver: string, amount: string, merchant: string}) => `${approver} auto-added ${amount} from ${merchant}`
+            autoAddedToReport: ({ approver, amount, merchant}: {approver: string, amount: string, merchant: string}) => `${approver} auto-added ${amount} from ${merchant}`,
+            markedAsResolved: ({user}: {user: string}) => `${user} marked the decline reason as resolved`,
         },
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
     },

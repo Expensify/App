@@ -17,6 +17,7 @@ import type {
     DeclineMoneyRequestParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
+    MarkTransactionViolationAsResolvedParams,
     MergeDuplicatesParams,
     PayInvoiceParams,
     PayMoneyRequestParams,
@@ -11405,6 +11406,34 @@ function markDeclineViolationAsResolved(transactionID: string, markedAsResolvedR
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: updatedViolations,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.transactionThreadReportID}`,
+            value: {
+                [markedAsResolvedReportActionID]: {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED,
+                    actorAccountID: getCurrentUserAccountID(),
+                    avatar: currentUserPersonalDetails?.avatar,
+                    created: DateUtils.getDBTime(),
+                    message: [{
+                        type: 'TEXT',
+                        text: Localize.translateLocal('iou.decline.markedAsResolved', {
+                            user: 'Test',
+                        })
+                    }],
+                    person: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            style: 'strong',
+                            text: 'Test',
+                        },
+                    ],
+                    reportActionID: markedAsResolvedReportActionID,
+                    shouldShow: true,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -11423,7 +11452,7 @@ function markDeclineViolationAsResolved(transactionID: string, markedAsResolvedR
         },
     ];
 
-    const parameters = {
+    const parameters: MarkTransactionViolationAsResolvedParams = {
         transactionID,
         markedAsResolvedReportActionID,
     };
