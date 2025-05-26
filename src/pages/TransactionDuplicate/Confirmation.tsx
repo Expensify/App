@@ -80,7 +80,7 @@ function Confirmation() {
             Navigation.dismissModal();
             return;
         }
-        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID), {compareParams: false});
     }, [transactionsMergeParams, reportAction?.childReportID, canUseTableReportView]);
 
     const contextValue = useMemo(
