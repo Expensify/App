@@ -45,10 +45,6 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
-        if (searchTriggeredRef.current) {
-            return;
-        }
-
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
@@ -75,13 +71,9 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // We don't want to highlight these old items, even if they appear new in the current search results.
             hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
 
+            searchTriggeredRef.current = false; // Reset before triggering search
             debouncedSearch();
         }
-
-        // Reset the ref when transactions or report actions in chat search type are updated
-        return () => {
-            searchTriggeredRef.current = false;
-        };
     }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, debouncedSearch]);
 
     // Initialize the set with existing IDs only once
