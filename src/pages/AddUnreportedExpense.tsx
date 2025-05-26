@@ -41,7 +41,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         if (!transactions) {
             return [];
         }
-        return Object.values(transactions || {}).filter((item) => item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+        return Object.values(transactions || {}).filter((item) => item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '');
     }
 
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
