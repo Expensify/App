@@ -400,6 +400,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={sections}
+                        selectedItemKeys={selectedTags}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
