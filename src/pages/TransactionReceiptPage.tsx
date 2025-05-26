@@ -91,7 +91,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isTrackExpenseReport || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates
+        isTrackExpenseReport || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || isFromReviewDuplicates
             ? !transaction
             : moneyRequestReportID !== transaction?.reportID;
 
@@ -101,8 +101,8 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             isAuthTokenRequired={!isLocalFile && !isDraftTransaction}
             report={report}
             isReceiptAttachment
-            canEditReceipt={(canEditReceipt && !readonly) || isDraftTransaction}
-            canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction}
+            canEditReceipt={((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt}
+            canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt}
             allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={isDraftTransaction ? transaction?.filename : receiptURIs?.filename}
