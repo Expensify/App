@@ -1,12 +1,14 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import FlatList from '@components/FlatList';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
+import {PressableWithFeedback} from '@components/Pressable';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
@@ -18,7 +20,7 @@ type ReceiptPreviewsProps = {
 
 function ReceiptPreviews({submit}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
+    const {translate} = useLocalize();
     const INITIAL_RECEIPTS_AMOUNT = 10;
     const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
@@ -63,14 +65,26 @@ function ReceiptPreviews({submit}: ReceiptPreviewsProps) {
                 style={styles.pv2}
                 contentContainerStyle={{paddingRight: 52}}
             />
-            <Button
-                large
-                style={{position: 'absolute', right: 16, top: 8}}
-                innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
-                icon={Expensicons.ArrowRight}
-                iconFill={theme.white}
+            <PressableWithFeedback
+                role={CONST.ROLE.BUTTON}
+                wrapperStyle={{position: 'absolute', right: 0, top: 8}}
+                accessibilityLabel={translate('common.submit')}
                 onPress={submit}
-            />
+            >
+                <Icon
+                    height={72}
+                    width={84}
+                    src={Expensicons.ArrowRightWithGradient}
+                />
+            </PressableWithFeedback>
+            {/* <Button */}
+            {/*     large */}
+            {/*     style={{position: 'absolute', right: 16, top: 8}} */}
+            {/*     innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]} */}
+            {/*     icon={Expensicons.ArrowRight} */}
+            {/*     iconFill={theme.white} */}
+            {/*     onPress={submit} */}
+            {/* /> */}
         </View>
     );
 }

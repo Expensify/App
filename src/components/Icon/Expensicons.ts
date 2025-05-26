@@ -5,6 +5,7 @@ import Apple from '@assets/images/apple.svg';
 import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
+import ArrowRightWithGradient from '@assets/images/arrow-right-with-gradient.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
@@ -242,6 +243,7 @@ export {
     ArrowCollapse,
     ArrowRight,
     ArrowRightLong,
+    ArrowRightWithGradient,
     ArrowsUpDown,
     ArrowsLeftRight,
     ArrowUpLong,

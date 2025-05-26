@@ -66,7 +66,7 @@ import {
 } from '@userActions/IOU';
 import type {GpsPoint} from '@userActions/IOU';
 import {generateTransactionID} from '@userActions/Transaction';
-import {createDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
+import {createDraftTransaction, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -708,6 +708,7 @@ function IOURequestStepScan({
 
     const toggleMultiScan = () => {
         if (isMultiScanEnabled) {
+            removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
         }
         setIsMultiScanEnabled(!isMultiScanEnabled);

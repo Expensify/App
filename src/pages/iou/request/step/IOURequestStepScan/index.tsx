@@ -68,7 +68,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {generateTransactionID} from '@userActions/Transaction';
-import {createDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
+import {createDraftTransaction, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -686,6 +686,7 @@ function IOURequestStepScan({
 
     const toggleMultiScan = () => {
         if (isMultiScanEnabled) {
+            removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
         }
         setIsMultiScanEnabled(!isMultiScanEnabled);

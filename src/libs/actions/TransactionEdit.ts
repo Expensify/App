@@ -99,4 +99,19 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
     Onyx.multiSet(draftTransactionsSet);
 }
 
-export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup, createDraftTransaction, removeDraftTransaction, removeDraftTransactions};
+function removeTransactionReceipt(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: null});
+}
+
+export {
+    createBackupTransaction,
+    removeBackupTransaction,
+    restoreOriginalTransactionFromBackup,
+    createDraftTransaction,
+    removeDraftTransaction,
+    removeTransactionReceipt,
+    removeDraftTransactions,
+};
