@@ -145,6 +145,7 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportReportUtils,
     isInvoiceRoom,
+    isIOUReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOneOnOneChat,
     isOneTransactionThread,
@@ -11121,7 +11122,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const removedFromReportActionID = '';
     const declinedActionReportActionID = '-1';
     const declinedCommentReportActionID = '-2';
-
     let movedToReportID;
 
     const hasMultipleExpenses = (() => {
@@ -11135,8 +11135,12 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         return false;
     })();
 
+    
     // Build optimistic data updates
     const optimisticData: OnyxUpdate[] = [];
+    
+    // TODO: Define successData and failureData.
+    // TOOD: Do we show RBR and pending actions - will the action be delete/update in this scenario.
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
@@ -11208,7 +11212,54 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         });
     }
 
-    // TODO: add violations code
+    // Add rter transaction violation
+    // TODO: Clarify move the expense to another report based on "Scheduled Submit"
+    if (!isIOUReport(report)) {
+        movedToReportID = generateReportID();
+        const newReport = buildOptimisticExpenseReport(movedToReportID, policy?.id ?? '', report?.ownerAccountID ?? 0, 0, transaction?.currency ?? '');
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`,
+                value: {
+                    ...newReport,
+                    total: (newReport?.total ?? 0) + (transaction?.amount ?? 0),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    reportID: movedToReportID,
+                },
+            }
+        );
+
+        // Add rejectedExpense violation
+        const currentTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
+            value: [
+                ...currentTransactionViolations,
+                {
+                    name: CONST.VIOLATIONS.REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {
+                        rejectReason: comment ?? ''
+                    }
+                }
+            ],
+        });
+    }
 
     // Create system messages in both expense report and expense thread
     const declineAction = {
