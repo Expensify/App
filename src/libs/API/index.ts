@@ -176,7 +176,7 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
     onyxData: OnyxData = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
-    if (command == SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE || command == SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE) {
+    if (command === SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE || command === SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE) {
         saveWorkspacesTabPathToSessionStorage('/settings/workspaces');
     }
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
