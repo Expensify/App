@@ -41,7 +41,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
-    canJoinChat, canUserPerformWriteAction,
+    canJoinChat,
+    canUserPerformWriteAction,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
     getIcons,
