@@ -2398,6 +2398,16 @@ function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
 
+function getReportActionFromExpensifyCard(cardID: number) {
+    return Object.values(allReportActions ?? {})
+        .map((reportActions) => Object.values(reportActions ?? {}))
+        .flat()
+        .find((reportAction) => {
+            const cardIssuedActionOriginalMessage = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ? getOriginalMessage(reportAction) : undefined;
+            return cardIssuedActionOriginalMessage?.cardID === cardID;
+        });
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -2544,6 +2554,7 @@ export {
     getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
+    getReportActionFromExpensifyCard,
 };
 
 export type {LastVisibleMessage};
