@@ -1,146 +1,130 @@
 ---
-title: Create expense tags
-description: Add tags to use for coding expenses
+title: Create Expense Tags
+description: Add tags to use for coding expenses.
+keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code]
 ---
 <div id="new-expensify" markdown="1">
 
-In Expensify, tags refer to **classes, projects, cost centers, locations, customers, jobs**, and other line-item details that help code expenses for accounting and financial reporting.
+In Expensify, **tags** represent attributes like classes, projects, cost centers, locations, customers, or jobs. They help code expenses for accounting and reporting.
 
-An admin can manually create tags for a workspace, or they will be automatically imported if your workspace is connected to an accounting system, like QuickBooks Online, Intacct, Xero, or NetSuite. These imported tags can be enabled or disabled to use as tags for expenses added to Expensify. Additionally, Expensify will learn how you apply tags to specific merchants over time and apply them automatically.
+Admins can manually create tags for a workspace, or they can be imported automatically if your workspace is connected to an accounting system like QuickBooks Online, Intacct, Xero, or NetSuite. Once added, tags can be enabled or disabled. Over time, Expensify also learns how you use tags for certain merchants and applies them automatically.
 
 ![The Tags tab]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_2.png){:width="100%"}
 
-# Manually add or delete tags
+---
 
-To manually add a tag,
+# Enable Tags
 
-{% include selector.html values="desktop, mobile" %}
+Before you can manage tags, you need to enable the **Tags** feature for your workspace.
 
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu.
-2. Scroll down and click **Workspaces** in the left menu. 
-3. Select the workspace you want to add tags to. 
-4. Click **More features** in the left menu.
-5. Scroll down to the Organize section and enable the Tags toggle.
-6. Click **Tags** in the left menu.
-7. Click **Add Tag** in the top right. 
-8. Enter a name for the tag and click **Save**.
-{% include end-option.html %}
-
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon in the bottom menu.
-2. Tap **Workspaces**. 
-3. Select the workspace you want to add tags to.
-4. Tap **More features**.
-5. In the Organize section, enable the Tags toggle. 
-6. Tap **Tags**.
-7. Tap **Add Tag**. 
-8. Enter a name for the tag and tap **Save**. 
-{% include end-option.html %}
-
-{% include end-selector.html %}
+1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **More Features** in the left menu.
+4. In the **Organize** section, toggle on **Tags**.
 
 ![The toggle to enable Tags]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_1.png){:width="100%"}
 
-To delete a tag, 
+---
 
-{% include selector.html values="desktop, mobile" %}
+# Manually Add or Delete Tags
 
-{% include option.html value="desktop" %}
-1. Click the tag on the Tags page. 
-2. Click the 3-dot menu in the top right. 
-3. Click **Delete tag** to permanently delete the tag. 
-{% include end-option.html %}
+## On Web
 
-{% include option.html value="mobile" %}
-To delete a tag, 
-1. Tap the tag on the Tags page. 
-2. Tap the three-dot menu in the top right. 
-3. Tap **Delete tag** to permanently delete the tag.
-{% include end-option.html %}
+To add a tag:
 
-{% include end-selector.html %}
- 
-# Enable or disable tags
+1. Go to **Workspaces > [Workspace Name] > Tags**.
+2. Click **Add Tag** in the top-right.
+3. Enter a name and click **Save**.
 
-Once you have manually added your tags or automatically imported them from a connected accounting system, you can enable or disable the tags to determine whether they can be added to expenses. 
+To delete a tag:
 
-{% include info.html %}
-After connecting an accounting system, Expensify automatically imports classes, projects, customers, and additional details into your workspace as disabled tags. Workspace admins can enable these tags to make them available for workspace members to add to their expenses.
-{% include end-info.html %}
+1. Click a tag from the list.
+2. Click the **three-dot menu** in the top-right.
+3. Select **Delete tag**.
 
-To enable or disable a tag, 
+## On Mobile
 
-{% include selector.html values="desktop, mobile" %}
+To add a tag:
 
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu.
-2. Scroll down and click **Workspaces** in the left menu. 
-3. Select a workspace. 
-4. Click **Tags** in the left menu.
-5. Click a tag and use the toggle to enable or disable it.
+1. Tap your **profile icon**, then go to **Workspaces**.
+2. Tap your workspace name.
+3. Tap **Tags**, then tap **Add Tag**.
+4. Enter a name and tap **Save**.
 
-{% include info.html %}
-You can enable, disable, or delete tags in bulk by selecting the checkbox to the left of the tags. Then click the “selected” dropdown menu at the top right of the page and select the desired option.
-{% include end-info.html %}
+To delete a tag:
 
-{% include end-option.html %}
+1. Tap the tag you want to delete.
+2. Tap the **three-dot menu** in the top-right.
+3. Tap **Delete tag**.
 
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon in the bottom menu.
-2. Tap **Workspaces**. 
-3. Select a workspace. 
-4. Tap **Tags**.
-5. Tap a tag and use the toggle to enable or disable it. 
+---
 
-{% include info.html %}
-You can enable, disable, or delete tags in bulk by selecting the checkbox to the left of the tag. Then tap the “selected” dropdown menu at the top of the page and select the desired option.
-{% include end-info.html %}
+# Activate or Deactivate Tags
 
-{% include end-option.html %}
+Once tags are created or imported from an accounting system, you can turn them on or off according to your team's needs.
 
-{% include end-selector.html %} 
+## On Web
 
-# Add or edit a GL code
+1. Go to **Workspaces > [Workspace Name] > Tags**.
+2. Click a tag to open its settings.
+3. Use the toggle to make the tag active or inactive.
 
-If your workspace is on the Control plan, you can optionally add a GL code to each tag. Collect plan users will need to upgrade to Control for access to GL codes.
+To manage tags in bulk:
+- Use the checkboxes to select tags.
+- Click the **Selected** dropdown to apply actions like activate, deactivate, or delete.
 
-GL codes can be exported to a CSV export. They are not displayed to users.
+## On Mobile
 
-**To edit GL codes for a tag:**
+1. Tap **Workspaces**, then your workspace.
+2. Tap **Tags** and select a tag.
+3. Use the toggle to make the tag active or inactive.
 
-1. Click your profile image or icon in the bottom left menu
-2. Click **Workspaces** in the left menu
-3. Select a workspace
-4. Click **Tags**
-5. Click a tag to open the tag-settings
-6. To add or edit a GL code, click the GL code field, make the desired change, then click **Save**
+Bulk actions are also available using checkboxes and the **Selected** dropdown menu.
 
-# Apply tags to expenses automatically
+**Note:** Tags imported from an accounting system are added as **inactive** by default and must be turned on manually.
 
-Over time, Expensify learns how you tag specific merchants and automatically applies that tag to the merchant in the future. 
-- If you change a tag, Expensify learns that correction over time as well. However, changing a tag on one expense does not change it for other expenses that have already been assigned the tag.
-- Any expense rules for your workspace take priority over Expensify’s automatic tags. 
-- Expensify won’t automatically tag an expense if it is already manually assigned a tag. 
+---
 
-{% include faq-begin.md %}
-**Can I edit my tags on a submitted expense report?**
+# Add or Edit a GL Code
 
-Yes, you can edit tags on an expense you have submitted until the expense is approved or reimbursed. 
+If you're on the **Control** plan, you can assign a **GL code** to each tag for exporting purposes. These codes are not visible to members.
 
-Approvers can also edit tags on the submitter’s behalf, even after approval. If you are an approver reviewing a report that wasn’t submitted to you, you’ll see the option to take control of the report and then you can change the tag. 
+To add or edit a GL code:
 
-**Can I see an audit trail of tag changes on an expense?** 
+1. Go to **Workspaces > [Workspace Name] > Tags**.
+2. Click a tag to open its detail panel.
+3. Click the **GL Code** field, enter or update the code, then click **Save**.
 
-Yes. When a tag is manually edited, Expensify will log the change in the related workspace chat. 
+---
 
-**If I change tags in my accounting system, what happens to tags in the workspace?**
+# Apply Tags to Expenses Automatically
 
-If a tag is disabled in the accounting system, it will be removed from the workspace’s tags list in the workspace. However, the disabled tag will remain on approved and drafted expense reports that it has been previously added to. An admin can change the tag on an approved or reimbursed expense, and anyone can change the tag on an unapproved expense.
+Expensify will learn how you use tags and apply them automatically for recurring merchants or patterns.
 
-**Can I set up multi-level tags in New Expensify?**
+- Manual corrections are remembered over time.
+- Existing tags on an expense will not be overwritten automatically.
+- Workspace-level **Expense Rules** take priority over automated tag suggestions.
 
-At this time, only single-level tags are available in New Expensify. If you’ve used multi-level tags in Expensify Classic, you will see the first-level tag in New Expensify. Multi-level tags are under development.
-{% include faq-end.md %}
+---
+
+# FAQ
+
+## Can I Edit Tags on a Submitted Expense Report?
+
+Yes. You can edit tags until the expense is approved or reimbursed.
+
+Approvers can also edit tags, even post-approval, by taking control of the report.
+
+## Can I See an Audit Trail of Tag Changes?
+
+Yes. When a tag is manually changed, the update is logged in the associated expense chat.
+
+## What Happens if a Tag Is Disabled in My Accounting System?
+
+It will be removed from the workspace’s tag list. However, it will still appear on any expenses or reports where it was already applied.
+
+## Can I Set Up Multi-Level Tags in New Expensify?
+
+Not yet. New Expensify currently supports only **single-level tags**. If your account used multi-level tags in Expensify Classic, only the first level will appear. Support for multi-level tags is in development.
 
 </div>

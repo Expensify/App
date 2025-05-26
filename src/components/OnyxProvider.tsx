@@ -5,16 +5,15 @@ import createOnyxContext from './createOnyxContext';
 
 // Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
 // the same key (e.g. FlatList renderItem components)
-const [withNetwork, NetworkProvider, NetworkContext] = createOnyxContext(ONYXKEYS.NETWORK);
-const [, PersonalDetailsProvider, PersonalDetailsContext, usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
-const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
-const [, BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
-const [, BetasProvider, BetasContext, useBetas] = createOnyxContext(ONYXKEYS.BETAS);
-const [, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-const [, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
-const [, FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
-const [, PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
-const [, SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
+const [NetworkProvider, NetworkContext] = createOnyxContext(ONYXKEYS.NETWORK);
+const [PersonalDetailsProvider, PersonalDetailsContext, usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
+const [BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+const [BetasProvider, BetasContext, useBetas] = createOnyxContext(ONYXKEYS.BETAS);
+const [ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+const [PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
+const [FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+const [PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+const [SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 
 type OnyxProviderProps = {
     /** Rendered child component */
@@ -27,7 +26,6 @@ function OnyxProvider(props: OnyxProviderProps) {
             components={[
                 NetworkProvider,
                 PersonalDetailsProvider,
-                CurrentDateProvider,
                 BlockedFromConciergeProvider,
                 BetasProvider,
                 ReportCommentDraftsProvider,
@@ -47,9 +45,8 @@ OnyxProvider.displayName = 'OnyxProvider';
 export default OnyxProvider;
 
 export {
-    withNetwork,
+    NetworkProvider,
     usePersonalDetails,
-    withCurrentDate,
     NetworkContext,
     BetasContext,
     PreferredThemeContext,
