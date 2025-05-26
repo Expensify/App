@@ -174,6 +174,7 @@ import {
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
     isClosedAction,
+    isReopenedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -10782,6 +10783,15 @@ function getReportAttributes(reportID: string | undefined, reportAttributes?: Re
     return attributes[reportID];
 }
 
+function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    if (!reportActions) {
+        return false;
+    }
+
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+    return reportActionList.some((action) => isReopenedAction(action));
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11162,6 +11172,7 @@ export {
     isWorkspaceEligibleForReportChange,
     getReportAttributes,
     navigateOnDeleteExpense,
+    hasReportBeenReopened,
 };
 
 export type {

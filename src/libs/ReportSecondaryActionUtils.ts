@@ -33,6 +33,7 @@ import {
     isReportManager as isReportManagerUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
+    hasReportBeenReopened as hasReportBeenReopenedUtils,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -47,7 +48,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     return canAddTransaction(report);
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs): boolean {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]): boolean {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
     }
@@ -59,17 +60,17 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-
+    
     if (!isExpenseReport || report?.total === 0) {
         return false;
     }
-
+    
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     if (!isReportSubmitter && !isReportApprover) {
         return false;
     }
-
+    
     const isOpenReport = isOpenReportUtils(report);
     if (!isOpenReport) {
         return false;
@@ -77,6 +78,11 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+        return false;
+    }
+
+    const hasReportBeenReopened = hasReportBeenReopenedUtils(reportActions);
+    if (hasReportBeenReopened && isReportSubmitter) {
         return false;
     }
 
@@ -404,7 +410,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
