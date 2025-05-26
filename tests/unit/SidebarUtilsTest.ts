@@ -587,7 +587,11 @@ describe('SidebarUtils', () => {
                     .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, {private_isArchived: new Date().toString()}))
 
                     // When the welcome message is retrieved
-                    .then(() => SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined))
+                    .then(() => {
+                        // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
+                        const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, isReportArchived.current);
+                    })
 
                     // Then the welcome message should indicate the report is archived
                     .then((result) => expect(result.messageText).toBe("You missed the party in Report (archived) , there's nothing to see here."))
@@ -605,7 +609,11 @@ describe('SidebarUtils', () => {
                     .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT))
 
                     // When the welcome message is retrieved
-                    .then(() => SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined))
+                    .then(() => {
+                        // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
+                        const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, isReportArchived.current);
+                    })
 
                     // Then the welcome message should indicate the report is archived
                     .then((result) => expect(result.messageText).toBe('This chat is with everyone in Unavailable workspace. Use it for the most important announcements.'))
