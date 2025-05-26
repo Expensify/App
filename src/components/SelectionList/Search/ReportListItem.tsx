@@ -146,6 +146,7 @@ function ReportListItem<TItem extends ListItem>({
                         <IconButton
                             fill={theme.icon}
                             src={src}
+                            small
                             onPress={() => setIsExpanded(!isExpanded)}
                             style={[styles.p3]}
                             hoverStyle={[styles.bgTransparent]}
