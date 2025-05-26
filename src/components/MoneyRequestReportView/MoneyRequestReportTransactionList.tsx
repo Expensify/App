@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
@@ -25,6 +25,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
@@ -35,6 +36,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -180,6 +182,29 @@ function MoneyRequestReportTransactionList({
         },
         [reportActions, sortedTransactions],
     );
+
+    useEffect(() => {
+        const lastFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
+        if (lastFullScreenRoutes?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR && lastFullScreenRoutes?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+            return;
+        }
+
+        const lastRoute = lastFullScreenRoutes?.state?.routes?.at(-1);
+        if (!lastRoute?.params) {
+            return;
+        }
+        if (lastRoute?.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT && lastRoute?.name !== SCREENS.REPORT) {
+            return;
+        }
+
+        const reportIDParams = 'reportID' in lastRoute.params ? lastRoute.params.reportID : '';
+        if (reportIDParams !== report.reportID) {
+            return;
+        }
+
+        const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, transactions);
+        setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
+    }, [report.reportID, reportActions, transactions]);
 
     const dateColumnSize = useMemo(() => {
         const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));

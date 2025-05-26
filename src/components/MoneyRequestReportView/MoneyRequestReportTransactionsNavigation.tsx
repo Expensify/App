@@ -21,7 +21,7 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
     const theme = useTheme();
 
     const reportIDsList = getActiveTransactionThreadIDs();
-    const {prevReportID, nextReportID} = useMemo(() => {
+    const {prevReportID, nextReportID} = (() => {
         if (!reportIDsList) {
             return {prevReportID: undefined, nextReportID: undefined};
         }
@@ -32,7 +32,7 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
 
         return {prevReportID: prevID, nextReportID: nextID};
-    }, [currentReportID, reportIDsList]);
+    })();
 
     const backTo = Navigation.getActiveRoute();
 
