@@ -100,17 +100,19 @@ function MoneyRequestAction({
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const [previewWidth, setPreviewWidth] = useState(0);
     const containerStyles = useMemo(
+        () => [styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style],
+        [isHovered, style, styles.cursorPointer, styles.reportPreviewBoxHoverBorder],
+    );
+
+    const transactionPreviewContainerStyles = useMemo(
         () => [
             {
                 width: previewWidth,
                 maxWidth: previewWidth,
             },
-            styles.cursorPointer,
-            isHovered ? styles.reportPreviewBoxHoverBorder : undefined,
-            style,
             styles.borderNone,
         ],
-        [isHovered, previewWidth, style, styles.borderNone, styles.cursorPointer, styles.reportPreviewBoxHoverBorder],
+        [previewWidth, styles.borderNone],
     );
 
     const onMoneyRequestPreviewPressed = () => {
@@ -194,7 +196,7 @@ function MoneyRequestAction({
                     checkIfContextMenuActive={checkIfContextMenuActive}
                     shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                     onPreviewPressed={onMoneyRequestPreviewPressed}
-                    containerStyles={containerStyles}
+                    containerStyles={[containerStyles, transactionPreviewContainerStyles]}
                     isHovered={isHovered}
                     isWhisper={isWhisper}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
@@ -213,7 +215,7 @@ function MoneyRequestAction({
             checkIfContextMenuActive={checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onMoneyRequestPreviewPressed}
-            containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style]}
+            containerStyles={containerStyles}
             isHovered={isHovered}
             isWhisper={isWhisper}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
