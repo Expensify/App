@@ -9356,7 +9356,7 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
-    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
+    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus, undefined, undefined, true);
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -9417,8 +9417,7 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
                 [optimisticReopenedReportAction.reportActionID]: {
-                    pendingAction: null,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.reopenError'),
                 },
             },
         },

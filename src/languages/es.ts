@@ -1128,6 +1128,7 @@ const translations = {
             quantityGreaterThanZero: 'La cantidad debe ser mayor que cero',
             invalidSubrateLength: 'Debe haber al menos una subtasa',
             invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
+            reopenError: 'Este informe ya ha sido reabierto',
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
