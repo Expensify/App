@@ -4847,6 +4847,18 @@ function deleteAppReport(reportID: string | undefined) {
         });
     }
 
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+        value: {hasOutstandingChildRequest: false},
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+        value: {hasOutstandingChildRequest: report?.hasOutstandingChildRequest},
+    });
+
     const parameters: DeleteAppReportParams = {
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
