@@ -12,6 +12,7 @@ import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -24,6 +25,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -100,10 +102,22 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 
-    const [transactions = undefined] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
         canBeMissing: true,
     });
+
+    const prevTransactions = usePrevious(transactions);
+
+    const newTransactions = useMemo(() => {
+        if (!prevTransactions || !transactions || transactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
+        return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+        // Depending only on transactions is enough because prevTransactions is a helper object.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactions]);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -123,8 +137,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
 
-    const isEmptyTransactionReport = transactions && transactionThreadReportID === undefined && !isLoadingInitialReportActions;
-    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport && shouldDisplayReportTableView(report, transactions);
+    // Prevent flash by ensuring transaction data is fully loaded before deciding which view to render
+    // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
+    const isTransactionDataReady = transactions !== undefined;
+    const isStillLoadingData = !!isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
+    const shouldWaitForData = (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) && !isTransactionThreadView;
+
+    const isEmptyTransactionReport = transactions && transactions.length === 0 && transactionThreadReportID === undefined;
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, transactions ?? []);
 
     const reportHeaderView = useMemo(
         () =>
@@ -147,6 +167,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     policy={policy}
                     reportActions={reportActions}
                     transactionThreadReportID={transactionThreadReportID}
+                    isLoadingInitialReportActions={isLoadingInitialReportActions}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
@@ -157,10 +178,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     }}
                 />
             ),
-        [activeWorkspaceID, backToRoute, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [activeWorkspaceID, backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
-    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || !transactions) {
+    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForData) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 
@@ -211,9 +232,11 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             report={report}
                             policy={policy}
                             transactions={transactions}
+                            newTransactions={newTransactions}
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
+                            isLoadingInitialReportActions={isLoadingInitialReportActions}
                         />
                     ) : (
                         <ReportActionsView

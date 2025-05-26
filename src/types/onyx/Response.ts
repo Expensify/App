@@ -110,6 +110,9 @@ type Response = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     client_secret?: ClientSecret;
 
+    /** Whether the account already exists */
+    accountExists?: boolean;
+
     /** [HybridApp] Determines which app should be opened, NewDot or OldDot */
     tryNewDot?: boolean;
 };

@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
-import {clearSessionStorage} from '@libs/Navigation/helpers/getLastVisitedWorkspaceTabScreen';
+import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {clearAllPolicies} from './Policy/Policy';
