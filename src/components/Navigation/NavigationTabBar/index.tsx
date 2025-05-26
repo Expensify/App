@@ -189,7 +189,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 const isPendingDelete = isPendingDeletePolicy(policy);
 
                 if (!shouldShowPolicy || isPendingDelete) {
-                    Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
+                    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                     return;
                 }
 
