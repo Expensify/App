@@ -615,7 +615,7 @@ describe('SidebarUtils', () => {
                         return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, isReportArchived.current);
                     })
 
-                    // Then the welcome message should indicate the report is archived
+                    // Then the welcome message should explain the purpose of the room
                     .then((result) => expect(result.messageText).toBe('This chat is with everyone in Unavailable workspace. Use it for the most important announcements.'))
             );
         });
