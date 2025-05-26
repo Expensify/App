@@ -284,7 +284,7 @@ function isIntegrationMessageAction(reportAction: OnyxInputOrEntry<ReportAction>
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE;
 }
 
-function isTravelUpdate(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW> {
+function isTravelUpdate(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE);
 }
 
