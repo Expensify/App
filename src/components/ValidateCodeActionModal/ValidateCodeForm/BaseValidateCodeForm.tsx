@@ -309,7 +309,7 @@ function BaseValidateCodeForm({
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
                 errors={canShowError ? finalValidateError : undefined}
-                errorRowStyles={[styles.mv2, styles.textWrap]}
+                errorRowStyles={[styles.mt2, styles.textWrap]}
                 onClose={() => {
                     clearError();
                     if (!isEmptyObject(validateCodeAction?.errorFields) && validateCodeActionErrorField) {
@@ -322,6 +322,7 @@ function BaseValidateCodeForm({
                     <Button
                         text={translate('common.skip')}
                         onPress={handleSkipButtonPress}
+                        style={[styles.mt4]}
                         success={false}
                         large
                     />
