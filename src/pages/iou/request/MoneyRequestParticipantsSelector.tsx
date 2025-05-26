@@ -215,8 +215,8 @@ function MoneyRequestParticipantsSelector({
 
         newSections.push({
             title: translate('common.recents'),
-            data: isPerDiemRequest ? chatOptions.recentReports.filter(report => report.isPolicyExpenseChat) : chatOptions.recentReports,
-            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter(report => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
         });
 
         newSections.push({
