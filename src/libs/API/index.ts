@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
 import Log from '@libs/Log';
 import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
+import {saveWorkspacesTabPathToSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
@@ -13,7 +14,7 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
-import {READ_COMMANDS} from './types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -175,6 +176,9 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
     onyxData: OnyxData = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+    if (command == SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE || command == SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE) {
+        saveWorkspacesTabPathToSessionStorage('/settings/workspaces');
+    }
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
 
     // Return a promise containing the response from HTTPS
