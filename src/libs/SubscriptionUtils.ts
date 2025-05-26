@@ -10,7 +10,7 @@ import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToShortDisplayString} from './CurrencyUtils';
 import {translateLocal} from './Localize';
@@ -187,6 +187,12 @@ Onyx.connect({
     },
 });
 
+let introSelected: OnyxEntry<IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (introSelected = value),
+});
+
 /**
  * @returns The date when the grace period ends.
  */
@@ -251,7 +257,11 @@ function hasInsufficientFundsError() {
 }
 
 function shouldShowPreTrialBillingBanner(): boolean {
-    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded();
+    // We don't want to show the Pre Trial banner if the user was a Test Drive Receiver that created their workspace
+    // with the promo code.
+    const wasUserTestDriveReceiver = introSelected?.previousChoices?.some((choice) => choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER);
+
+    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded() && !wasUserTestDriveReceiver;
 }
 /**
  * @returns The card to be used for subscription billing.

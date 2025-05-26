@@ -635,10 +635,6 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
-type LastFourDigitsParams = {
-    lastFourDigits: string;
-};
-
 type CompanyCardBankName = {
     bankName: string;
 };
@@ -704,6 +700,10 @@ type SplitExpenseEditTitleParams = {
 
 type TotalAmountGreaterOrLessThanOriginalParams = {
     amount: string;
+};
+
+type EmployeeInviteMessageParams = {
+    name: string;
 };
 
 export type {
@@ -803,7 +803,6 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -955,4 +954,5 @@ export type {
     SubscriptionSettingsSummaryParams,
     ReviewParams,
     CurrencyInputDisabledTextParams,
+    EmployeeInviteMessageParams,
 };
