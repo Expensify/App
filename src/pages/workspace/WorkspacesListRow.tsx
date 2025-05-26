@@ -241,7 +241,7 @@ function WorkspacesListRow({
                     </View>
                     {shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
                 </View>
-                <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerMinWidth, styles.gap2, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
                     {!!ownerDetails && (
                         <>
                             <Avatar
