@@ -19,6 +19,7 @@ import {
     canAddTransaction,
     canEditFieldOfMoneyRequest,
     canEditReportPolicy,
+    hasReportBeenReopened as hasReportBeenReopenedUtils,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -33,7 +34,6 @@ import {
     isReportManager as isReportManagerUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
-    hasReportBeenReopened as hasReportBeenReopenedUtils,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -60,17 +60,17 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    
+
     if (!isExpenseReport || report?.total === 0) {
         return false;
     }
-    
+
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     if (!isReportSubmitter && !isReportApprover) {
         return false;
     }
-    
+
     const isOpenReport = isOpenReportUtils(report);
     if (!isOpenReport) {
         return false;
