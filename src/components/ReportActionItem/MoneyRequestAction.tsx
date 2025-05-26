@@ -175,10 +175,12 @@ function MoneyRequestAction({
             }}
         >
             {!previewWidth ? (
-                <ActivityIndicator
-                    color={theme.spinner}
-                    size={40}
-                />
+                <View style={[{height: CONST.REPORT.TRANSACTION_PREVIEW.DUPLICATE.HEIGHT_WIDE}, styles.justifyContentCenter]}>
+                    <ActivityIndicator
+                        color={theme.spinner}
+                        size={40}
+                    />
+                </View>
             ) : (
                 <TransactionPreview
                     iouReportID={requestReportID}
