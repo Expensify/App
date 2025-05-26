@@ -543,7 +543,9 @@ function IOURequestStepScan({
             convertHeicImage(file, {
                 onStart: () => setIsLoadingReceipt(true),
                 onSuccess: (convertedFile) => resolve(convertedFile),
-                onError: (error, nonConvertedFile) => reject({error, fallbackFile: nonConvertedFile}),
+                onError: (nonConvertedFile) => {
+                    reject(nonConvertedFile);
+                },
                 onFinish: () => setIsLoadingReceipt(false),
             });
         });
@@ -609,8 +611,7 @@ function IOURequestStepScan({
                     .then((convertedFile) => {
                         processFile(convertedFile);
                     })
-                    .catch(({error, fallbackFile}) => {
-                        console.error('HEIC conversion failed:', error);
+                    .catch((fallbackFile: FileObject) => {
                         // Use the original file if conversion fails
                         processFile(fallbackFile);
                     });
