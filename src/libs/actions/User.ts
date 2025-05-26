@@ -89,7 +89,7 @@ Onyx.connect({
 });
 
 /**
- * Attempt to close the user's accountt
+ * Attempt to close the user's account
  */
 function closeAccount(reason: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
@@ -119,7 +119,7 @@ function closeAccount(reason: string) {
 }
 
 /**
- * Resends a validation link to a given login
+ * Resend a validation link to a given login
  */
 function resendValidateCode(login: string) {
     sessionResendValidateCode(login);
@@ -281,7 +281,7 @@ function clearContactMethod(contactMethod: string) {
 }
 
 /**
- * Clears error for a sepcific field on validate action code.
+ * Clears error for a specific field on validate action code.
  */
 function clearValidateCodeActionError(fieldName: string) {
     Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
@@ -702,7 +702,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
             for (const data of flatten) {
                 // Someone completes a task
-                if (data.actionName === 'TASKCOMPLETED') {
+                if (data.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED) {
                     return playSound(SOUNDS.SUCCESS);
                 }
             }
@@ -780,7 +780,7 @@ function subscribeToPusherPong() {
 
         Timing.end(CONST.TIMING.PUSHER_PING_PONG);
 
-        // When any PONG event comes in, reset this flag so that checkforLatePongReplies will resume looking for missed PONGs
+        // When any PONG event comes in, reset this flag so that checkForLatePongReplies will resume looking for missed PONGs
         pongHasBeenMissed = false;
     });
 }
@@ -818,9 +818,9 @@ function pingPusher() {
     Timing.start(CONST.TIMING.PUSHER_PING_PONG);
 }
 
-function checkforLatePongReplies() {
+function checkForLatePongReplies() {
     if (isOffline()) {
-        Log.info('[Pusher PINGPONG] Skipping checkforLatePongReplies because the client is offline');
+        Log.info('[Pusher PINGPONG] Skipping checkForLatePongReplies because the client is offline');
         return;
     }
 
@@ -845,7 +845,7 @@ function checkforLatePongReplies() {
 }
 
 let pingPusherIntervalID: ReturnType<typeof setInterval>;
-let checkforLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
+let checkForLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
 function initializePusherPingPong() {
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -871,11 +871,11 @@ function initializePusherPingPong() {
     // events to be sent and received
     setTimeout(() => {
         // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
-        if (checkforLatePongRepliesIntervalID) {
-            clearInterval(checkforLatePongRepliesIntervalID);
+        if (checkForLatePongRepliesIntervalID) {
+            clearInterval(checkForLatePongRepliesIntervalID);
         }
         // Check for any missing pong events on a regular interval
-        checkforLatePongRepliesIntervalID = setInterval(checkforLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
+        checkForLatePongRepliesIntervalID = setInterval(checkForLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
     }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
 }
 
@@ -909,7 +909,7 @@ function subscribeToUserEvents() {
         applyOnyxUpdatesReliably(updates);
     });
 
-    // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and alot of messages come in
+    // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and a lot of messages come in
     // See https://github.com/Expensify/App/issues/57961 for more details
     const debouncedPlaySoundForMessageType = debounce(
         (pushJSONMessage: OnyxServerUpdate[]) => {

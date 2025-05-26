@@ -111,7 +111,7 @@ function SearchList(
     const styles = useThemeStyles();
     const flattenedTransactions = shouldGroupByReports ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
     const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
-        return item.isSelected ? acc + 1 : acc;
+        return item?.isSelected ? acc + 1 : acc;
     }, 0);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
@@ -174,6 +174,10 @@ function SearchList(
         (item: SearchListItem) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
+                return;
+            }
+            // disable long press for empty expense reports
+            if ('transactions' in item && item.transactions.length === 0) {
                 return;
             }
             if (selectionMode?.isEnabled) {
@@ -357,11 +361,12 @@ function SearchList(
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedItemsLength === flattenedTransactions.length}
+                            isChecked={flattenedTransactions.length > 0 && selectedItemsLength === flattenedTransactions.length}
                             isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
+                            disabled={flattenedTransactions.length === 0}
                         />
                     )}
 
@@ -404,7 +409,6 @@ function SearchList(
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
                 shouldPreventScrollOnFocus
-                shouldUseNewModal
             >
                 <MenuItem
                     title={translate('common.select')}
