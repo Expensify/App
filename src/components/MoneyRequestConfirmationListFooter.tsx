@@ -868,7 +868,7 @@ function MoneyRequestConfirmationListFooter({
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
-            {isPerDiemRequest && (
+            {isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT && (
                 <>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!isReadOnly}

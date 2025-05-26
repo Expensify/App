@@ -16,7 +16,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import BankAccount from '@libs/models/BankAccount';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -79,7 +78,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** TestID of the component */
         testID?: string;
 
-        /** Whether the page is loading, example any other API call in progres */
+        /** Whether the page is loading, example any other API call in progress */
         isLoading?: boolean;
 
         /** Whether to use the headline header */
@@ -183,7 +182,7 @@ function WorkspacePageWithSections({
             return;
         }
 
-        goBackFromWorkspaceCentralScreen(policyID);
+        Navigation.popToSidebar();
     };
 
     return (

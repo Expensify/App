@@ -129,11 +129,6 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
-type UnreportedTransactionParams = {
-    reportUrl: string;
-    reportName?: string;
-};
-
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -640,10 +635,6 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
-type LastFourDigitsParams = {
-    lastFourDigits: string;
-};
-
 type CompanyCardBankName = {
     bankName: string;
 };
@@ -695,6 +686,10 @@ type ReviewParams = {
 
 type CurrencyInputDisabledTextParams = {
     currency: string;
+};
+
+type EmployeeInviteMessageParams = {
+    name: string;
 };
 
 export type {
@@ -791,7 +786,6 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -827,7 +821,6 @@ export type {
     RequestCountParams,
     DeleteTransactionParams,
     MovedTransactionParams,
-    UnreportedTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -944,4 +937,5 @@ export type {
     SubscriptionSettingsSummaryParams,
     ReviewParams,
     CurrencyInputDisabledTextParams,
+    EmployeeInviteMessageParams,
 };
