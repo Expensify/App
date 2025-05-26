@@ -45,7 +45,7 @@ type SettlementButtonProps = {
     shouldDisableApproveButton?: boolean;
 
     /** The policyID of the report we are paying */
-    policyID?: string;
+    policyID: string | undefined;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;

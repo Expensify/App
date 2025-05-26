@@ -26,6 +26,7 @@ type AvatarSizeValue = ValueOf<
         | 'avatarSizeHeader'
         | 'avatarSizeMentionIcon'
         | 'avatarSizeSmallNormal'
+        | 'avatarSizeLargeNormal'
     >
 >;
 
