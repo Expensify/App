@@ -85,7 +85,7 @@ function EmployeeTestDriveModal() {
 
     const skipTestDrive = () => {
         Navigation.dismissModal();
-    }
+    };
 
     return (
         <BaseTestDriveModal
