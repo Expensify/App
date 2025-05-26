@@ -498,7 +498,7 @@ function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpen
 }
 
 function revert(transaction?: OnyxEntry<Transaction>, originalMessage?: OriginalMessageModifiedExpense | undefined) {
-    if (!(transaction && originalMessage?.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage)) {
+    if (!transaction || !originalMessage?.oldAmount || !originalMessage.oldCurrency || !('amount' in originalMessage) || !('currency' in originalMessage)) {
         return;
     }
 

@@ -836,10 +836,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): 
 /**
  * Get all transaction violations of the transaction with given transactionID.
  */
-function getTransactionViolations(
-    transaction: Transaction | SearchTransaction | undefined,
-    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
-): TransactionViolations | undefined {
+function getTransactionViolations(transaction: OnyxEntry<Transaction | SearchTransaction>, transactionViolations: OnyxCollection<TransactionViolations>): TransactionViolations | undefined {
     if (!transaction || !transactionViolations) {
         return undefined;
     }
@@ -919,10 +916,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(
-    transactions: OnyxEntry<Transaction[]> | OnyxEntry<SearchTransaction[]>,
-    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
-): boolean {
+function allHavePendingRTERViolation(transactions: OnyxEntry<Transaction[] | SearchTransaction[]>, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     if (!transactions) {
         return false;
     }
@@ -1292,8 +1286,8 @@ type FieldsToChange = {
     reimbursable?: Array<boolean | undefined>;
 };
 
-function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Array<OnyxEntry<Transaction>> {
-    return transactions.filter((transaction) => !isSettled(transaction?.reportID) && !isReportIDApproved(transaction?.reportID));
+function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
+    return transactions.filter((transaction) => !!transaction && !isSettled(transaction?.reportID) && !isReportIDApproved(transaction?.reportID)) as Transaction[];
 }
 
 /**
@@ -1494,7 +1488,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
 
 function buildMergeDuplicatesParams(
     reviewDuplicates: OnyxEntry<ReviewDuplicates>,
-    duplicates: Array<OnyxEntry<Transaction>>,
+    duplicatedTransactions: Array<OnyxEntry<Transaction>>,
     originalTransaction: Partial<Transaction>,
 ): MergeDuplicatesParams {
     return {
@@ -1504,7 +1498,7 @@ function buildMergeDuplicatesParams(
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
         transactionID: reviewDuplicates?.transactionID,
-        transactionIDList: (removeSettledAndApprovedTransactions(duplicates ?? []).filter((transaction) => !!transaction) as Transaction[]).map((transaction) => transaction.transactionID),
+        transactionIDList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []).map((transaction) => transaction.transactionID),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
