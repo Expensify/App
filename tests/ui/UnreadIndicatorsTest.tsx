@@ -285,108 +285,104 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
             }));
-    it(
-        'Shows a browser notification and bold text when a new message arrives for a chat that is read',
-        () =>
-            signInAndGetAppWithUnreadChat()
-                .then(() => {
-                    // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
-                    // We set the created date 5 seconds in the past to ensure that time has passed when we open the report
-                    const NEW_REPORT_ID = '2';
-                    const NEW_REPORT_CREATED_DATE = subSeconds(new Date(), 5);
-                    const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
-                    const createdReportActionIDLocal = rand64();
-                    const commentReportActionID = rand64();
-                    PusherHelper.emitOnyxUpdate([
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
-                            value: {
-                                reportID: NEW_REPORT_ID,
-                                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                                lastReadTime: '',
-                                lastVisibleActionCreated: DateUtils.getDBTime(toZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
-                                lastMessageText: 'Comment 1',
-                                lastActorAccountID: USER_C_ACCOUNT_ID,
-                                participants: {
-                                    [USER_C_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                                    [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                                },
-                                type: CONST.REPORT.TYPE.CHAT,
+    it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () =>
+        signInAndGetAppWithUnreadChat()
+            .then(() => {
+                // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
+                // We set the created date 5 seconds in the past to ensure that time has passed when we open the report
+                const NEW_REPORT_ID = '2';
+                const NEW_REPORT_CREATED_DATE = subSeconds(new Date(), 5);
+                const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
+                const createdReportActionIDLocal = rand64();
+                const commentReportActionID = rand64();
+                PusherHelper.emitOnyxUpdate([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
+                        value: {
+                            reportID: NEW_REPORT_ID,
+                            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                            lastReadTime: '',
+                            lastVisibleActionCreated: DateUtils.getDBTime(toZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
+                            lastMessageText: 'Comment 1',
+                            lastActorAccountID: USER_C_ACCOUNT_ID,
+                            participants: {
+                                [USER_C_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                                [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                            },
+                            type: CONST.REPORT.TYPE.CHAT,
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
+                        value: {
+                            [createdReportActionIDLocal]: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                                automatic: false,
+                                created: format(NEW_REPORT_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
+                                reportActionID: createdReportActionIDLocal,
+                            },
+                            [commentReportActionID]: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                                actorAccountID: USER_C_ACCOUNT_ID,
+                                person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
+                                created: format(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
+                                message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
+                                reportActionID: commentReportActionID,
                             },
                         },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
-                            value: {
-                                [createdReportActionIDLocal]: {
-                                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                    automatic: false,
-                                    created: format(NEW_REPORT_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
-                                    reportActionID: createdReportActionIDLocal,
-                                },
-                                [commentReportActionID]: {
-                                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                                    actorAccountID: USER_C_ACCOUNT_ID,
-                                    person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                                    created: format(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
-                                    message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
-                                    reportActionID: commentReportActionID,
-                                },
-                            },
-                            shouldNotify: true,
+                        shouldNotify: true,
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
                         },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
-                            },
-                        },
-                    ]);
-                    return waitForBatchedUpdates();
-                })
-                .then(() => {
-                    // Verify notification was created
-                    expect(LocalNotification.showCommentNotification).toBeCalled();
-                })
-                .then(() => {
-                    // // Verify the new report option appears in the LHN
-                    const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
-                    expect(optionRows).toHaveLength(2);
-                    // Verify the text for both chats are bold indicating that nothing has not yet been read
-                    const displayNameHintTexts = translateLocal('accessibilityHints.chatUserDisplayNames');
-                    const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
+                    },
+                ]);
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                // Verify notification was created
+                expect(LocalNotification.showCommentNotification).toBeCalled();
+            })
+            .then(() => {
+                // // Verify the new report option appears in the LHN
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
+                expect(optionRows).toHaveLength(2);
+                // Verify the text for both chats are bold indicating that nothing has not yet been read
+                const displayNameHintTexts = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
+                expect(displayNameTexts).toHaveLength(2);
+                const firstReportOption = displayNameTexts.at(0);
+                expect((firstReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(screen.getByText('C User')).toBeOnTheScreen();
+
+                const secondReportOption = displayNameTexts.at(1);
+                expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(screen.getByText('B User')).toBeOnTheScreen();
+
+                // Tap the new report option and navigate back to the sidebar again via the back button
+                return navigateToSidebarOption(0);
+            })
+            // We need to wait for the "ReadNewestAction" API call to be triggered. After that,
+            // the previous report will be marked as read and the chat display name will be updated.
+            .then(() =>
+                waitFor(() => async () => {
+                    await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                    // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
+                    const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                    const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
+
                     expect(displayNameTexts).toHaveLength(2);
-                    const firstReportOption = displayNameTexts.at(0);
-                    expect((firstReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                    expect(screen.getByText('C User')).toBeOnTheScreen();
-
-                    const secondReportOption = displayNameTexts.at(1);
-                    expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                    expect(screen.getByText('B User')).toBeOnTheScreen();
-
-                    // Tap the new report option and navigate back to the sidebar again via the back button
-                    return navigateToSidebarOption(0);
-                })
-                // We need to wait for the "ReadNewestAction" API call to be triggered. After that,
-                // the previous report will be marked as read and the chat display name will be updated.
-                .then(() =>
-                    waitFor(() => async () => {
-                        await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
-                        // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
-
-                        expect(displayNameTexts).toHaveLength(2);
-                        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
-                        expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
-                        expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                        expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
-                    }),
-                ),
-        100000000000,
-    );
+                    expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
+                    expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
+                    expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                    expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
+                }),
+            ));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
