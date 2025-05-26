@@ -5,6 +5,7 @@ import type {TextInput} from 'react-native';
 import SCREENS from '@src/SCREENS';
 import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
 import navigationRef from './Navigation/navigationRef';
+import preventTextInputFocusOnFirstResponderOnce from './preventTextInputFocusOnFirstResponderOnce';
 
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
@@ -88,7 +89,7 @@ function isEditFocused(): boolean {
  * first responder in the UIResponder chain. (iOS only, no-op on Android)
  */
 function preventFocusOnFirstResponderOnce() {
-    composerRef.current?.preventFocusOnFirstResponderOnce();
+    preventTextInputFocusOnFirstResponderOnce(composerRef);
 }
 
 export default {
