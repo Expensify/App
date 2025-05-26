@@ -1,9 +1,9 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
+import { Str } from 'expensify-common';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { InteractionManager, View } from 'react-native';
+import type { FileObject } from '@components/AttachmentModal';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type { DropdownOption } from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -11,15 +11,15 @@ import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PDFThumbnail from '@components/PDFThumbnail';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type { PopoverMenuItem } from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import {useSearchContext} from '@components/Search/SearchContext';
+import { useSearchContext } from '@components/Search/SearchContext';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
+import type { SearchHeaderOptionValue } from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {PaymentData, SearchParams} from '@components/Search/types';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import type { PaymentData, SearchParams } from '@components/Search/types';
+import { usePlaybackContext } from '@components/VideoPlayerContexts/PlaybackContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -28,7 +28,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
+import { searchInServer } from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -40,58 +40,67 @@ import {
     search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
-import {resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
+import { resizeImageIfNeeded, validateReceipt } from '@libs/fileDownload/FileUtils';
+import { navigateToParticipantPage } from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {hasVBBA} from '@libs/PolicyUtils';
-import {generateReportID, isExpenseReport, isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { SearchFullscreenNavigatorParamList } from '@libs/Navigation/types';
+import { getPolicy, hasVBBA } from '@libs/PolicyUtils';
+import { generateReportID, isExpenseReport, isInvoiceReport, isIOUReport } from '@libs/ReportUtils';
+import { buildCannedSearchQuery, buildSearchQueryJSON } from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
-import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
+import { initMoneyRequest, setMoneyRequestReceipt } from '@userActions/IOU';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type { TranslationPaths } from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults} from '@src/types/onyx';
+import type { AccountData, SearchResults } from '@src/types/onyx';
+import { isCurrencySupportedForDirectReimbursement } from '@libs/actions/Policy/Policy';
 import SearchPageNarrow from './SearchPageNarrow';
+import { TupleToUnion } from 'type-fest';
+import { formatPaymentMethods } from '@libs/PaymentUtils';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
-function SearchPage({route}: SearchPageProps) {
-    const {translate} = useLocalize();
+function SearchPage({ route }: SearchPageProps) {
+    const { translate } = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const { shouldUseNarrowLayout, isSmallScreenWidth } = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isOffline} = useNetwork();
-    const {activeWorkspaceID} = useActiveWorkspace();
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const { isOffline } = useNetwork();
+    const { activeWorkspaceID } = useActiveWorkspace();
+    const { selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode } = useSearchContext();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, { canBeMissing: true });
+    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, { canBeMissing: true });
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, { canBeMissing: true });
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
+    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, { canBeMissing: true });
+    const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST, { canBeMissing: true });
+    const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
     // TODO: to be refactored in step 3
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
-    const {q} = route.params;
+    const { q } = route.params;
 
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    const { canUseMultiFilesDragAndDrop } = usePermissions();
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, { canBeMissing: true });
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
     useEffect(() => {
@@ -105,7 +114,7 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
-    const {status, hash} = queryJSON ?? {};
+    const { status, hash } = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     // TODO: to be refactored in step 3
@@ -125,20 +134,174 @@ function SearchPage({route}: SearchPageProps) {
             return '';
         }
         if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+            return translate(attachmentInvalidReason, { maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024) });
         }
         return translate(attachmentInvalidReason);
     };
 
-    const getSubMenuItems = (): PopoverMenuItem[] => {
+
+    const onBulkPaySelected = useCallback(() => {
+        if (!hash) {
+            return;
+        }
+        if (isOffline) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
+
+        const activeRoute = Navigation.getActiveRoute();
+        const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+        const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+        for (const item of items) {
+            const itemPolicyID = item.policyID;
+            const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods);
+
+            if (!lastPolicyPaymentMethod) {
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({
+                        reportID: item.reportID,
+                        backTo: activeRoute,
+                    }),
+                );
+                return;
+            }
+
+            const hasPolicyVBBA = hasVBBA(itemPolicyID);
+
+            if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({
+                        reportID: item.reportID,
+                        backTo: activeRoute,
+                    }),
+                );
+                return;
+            }
+        }
+
+        const paymentData = (
+            selectedReports.length
+                ? selectedReports.map((report) => ({
+                    reportID: report.reportID,
+                    amount: report.total,
+                    paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+                }))
+                : Object.values(selectedTransactions).map((transaction) => ({
+                    reportID: transaction.reportID,
+                    amount: transaction.amount,
+                    paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
+                }))
+        ) as PaymentData[];
+
+        payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+        InteractionManager.runAfterInteractions(() => {
+            clearSelectedTransactions();
+        });
+    }, [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions]);
+
+
+    const getPaymentSubitems = useCallback(
+        (payAsBusiness: boolean) => {
+            const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
+
+            return formattedPaymentMethods
+                .filter((method) => {
+                    const accountData = method?.accountData as AccountData;
+                    return accountData?.type === requiredAccountType;
+                })
+                .map((formattedPaymentMethod) => ({
+                    text: formattedPaymentMethod?.title ?? '',
+                    description: formattedPaymentMethod?.description ?? '',
+                    icon: formattedPaymentMethod?.icon,
+                    shouldUpdateSelectedIndex: true,
+                    onSelected: onBulkPaySelected,
+                    iconStyles: formattedPaymentMethod?.iconStyles,
+                    iconHeight: formattedPaymentMethod?.iconSize,
+                    iconWidth: formattedPaymentMethod?.iconSize,
+                    value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                }));
+        },
+        [formattedPaymentMethods, onBulkPaySelected],
+    );
+
+    const getSubMenuItems = useCallback((isFirstTimePayment: boolean): PopoverMenuItem[] => {
         const reportIDToCheck = selectedReports.length ? selectedReports.at(0)?.reportID : selectedTransactions[selectedTransactionsKeys[0]]?.reportID;
         const policyIDToCheck = selectedReports.length ? selectedReports.at(0)?.policyID : selectedTransactions[selectedTransactionsKeys[0]]?.policyID;
+        const policy = getPolicy(policyIDToCheck);
         const isExpenseBulk = isExpenseReport(reportIDToCheck);
         const isInvoiceBulk = isInvoiceReport(reportIDToCheck);
         const isIOUBulk = isIOUReport(reportIDToCheck);
+        const isCurrencySupported = isCurrencySupportedForDirectReimbursement(policy?.outputCurrency as CurrencyType);
 
-        return [];
-    };
+        const buttonOptions = [];
+        const paymentMethods = {
+            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
+                text: hasActivatedWallet ? translate('iou.settleWallet', { formattedAmount: '' }) : translate('iou.settlePersonal', { formattedAmount: '' }),
+                icon: Expensicons.User,
+                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                shouldUpdateSelectedIndex: false,
+            },
+            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
+                text: translate('iou.settleBusiness', { formattedAmount: '' }),
+                icon: Expensicons.Building,
+                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                shouldUpdateSelectedIndex: false,
+            },
+            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
+                text: translate('iou.payElsewhere', { formattedAmount: '' }),
+                icon: Expensicons.CheckCircle,
+                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                shouldUpdateSelectedIndex: false,
+            },
+        };
+        // TODO: need to separate the logic for individual and business invoices
+        if (isInvoiceBulk) {
+                    const hasIntentToPay = formattedPaymentMethods.length === 1 && isFirstTimePayment;
+                    const getInvoicesOptions = (payAsBusiness: boolean) => {
+                        return [
+                            ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
+                            {
+                                text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                                icon: Expensicons.Bank,
+                                onSelected: () => Navigation.navigate(ROUTES.BANK_ACCOUNT),
+                                value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                            },
+                            {
+                                text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                                icon: Expensicons.Cash,
+                                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                                shouldUpdateSelectedIndex: true,
+                                onSelected: onBulkPaySelected,
+                            },
+                        ];
+                    };
+        
+                    if (isIndividualInvoiceRoomUtil(chatReport)) {
+                        buttonOptions.push({
+                            text: translate('iou.settlePersonal', {formattedAmount}),
+                            icon: Expensicons.User,
+                            value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            backButtonText: translate('iou.individual'),
+                            subMenuItems: getInvoicesOptions(false),
+                        });
+                        buttonOptions.push({
+                            text: translate('iou.settleBusiness', {formattedAmount}),
+                            icon: Expensicons.Building,
+                            value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            backButtonText: translate('iou.business'),
+                            subMenuItems: getInvoicesOptions(true),
+                        });
+                    } else {
+                        // If there is pay as business option, we should show the submenu items instead.
+                        buttonOptions.push(...getInvoicesOptions(true));
+                    }
+                }
+
+
+
+        return buttonOptions;
+    }, [hasActivatedWallet, selectedReports, selectedTransactions, selectedTransactionsKeys, translate]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
@@ -216,74 +379,19 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const {shouldEnablePayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods);
+        const { shouldEnablePayOption, isFirstTimePayment } = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods);
 
         const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnablePayOption;
 
         if (shouldShowPayOption) {
-            const subMenuItems = getSubMenuItems();
+            const subMenuItems = getSubMenuItems(isFirstTimePayment);
             options.push({
                 icon: Expensicons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
                 subMenuItems: isFirstTimePayment ? subMenuItems : undefined,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    const activeRoute = Navigation.getActiveRoute();
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
-                    const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
-
-                    for (const item of items) {
-                        const itemPolicyID = item.policyID;
-                        const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods);
-
-                        if (!lastPolicyPaymentMethod) {
-                            Navigation.navigate(
-                                ROUTES.SEARCH_REPORT.getRoute({
-                                    reportID: item.reportID,
-                                    backTo: activeRoute,
-                                }),
-                            );
-                            return;
-                        }
-
-                        const hasPolicyVBBA = hasVBBA(itemPolicyID);
-
-                        if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
-                            Navigation.navigate(
-                                ROUTES.SEARCH_REPORT.getRoute({
-                                    reportID: item.reportID,
-                                    backTo: activeRoute,
-                                }),
-                            );
-                            return;
-                        }
-                    }
-
-                    const paymentData = (
-                        selectedReports.length
-                            ? selectedReports.map((report) => ({
-                                  reportID: report.reportID,
-                                  amount: report.total,
-                                  paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
-                              }))
-                            : Object.values(selectedTransactions).map((transaction) => ({
-                                  reportID: transaction.reportID,
-                                  amount: transaction.amount,
-                                  paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
-                              }))
-                    ) as PaymentData[];
-
-                    payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
-                    InteractionManager.runAfterInteractions(() => {
-                        clearSelectedTransactions();
-                    });
-                },
+                onSelected: onBulkPaySelected,
             });
         }
 
@@ -334,7 +442,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (canAllTransactionsBeMoved) {
             options.push({
-                text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
+                text: translate('iou.moveExpenses', { count: selectedTransactionsKeys.length }),
                 icon: Expensicons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
@@ -367,7 +475,7 @@ function SearchPage({route}: SearchPageProps) {
                 iconHeight: variables.iconSizeLarge,
                 iconWidth: variables.iconSizeLarge,
                 numberOfLinesTitle: 2,
-                titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal, ...styles.textWrap},
+                titleStyle: { ...styles.colorMuted, ...styles.fontWeightNormal, ...styles.textWrap },
             };
 
             options.push({
@@ -388,10 +496,11 @@ function SearchPage({route}: SearchPageProps) {
         isExportMode,
         isOffline,
         selectedReports,
+        lastPaymentMethods,
         queryJSON,
         activeWorkspaceID,
         clearSelectedTransactions,
-        lastPaymentMethods,
+        getSubMenuItems,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
@@ -475,8 +584,8 @@ function SearchPage({route}: SearchPageProps) {
         clearSelectedTransactions();
     }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID, setExportMode, clearSelectedTransactions]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-    const {resetVideoPlayerData} = usePlaybackContext();
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({ query: buildCannedSearchQuery() }));
+    const { resetVideoPlayerData } = usePlaybackContext();
     const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
 
     // TODO: to be refactored in step 3
@@ -541,8 +650,8 @@ function SearchPage({route}: SearchPageProps) {
                             onCancel={() => {
                                 setIsDeleteExpensesConfirmModalVisible(false);
                             }}
-                            title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                            prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                            title={translate('iou.deleteExpense', { count: selectedTransactionsKeys.length })}
+                            prompt={translate('iou.deleteConfirmation', { count: selectedTransactionsKeys.length })}
                             confirmText={translate('common.delete')}
                             cancelText={translate('common.cancel')}
                             danger
@@ -636,8 +745,8 @@ function SearchPage({route}: SearchPageProps) {
                     onCancel={() => {
                         setIsDeleteExpensesConfirmModalVisible(false);
                     }}
-                    title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                    prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                    title={translate('iou.deleteExpense', { count: selectedTransactionsKeys.length })}
+                    prompt={translate('iou.deleteConfirmation', { count: selectedTransactionsKeys.length })}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
