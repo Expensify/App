@@ -775,9 +775,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         },
     };
 
-    const applicableSecondaryActions = secondaryActions
-    .map((action) => secondaryActionsImplementation[action])
-    .filter((action) => action?.shouldShow !== false);
+    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false);
 
     useEffect(() => {
         if (!transactionThreadReportID) {
