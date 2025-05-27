@@ -25,22 +25,25 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
 
     const {mentionsList, currentUserMentions} = useShortMentionsList();
     const mentionsSharedVal = useSharedValue<string[]>(mentionsList);
-    const inputRef = useRef<any>(null);
+    const inputRef = useRef<AnimatedMarkdownTextInputRef>(null);
 
     // Expose the ref to the parent component
-    React.useImperativeHandle(ref, () => inputRef.current);
+    React.useImperativeHandle<AnimatedMarkdownTextInputRef | null, AnimatedMarkdownTextInputRef | null>(ref, () => inputRef.current);
 
     // Check if the cursor is at the end of the text
     const isCursorAtEnd = props.selection && props.value && props.selection.start === props.value.length;
 
     // Automatically scroll to the end if the cursor was at the end after value changes
     useEffect(() => {
-        if (inputRef.current && isCursorAtEnd) {
-            if ('scrollTop' in inputRef.current && 'scrollHeight' in inputRef.current) {
-                inputRef.current.scrollTop = inputRef.current.scrollHeight;
-            }
+        if (!inputRef.current || !isCursorAtEnd) {
+            return;
         }
-    }, [props.value]);
+
+        if ('scrollTop' in inputRef.current && 'scrollHeight' in inputRef.current) {
+            const currentRef = inputRef.current as unknown as {scrollTop: number; scrollHeight: number};
+            currentRef.scrollTop = currentRef.scrollHeight;
+        }
+    }, [props.value, isCursorAtEnd]);
 
     // If `parser` prop was passed down we use it directly, otherwise we default to parsing with ExpensiMark
     const parserWorklet = useCallback(
