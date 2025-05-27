@@ -213,15 +213,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         getWorkspaceMembers();
     }, [getWorkspaceMembers]);
 
-    // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-        setSelectedEmployees([]);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isFocused]);
-
     useEffect(() => {
         validateSelection();
     }, [preferredLocale, validateSelection]);
@@ -396,19 +387,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
 
-    const toggleOrNavigate = useCallback(
-        (item: MemberOption) => {
-            if (item.isDisabledCheckbox) {
-                return;
-            }
-            if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
-                toggleUser(item.accountID);
-                return;
-            }
-            openMemberDetails(item);
-        },
-        [shouldUseNarrowLayout, selectionMode, openMemberDetails, toggleUser],
-    );
     /**
      * Dismisses the errors on one item
      */
@@ -816,7 +794,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                                 shouldUseUserSkeletonView
                                 disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                                 headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
-                                onSelectRow={toggleOrNavigate}
+                                onSelectRow={openMemberDetails}
                                 shouldSingleExecuteRowSelect={!isPolicyAdmin}
                                 onCheckboxPress={(item) => toggleUser(item.accountID)}
                                 onSelectAll={() => toggleAllUsers(filteredData)}
