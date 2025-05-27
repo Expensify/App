@@ -474,6 +474,30 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <MenuItemWithTopDescription
+                    key={translate('common.category')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={iouCategory}
+                    description={translate('common.category')}
+                    numberOfLinesTitle={2}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                    }}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                />
+            ),
+            shouldShow: shouldShowCategories,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -495,30 +519,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowDate,
-        },
-        {
-            item: (
-                <MenuItemWithTopDescription
-                    key={translate('common.category')}
-                    shouldShowRightIcon={!isReadOnly}
-                    title={iouCategory}
-                    description={translate('common.category')}
-                    numberOfLinesTitle={2}
-                    onPress={() => {
-                        if (!transactionID) {
-                            return;
-                        }
-
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                    }}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
-                />
-            ),
-            shouldShow: shouldShowCategories,
         },
         ...policyTagLists.map(({name, required, tags}, index) => {
             const isTagRequired = required ?? false;
