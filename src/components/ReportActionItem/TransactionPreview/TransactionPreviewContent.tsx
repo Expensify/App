@@ -2,7 +2,6 @@ import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -54,8 +53,6 @@ function TransactionPreviewContent({
     reportPreviewAction,
     shouldHideOnDelete = true,
     shouldShowIOUData,
-    navigateToReviewFields,
-    isReviewDuplicateTransactionPage = false,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -333,14 +330,6 @@ function TransactionPreviewContent({
                                 )}
                             </View>
                         </View>
-                    )}
-                    {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && areThereDuplicates && (
-                        <Button
-                            text={translate('violations.keepThisOne')}
-                            success
-                            style={[styles.ph4, styles.pb4]}
-                            onPress={navigateToReviewFields}
-                        />
                     )}
                 </View>
             </OfflineWithFeedback>

@@ -340,17 +340,18 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
+                const filterKey = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CREATED_BY : autocompleteKey;
+
                 const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
-                    filterKey: autocompleteKey,
+                    filterKey,
                     text: participant.name,
                     autocompleteID: participant.accountID,
                     mapKey: autocompleteKey,

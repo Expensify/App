@@ -122,6 +122,9 @@ type MoneyReportHeaderProps = {
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID: string | undefined;
 
+    /** whether we are loading report data in openReport command */
+    isLoadingInitialReportActions?: boolean;
+
     /** Whether back button should be displayed in header */
     shouldDisplayBackButton?: boolean;
 
@@ -129,7 +132,15 @@ type MoneyReportHeaderProps = {
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeader({
+    policy,
+    report: moneyRequestReport,
+    transactionThreadReportID,
+    reportActions,
+    isLoadingInitialReportActions,
+    shouldDisplayBackButton = false,
+    onBackButtonPress,
+}: MoneyReportHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -746,6 +757,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     setIsDeleteReportModalVisible(true);
                 }
             },
+            shouldShow: canUseTableReportView,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
             text: translate('iou.undoClose'),
@@ -774,7 +786,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
+    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false);
 
     useEffect(() => {
         if (!transactionThreadReportID) {
@@ -892,7 +904,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             />
                         </View>
                     )}
-                    {shouldShowNextStep && (optimisticNextStep?.message?.length ? <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} /> : <MoneyReportHeaderStatusBarSkeleton />)}
+                    {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                    {shouldShowNextStep && !optimisticNextStep?.message?.length && !!isLoadingInitialReportActions && <MoneyReportHeaderStatusBarSkeleton />}
                     {!!statusBarProps && (
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}
