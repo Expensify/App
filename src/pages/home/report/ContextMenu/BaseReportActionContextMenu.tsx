@@ -1,11 +1,12 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {MutableRefObject, RefObject} from 'react';
-import React, {memo, useMemo, useRef, useState} from 'react';
+import React, {memo, useContext, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -129,6 +130,7 @@ function BaseReportActionContextMenu({
     disabledActions = [],
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -138,7 +140,7 @@ function BaseReportActionContextMenu({
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
-    const threedotRef = useRef<View>(null);
+    const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canBeMissing: true,
@@ -341,6 +343,7 @@ function BaseReportActionContextMenu({
                             draftMessage,
                             selection,
                             close: () => setShouldKeepOpen(false),
+                            transitionActionSheetState: actionSheetAwareScrollViewContext.transitionActionSheetState,
                             openContextMenu: () => setShouldKeepOpen(true),
                             interceptAnonymousUser,
                             openOverflowMenu,
@@ -367,7 +370,7 @@ function BaseReportActionContextMenu({
                                 ref={(ref) => {
                                     menuItemRefs.current[index] = ref;
                                 }}
-                                buttonRef={isMenuAction ? threedotRef : {current: null}}
+                                buttonRef={isMenuAction ? threeDotRef : {current: null}}
                                 icon={contextAction.icon}
                                 text={text ?? ''}
                                 successIcon={contextAction.successIcon}
@@ -376,7 +379,7 @@ function BaseReportActionContextMenu({
                                 key={contextAction.textTranslateKey}
                                 onPress={(event) =>
                                     interceptAnonymousUser(
-                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
+                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
                                         contextAction.isAnonymousAction,
                                     )
                                 }

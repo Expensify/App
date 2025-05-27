@@ -1829,7 +1829,9 @@ type MigratedUserModalNavigatorParamList = {
 };
 
 type TestDriveModalNavigatorParamList = {
-    [SCREENS.TEST_DRIVE_MODAL.ROOT]: undefined;
+    [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
+        bossEmail?: string;
+    };
 };
 
 type TestDriveDemoNavigatorParamList = {
@@ -2052,7 +2054,8 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 
-type WorkspacesTabScreenName = typeof NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
+// There are two split navigators which can be displayed when the Workspaces tab is selected
+type WorkspacesTabNavigatorName = typeof NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
@@ -2137,5 +2140,5 @@ export type {
     TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
     TestDriveDemoNavigatorParamList,
-    WorkspacesTabScreenName,
+    WorkspacesTabNavigatorName,
 };

@@ -316,6 +316,18 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isTransactionThreadView = isReportTransactionThread(report);
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
 
+    const prevTransactions = usePrevious(reportTransactions);
+
+    const newTransactions = useMemo(() => {
+        if (!prevTransactions || reportTransactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
+        return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+        // Depending only on transactions is enough because prevTransactions is a helper object.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportTransactions]);
+
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
             return;
@@ -375,6 +387,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 report={report}
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
+                isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                 reportActions={reportActions}
                 onBackButtonPress={onBackButtonPress}
             />
@@ -460,6 +473,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        if (report?.errorFields?.notFound && isOffline) {
+            return;
+        }
+
         const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
 
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
@@ -483,7 +500,18 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [reportMetadata.isOptimisticReport, route.params, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail, report, reportID, transactionThreadReport, transactionThreadReportID]);
+    }, [
+        reportMetadata.isOptimisticReport,
+        route.params,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        currentUserEmail,
+        report,
+        isOffline,
+        reportID,
+        transactionThreadReport,
+        transactionThreadReportID,
+    ]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
@@ -554,7 +582,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
         // This function is only triggered when a user is invited to a room after opening the link.
-        // When a user opens a room they are not a member of, and the admin then invites them, only the INVITETOROOM action is available, so the background will be empty and room description is not available.
+        // When a user opens a room they are not a member of, and the admin then invites them, only the INVITE_TO_ROOM action is available, so the background will be empty and room description is not available.
         // See https://github.com/Expensify/App/issues/57769 for more details
         if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
             return;
@@ -710,13 +738,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // we want to do this destinguish between normal navigation and delete behavior
+        // we want to do this distinguish between normal navigation and delete behavior
         if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
             setIsNavigatingToDeletedAction(true);
             return;
         }
 
-        // Clear params when Action gets deleted while heighlighted
+        // Clear params when action gets deleted while highlighting
         if (!isNavigatingToDeletedAction && prevIsLinkedActionDeleted === false) {
             Navigation.setParams({reportActionID: ''});
         }
@@ -820,8 +848,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         policy={policy}
                                         reportActions={reportActions}
                                         transactions={reportTransactions}
+                                        newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
+                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                     />
                                 ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (
