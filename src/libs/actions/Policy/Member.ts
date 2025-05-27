@@ -931,7 +931,12 @@ function buildAddMembersToWorkspaceOnyxData(invitedEmailsToAccountIDs: InvitedEm
  * Adds members to the specified workspace/policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string, policyMemberAccountIDs: number[], role: string) {
+function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string | undefined, policyMemberAccountIDs: number[], role: string) {
+    if (!policyID) {
+        Log.warn('addMembersToWorkspace missing policyID', {invitedEmailsToAccountIDs, welcomeNote, policyMemberAccountIDs, role});
+        return;
+    }
+
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
         policyID,
@@ -1127,7 +1132,7 @@ function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONS
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, role);
 }
 
-function clearWorkspaceInviteRoleDraft(policyID: string) {
+function clearWorkspaceInviteRoleDraft(policyID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
 }
 

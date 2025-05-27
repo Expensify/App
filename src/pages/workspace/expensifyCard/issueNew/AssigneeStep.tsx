@@ -37,16 +37,6 @@ function useOptions() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const existingDelegates = useMemo(
-        () =>
-            account?.delegatedAccess?.delegates?.reduce((prev, {email}) => {
-                // eslint-disable-next-line no-param-reassign
-                prev[email] = true;
-                return prev;
-            }, {} as Record<string, boolean>),
-        [account?.delegatedAccess?.delegates],
-    );
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = getValidOptions(
@@ -56,7 +46,7 @@ function useOptions() {
             },
             {
                 betas,
-                excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
+                excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT},
             },
         );
 
@@ -74,11 +64,11 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
+            excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT},
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         const headerMessage = getHeaderMessage(
@@ -91,7 +81,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, defaultOptions, existingDelegates]);
+    }, [debouncedSearchValue, defaultOptions]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
@@ -101,7 +91,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
     const isEditing = issueNewCard?.isEditing;
@@ -181,6 +171,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     }, [isOffline, policy?.employeeList]);
 
     const sections = useMemo(() => {
+
         if (!debouncedSearchValue) {
             return [
                 {

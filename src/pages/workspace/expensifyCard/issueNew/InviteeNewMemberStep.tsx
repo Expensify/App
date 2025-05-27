@@ -34,18 +34,18 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type InviteeNewMemberStepProps = {
     // The policy that the card will be issued under
-    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 function InviteNewMemberStep({policy}: InviteeNewMemberStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [welcomeNote, setWelcomeNote] = useState<string>();
-    const policyID = policy?.id;
+    const policyID = policy.id;
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, {
         canBeMissing: true,
     });
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -103,10 +103,10 @@ function InviteNewMemberStep({policy}: InviteeNewMemberStepProps) {
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         addMembersToWorkspace(
             {
-                [issueNewCard?.data?.assigneeEmail ?? '']: issueNewCard?.data?.assigneeAccountID ?? 0,
+                [issueNewCard?.data?.assigneeEmail ?? '']: issueNewCard?.data?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID,
             },
             `${welcomeNoteSubject}\n\n${welcomeNote}`,
-            policyID ?? '',
+            policyID,
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
         );
