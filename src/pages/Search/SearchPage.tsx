@@ -20,7 +20,6 @@ import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFileValidation from '@hooks/useActiveElementRole/useFileValidation';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
