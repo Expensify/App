@@ -1145,7 +1145,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     LOG_OUT: 'LogOut',
     CREATE_DIGITAL_WALLET: 'CreateDigitalWallet',
     VERIFY_TEST_DRIVE_RECIPIENT: 'VerifyTestDriveRecipient',
-    LOCK_ACCOUNT: 'LockAccountX',
+    LOCK_ACCOUNT: 'LockAccount',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
