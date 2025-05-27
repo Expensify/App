@@ -1,5 +1,4 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
@@ -11,7 +10,6 @@ import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 type RootNavigatorScreenOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
     basicModalNavigator: PlatformStackNavigationOptions;
-    leftModalNavigator: PlatformStackNavigationOptions;
     splitNavigator: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
 };
@@ -24,7 +22,6 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     return {
@@ -52,25 +49,6 @@ const useRootNavigatorScreenOptions = () => {
                     position: 'fixed',
                 },
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isOnboardingModal: true}),
-            },
-        },
-        leftModalNavigator: {
-            ...commonScreenOptions,
-            animation: Animations.SLIDE_FROM_LEFT,
-            animationTypeForReplace: 'pop',
-            native: {
-                customAnimationOnGesture: true,
-            },
-            web: {
-                presentation: Presentation.TRANSPARENT_MODAL,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
-                // We want pop in LHP since there are some flows that would work weird otherwise
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-
-                    // This is necessary to cover translated sidebar with overlay.
-                    width: shouldUseNarrowLayout ? '100%' : '200%',
-                },
             },
         },
         splitNavigator: {
