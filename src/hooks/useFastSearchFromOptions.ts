@@ -1,5 +1,6 @@
 import deburr from 'lodash/deburr';
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
@@ -36,8 +37,17 @@ function useFastSearchFromOptions(
     {includeUserToInvite}: Options = {includeUserToInvite: false},
 ): (searchInput: string) => AllOrSelectiveOptions {
     const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+    const prevOptionsRef = useRef<typeof options | null>(null);
+    const prevFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
 
     useEffect(() => {
+        const prevOptions = prevOptionsRef.current;
+
+        if (prevOptions && shallowCompareOptions(prevOptions, options)) {
+            return;
+        }
+        prevOptionsRef.current = options;
+        prevFastSearchRef.current?.dispose();
         const newFastSearch = FastSearch.createFastSearch([
             {
                 data: options.personalDetails,
@@ -67,9 +77,10 @@ function useFastSearchFromOptions(
             },
         ]);
         setFastSearch(newFastSearch);
-
-        return () => newFastSearch.dispose();
+        prevFastSearchRef.current = newFastSearch;
     }, [options]);
+
+    useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
 
     const findInSearchTree = useCallback(
         (searchInput: string): AllOrSelectiveOptions => {
@@ -120,6 +131,32 @@ function useFastSearchFromOptions(
     );
 
     return findInSearchTree;
+}
+
+/**
+ * Compares two ReportAndPersonalDetailOptions objects shallowly.
+ * @returns true if the options are shallowly equal, false otherwise.
+ */
+function shallowCompareOptions(prev: ReportAndPersonalDetailOptions, next: ReportAndPersonalDetailOptions): boolean {
+    if (!prev || !next) return false;
+
+    // Compare lengths first
+    if (prev.personalDetails.length !== next.personalDetails.length || prev.recentReports.length !== next.recentReports.length) {
+        return false;
+    }
+
+    for (let i = 0; i < prev.personalDetails.length; i++) {
+        if (prev.personalDetails[i]?.keyForList !== next.personalDetails[i]?.keyForList) {
+            return false;
+        }
+    }
+
+    for (let i = 0; i < prev.recentReports.length; i++) {
+        if (prev.recentReports[i]?.keyForList !== next.recentReports[i]?.keyForList) {
+            return false;
+        }
+    }
+    return true;
 }
 
 export default useFastSearchFromOptions;
