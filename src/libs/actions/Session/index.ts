@@ -3,10 +3,9 @@ import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {InteractionManager, Linking} from 'react-native';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxMultiSetInput, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import resetLoggingOutContentShown from '@libs/actions/LoggingOut';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {
@@ -26,7 +25,6 @@ import type {
 } from '@libs/API/parameters';
 import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Fullstory from '@libs/Fullstory';
@@ -50,7 +48,6 @@ import {KEYS_TO_PRESERVE, openApp, reconnectApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import * as PriorityMode from '@userActions/PriorityMode';
-import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
@@ -65,6 +62,8 @@ import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
+import afterSignOutRedirect from './afterSignOutRedirect';
+import showLoggingOutPage from './showLoggingOutPage';
 
 const INVALID_TOKEN = 'pizza';
 
@@ -246,12 +245,7 @@ function isExpiredSession(sessionCreationDate: number): boolean {
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldKillHybridApp = true, shouldForceUseStashedSession?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
-
-    // Reset storage related to the logging out loading state
-    resetLoggingOutContentShown();
-
-    // Navigate to signing out page immediately
-    Navigation.navigate(ROUTES.LOGGING_OUT);
+    showLoggingOutPage();
 
     if (isAnonymousUser()) {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -285,7 +279,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 
     // The function redirectToSignIn will clear the whole storage, so let's create our onyx params
     // updates for the credentials before we call it
-    let onyxSetParams = {};
+    let onyxSetParams: OnyxMultiSetInput = {};
 
     // If we are not currently using a support token, and we received stashSession as true, we need to
     // store the credentials so the user doesn't need to login again after they finish their supportal
@@ -333,25 +327,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     // Wait for signOut (if called), then redirect and update Onyx.
     signOutPromise
         .then(() => {
-            // Sign out from classic as well so the user does not get logged back in when visiting expensify.com and subsequently auto redirected back to New Expensify
-            const oldDotSignOutUrl = new URL(CONST.OLDDOT_URLS.SIGN_OUT, CONFIG.EXPENSIFY.EXPENSIFY_URL);
-            oldDotSignOutUrl.searchParams.set('clean', 'true');
-
-            // Redirect back to New Expensify after classic sign out so the user is not confused by being redirected to a different site
-            oldDotSignOutUrl.searchParams.set('signedOutFromNewExpensify', 'true');
-
-            asyncOpenURL(
-                redirectToSignIn().then(() => {
-                    Onyx.multiSet(onyxSetParams);
-                }),
-                oldDotSignOutUrl.toString(),
-                true,
-                true,
-            );
-
-            if (hasSwitchedAccountInHybridMode) {
-                openApp();
-            }
+            afterSignOutRedirect(onyxSetParams, hasSwitchedAccountInHybridMode);
         })
         .catch((error: string) => Log.warn('Error during sign out process:', error));
 }
