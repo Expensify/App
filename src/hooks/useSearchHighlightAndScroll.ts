@@ -36,7 +36,6 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
     const performSearch = useCallback(() => {
-        triggeredByHookRef.current = true;
         search({queryJSON, offset});
         searchTriggeredRef.current = true;
     }, [queryJSON, offset]);
@@ -71,6 +70,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // We don't want to highlight these old items, even if they appear new in the current search results.
             hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
 
+            triggeredByHookRef.current = true;
             searchTriggeredRef.current = false; // Reset before triggering search
             debouncedSearch();
         }
@@ -182,8 +182,6 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
             // Perform the scrolling action
             ref.scrollToIndex(indexOfNewItem);
-            // Reset the trigger flag to prevent unintended future scrolls and highlights
-            triggeredByHookRef.current = false;
         },
         [newSearchResultKey, isChat],
     );
