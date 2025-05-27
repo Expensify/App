@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import BaseModalProps from '@components/Modal/types';
+import type BaseModalProps from '@components/Modal/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
