@@ -184,21 +184,20 @@ function MoneyRequestReportTransactionList({
     );
 
     useEffect(() => {
-        const lastFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
-        if (lastFullScreenRoutes?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR && lastFullScreenRoutes?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+        const lastFullScreenRoute = navigationRef.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
+        if (lastFullScreenRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR && lastFullScreenRoute?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
             return;
         }
 
-        const lastRoute = lastFullScreenRoutes?.state?.routes?.at(-1);
-        if (!lastRoute?.params) {
+        const lastRoute = lastFullScreenRoute?.state?.routes?.at(-1);
+        if (!lastRoute?.params || !('reportID' in lastRoute.params)) {
             return;
         }
         if (lastRoute?.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT && lastRoute?.name !== SCREENS.REPORT) {
             return;
         }
 
-        const reportIDParams = 'reportID' in lastRoute.params ? lastRoute.params.reportID : '';
-        if (reportIDParams !== report.reportID) {
+        if (lastRoute.params.reportID !== report.reportID) {
             return;
         }
 
