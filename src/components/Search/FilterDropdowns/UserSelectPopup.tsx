@@ -78,7 +78,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeSelectedOptions: true,
-                includeSelfDM: true,
+                includeCurrentUser: true,
             },
         );
 

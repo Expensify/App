@@ -229,6 +229,7 @@ type GetValidReportsReturnTypeCombined = {
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
+    includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
@@ -1715,7 +1716,6 @@ function getValidOptions(
         shouldSeparateWorkspaceChat = false,
         excludeHiddenThreads = false,
         canShowManagerMcTest = false,
-        includeSelfDM = false,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -1786,7 +1786,7 @@ function getValidOptions(
         if (currentUserLogin) {
             personalDetailLoginsToExclude = {
                 ...loginsToExclude,
-                [currentUserLogin]: !includeSelfDM,
+                [currentUserLogin]: !config.includeCurrentUser,
             };
         }
 
