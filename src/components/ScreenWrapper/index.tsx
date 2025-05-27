@@ -6,7 +6,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {PickerAvoidingView} from 'react-native-picker-select';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
@@ -39,15 +38,9 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {ScreenWrapperInsetsProvider} from './ScreenWrapperInsetsContext';
+import type {ScreenWrapperChildrenProps, ScreenWrapperInsetsContextType} from './ScreenWrapperInsetsContext';
 import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
-
-type ScreenWrapperChildrenProps = {
-    insets: EdgeInsets;
-    safeAreaPaddingBottomStyle?: {
-        paddingBottom?: ViewStyle['paddingBottom'];
-    };
-    didScreenTransitionEnd: boolean;
-};
 
 type ScreenWrapperProps = {
     /** Returns a function as a child to pass insets to or a node to render without insets */
@@ -456,6 +449,15 @@ function ScreenWrapper(
         [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
+    const screenWrapperInsetsValue = useMemo<ScreenWrapperInsetsContextType>(
+        () => ({
+            insets,
+            safeAreaPaddingBottomStyle,
+            didScreenTransitionEnd,
+        }),
+        [insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd],
+    );
+
     return (
         <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
             <View
@@ -488,16 +490,18 @@ function ScreenWrapper(
                             {isDevelopment && <CustomDevMenu />}
                             <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                                 <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                                    {
-                                        // If props.children is a function, call it to provide the insets to the children.
-                                        typeof children === 'function'
-                                            ? children({
-                                                  insets,
-                                                  safeAreaPaddingBottomStyle,
-                                                  didScreenTransitionEnd,
-                                              })
-                                            : children
-                                    }
+                                    <ScreenWrapperInsetsProvider value={screenWrapperInsetsValue}>
+                                        {
+                                            // If props.children is a function, call it to provide the insets to the children.
+                                            typeof children === 'function'
+                                                ? children({
+                                                      insets,
+                                                      safeAreaPaddingBottomStyle,
+                                                      didScreenTransitionEnd,
+                                                  })
+                                                : children
+                                        }
+                                    </ScreenWrapperInsetsProvider>
                                     {displaySmallScreenOfflineIndicator && (
                                         <>
                                             {isOffline && (
@@ -534,4 +538,3 @@ ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default withNavigationFallback(forwardRef(ScreenWrapper));
 export {ScreenWrapperStatusContext};
-export type {ScreenWrapperChildrenProps};

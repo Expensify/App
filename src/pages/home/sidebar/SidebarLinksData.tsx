@@ -2,7 +2,6 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -13,16 +12,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
 
-type SidebarLinksDataProps = {
-    /** Safe area insets required for mobile devices margins */
-    insets: EdgeInsets;
-};
-
-function SidebarLinksData({insets}: SidebarLinksDataProps) {
-    const isFocused = useIsFocused();
-    const styles = useThemeStyles();
+function SidebarLinksDataInternal() {
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {translate} = useLocalize();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
 
@@ -44,6 +35,26 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     // eslint-disable-next-line react-compiler/react-compiler
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
+
+    return (
+        <SidebarLinks
+            // Forwarded props:
+            priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
+            // Data props:
+            isActiveReport={isActiveReport}
+            isLoading={isLoadingApp ?? false}
+            activeWorkspaceID={activeWorkspaceID}
+            optionListItems={orderedReports}
+        />
+    );
+}
+
+function SidebarLinksData({children}: React.PropsWithChildren<unknown>) {
+    const isFocused = useIsFocused();
+    const styles = useThemeStyles();
+
+    const {translate} = useLocalize();
+
     return (
         <View
             accessibilityElementsHidden={!isFocused}
@@ -51,16 +62,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
         >
-            <SidebarLinks
-                // Forwarded props:
-                insets={insets}
-                priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
-                // Data props:
-                isActiveReport={isActiveReport}
-                isLoading={isLoadingApp ?? false}
-                activeWorkspaceID={activeWorkspaceID}
-                optionListItems={orderedReports}
-            />
+            {children}
         </View>
     );
 }
@@ -68,3 +70,5 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
 SidebarLinksData.displayName = 'SidebarLinksData';
 
 export default SidebarLinksData;
+
+export {SidebarLinksDataInternal};
