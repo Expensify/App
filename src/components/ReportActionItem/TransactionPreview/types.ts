@@ -131,9 +131,6 @@ type TransactionPreviewContentProps = {
 
     /** Whether to show payer/receiver data in the preview */
     shouldShowIOUData?: boolean;
-
-    /** Is this component used during duplicate review flow */
-    isReviewDuplicateTransactionPage?: boolean;
 };
 
 export type {TransactionPreviewContentProps, TransactionPreviewProps, TransactionPreviewStyleType};

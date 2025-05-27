@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
@@ -50,7 +51,7 @@ const PromotedActions = {
         translationKey: 'common.message',
         onSelected: () => {
             if (reportID) {
-                Navigation.navigateToReportWithPolicyCheck({reportID});
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 
