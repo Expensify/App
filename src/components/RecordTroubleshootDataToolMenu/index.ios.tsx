@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import useEnvironment from '@hooks/useEnvironment';
 import getDownloadFolderPathSuffixForIOS from '@libs/getDownloadFolderPathSuffixForIOS';
@@ -33,6 +34,9 @@ function RecordTroubleshootDataToolMenu() {
             onDisableLogging={createFile}
             onShareLogs={shareLogs}
             displayPath={`${CONST.NEW_EXPENSIFY_PATH}${getDownloadFolderPathSuffixForIOS(environment)}/${file?.newFileName ?? ''}`}
+            pathToBeUsed={RNFS.DocumentDirectoryPath}
+            displayPath2={`${CONST.NEW_EXPENSIFY_PATH}${getDownloadFolderPathSuffixForIOS(environment)}`}
+            showShareButton
         />
     );
 }

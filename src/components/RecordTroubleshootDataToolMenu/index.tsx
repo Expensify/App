@@ -31,8 +31,12 @@ function RecordTroubleshootDataToolMenu() {
             onEnableLogging={hideShareButton}
             onShareLogs={shareLogs}
             displayPath={file?.path}
+            pathToBeUsed=""
+            displayPath2=""
         />
     );
 }
+
+RecordTroubleshootDataToolMenu.displayName = 'RecordTroubleshootDataToolMenu';
 
 export default RecordTroubleshootDataToolMenu;

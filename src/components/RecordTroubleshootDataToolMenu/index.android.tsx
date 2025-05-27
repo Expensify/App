@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import RNFetchBlob from 'react-native-blob-util';
+import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import localFileCreate from '@libs/localFileCreate';
 import CONST from '@src/CONST';
@@ -40,6 +41,9 @@ function RecordTroubleshootDataToolMenu() {
             onDisableLogging={createAndSaveFile}
             onShareLogs={shareLogs}
             displayPath={`${CONST.DOWNLOADS_PATH}/${file?.newFileName ?? ''}`}
+            pathToBeUsed={RNFS.DownloadDirectoryPath}
+            displayPath2={`${CONST.DOWNLOADS_PATH}`}
+            showShareButton
         />
     );
 }
