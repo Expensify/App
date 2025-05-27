@@ -460,7 +460,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        if (reportMetadata.isOptimisticReport) {
+        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT) {
             return;
         }
 
@@ -480,13 +480,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
-        route.params?.moneyRequestReportActionID,
-        route.params?.transactionID,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        currentUserEmail,
+        report?.type,
         report?.errorFields?.notFound,
         isOffline,
+        route.params?.moneyRequestReportActionID,
+        route.params?.transactionID,
+        currentUserEmail,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
     ]);
 
     useEffect(() => {
