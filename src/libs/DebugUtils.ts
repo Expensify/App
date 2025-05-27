@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
@@ -226,7 +227,7 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
 /**
  * Whether a string representation is an empty value
  *
- * @param value - string representantion
+ * @param value - string representation
  * @returns whether the value is an empty value
  */
 function isEmptyValue(value: string): boolean {
@@ -572,6 +573,14 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 data: 'object',
                 errors: 'object',
             });
+        case 'calendlyCalls':
+            return validateArray<ArrayElement<ReportNameValuePairs, 'calendlyCalls'>>(value, {
+                status: 'string',
+                host: 'number',
+                eventTime: 'string',
+                eventURI: 'string',
+                inserted: 'string',
+            });
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
@@ -637,6 +646,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -765,6 +775,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 filename: 'string',
                 reservationList: 'string',
                 isTestReceipt: 'boolean',
+                isTestDriveReceipt: 'boolean',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -1073,6 +1084,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 receiptID: 'number',
                 reservationList: 'array',
                 isTestReceipt: 'boolean',
+                isTestDriveReceipt: 'boolean',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
@@ -1368,8 +1380,16 @@ type RBRReasonAndReportAction = {
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, isArchivedReport = false): RBRReasonAndReportAction | null {
-    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isArchivedReport) ?? {};
+function getReasonAndReportActionForRBRInLHNRow(
+    report: Report,
+    reportActions: OnyxEntry<ReportActions>,
+    transactions: OnyxCollection<Transaction>,
+    hasViolations: boolean,
+    reportErrors: Errors,
+    isArchivedReport = false,
+): RBRReasonAndReportAction | null {
+    const {reason, reportAction} =
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

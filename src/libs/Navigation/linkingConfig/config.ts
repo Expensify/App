@@ -6,6 +6,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import getHistoryParamParse from './helpers/getHistoryParamParse';
+import HISTORY_PARAM from './HISTORY_PARAM';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootNavigatorParamList>['config'] = {
@@ -32,13 +34,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: ROUTES.REQUIRE_TWO_FACTOR_AUTH,
 
         [SCREENS.NOT_FOUND]: '*',
-        [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
-                    path: ROUTES.WORKSPACE_SWITCHER,
-                },
-            },
-        },
         [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
@@ -77,7 +72,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: {
-                    path: ROUTES.MIGRATED_USER_WELCOME_MODAL,
+                    path: ROUTES.MIGRATED_USER_WELCOME_MODAL.route,
                     exact: true,
                 },
             },
@@ -86,7 +81,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
-                    path: ROUTES.TEST_DRIVE_MODAL_ROOT,
+                    path: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
                     exact: true,
                 },
             },
@@ -196,10 +191,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 login: (login: string) => decodeURIComponent(login),
                             },
                         },
-                        [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
@@ -284,6 +275,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: {
                             path: ROUTES.SETTINGS_LEGAL_NAME,
                             exact: true,
@@ -328,6 +323,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
+                                ...getHistoryParamParse(HISTORY_PARAM.SHOW_VALIDATE_CODE_ACTION_MODAL),
                             },
                         },
                         [SCREENS.SETTINGS.PROFILE.STATUS]: {
@@ -1458,6 +1454,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
+                        [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
@@ -1605,7 +1602,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SCHEDULE_CALL_BOOK.route,
                         },
                         [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {
-                            path: ROUTES.SCHEDULE_CALL_CONFIRMATON.route,
+                            path: ROUTES.SCHEDULE_CALL_CONFIRMATION.route,
                         },
                     },
                 },

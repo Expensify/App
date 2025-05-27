@@ -58,6 +58,9 @@ type FormWrapperProps = ChildrenProps &
          * This is needed for buttons that allow content to display under them.
          */
         shouldSubmitButtonBlendOpacity?: boolean;
+
+        /** Fires at most once per frame during scrolling. */
+        onScroll?: () => void;
     };
 
 function FormWrapper({
@@ -86,6 +89,7 @@ function FormWrapper({
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldSubmitButtonBlendOpacity = false,
+    onScroll = () => {},
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -263,6 +267,7 @@ function FormWrapper({
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
+                    onScroll={onScroll}
                 >
                     {scrollViewContent()}
                 </ScrollView>

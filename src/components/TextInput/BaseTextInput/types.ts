@@ -60,6 +60,12 @@ type CustomBaseTextInputProps = {
     autoGrowExtraSpace?: number;
 
     /**
+     * Specifies the side ('left' or 'right') where the autoGrow margin should be applied.
+     * This determines which side of the input container will expand when autoGrow is enabled.
+     */
+    autoGrowMarginSide?: 'left' | 'right';
+
+    /**
      * Auto grow input container height based on the entered text
      */
     autoGrowHeight?: boolean;
@@ -171,6 +177,9 @@ type CustomBaseTextInputProps = {
 
     /** Callback when the input is cleared using the clear button */
     onClearInput?: () => void;
+
+    /** Whether the input should be enforced to take full height of conatiner. Default is `false` */
+    shouldUseFullInputHeight?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

@@ -26,7 +26,7 @@ function setMissingOnyxUpdatesQueryPromise(promise: Promise<Response | Response[
     missingOnyxUpdatesQueryPromise = promise;
 }
 
-type GetDeferredOnyxUpdatesOptiosn = {
+type GetDeferredOnyxUpdatesOptions = {
     minUpdateID?: number;
 };
 
@@ -35,7 +35,7 @@ type GetDeferredOnyxUpdatesOptiosn = {
  * @param minUpdateID An optional minimum update ID to filter the deferred updates by
  * @returns
  */
-function getUpdates(options?: GetDeferredOnyxUpdatesOptiosn) {
+function getUpdates(options?: GetDeferredOnyxUpdatesOptions) {
     if (options?.minUpdateID == null) {
         return deferredUpdates;
     }
@@ -85,6 +85,10 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
     // If so, we only need to insert one update into the deferred updates queue.
     if (isValidOnyxUpdateFromServer(updates)) {
         const lastUpdateID = Number(updates.lastUpdateID);
+        // Prioritize HTTPS since it provides complete request information for updating in the correct logical order
+        if (deferredUpdates[lastUpdateID] && updates.type !== CONST.ONYX_UPDATE_TYPES.HTTPS) {
+            return;
+        }
         deferredUpdates[lastUpdateID] = updates;
     } else {
         // If the "updates" param is an object, we need to insert multiple updates into the deferred updates queue.

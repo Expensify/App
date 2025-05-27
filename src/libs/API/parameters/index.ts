@@ -97,7 +97,7 @@ export type {default as ValidateTwoFactorAuthParams} from './ValidateTwoFactorAu
 export type {default as DisableTwoFactorAuthParams} from './DisableTwoFactorAuthParams';
 export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdentityForBankAccountParams';
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
-export type {default as AddCommentOrAttachementParams} from './AddCommentOrAttachementParams';
+export type {default as AddCommentOrAttachmentParams} from './AddCommentOrAttachmentParams';
 export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
@@ -188,7 +188,7 @@ export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceRei
 export type {default as SetWorkspaceDefaultSpendCategoryParams} from './SetWorkspaceDefaultSpendCategoryParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
-export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
+export type {default as RenamePolicyTagListParams} from './RenamePolicyTagListParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
 export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
@@ -381,6 +381,7 @@ export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboar
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
+export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
 export type {default as SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';
 export type {default as MoveIOUReportToPolicyAndInviteSubmitterParams} from './MoveIOUReportToPolicyAndInviteSubmitterParams';
 export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOUReportToExistingPolicyParams';
@@ -394,4 +395,7 @@ export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuide
 export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
+export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
+export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
+export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
