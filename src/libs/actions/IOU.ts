@@ -10028,9 +10028,7 @@ function detachReceipt(transactionID: string | undefined) {
         ? {
               ...transaction,
               filename: '',
-              receipt: {
-                  source: '',
-              },
+              receipt: {},
           }
         : null;
 
