@@ -1,7 +1,7 @@
+import {useIsFocused} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useIsFocused} from '@react-navigation/native';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
@@ -60,12 +60,10 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
             // Check if the detected changes are actually missing from current search results
-            const currentSearchResultIDs = isChat
-                ? extractReportActionIDsFromSearchResults(searchResults?.data ?? {})
-                : extractTransactionIDsFromSearchResults(searchResults?.data ?? {});
+            const currentSearchResultIDs = isChat ? extractReportActionIDsFromSearchResults(searchResults?.data ?? {}) : extractTransactionIDsFromSearchResults(searchResults?.data ?? {});
 
             const newIDs = isChat ? reportActionsIDs : transactionsIDs;
-            const genuinelyNewIDs = newIDs.filter(id => !currentSearchResultIDs.includes(id));
+            const genuinelyNewIDs = newIDs.filter((id) => !currentSearchResultIDs.includes(id));
 
             // Only trigger search if there are genuinely new items not in current search results AND we're focused
             if (genuinelyNewIDs.length === 0 || !isFocused) {
@@ -86,7 +84,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
         }
-    }, [isFocused, transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
+    }, [isFocused, transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, searchResults?.data]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {

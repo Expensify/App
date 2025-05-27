@@ -32,10 +32,10 @@ describe('useSearchHighlightAndScroll', () => {
     const baseProps: UseSearchHighlightAndScroll = {
         searchResults: {
             data: {
-                personalDetailsList: {}
+                personalDetailsList: {},
             },
             search: {
-                columnsToShow: { shouldShowCategoryColumn: true, shouldShowTagColumn: true, shouldShowTaxColumn: true },
+                columnsToShow: {shouldShowCategoryColumn: true, shouldShowTagColumn: true, shouldShowTaxColumn: true},
                 hasMoreResults: false,
                 hasResults: true,
                 offset: 0,
@@ -70,8 +70,8 @@ describe('useSearchHighlightAndScroll', () => {
     it('should trigger search when new transaction added and focused', () => {
         const initialProps = {
             ...baseProps,
-            transactions: { '1': { transactionID: '1' } },
-            previousTransactions: { '1': { transactionID: '1' } },
+            transactions: {'1': {transactionID: '1'}},
+            previousTransactions: {'1': {transactionID: '1'}},
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
@@ -83,10 +83,10 @@ describe('useSearchHighlightAndScroll', () => {
         const updatedProps = {
             ...baseProps,
             transactions: {
-                '1': { transactionID: '1' },
-                '2': { transactionID: '2' }
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
             },
-            previousTransactions: { '1': { transactionID: '1' } },
+            previousTransactions: {'1': {transactionID: '1'}},
         };
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -104,7 +104,7 @@ describe('useSearchHighlightAndScroll', () => {
 
         const updatedProps = {
             ...baseProps,
-            transactions: { '1': { transactionID: '1' } },
+            transactions: {'1': {transactionID: '1'}},
         };
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -118,16 +118,16 @@ describe('useSearchHighlightAndScroll', () => {
 
         const chatProps = {
             ...baseProps,
-            queryJSON: { ...baseProps.queryJSON, type: 'chat' as const },
+            queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
             reportActions: {
-                'reportActions_1': {
-                    '1': { actionName: 'EXISTING', reportActionID: '1' }
-                }
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
             },
             previousReportActions: {
-                'reportActions_1': {
-                    '1': { actionName: 'EXISTING', reportActionID: '1' }
-                }
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
             },
         };
 
@@ -140,10 +140,10 @@ describe('useSearchHighlightAndScroll', () => {
         const updatedProps = {
             ...chatProps,
             reportActions: {
-                'reportActions_1': {
-                    '1': { actionName: 'EXISTING', reportActionID: '1' },
-                    '2': { actionName: 'ADDCOMMENT', reportActionID: '2' }
-                }
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
             },
         };
 
