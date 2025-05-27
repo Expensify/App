@@ -87,10 +87,15 @@ function EmployeeTestDriveModal() {
             });
     };
 
+    const skipTestDrive = () => {
+        Navigation.dismissModal();
+    };
+
     return (
         <BaseTestDriveModal
             description={translate('testDrive.modal.employee.description')}
             onConfirm={navigate}
+            onHelp={skipTestDrive}
             shouldCloseOnConfirm={false}
             shouldRenderHTMLDescription
             avoidKeyboard

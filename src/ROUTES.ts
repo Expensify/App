@@ -71,6 +71,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
     SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
+    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -167,7 +168,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
         },
     },
-    WORKSPACE_SWITCHER: 'workspace-switcher',
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
