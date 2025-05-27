@@ -1,12 +1,12 @@
-import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import {openApp} from '@userActions/App';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type AfterSignOutRedirect from './types';
 
-function afterSignOutRedirect(onyxSetParams: OnyxMultiSetInput, hasSwitchedAccountInHybridMode: boolean) {
+const afterSignOutRedirect: AfterSignOutRedirect = (onyxSetParams, hasSwitchedAccountInHybridMode) => {
     // Sign out from classic as well so the user does not get logged back in when visiting expensify.com and subsequently auto redirected back to New Expensify
     const oldDotSignOutUrl = new URL(CONST.OLDDOT_URLS.SIGN_OUT, CONFIG.EXPENSIFY.EXPENSIFY_URL);
     oldDotSignOutUrl.searchParams.set('clean', 'true');
@@ -26,6 +26,6 @@ function afterSignOutRedirect(onyxSetParams: OnyxMultiSetInput, hasSwitchedAccou
     if (hasSwitchedAccountInHybridMode) {
         openApp();
     }
-}
+};
 
 export default afterSignOutRedirect;
