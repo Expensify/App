@@ -2002,8 +2002,8 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
         if (updatedField === 'commentHint') {
             return translateLocal('workspaceActions.updatedDescriptionHint', {
-                oldValue,
-                newValue,
+                oldValue: oldValue as string | undefined,
+                newValue: newValue as string | undefined,
                 categoryName,
             });
         }
