@@ -42,6 +42,12 @@ jest.mock('@react-native-community/geolocation', () => ({
     setRNConfiguration: jest.fn(),
 }));
 
+jest.mock('react-native-plaid-link-sdk', () => ({
+    dismissLink: jest.fn(),
+    openLink: jest.fn(),
+    usePlaidEmitter: jest.fn(),
+}));
+
 jest.mock('@components/FormAlertWrapper', () => 'FormAlertWrapper');
 jest.mock('@components/FormAlertWithSubmitButton', () => 'FormAlertWithSubmitButton');
 
