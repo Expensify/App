@@ -4079,8 +4079,6 @@ const declineMoneyRequestReason =  (reportAction: OnyxEntry<ReportAction>): void
 
     const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
 
-    Log.warn(`Missing TransactionID`, { transactionID, reportAction});
-
     if (!transactionID || !moneyRequestReportID) {
         Log.warn('Missing transactionID and reportAction.childReportID during the change of the money request hold status');
         return;
