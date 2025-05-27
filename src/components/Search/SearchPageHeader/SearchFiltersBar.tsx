@@ -93,8 +93,6 @@ const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
 
 function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return expenseStatusOptions;
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return chatStatusOptions;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -103,6 +101,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return tripStatusOptions;
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
             return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions;
     }
@@ -160,7 +159,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 const newType = item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
                 // If the type has changed, reset the status so we dont have an invalid status selected
                 const newStatus = hasTypeChanged ? CONST.SEARCH.STATUS.EXPENSE.ALL : status;
-                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus});
+                const newGroupBy = hasTypeChanged ? undefined : groupBy;
+                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus, groupBy: newGroupBy});
                 Navigation.setParams({q: query});
             };
 
@@ -174,7 +174,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [queryJSON, status, translate, type],
+        [groupBy, queryJSON, status, translate, type],
     );
 
     const statusComponent = useCallback(
