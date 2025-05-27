@@ -202,7 +202,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Accountant, Attendee, Participant, Split} from '@src/types/onyx/IOU';
+import type {Accountant, Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
@@ -11301,25 +11301,22 @@ function updateSplitExpenseField(splitExpenseDraftTransaction: OnyxEntry<OnyxTyp
 }
 
 function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
-    if (!draftTransaction?.transactionID || !currentItemTransactionID) {
+    const {transactionID, comment} = draftTransaction ?? {};
+    const splits = comment?.splitExpenses;
+    const originalTransactionID = comment?.originalTransactionID;
+    if (!transactionID || !currentItemTransactionID || !splits || !originalTransactionID) {
         return;
     }
 
-    const updatedSplitExpenses = draftTransaction.comment?.splitExpenses?.map((splitExpense) => {
-        if (splitExpense.transactionID === currentItemTransactionID) {
-            return {
-                ...splitExpense,
-                amount,
-            };
-        }
-        return splitExpense;
-    });
+    const index = splits.findIndex((item) => item.transactionID === currentItemTransactionID);
+    if (index === -1 || splits.at(index)?.amount === amount) {
+        return;
+    }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${draftTransaction?.comment?.originalTransactionID}`, {
-        comment: {
-            splitExpenses: updatedSplitExpenses,
-        },
-    });
+    const newSplits = splits.slice() ?? [];
+    newSplits[index] = {...newSplits.at(index), amount} as SplitExpense;
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {comment: {splitExpenses: newSplits}});
 }
 
 function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
