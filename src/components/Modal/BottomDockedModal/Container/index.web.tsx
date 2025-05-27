@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import Animated, {Easing, Keyframe} from 'react-native-reanimated';
 import type ModalProps from '@components/Modal/BottomDockedModal/types';
 import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
@@ -26,10 +26,6 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
         return FadeIn.duration(animationInTiming).withCallback(onOpenCallBack);
     }, [animationInTiming, onOpenCallBack]);
 
-    const onFadeOutComplete = useCallback(() => {
-        onCloseCallbackRef.current();
-    }, []);
-
     const Exiting = useMemo(() => {
         const FadeOut = new Keyframe({
             from: {opacity: 1},
@@ -39,8 +35,9 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
             },
         });
 
-        return FadeOut.duration(animationOutTiming).withCallback(onFadeOutComplete);
-    }, [animationOutTiming, onFadeOutComplete]);
+        // eslint-disable-next-line react-compiler/react-compiler
+        return FadeOut.duration(animationOutTiming).withCallback(() => onCloseCallbackRef.current());
+    }, [animationOutTiming]);
 
     return (
         <Animated.View
