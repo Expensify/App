@@ -1,14 +1,28 @@
-import type {ValueOf} from 'type-fest';
+import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Merge, ValueOf} from 'type-fest';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
+import type {PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {Policy, Report} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
+import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts';
+import {approveMoneyRequest} from './actions/IOU';
 import {translateLocal} from './Localize';
 import BankAccountModel from './models/BankAccount';
+import Navigation from './Navigation/Navigation';
+import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
+type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
+type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
 type AccountType = ValueOf<typeof CONST.PAYMENT_METHODS> | undefined;
 
 /**
@@ -93,4 +107,61 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
     return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
 }
 
-export {hasExpensifyPaymentMethod, getPaymentMethodDescription, formatPaymentMethods, calculateWalletTransferBalanceFee};
+/**
+ * Determines the appropriate payment action based on user validation and policy restrictions.
+ * It navigates users to verification pages if necessary, triggers KYC flows for specific payment methods,
+ * handles direct approvals, or proceeds with basic payment processing.
+ */
+const selectPaymentType = (
+    event: KYCFlowEvent,
+    iouPaymentType: PaymentMethodType,
+    triggerKYCFlow: TriggerKYCFlow,
+    policy: OnyxEntry<Policy>,
+    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void,
+    isUserValidated?: boolean,
+    confirmApproval?: () => void,
+    iouReport?: OnyxEntry<Report>,
+) => {
+    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+        return;
+    }
+
+    if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+            return;
+        }
+        triggerKYCFlow(event, iouPaymentType);
+        setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+        return;
+    }
+
+    if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+        if (confirmApproval) {
+            confirmApproval();
+        } else {
+            approveMoneyRequest(iouReport);
+        }
+        return;
+    }
+
+    onPress(iouPaymentType);
+};
+
+type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;
+type PaymentOption = PopoverMenuItem & DropdownOption<ValueOf<typeof CONST.IOU.PAYMENT_TYPE>>;
+type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType}>;
+type SecondaryActionOption = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>;
+
+const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is PaymentOption => {
+    if (!('value' in item)) {
+        return false;
+    }
+    const payment = item.value as SecondaryActionOption['value'] | PaymentOrApproveOption['value'];
+    const isPaymentInArray = Object.values(CONST.IOU.PAYMENT_TYPE).filter((type) => type === payment);
+    return isPaymentInArray.length > 0;
+};
+
+export {hasExpensifyPaymentMethod, getPaymentMethodDescription, formatPaymentMethods, calculateWalletTransferBalanceFee, selectPaymentType, isSecondaryActionAPaymentOption};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption};

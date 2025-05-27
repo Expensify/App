@@ -64,6 +64,7 @@ import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getDistanceRateCustomUnit,
+    getCorrectedAutoReportingFrequency,
     getMemberAccountIDsForWorkspace,
     getPerDiemCustomUnit,
     getPersonalPolicy,
@@ -94,6 +95,7 @@ import {
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
+    buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticChatReport,
@@ -157,6 +159,7 @@ import {
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
+    prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
@@ -214,10 +217,11 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
+import type {GuidedSetupData} from './Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
-import {removeDraftTransaction} from './TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -363,6 +367,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     receipt?: Receipt;
     waypoints?: WaypointCollection;
     comment?: string;
+    isTestDrive?: boolean;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -407,6 +412,8 @@ type RequestMoneyInformation = {
     reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
+    shouldPlaySound?: boolean;
+    shouldHandleNavigation?: boolean;
     backToReport?: string;
 };
 
@@ -419,6 +426,7 @@ type MoneyRequestInformationParams = {
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    testDriveCommentReportActionID?: string;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -445,6 +453,7 @@ type MoneyRequestOptimisticParams = {
     };
     personalDetailListAction?: OnyxTypes.PersonalDetailsList;
     nextStep?: OnyxTypes.ReportNextStep | null;
+    testDriveCommentReportActionID?: string;
 };
 
 type BuildOnyxDataForMoneyRequestParams = {
@@ -524,6 +533,8 @@ type CreateTrackExpenseParams = {
     transactionParams: TrackExpenseTransactionParams;
     accountantParams?: TrackExpenseAccountantParams;
     isRetry?: boolean;
+    shouldPlaySound?: boolean;
+    shouldHandleNavigation?: boolean;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -608,6 +619,7 @@ type StartSplitBilActionParams = {
     currency: string;
     taxCode: string;
     taxAmount: number;
+    shouldPlaySound?: boolean;
 };
 
 type ReplaceReceipt = {
@@ -932,8 +944,8 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
 }
 
 function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
+    removeDraftTransactions();
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false, backToReport?: string) {
@@ -1027,10 +1039,10 @@ function setSplitPayer(transactionID: string, payerAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitPayerAccountIDs: [payerAccountID]});
 }
 
-function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false) {
+function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false, isTestDriveReceipt = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        // isTestReceipt = false is being converted to null because we don't really need to store it in Onyx in that case
-        receipt: {source, type: type ?? '', isTestReceipt: isTestReceipt ? true : null},
+        // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
+        receipt: {source, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
         filename,
     });
 }
@@ -1264,6 +1276,74 @@ function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<On
     };
 }
 
+type BuildOnyxDataForTestDriveIOUParams = {
+    transaction: OnyxTypes.Transaction;
+    iouOptimisticParams: MoneyRequestOptimisticParams['iou'];
+    chatOptimisticParams: MoneyRequestOptimisticParams['chat'];
+    testDriveCommentReportActionID?: string;
+};
+
+function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams): OnyxData {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    const optimisticIOUReportAction = buildOptimisticIOUReportAction({
+        type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        amount: testDriveIOUParams.transaction.amount,
+        currency: testDriveIOUParams.transaction.currency,
+        comment: testDriveIOUParams.transaction.comment?.comment ?? '',
+        participants: testDriveIOUParams.transaction.participants ?? [],
+        paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        iouReportID: testDriveIOUParams.iouOptimisticParams.report.reportID,
+        transactionID: testDriveIOUParams.transaction.transactionID,
+    });
+
+    const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
+    const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
+    textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
+
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${testDriveIOUParams.chatOptimisticParams.report?.reportID}`,
+            value: {
+                [textComment.reportAction.reportActionID]: textComment.reportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${testDriveIOUParams.iouOptimisticParams.report.reportID}`,
+            value: {
+                ...{lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                hasOutstandingChildRequest: false,
+                lastActorAccountID: currentUserPersonalDetails?.accountID,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${testDriveIOUParams.iouOptimisticParams.report.reportID}`,
+            value: {
+                [testDriveIOUParams.iouOptimisticParams.action.reportActionID]: optimisticIOUReportAction,
+            },
+        },
+    );
+
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${testDriveIOUParams.chatOptimisticParams.report?.reportID}`,
+        value: {
+            [textComment.reportAction.reportActionID]: null,
+        },
+    });
+
+    return {
+        optimisticData,
+        successData,
+        failureData,
+    };
+}
+
 /** Builds the Onyx data for an expense */
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {
@@ -1284,6 +1364,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         policyRecentlyUsed,
         personalDetailListAction,
         nextStep,
+        testDriveCommentReportActionID,
     } = optimisticParams;
 
     const isScanRequest = isScanRequestTransactionUtils(transaction);
@@ -1294,6 +1375,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS>;
     if (isScanRequest) {
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_SCAN;
@@ -1452,6 +1534,22 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${iou.report.policyID}`,
             value: policyRecentlyUsed.destinations,
         });
+    }
+
+    if (transaction.receipt?.isTestDriveReceipt) {
+        const {
+            optimisticData: testDriveOptimisticData = [],
+            successData: testDriveSuccessData = [],
+            failureData: testDriveFailureData = [],
+        } = buildOnyxDataForTestDriveIOU({
+            transaction,
+            iouOptimisticParams: iou,
+            chatOptimisticParams: chat,
+            testDriveCommentReportActionID,
+        });
+        optimisticData.push(...testDriveOptimisticData);
+        successData.push(...testDriveSuccessData);
+        failureData.push(...testDriveFailureData);
     }
 
     if (isMoneyRequestToManagerMcTest) {
@@ -1654,7 +1752,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     const errorKey = DateUtils.getMicroseconds();
 
-    const failureData: OnyxUpdate[] = [
+    failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
@@ -1750,7 +1848,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                       }),
             },
         },
-    ];
+    );
 
     if (!isOneOnOneSplit) {
         optimisticData.push({
@@ -3091,6 +3189,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         existingTransactionID,
         moneyRequestReportID = '',
         retryParams,
+        testDriveCommentReportActionID,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3207,7 +3306,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             payeeEmail,
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
-            paymentType: isSelectedManagerMcTest(participant.login) ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
+            paymentType: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
             existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
             linkedTrackedExpenseReportAction,
         });
@@ -3276,6 +3375,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             },
             personalDetailListAction: optimisticPersonalDetailListAction,
             nextStep: optimisticNextStep,
+            testDriveCommentReportActionID,
         },
         retryParams,
     });
@@ -3635,7 +3735,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         existingTransaction,
         policy,
         transactionParams: {
-            amount: isExpenseReport(iouReport) ? -amount : amount,
+            amount: -amount,
             currency,
             reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : CONST.REPORT.UNREPORTED_REPORT_ID,
             comment,
@@ -4141,7 +4241,7 @@ function getUpdateMoneyRequestParams(
                 },
             });
         }
-        if (violationsOnyxData) {
+        if (violationsOnyxData && (iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
             const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? {};
             const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
             optimisticData.push({
@@ -5002,7 +5102,18 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible, backToReport} = requestMoneyInformation;
+    const {
+        report,
+        participantParams,
+        policyParams = {},
+        transactionParams,
+        gpsPoints,
+        action,
+        reimbursible,
+        shouldHandleNavigation = true,
+        backToReport,
+        shouldPlaySound = true,
+    } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
     transactionParams.comment = parsedComment;
@@ -5024,7 +5135,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         linkedTrackedExpenseReportID,
         waypoints,
         customUnitRateID,
+        isTestDrive,
     } = transactionParams;
+
+    const testDriveCommentReportActionID = isTestDrive ? rand64() : undefined;
 
     const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeRecentWaypoints(waypoints)) : undefined;
 
@@ -5076,8 +5190,13 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         existingTransactionID,
         existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
         retryParams,
+        testDriveCommentReportActionID,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
+
+    if (shouldPlaySound) {
+        playSound(SOUNDS.DONE);
+    }
 
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
@@ -5133,6 +5252,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             break;
         }
         default: {
+            // This is only required when inviting admins to test drive the app
+            const guidedSetupData: GuidedSetupData | undefined = isTestDrive
+                ? prepareOnboardingOnyxData(
+                      {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
+                      CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
+                      CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
+                  )?.guidedSetupData
+                : undefined;
+
             const parameters: RequestMoneyParams = {
                 debtorEmail: payerEmail,
                 debtorAccountID: payerAccountID,
@@ -5162,20 +5290,25 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 reimbursible,
                 description: parsedComment,
                 attendees: attendees ? JSON.stringify(attendees) : undefined,
+                isTestDrive,
+                guidedSetupData: guidedSetupData ? JSON.stringify(guidedSetupData) : undefined,
+                testDriveCommentReportActionID,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }
     }
 
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    if (!requestMoneyInformation.isRetry) {
-        dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
-    }
+    if (shouldHandleNavigation) {
+        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+        if (!requestMoneyInformation.isRetry) {
+            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
+        }
 
-    const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
-    if (trackReport?.key) {
-        Navigation.removeScreenByKey(trackReport.key);
+        const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
+        if (trackReport?.key) {
+            Navigation.removeScreenByKey(trackReport.key);
+        }
     }
 
     if (activeReportID && (!isMoneyRequestReport || !Permissions.canUseTableReportView(betas))) {
@@ -5253,6 +5386,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         attendees: attendees ? JSON.stringify(attendees) : undefined,
     };
 
+    playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
@@ -5318,13 +5452,14 @@ function sendInvoice(
         ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
 
+    playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.dismissModal();
     } else {
-        Navigation.dismissModalWithReport({report: invoiceRoom});
+        Navigation.dismissModalWithReport({reportID: invoiceRoom.reportID});
     }
 
     notifyNewAction(invoiceRoom.reportID, receiver.accountID);
@@ -5334,7 +5469,17 @@ function sendInvoice(
  * Track an expense
  */
 function trackExpense(params: CreateTrackExpenseParams) {
-    const {report, action, isDraftPolicy, participantParams, policyParams: policyData = {}, transactionParams: transactionData, accountantParams} = params;
+    const {
+        report,
+        action,
+        isDraftPolicy,
+        participantParams,
+        policyParams: policyData = {},
+        transactionParams: transactionData,
+        accountantParams,
+        shouldHandleNavigation = true,
+        shouldPlaySound = true,
+    } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
     const parsedComment = getParsedComment(transactionData.comment ?? '');
@@ -5457,6 +5602,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
     });
 
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? undefined : customUnitRateID;
+    if (shouldPlaySound) {
+        playSound(SOUNDS.DONE);
+    }
 
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
@@ -5587,10 +5735,13 @@ function trackExpense(params: CreateTrackExpenseParams) {
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    if (!params.isRetry) {
-        dismissModalAndOpenReportInInboxTab(activeReportID);
+    if (shouldHandleNavigation) {
+        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+
+        if (!params.isRetry) {
+            dismissModalAndOpenReportInInboxTab(activeReportID);
+        }
     }
 
     notifyNewAction(activeReportID, payeeAccountID);
@@ -6190,6 +6341,7 @@ function splitBill({
         description: parsedComment,
     };
 
+    playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
@@ -6264,6 +6416,7 @@ function splitBillAndOpenReport({
         description: parsedComment,
     };
 
+    playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
@@ -6289,6 +6442,7 @@ function startSplitBill({
     currency,
     taxCode = '',
     taxAmount = 0,
+    shouldPlaySound = true,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -6603,10 +6757,13 @@ function startSplitBill({
         taxAmount,
         description: parsedComment,
     };
+    if (shouldPlaySound) {
+        playSound(SOUNDS.DONE);
+    }
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
-    Navigation.dismissModalWithReport({report: splitChatReport});
+    Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
     notifyNewAction(splitChatReport.reportID, currentUserAccountID);
 }
 
@@ -6866,6 +7023,7 @@ function completeSplitBill(
         description: parsedComment,
     };
 
+    playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     dismissModalAndOpenReportInInboxTab(chatReportID);
@@ -7052,6 +7210,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
         value: recentServerValidatedWaypoints,
     });
+
+    playSound(SOUNDS.DONE);
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
@@ -8785,7 +8945,7 @@ function getPayMoneyRequestParams(
  */
 function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
-
+    playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
@@ -8798,7 +8958,7 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
  */
 function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | OptionData) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
-
+    playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
@@ -8932,6 +9092,7 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
+    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactionIDList, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
@@ -8940,6 +9101,7 @@ function canSubmitReport(
     return (
         transactions.length > 0 &&
         isOpenExpenseReport &&
+        isManualSubmitEnabled &&
         !isReportArchived &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
@@ -9963,6 +10125,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
     };
 
     const retryParams = {transactionID, file: undefined, source};
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -10005,6 +10168,34 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
             },
         },
     ];
+
+    if (currentSearchQueryJSON?.hash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        receipt: receiptOptimistic,
+                        filename: file.name,
+                    },
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
+                        filename: transaction?.filename,
+                    },
+                },
+            },
+        });
+    }
 
     const parameters: ReplaceReceiptParams = {
         transactionID,
@@ -10499,6 +10690,20 @@ function navigateToStartStepIfScanFileCannotBeRead(
     readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
+function checkIfScanFileCanBeRead(
+    receiptFilename: string | undefined,
+    receiptPath: ReceiptSource | undefined,
+    receiptType: string | undefined,
+    onSuccess: (file: File) => void,
+    onFailure: () => void,
+) {
+    if (!receiptFilename || !receiptPath) {
+        return;
+    }
+
+    return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+}
+
 /** Save the preferred payment method for a policy */
 function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: type ? {[type]: paymentMethod, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: paymentMethod} : paymentMethod});
@@ -10911,6 +11116,8 @@ export {
     dismissHoldUseExplanation,
     getIOURequestPolicyID,
     initMoneyRequest,
+    checkIfScanFileCanBeRead,
+    dismissModalAndOpenReportInInboxTab,
     navigateToStartStepIfScanFileCannotBeRead,
     completePaymentOnboarding,
     payInvoice,
