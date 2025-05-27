@@ -45,13 +45,14 @@ const BORDER_WIDTH = 1;
 
 type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
+    searchName?: string;
     searchRouterListVisible?: boolean;
     hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
     handleSearch: (value: string) => void;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageHeaderInputProps) {
     const {translate} = useLocalize();
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
@@ -281,7 +282,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 exiting={isFocused && searchRouterListVisible ? FadeOutRight : undefined}
                                 style={[styles.pl3]}
                             >
-                                <SearchTypeMenuPopover queryJSON={queryJSON} />
+                                <SearchTypeMenuPopover
+                                    searchName={searchName}
+                                    queryJSON={queryJSON}
+                                />
                             </Animated.View>
                         )}
                     </View>

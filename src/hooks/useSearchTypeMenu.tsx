@@ -25,7 +25,7 @@ import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useWindowDimensions from './useWindowDimensions';
 
-export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
+export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName?: string) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -60,6 +60,11 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     }, []);
 
     const activeItemIndex = useMemo(() => {
+        // If we have a suggested search, then none of the menu items are active
+        if (searchName) {
+            return -1;
+        }
+
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
         return flattenedMenuItems.findIndex((item) => {
             const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
@@ -132,7 +137,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
             }
 
-            const isItemFocused = Number(key) === hash;
+            const isItemFocused = searchName === item.name;
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, savedSearchTitle, isItemFocused);
 
             return {

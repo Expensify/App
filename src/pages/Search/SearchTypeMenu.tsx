@@ -37,9 +37,10 @@ import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
+    searchName?: string;
 };
 
-function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {hash} = queryJSON ?? {};
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -83,7 +84,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
             }
 
-            const isItemFocused = Number(key) === hash;
+            const isItemFocused = searchName === item.name;
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
             return {
@@ -113,19 +114,19 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             };
         },
         [
-            allCards,
-            hash,
+            searchName,
             getOverflowMenu,
             shouldShowSavedSearchTooltip,
             hideSavedSearchTooltip,
+            renderSavedSearchTooltip,
             styles.alignItemsCenter,
             styles.mh4,
             styles.pv2,
             styles.productTrainingTooltipWrapper,
-            renderSavedSearchTooltip,
             personalDetails,
             reports,
             taxRates,
+            allCards,
             cardFeedNamesWithType,
             allPolicies,
         ],
@@ -178,13 +179,18 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     );
 
     const activeItemIndex = useMemo(() => {
+        // If we have a suggested search, then none of the menu items are active
+        if (searchName) {
+            return -1;
+        }
+
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
 
         return flattenedMenuItems.findIndex((item) => {
             const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
             return searchQueryJSON?.hash === hash;
         });
-    }, [hash, typeMenuSections]);
+    }, [hash, searchName, typeMenuSections]);
 
     return (
         <ScrollView
