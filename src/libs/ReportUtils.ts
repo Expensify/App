@@ -139,6 +139,7 @@ import {
     getCardIssuedMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
+    getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getLastClosedReportAction,
@@ -4825,6 +4826,10 @@ function getReportNameInternal({
 
     if (isTaskReport(report)) {
         return Parser.htmlToText(report?.reportName ?? '').trim();
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
+        return getIntegrationSyncFailedMessage(parentReportAction);
     }
 
     if (isChatThread(report)) {

@@ -2408,6 +2408,11 @@ function getReportActionFromExpensifyCard(cardID: number) {
         });
 }
 
+function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>): string {
+    const {label, errorMessage} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {label: '', errorMessage: ''};
+    return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage});
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -2555,6 +2560,7 @@ export {
     getReopenedMessage,
     getLeaveRoomMessage,
     getReportActionFromExpensifyCard,
+    getIntegrationSyncFailedMessage,
 };
 
 export type {LastVisibleMessage};
