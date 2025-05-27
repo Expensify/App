@@ -4042,6 +4042,22 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green400,
         },
 
+        submitButtonWithShadow: {
+            position: 'absolute',
+            right: 16,
+            top: 8,
+            backgroundColor: theme.appBG,
+            boxShadow: [
+                {
+                    offsetX: 0,
+                    offsetY: 0,
+                    blurRadius: '24px',
+                    spreadDistance: '16px',
+                    color: theme.appBG,
+                },
+            ],
+        },
+
         receiptPlaceholder: {
             height: 52,
             marginRight: 8,
