@@ -22,13 +22,13 @@ import {
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
 import {getIOUReportActionDisplayMessage, getReportName, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 
 type ReportActionItemMessageProps = {
     /** The report action */
@@ -50,10 +50,10 @@ type ReportActionItemMessageProps = {
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`);
-    const {bankAccountLastFour, currency, policyID: originalMessagePolicyID} = action.originalMessage as {bankAccountLastFour: string, currency: string, policyID: string};
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${originalMessagePolicyID ?? ''}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`, {canBeMissing: true});
+    const {bankAccountLastFour, currency, policyID: originalMessagePolicyID} = action.originalMessage as {bankAccountLastFour: string; currency: string; policyID: string};
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${originalMessagePolicyID ?? ''}`, {canBeMissing: true});
 
     const fragments = getReportActionMessageFragments(action);
     const isIOUReport = isMoneyRequestAction(action);
@@ -102,7 +102,10 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
 
         return (
             <View style={[styles.chatItemMessage, style]}>
-                <Text>is connecting a {policyCurrency} business bank account ending in {bankAccountLastFour} to Expensify to pay employees in {policyCurrency}. The next step requires signer info from a director or senior officer.</Text>
+                <Text>
+                    is connecting a {policyCurrency} business bank account ending in {bankAccountLastFour} to Expensify to pay employees in {policyCurrency}. The next step requires signer
+                    info from a director or senior officer.
+                </Text>
                 <Button
                     style={[styles.mt2, styles.alignSelfStart]}
                     success

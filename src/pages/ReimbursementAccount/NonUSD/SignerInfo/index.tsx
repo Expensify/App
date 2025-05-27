@@ -5,10 +5,10 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
-import type { SubStepProps } from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
-import { askForCorpaySignerInformation, clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation } from '@userActions/BankAccounts';
+import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -167,14 +167,17 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         }
     }, [currentSubStep, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
 
-    const handleEmailSubmit = useCallback((values: EmailSubmitParams) => {
-        askForCorpaySignerInformation({
-            signerEmail: values.signerEmail,
-            secondSignerEmail: values.secondSignerEmail,
-            policyID: String(policyID),
-            bankAccountID,
-        });
-    }, [bankAccountID, policyID]);
+    const handleEmailSubmit = useCallback(
+        (values: EmailSubmitParams) => {
+            askForCorpaySignerInformation({
+                signerEmail: values.signerEmail,
+                secondSignerEmail: values.secondSignerEmail,
+                policyID: String(policyID),
+                bankAccountID,
+            });
+        },
+        [bankAccountID, policyID],
+    );
 
     return (
         <InteractiveStepWrapper
