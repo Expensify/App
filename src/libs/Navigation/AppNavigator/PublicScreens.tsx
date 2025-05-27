@@ -83,6 +83,11 @@ function PublicScreens() {
                         },
                         animation: InternalPlatformAnimations.FADE,
                     },
+                    web: {
+                        cardStyle: {
+                            ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                        },
+                    },
                 }}
                 component={TestToolsModalNavigator}
             />

@@ -1,6 +1,7 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import type {MouseEvent} from 'react';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import TestToolsModalPage from '@components/TestToolsModalPage';
@@ -23,15 +24,18 @@ function TestToolsModalNavigator() {
     const outerViewRef = useRef<View>(null);
     const isAuthenticated = useIsAuthenticated();
 
-    const handleOuterClick = useCallback(() => {
-        toggleTestToolsModal();
+    const handleOuterClick = useCallback((e: MouseEvent | GestureResponderEvent) => {
+        e.preventDefault();
+        requestAnimationFrame(() => {
+            toggleTestToolsModal();
+        });
     }, []);
 
     const handleInnerPress = useCallback((e: GestureResponderEvent) => {
         e.stopPropagation();
     }, []);
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: true});
 
     return (
         <NoDropZone>
