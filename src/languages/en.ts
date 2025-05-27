@@ -5286,7 +5286,7 @@ const translations = {
             pay: 'Pay',
             delete: 'Delete',
             hold: 'Hold',
-            unhold: 'Unhold',
+            unhold: 'Remove hold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
