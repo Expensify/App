@@ -57,7 +57,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery} from './SearchQueryUtils';
+import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
@@ -86,6 +86,16 @@ const taskColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: 'formattedAssignee' as const,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
 };
+
+const expenseStatusActionMapping = {
+    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: [CONST.SEARCH.ACTION_TYPES.SUBMIT],
+    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: [CONST.SEARCH.ACTION_TYPES.APPROVE],
+    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: [CONST.SEARCH.ACTION_TYPES.PAY],
+    [CONST.SEARCH.STATUS.EXPENSE.PAID]: [CONST.SEARCH.ACTION_TYPES.PAID],
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: [CONST.SEARCH.ACTION_TYPES.DONE],
+    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: [CONST.SEARCH.ACTION_TYPES.VIEW],
+    [CONST.SEARCH.STATUS.EXPENSE.ALL]: [CONST.SEARCH.ACTION_TYPES.SUBMIT, CONST.SEARCH.ACTION_TYPES.APPROVE, CONST.SEARCH.ACTION_TYPES.PAID, CONST.SEARCH.ACTION_TYPES.PAY, CONST.SEARCH.ACTION_TYPES.DONE],
+}
 
 let currentAccountID: number | undefined;
 Onyx.connect({
@@ -318,10 +328,30 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
+    const queryJSON = getCurrentSearchQueryJSON();
     return Object.keys(data)
         .filter(isTransactionEntry)
         .map((key) => {
             const transactionItem = data[key];
+            const coreAction = getAction(data, key, true);
+            if (queryJSON && !transactionItem.isActionLoading) {
+                if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                    const status = queryJSON.status;
+                    const actionMappings = [];
+                    if (Array.isArray(status)) {
+                        status.forEach((val) => {
+                            const val1 = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+                            actionMappings.push(...expenseStatusActionMapping[val1]);
+                        })
+                    } else {
+                        const val1 = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+                        actionMappings.push(...expenseStatusActionMapping[val1]);
+                    }
+                    if (!actionMappings.includes(coreAction)) {
+                        return;
+                    }
+                }                
+            }
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
             const shouldShowBlankTo = isOpenExpenseReport(report);
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -347,7 +377,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
-        });
+        })
+        .filter((item): item is TransactionListItemType => item !== undefined)
 }
 
 /**
@@ -355,7 +386,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
+function getAction(data: OnyxTypes.SearchResults['data'], key: string, isGettingCoreAction = false): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -403,13 +434,13 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const isApprover = report.managerID === currentAccountID;
     const shouldShowReview = hasViolations(report.reportID, allViolations, undefined, allReportTransactions) && (isSubmitter || isApprover || isAdmin);
 
-    if (shouldShowReview) {
+    if (shouldShowReview && !isGettingCoreAction) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
-    if (isTransaction && !data[key].isFromOneTransactionReport) {
+    if (isTransaction && !data[key].isFromOneTransactionReport && !isGettingCoreAction) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 

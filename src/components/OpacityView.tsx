@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, Keyframe, LayoutAnimationConfig, SequencedTransition, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import variables from '@styles/variables';
+
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
+
 
 type OpacityViewProps = {
     /** Should we dim the view */
@@ -32,6 +35,8 @@ type OpacityViewProps = {
 
     /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing?: boolean;
+
+    shouldAnimate?: boolean;
 };
 
 function OpacityView({
@@ -41,6 +46,7 @@ function OpacityView({
     style = [],
     dimmingValue = variables.hoverDimValue,
     needsOffscreenAlphaCompositing = false,
+    shouldAnimate = false,
 }: OpacityViewProps) {
     const opacity = useSharedValue(1);
     const opacityStyle = useAnimatedStyle(() => ({
@@ -51,13 +57,35 @@ function OpacityView({
         opacity.set(withTiming(shouldDim ? dimmingValue : 1, {duration: dimAnimationDuration}));
     }, [shouldDim, dimmingValue, opacity, dimAnimationDuration]);
 
+    const Exiting = useMemo(() => {
+        const SlideOut = new Keyframe({
+            from: {
+                opacity: 1,
+                transform: [{translateY: 0}],
+            },
+            to: {
+                height: 0,
+                opacity: 0,
+                transform: [{translateY: 0}],
+                easing,
+            },
+        });
+
+        return SlideOut.duration(300);
+    }, []);
+    
+
     return (
-        <Animated.View
-            style={[opacityStyle, style]}
-            needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
-        >
-            {children}
-        </Animated.View>
+        <LayoutAnimationConfig skipEntering>
+            <Animated.View
+                style={[opacityStyle, style]}
+                exiting={shouldAnimate ? Exiting : undefined}
+                layout={shouldAnimate ? SequencedTransition : undefined}
+                needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
+            >
+                {children}
+            </Animated.View>
+        </LayoutAnimationConfig>
     );
 }
 
