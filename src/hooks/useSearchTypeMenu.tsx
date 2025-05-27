@@ -10,9 +10,9 @@ import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, createTypeMenuSections, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -25,13 +25,13 @@ import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useWindowDimensions from './useWindowDimensions';
 
-export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
+export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName?: string) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {hash} = queryJSON;
+    const {hash, groupBy} = queryJSON;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -49,7 +49,10 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
     const cardFeedNamesWithType = useMemo(() => getCardFeedNamesWithType({workspaceCardFeeds, translate}), [workspaceCardFeeds, translate]);
 
-    const typeMenuSections = useMemo(() => createTypeMenuSections(session, allPolicies), [allPolicies, session]);
+    const typeMenuItems = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
+
+    const isCannedQuery = isCannedSearchQuery(queryJSON);
+    const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
     const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
@@ -59,13 +62,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         }, 100);
     }, []);
 
-    const activeItemIndex = useMemo(() => {
-        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => {
-            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
-            return searchQueryJSON?.hash === hash;
-        });
-    }, [hash, typeMenuSections]);
+    const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies));
+    const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === queryJSON.type) : -1;
 
     const closeMenu = useCallback(() => {
         setIsPopoverVisible(false);
@@ -76,44 +74,58 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         [showDeleteModal, closeMenu],
     );
 
+    const currentSavedSearch = useMemo(() => {
+        if (!savedSearches) {
+            return undefined;
+        }
+        return Object.entries(savedSearches).find(([key]) => Number(key) === hash)?.[1];
+    }, [savedSearches, hash]);
+
     const popoverMenuItems = useMemo(() => {
-        return typeMenuSections
-            .map((section, sectionIndex) => {
-                const sectionItems: PopoverMenuItem[] = [
-                    {
-                        shouldShowBasicTitle: true,
-                        text: translate(section.translationPath),
-                        style: [styles.textSupporting],
-                        disabled: true,
-                    },
-                ];
+        const items = typeMenuItems.map((item, index) => {
+            let isSelected = false;
+            if (!title) {
+                if (shouldGroupByReports) {
+                    isSelected = item.translationPath === 'common.expenseReports';
+                } else {
+                    isSelected = index === activeItemIndex;
+                }
+            }
 
-                section.menuItems.forEach((item, itemIndex) => {
-                    const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
-                    const flattenedIndex = previousItemCount + itemIndex;
-                    const isSelected = flattenedIndex === activeItemIndex;
+            return {
+                text: translate(item.translationPath),
+                onSelected: singleExecution(() => {
+                    clearAllFilters();
+                    Navigation.navigate(item.getRoute());
+                }),
+                isSelected,
+                icon: item.icon,
+                iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
+                iconRight: Expensicons.Checkmark,
+                shouldShowRightIcon: isSelected,
+                success: isSelected,
+                containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+                shouldCallAfterModalHide: true,
+            };
+        });
 
-                    sectionItems.push({
-                        text: translate(item.translationPath),
-                        isSelected,
-                        icon: item.icon,
-                        iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
-                        iconRight: Expensicons.Checkmark,
-                        shouldShowRightIcon: isSelected,
-                        success: isSelected,
-                        containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
-                        shouldCallAfterModalHide: true,
-                        onSelected: singleExecution(() => {
-                            clearAllFilters();
-                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
-                        }),
-                    });
-                });
+        if (title && !currentSavedSearch) {
+            items.push({
+                text: title,
+                onSelected: closeMenu,
+                isSelected: !currentSavedSearch,
+                icon: Expensicons.Filters,
+                iconFill: theme.iconSuccessFill,
+                success: true,
+                containerStyle: undefined,
+                iconRight: Expensicons.Checkmark,
+                shouldShowRightIcon: false,
+                shouldCallAfterModalHide: true,
+            });
+        }
 
-                return sectionItems;
-            })
-            .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.icon, theme.border, singleExecution]);
+        return items;
+    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme, closeMenu, shouldGroupByReports]);
 
     const processSavedSearches = useCallback(() => {
         if (!savedSearches) {
