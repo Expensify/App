@@ -356,10 +356,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 </View>
             ) : (
                 <ScrollView
+                    horizontal
+                    keyboardShouldPersistTaps="always"
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
                     contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
                     ref={scrollRef}
-                    horizontal
                     showsHorizontalScrollIndicator={false}
                 >
                     {filters.map((filter) => (
