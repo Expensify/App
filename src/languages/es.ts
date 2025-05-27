@@ -5176,32 +5176,14 @@ const translations = {
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renombró la categoría "${oldName}" a "${newName}`,
-        updatedPayrollCode: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
-            if (!newValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el código de nómina (anteriormente "${oldValue}")`;
-            }
-
-            return !oldValue
-                ? `actualizó la categoría "${categoryName}" añadiendo un código de nómina "${newValue}"`
-                : `actualizó la categoría "${categoryName}" cambiando el código de nómina a "${newValue}" (anteriormente "${oldValue}")`;
-        },
-        updatedGlCode: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
-            if (!newValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el código GL (anteriormente "${oldValue}")`;
-            }
-
-            return !oldValue
-                ? `actualizó la categoría "${categoryName}" añadiendo un código GL "${newValue}"`
-                : `actualizó la categoría "${categoryName}" cambiando el código GL a "${newValue}" (anteriormente "${oldValue}")`;
-        },
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
             if (!newValue) {
-                return `actualizó la categoría "${categoryName}" eliminando la sugerencia de descripción (anteriormente "${oldValue}")`;
+                return `eliminó la sugerencia de descripción "${oldValue}" de la categoría "${categoryName}"`;
             }
 
             return !oldValue
-                ? `actualizó la categoría "${categoryName}" añadiendo una sugerencia de descripción de "${newValue}"`
-                : `actualizó la categoría "${categoryName}" cambiando la sugerencia de descripción a "${newValue}" (anteriormente "${oldValue}")`;
+                ? `añadió la sugerencia de descripción "${newValue}" a la categoría "${categoryName}"`
+                : `cambió la sugerencia de descripción de la categoría "${categoryName}" a “${newValue}” (anteriormente “${oldValue}”)`;
         },
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
