@@ -36,7 +36,6 @@ import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -166,9 +165,6 @@ type MoneyRequestConfirmationListProps = {
     /** The action to take */
     action?: IOUAction;
 
-    /** Should play sound on confirmation */
-    shouldPlaySound?: boolean;
-
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
 
@@ -183,12 +179,6 @@ type MoneyRequestConfirmationListProps = {
 
     /** The PDF password callback */
     onPDFPassword?: () => void;
-
-    /** Function to toggle reimbursable */
-    onToggleReimbursable?: (isOn: boolean) => void;
-
-    /** Flag indicating if the IOU is reimbursable */
-    iouIsReimbursable?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
@@ -225,13 +215,10 @@ function MoneyRequestConfirmationList({
     reportActionID,
     action = CONST.IOU.ACTION.CREATE,
     shouldDisplayReceipt = false,
-    shouldPlaySound = true,
     isConfirmed,
     isConfirming,
     onPDFLoadError,
     onPDFPassword,
-    iouIsReimbursable = true,
-    onToggleReimbursable,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -250,9 +237,17 @@ function MoneyRequestConfirmationList({
         return transaction?.receipt?.isTestReceipt ?? false;
     }, [transaction?.receipt?.isTestReceipt]);
 
+    const isTestDriveReceipt = useMemo(() => {
+        return transaction?.receipt?.isTestDriveReceipt ?? false;
+    }, [transaction?.receipt?.isTestDriveReceipt]);
+
+    const isManagerMcTestReceipt = useMemo(() => {
+        return Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
+    }, [betas, selectedParticipantsProp]);
+
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
-        Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login)),
+        isTestDriveReceipt ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
+        isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
     const policy = policyReal ?? policyDraft;
@@ -654,9 +649,9 @@ function MoneyRequestConfirmationList({
                     hideFocusedState={false}
                     hideCurrencySymbol
                     formatAmountOnBlur
-                    prefixContainerStyle={[styles.pv0]}
-                    inputStyle={[styles.optionRowAmountInput]}
-                    containerStyle={[styles.textInputContainer]}
+                    prefixContainerStyle={[styles.pv0, styles.h100]}
+                    inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                    containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
@@ -675,8 +670,11 @@ function MoneyRequestConfirmationList({
         selectedParticipants,
         styles.flexWrap,
         styles.pl2,
+        styles.pr1,
+        styles.h100,
         styles.textLabel,
         styles.pv0,
+        styles.lineHeightUndefined,
         styles.optionRowAmountInput,
         styles.textInputContainer,
         styles.ml3,
@@ -896,9 +894,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -908,9 +903,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onSendMoney?.(paymentMethod);
             }
         },
@@ -932,7 +924,6 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             onConfirm,
-            shouldPlaySound,
             transactionID,
             reportID,
             policy,
@@ -1097,8 +1088,6 @@ function MoneyRequestConfirmationList({
             unit={unit}
             onPDFLoadError={onPDFLoadError}
             onPDFPassword={onPDFPassword}
-            iouIsReimbursable={iouIsReimbursable}
-            onToggleReimbursable={onToggleReimbursable}
             isReceiptEditable={isReceiptEditable}
         />
     );

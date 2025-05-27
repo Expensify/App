@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +26,6 @@ import {
     getTaxAmount,
     getTaxName,
     isAmountMissing,
-    isCardTransaction,
     isCreatedMissing,
     isFetchingWaypointsFromServer,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
@@ -197,12 +197,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The PDF password callback */
     onPDFPassword?: () => void;
-
-    /** Function to toggle reimbursable */
-    onToggleReimbursable?: (isOn: boolean) => void;
-
-    /** Flag indicating if the IOU is reimbursable */
-    iouIsReimbursable: boolean;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -253,8 +247,6 @@ function MoneyRequestConfirmationListFooter({
     unit,
     onPDFLoadError,
     onPDFPassword,
-    iouIsReimbursable,
-    onToggleReimbursable,
     isReceiptEditable = false,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
@@ -297,7 +289,8 @@ function MoneyRequestConfirmationListFooter({
     const policyID = selectedParticipants?.at(0)?.policyID;
     const reportOwnerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
-    const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}).at(0);
+    const outstandingReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {});
+    const firstOutstandingReport = outstandingReports.at(0);
     let reportName: string | undefined;
     if (shouldUseTransactionReport) {
         reportName = transactionReport.reportName;
@@ -309,7 +302,11 @@ function MoneyRequestConfirmationListFooter({
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
     }
-    const shouldReportBeEditable = !!firstOutstandingReport;
+
+    if (!shouldUseTransactionReport && firstOutstandingReport) {
+        setTransactionReport(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, firstOutstandingReport.reportID, true);
+    }
+    const shouldReportBeEditable = outstandingReports.length > 1 || (outstandingReports.length === 1 && firstOutstandingReport?.reportID !== transaction?.reportID);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
@@ -321,7 +318,6 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-    const shouldShowReimbursable = policy?.disabledFields?.reimbursable === false && !isCardTransaction(transaction);
     // Do not hide fields in case of paying someone
     const shouldShowAllFields = !!isPerDiemRequest || !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
@@ -353,6 +349,7 @@ function MoneyRequestConfirmationListFooter({
             reportNameValuePairs: undefined,
             action: undefined,
             checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
             isDisabled: true,
             shouldDisplayContextMenu: false,
         }),
@@ -649,25 +646,6 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <View
-                    key={Str.UCFirst(translate('iou.reimbursable'))}
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
-                >
-                    <ToggleSettingOptionRow
-                        switchAccessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
-                        title={Str.UCFirst(translate('iou.reimbursable'))}
-                        onToggle={(isOn) => onToggleReimbursable?.(isOn)}
-                        isActive={iouIsReimbursable}
-                        disabled={isReadOnly}
-                        wrapperStyle={styles.flex1}
-                    />
-                </View>
-            ),
-            shouldShow: shouldShowReimbursable,
-            isSupplementary: true,
-        },
-        {
-            item: (
-                <View
                     key={translate('common.billable')}
                     style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
                 >
@@ -897,7 +875,7 @@ function MoneyRequestConfirmationListFooter({
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
-            {isPerDiemRequest && (
+            {isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT && (
                 <>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!isReadOnly}
