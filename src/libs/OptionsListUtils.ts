@@ -1818,7 +1818,7 @@ function getValidOptions(
         if (currentUserLogin) {
             personalDetailLoginsToExclude = {
                 ...loginsToExclude,
-                [currentUserLogin]: true,
+                [currentUserLogin]: !config.includeSelfDM,
             };
         }
 
