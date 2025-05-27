@@ -64,10 +64,12 @@ function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
                 onTouchStart={() => setTabSwipeDisabled?.(true)}
                 onTouchEnd={() => setTabSwipeDisabled?.(false)}
                 style={styles.pv2}
-                contentContainerStyle={{paddingRight: 52}}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{paddingRight: styles.singleAvatarMedium.width}}
             />
             <Button
                 large
+                isDisabled={!optimisticTransactionsReceipts?.length}
                 style={styles.submitButtonWithShadow}
                 innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
                 icon={Expensicons.ArrowRight}
