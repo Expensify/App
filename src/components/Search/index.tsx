@@ -147,7 +147,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         selectedTransactions,
         clearSelectedTransactions,
         shouldTurnOffSelectionMode,
-        setShouldShowFiltersBarLoading,
+        setShouldShowStatusBarLoading,
         lastSearchType,
         setShouldShowExportModeOption,
         isExportMode,
@@ -235,16 +235,16 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const data = useMemo(() => {
-        if (searchResults === undefined || !isDataLoaded) {
+        if (searchResults === undefined) {
             return [];
         }
         return getSections(type, status, searchResults.data, searchResults.search, shouldGroupByReports);
-    }, [searchResults, isDataLoaded, type, status, shouldGroupByReports]);
+    }, [searchResults, type, status, shouldGroupByReports]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
-    }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
+        setShouldShowStatusBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -512,7 +512,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
-                    hash={hash}
                     type={type}
                     hasResults={searchResults.search.hasResults}
                 />
