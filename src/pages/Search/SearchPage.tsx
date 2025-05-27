@@ -50,7 +50,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getPolicy, hasVBBA} from '@libs/PolicyUtils';
-import {generateReportID, isBusinessInvoiceRoom, isIndividualInvoiceRoom} from '@libs/ReportUtils';
+import {generateReportID, getChatReportID, isBusinessInvoiceRoom, isIndividualInvoiceRoom} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -141,6 +141,7 @@ function SearchPage({route}: SearchPageProps) {
     };
 
     const onBulkPaySelected = useCallback(() => {
+        // TODO: Add support for mark as paid in bulk
         if (!hash) {
             return;
         }
@@ -231,8 +232,8 @@ function SearchPage({route}: SearchPageProps) {
             const policy = getPolicy(policyIDToCheck);
             // const isExpenseBulk = isExpenseReport(reportIDToCheck);
             // const isIOUBulk = isIOUReport(reportIDToCheck);
-            const isBusinessInvoiceBulk = isBusinessInvoiceRoom(reportIDToCheck);
-            const isIndividualInvoiceBulk = isIndividualInvoiceRoom(reportIDToCheck);
+            const isBusinessInvoiceBulk = isBusinessInvoiceRoom(getChatReportID(reportIDToCheck));
+            const isIndividualInvoiceBulk = isIndividualInvoiceRoom(getChatReportID(reportIDToCheck));
             const isCurrencySupported = isCurrencySupportedForDirectReimbursement(policy?.outputCurrency as CurrencyType);
             const formattedAmount = getFormatedAmount(selectedReports, selectedTransactions, policy?.outputCurrency ?? '');
 
@@ -281,17 +282,7 @@ function SearchPage({route}: SearchPageProps) {
 
             return buttonOptions;
         },
-        [
-            hasActivatedWallet,
-            selectedReports,
-            selectedTransactions,
-            selectedTransactionsKeys,
-            translate,
-            onBulkPaySelected,
-            formattedPaymentMethods.length,
-            getPaymentSubitems,
-            hasActivatedWallet,
-        ],
+        [selectedReports, selectedTransactions, selectedTransactionsKeys, translate, onBulkPaySelected, formattedPaymentMethods.length, getPaymentSubitems],
     );
 
     const headerButtonsOptions = useMemo(() => {
@@ -492,6 +483,7 @@ function SearchPage({route}: SearchPageProps) {
         activeWorkspaceID,
         clearSelectedTransactions,
         getSubMenuItems,
+        onBulkPaySelected,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,

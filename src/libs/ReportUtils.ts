@@ -1156,6 +1156,20 @@ function getReport(reportID: string, reports: SearchReport[] | OnyxCollection<Re
 }
 
 /**
+ *
+ * @param reportOrID - The report or report ID to get the chatReportID from
+ * @returns The chat report id of the current report.
+ */
+function getChatReportID(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): string | undefined {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) ?? null : reportOrID;
+    if (!report) {
+        return undefined;
+    }
+
+    return report.chatReportID;
+}
+
+/**
  * Returns the type of report.
  */
 function getReportType(reportOrID?: OnyxInputOrEntry<Report> | SearchReport | string): string | undefined {
@@ -11177,6 +11191,7 @@ export {
     isWorkspaceEligibleForReportChange,
     getReportType,
     getReportAttributes,
+    getChatReportID,
 };
 
 export type {
