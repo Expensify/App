@@ -9,7 +9,6 @@ import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
 import SCREENS from './SCREENS';
 import SplashScreenStateContext from './SplashScreenStateContext';
-import CONFIG from '@src/CONFIG';
 
 function handleHybridUrlNavigation(url: Route) {
     const parsedUrl = Navigation.parseHybridAppUrl(url);
