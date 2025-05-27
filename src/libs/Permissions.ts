@@ -82,8 +82,8 @@ function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
 }
 
-function canUseCallScheduling() {
-    return false;
+function canUseMultiScan(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_SCAN) || canUseAllBetas(betas);
 }
 
 function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
@@ -111,9 +111,9 @@ export default {
     canUseGlobalReimbursementsOnND,
     canUsePrivateDomainOnboarding,
     canUseRetractNewDot,
-    canUseCallScheduling,
     canUseMultiLevelTags,
     canUseMultiFilesDragAndDrop,
+    canUseMultiScan,
     canUsePlaidCompanyCards,
     canUseNativeContactImport,
 };

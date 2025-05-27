@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -78,7 +79,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** TestID of the component */
         testID?: string;
 
-        /** Whether the page is loading, example any other API call in progres */
+        /** Whether the page is loading, example any other API call in progress */
         isLoading?: boolean;
 
         /** Whether to use the headline header */
@@ -174,16 +175,19 @@ function WorkspacePageWithSections({
     const handleOnBackButtonPress = () => {
         if (onBackButtonPress) {
             onBackButtonPress();
-            return;
+            return true;
         }
 
         if (backButtonRoute) {
             Navigation.goBack(backButtonRoute);
-            return;
+            return true;
         }
 
         Navigation.popToSidebar();
+        return true;
     };
+
+    useHandleBackButton(handleOnBackButtonPress);
 
     return (
         <ScreenWrapper
