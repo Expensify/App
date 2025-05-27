@@ -49,8 +49,8 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
                         y={22}
                         width={20}
                         height={20}
-                        rx={2}
-                        ry={2}
+                        rx={4}
+                        ry={4}
                     />
                     <Rect
                         x={44}
@@ -85,7 +85,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
         >
             <ItemListSkeletonView
                 itemViewHeight={64}
-                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml3, styles.mr3]}
+                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br2, styles.ml3, styles.mr3]}
                 shouldAnimate
                 fixedNumItems={fixedNumberOfItems}
                 renderSkeletonItem={skeletonItem}

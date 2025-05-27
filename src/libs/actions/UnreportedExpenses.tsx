@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function fetchUnreportedExpenses(offset: number) {
@@ -29,7 +29,7 @@ function fetchUnreportedExpenses(offset: number) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE, {offset}, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE, {offset}, {optimisticData, successData, failureData});
 }
 
 // eslint-disable-next-line import/prefer-default-export
