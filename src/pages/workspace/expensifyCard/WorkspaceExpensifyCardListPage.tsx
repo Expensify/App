@@ -17,6 +17,7 @@ import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -146,6 +147,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
 
+    const handleBackButtonPress = () => {
+        Navigation.popToSidebar();
+        return true;
+    };
+
+    useHandleBackButton(handleBackButtonPress);
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -159,7 +167,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldUseHeadlineHeader
                 title={translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={Navigation.popToSidebar}
+                onBackButtonPress={handleBackButtonPress}
             >
                 {!shouldShowSelector && !shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
             </HeaderWithBackButton>

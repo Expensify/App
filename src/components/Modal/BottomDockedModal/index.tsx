@@ -37,6 +37,7 @@ function BottomDockedModal({
     ...props
 }: ModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
+    const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
@@ -100,33 +101,33 @@ function BottomDockedModal({
 
     useEffect(
         () => () => {
-            onModalWillHide();
             if (handleRef.current) {
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
 
             setIsVisibleState(false);
+            setIsContainerOpen(false);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
     useEffect(() => {
-        if (isVisible && !isVisibleState && !isTransitioning) {
+        if (isVisible && !isContainerOpen && !isTransitioning) {
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillShow();
 
             setIsVisibleState(true);
             setIsTransitioning(true);
-        } else if (!isVisible && isVisibleState && !isTransitioning) {
+        } else if (!isVisible && isContainerOpen && !isTransitioning) {
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
-            setIsTransitioning(true);
-        } else if (!isVisible && isVisibleState && isTransitioning) {
+
             setIsVisibleState(false);
+            setIsTransitioning(true);
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isVisible, isTransitioning, isVisibleState]);
+    }, [isVisible, isContainerOpen, isTransitioning]);
 
     const backdropStyle: ViewStyle = useMemo(() => {
         return {
@@ -138,6 +139,7 @@ function BottomDockedModal({
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
+        setIsContainerOpen(true);
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
@@ -146,6 +148,7 @@ function BottomDockedModal({
 
     const onCloseCallBack = useCallback(() => {
         setIsTransitioning(false);
+        setIsContainerOpen(false);
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
@@ -170,6 +173,7 @@ function BottomDockedModal({
 
     const backdropView = (
         <Backdrop
+            isBackdropVisible={isVisible}
             style={backdropStyle}
             customBackdrop={customBackdrop}
             onBackdropPress={onBackdropPress}
@@ -186,21 +190,19 @@ function BottomDockedModal({
                 pointerEvents="box-none"
                 style={[styles.modalBackdrop, styles.modalContainerBox]}
             >
-                <>
-                    {hasBackdrop && backdropView}
-                    {containerView}
-                </>
+                {hasBackdrop && backdropView}
+                {containerView}
             </View>
         );
     }
-
+    const isBackdropMounted = isVisibleState || ((isTransitioning || isContainerOpen !== isVisibleState) && getPlatform() === CONST.PLATFORM.WEB);
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
             <Modal
                 transparent
                 animationType="none"
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                visible={isVisibleState || isTransitioning}
+                visible={isVisibleState || isTransitioning || isContainerOpen !== isVisibleState}
                 onRequestClose={onBackButtonPress}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
@@ -213,7 +215,7 @@ function BottomDockedModal({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
-                {isVisibleState && hasBackdrop && backdropView}
+                {isBackdropMounted && hasBackdrop && backdropView}
                 {avoidKeyboard ? (
                     <KeyboardAvoidingView
                         behavior="padding"
