@@ -167,6 +167,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     policy={policy}
                     reportActions={reportActions}
                     transactionThreadReportID={transactionThreadReportID}
+                    isLoadingInitialReportActions={isLoadingInitialReportActions}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
@@ -177,7 +178,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     }}
                 />
             ),
-        [activeWorkspaceID, backToRoute, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [activeWorkspaceID, backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForData) {
