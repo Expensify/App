@@ -309,7 +309,7 @@ function ReportActionItemSingle({
                 return (
                     <View style={[styles.flex1, styles.flexRow, styles.overflowHidden]}>
                         <ReportActionItemFragment
-                            style={[styles.flexShrink1]}
+                            style={[styles.flexShrink1, styles.optionItemAvatarNameWrapper]}
                             key={`person-${action?.reportActionID}-${0}`}
                             accountID={Number(icon.id)}
                             fragment={{...personArray.at(0), type: 'TEXT', text: displayName ?? ''}}
@@ -325,7 +325,7 @@ function ReportActionItemSingle({
                             {`\u00A0&\u00A0`}
                         </Text>
                         <ReportActionItemFragment
-                            style={[styles.flexShrink1]}
+                            style={[styles.flexShrink1, styles.optionItemAvatarNameWrapper]}
                             key={`person-${action?.reportActionID}-${1}`}
                             accountID={Number(secondaryAvatar?.id)}
                             fragment={{...personArray.at(1), type: 'TEXT', text: secondaryAvatar.name ?? ''}}
