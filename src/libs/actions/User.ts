@@ -24,7 +24,7 @@ import type {
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
 import type LockAccountParams from '@libs/API/parameters/LockAccountParams';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
@@ -1382,25 +1382,39 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
 }
 
 function lockAccount() {
-    // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
-    if (currentUserAccountID === -1) {
-        return;
-    }
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {isLoading: true},
+            value: {
+                isLoading: true,
+                lockAccount: {
+                    errors: null,
+                },
+            },
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                lockAccount: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccountDescription'),
             },
         },
     ];
@@ -1409,7 +1423,8 @@ function lockAccount() {
         accountID: currentUserAccountID,
     };
 
-    API.write(WRITE_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, finallyData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
 export {

@@ -1560,6 +1560,11 @@ const translations = {
         domainAdminsDescriptionPartThree: 'across your domain(s).',
         warning: `Once your account is locked, our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge to secure your account.`,
     },
+    failedToLockAccountPage: {
+        failedToLockAccount: 'Failed to lock account',
+        failedToLockAccountDescription: `We couldn't lock your account. Please chat with Concierge to resolve this problem.`,
+        chatWithConcierge: 'Chat with Concierge',
+    },
     unlockAccountPage: {
         accountLocked: 'Account locked',
         yourAccountIsLocked: 'Your account is locked',

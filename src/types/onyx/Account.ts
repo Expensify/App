@@ -231,6 +231,12 @@ type Account = {
 
     /** If user has accessible policies on a private domain */
     hasAccessibleDomainPolicies?: boolean;
+
+    /** Errors for lock account */
+    lockAccount?: {
+        /** API errors when locking an account */
+        errors: OnyxCommon.Errors;
+    };
 };
 
 export default Account;

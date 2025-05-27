@@ -150,6 +150,7 @@ const SCREENS = {
         LOCK: {
             LOCK_ACCOUNT: 'Settings_Lock_LockAccount',
             UNLOCK_ACCOUNT: 'Settings_Lock_UnlockAccount',
+            FAILED_TO_LOCK_ACCOUNT: 'Settings_Lock_FailedToLockAccount',
         },
     },
     TWO_FACTOR_AUTH: {

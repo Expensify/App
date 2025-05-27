@@ -1558,6 +1558,11 @@ const translations = {
         domainAdminsDescriptionPartThree: 'en todos tus dominios.',
         warning: `Una vez que tu cuenta esté bloqueada, nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberás trabajar con Concierge para asegurar tu cuenta.`,
     },
+    failedToUnlockAccountPage: {
+        failedToUnlockAccount: 'Error al desbloquear la cuenta',
+        failedToUnlockAccountDescription: `No hemos podido desbloquear tu cuenta. Por favor, contacta con Concierge para resolver este problema.`,
+        chatWithConcierge: 'Chatear con Concierge',
+    },
     unlockAccountPage: {
         accountLocked: 'Cuenta bloqueada',
         yourAccountIsLocked: 'Tu cuenta está bloqueada',
