@@ -1,11 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption, WorkspaceActionType, WorkspaceBulkActionType as WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +15,7 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import WorkspaceHeader from '@components/WorkspaceHeader';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -305,38 +303,17 @@ function WorkspaceTaxesPage({
         return options;
     }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate, enabledRatesCount, disabledRatesCount]);
 
-    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? selectionMode?.isEnabled : selectedTaxesIDs.length > 0;
-    const headerButtons = !shouldShowBulkActionsButton ? (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-            {!hasAccountingConnections && (
-                <Button
-                    success
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
-                    icon={Expensicons.Plus}
-                    text={translate('workspace.taxes.addRate')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
-                />
-            )}
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
-                icon={Expensicons.Gear}
-                text={translate('common.settings')}
-                style={[shouldUseNarrowLayout && styles.flex1]}
-            />
-        </View>
-    ) : (
-        <ButtonWithDropdownMenu<WorkspaceTaxRatesBulkActionType>
-            onPress={() => {}}
-            options={dropdownMenuOptions}
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-            customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
-            shouldAlwaysShowDropdownMenu
-            pressOnEnter
-            isSplitButton={false}
-            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-            isDisabled={!selectedTaxesIDs.length}
-        />
-    );
+    const moreMenuItems = useMemo(() => {
+        const menuItems: Array<DropdownOption<WorkspaceActionType>> = [
+            {
+                icon: Expensicons.Gear,
+                text: translate('common.settings'),
+                value: CONST.POLICY.ACTION_TYPES.SETTINGS,
+                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID)),
+            },
+        ];
+        return menuItems;
+    }, [policyID, translate]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -352,7 +329,21 @@ function WorkspaceTaxesPage({
                 testID={WorkspaceTaxesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
+                <WorkspaceHeader
+                    bulkActionButtonOptions={dropdownMenuOptions}
+                    bulkActionButtonTestID={`${WorkspaceTaxesPage.displayName}-header-dropdown-menu-button`}
+                    bulkActionButtonText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
+                    shouldShowPrimaryButton={!hasAccountingConnections}
+                    primaryButtonProps={{
+                        icon: Expensicons.Plus,
+                        success: true,
+                        text: translate('workspace.taxes.addRate'),
+                        onPress: () => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID)),
+                    }}
+                    shouldShowMoreButton
+                    moreButtonOptions={moreMenuItems}
+                    moreButtonTestID={`${WorkspaceTaxesPage.displayName}-header-more-dropdown-menu-button`}
+                    selected={selectedTaxesIDs.length}
                     icon={!selectionModeHeader ? Illustrations.Coins : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
@@ -365,10 +356,7 @@ function WorkspaceTaxesPage({
                         }
                         Navigation.popToSidebar();
                     }}
-                >
-                    {!shouldUseNarrowLayout && headerButtons}
-                </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                />
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}

@@ -1,9 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
-import Button from '@components/Button';
-import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption, WorkspaceActionType, WorkspaceBulkActionType as WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,6 +13,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import WorkspaceHeader from '@components/WorkspaceHeader';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -41,7 +40,6 @@ import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -191,9 +189,9 @@ function PolicyDistanceRatesPage({
         Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
     };
 
-    const openSettings = () => {
+    const openSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
-    };
+    }, [policyID]);
 
     const openRateDetails = (rate: RateForList) => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
@@ -310,41 +308,17 @@ function PolicyDistanceRatesPage({
 
     const isLoading = !isOffline && customUnit === undefined;
 
-    const headerButtons = (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-            {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
-                <>
-                    <Button
-                        text={translate('workspace.distanceRates.addRate')}
-                        onPress={addRate}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
-                        icon={Expensicons.Plus}
-                        success
-                    />
-
-                    <Button
-                        text={translate('workspace.common.settings')}
-                        onPress={openSettings}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
-                        icon={Expensicons.Gear}
-                    />
-                </>
-            ) : (
-                <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    customText={translate('workspace.common.selected', {count: selectedDistanceRates.length})}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    onPress={() => null}
-                    options={getBulkActionsButtonOptions()}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                    wrapperStyle={styles.w100}
-                    isSplitButton={false}
-                    isDisabled={!selectedDistanceRates.length}
-                />
-            )}
-        </View>
-    );
+    const moreMenuItems = useMemo(() => {
+        const menuItems: Array<DropdownOption<WorkspaceActionType>> = [
+            {
+                icon: Expensicons.Gear,
+                text: translate('workspace.common.settings'),
+                value: CONST.POLICY.ACTION_TYPES.SETTINGS,
+                onSelected: openSettings,
+            },
+        ];
+        return menuItems;
+    }, [openSettings, translate]);
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -366,7 +340,21 @@ function PolicyDistanceRatesPage({
                 testID={PolicyDistanceRatesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
+                <WorkspaceHeader
+                    bulkActionButtonOptions={getBulkActionsButtonOptions()}
+                    bulkActionButtonTestID={`${PolicyDistanceRatesPage.displayName}-header-dropdown-menu-button`}
+                    bulkActionButtonText={translate('workspace.common.selected', {count: selectedDistanceRates.length})}
+                    shouldShowPrimaryButton
+                    primaryButtonProps={{
+                        icon: Expensicons.Plus,
+                        text: translate('workspace.distanceRates.addRate'),
+                        success: true,
+                        onPress: addRate,
+                    }}
+                    shouldShowMoreButton
+                    moreButtonOptions={moreMenuItems}
+                    moreButtonTestID={`${PolicyDistanceRatesPage.displayName}-header-more-dropdown-menu-button`}
+                    selected={selectedDistanceRates.length}
                     icon={!selectionModeHeader ? Illustrations.CarIce : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
@@ -379,10 +367,7 @@ function PolicyDistanceRatesPage({
                         }
                         Navigation.popToSidebar();
                     }}
-                >
-                    {!shouldUseNarrowLayout && headerButtons}
-                </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
+                />
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}

@@ -3,13 +3,10 @@ import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption, WorkspaceActionType, WorkspaceBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -22,6 +19,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import WorkspaceHeader from '@components/WorkspaceHeader';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -32,7 +30,6 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -53,7 +50,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type PolicyOption = ListItem & {
     /** subRateID is used as a key for identification of the entry */
@@ -122,7 +118,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {translate} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedPerDiem, setSelectedPerDiem] = useState<SubRateData[]>([]);
@@ -247,9 +242,9 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return <View style={!canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
 
-    const openSettings = () => {
+    const openSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
-    };
+    }, [policyID]);
 
     const openSubRateDetails = (rate: PolicyOption) => {
         if (isSmallScreenWidth && selectionMode?.isEnabled) {
@@ -268,47 +263,18 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         });
     };
 
-    const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-
-        if (shouldUseNarrowLayout ? canSelectMultiple : selectedPerDiem.length > 0) {
-            options.push({
+    const bulkActionButtonOptions = useMemo(() => {
+        const options: Array<DropdownOption<WorkspaceBulkActionType>> = [
+            {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.perDiem.deleteRates', {count: selectedPerDiem.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeletePerDiemConfirmModalVisible(true),
-            });
+            },
+        ];
 
-            return (
-                <ButtonWithDropdownMenu
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedPerDiem.length})}
-                    options={options}
-                    isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    isDisabled={!selectedPerDiem.length}
-                />
-            );
-        }
-
-        if (!policy?.areCategoriesEnabled || !hasEnabledOptions(policyCategories ?? {})) {
-            return null;
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                <Button
-                    onPress={openSettings}
-                    icon={Expensicons.Gear}
-                    text={translate('common.settings')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
-                />
-            </View>
-        );
-    };
+        return options;
+    }, [selectedPerDiem.length, translate]);
 
     const isLoading = !isOffline && customUnit === undefined;
 
@@ -329,25 +295,36 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [
-            {
-                icon: Expensicons.Table,
-                text: translate('spreadsheet.importSpreadsheet'),
-                onSelected: () => {
-                    if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
-                },
+    const moreMenuItems = useMemo(() => {
+        const menuItems: Array<DropdownOption<WorkspaceActionType>> = [];
+
+        if (policy?.areCategoriesEnabled ?? hasEnabledOptions(policyCategories ?? {})) {
+            menuItems.push({
+                icon: Expensicons.Gear,
+                text: translate('common.settings'),
+                value: CONST.POLICY.ACTION_TYPES.SETTINGS,
+                onSelected: openSettings,
+            });
+        }
+
+        menuItems.push({
+            icon: Expensicons.Table,
+            text: translate('spreadsheet.importSpreadsheet'),
+            value: CONST.POLICY.ACTION_TYPES.IMPORT_SPREADSHEET,
+            onSelected: () => {
+                if (isOffline) {
+                    close(() => setIsOfflineModalVisible(true));
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
             },
-        ];
+        });
 
         if (hasVisibleSubRates) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
+                value: CONST.POLICY.ACTION_TYPES.DOWNLOAD_CSV,
                 onSelected: () => {
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
@@ -361,7 +338,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }
 
         return menuItems;
-    }, [translate, hasVisibleSubRates, isOffline, policyID]);
+    }, [policy?.areCategoriesEnabled, policyCategories, translate, hasVisibleSubRates, openSettings, isOffline, policyID]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -378,7 +355,16 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
+                <WorkspaceHeader
+                    bulkActionButtonOptions={bulkActionButtonOptions}
+                    bulkActionButtonTestID={`${WorkspacePerDiemPage.displayName}-header-dropdown-menu-button`}
+                    bulkActionButtonText={translate('workspace.common.selected', {count: selectedPerDiem.length})}
+                    shouldShowPrimaryButton={false}
+                    primaryButtonProps={{}}
+                    shouldShowMoreButton
+                    moreButtonOptions={moreMenuItems}
+                    moreButtonTestID={`${WorkspacePerDiemPage.displayName}-header-more-dropdown-menu-button`}
+                    selected={selectedPerDiem.length}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
                     icon={!selectionModeHeader ? Illustrations.PerDiem : undefined}
@@ -397,12 +383,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
                         Navigation.popToSidebar();
                     }}
-                    shouldShowThreeDotsButton
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
-                >
-                    {!shouldUseNarrowLayout && getHeaderButtons()}
-                </HeaderWithBackButton>
+                />
                 <ConfirmModal
                     isVisible={deletePerDiemConfirmModalVisible}
                     onConfirm={handleDeletePerDiemRates}
@@ -413,7 +394,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}

@@ -7,9 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
-import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption, WorkspaceActionType, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
@@ -33,7 +31,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearAddMemberError,
@@ -104,7 +101,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const {isOffline} = useNetwork();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
@@ -626,43 +622,16 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         return options;
     };
 
-    const getHeaderButtons = () => {
-        if (!isPolicyAdmin) {
-            return null;
-        }
-        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
-            <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                shouldAlwaysShowDropdownMenu
-                pressOnEnter
-                customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                onPress={() => null}
-                options={getBulkActionsButtonOptions()}
-                isSplitButton={false}
-                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                isDisabled={!selectedEmployees.length}
-            />
-        ) : (
-            <Button
-                success
-                onPress={inviteUser}
-                text={translate('workspace.invite.member')}
-                icon={Plus}
-                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-            />
-        );
-    };
-
-    const threeDotsMenuItems = useMemo(() => {
+    const moreMenuItems = useMemo(() => {
         if (!isPolicyAdmin) {
             return [];
         }
 
-        const menuItems = [
+        const menuItems: Array<DropdownOption<WorkspaceActionType>> = [
             {
                 icon: Table,
                 text: translate('spreadsheet.importSpreadsheet'),
+                value: CONST.POLICY.ACTION_TYPES.IMPORT_SPREADSHEET,
                 onSelected: () => {
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
@@ -674,6 +643,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             {
                 icon: Download,
                 text: translate('spreadsheet.downloadCSV'),
+                value: CONST.POLICY.ACTION_TYPES.DOWNLOAD_CSV,
                 onSelected: () => {
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
@@ -699,14 +669,25 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             icon={!selectionModeHeader ? ReceiptWrangler : undefined}
-            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
+            bulkActionButtonOptions={getBulkActionsButtonOptions()}
+            bulkActionButtonTestID={`${WorkspaceMembersPage.displayName}-header-dropdown-menu-button`}
+            bulkActionButtonText={translate('workspace.common.selected', {count: selectedEmployees.length})}
+            shouldShowPrimaryButton={isPolicyAdmin}
+            primaryButtonProps={{
+                icon: Plus,
+                innerStyles: [shouldUseNarrowLayout && styles.alignItemsCenter],
+                success: true,
+                text: translate('workspace.invite.member'),
+                onPress: inviteUser,
+            }}
+            shouldShowMoreButton={isPolicyAdmin}
+            moreButtonOptions={moreMenuItems}
+            moreButtonTestID={`${WorkspaceMembersPage.displayName}-header-more-dropdown-menu-button`}
+            selected={selectedEmployees.length}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
-            shouldShowThreeDotsButton={isPolicyAdmin}
-            threeDotsMenuItems={threeDotsMenuItems}
-            threeDotsAnchorPosition={threeDotsAnchorPosition}
             shouldShowNonAdmin
             onBackButtonPress={() => {
                 if (selectionMode?.isEnabled) {
@@ -719,7 +700,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         >
             {() => (
                 <>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     <ConfirmModal
                         isVisible={isOfflineModalVisible}
                         onConfirm={() => setIsOfflineModalVisible(false)}

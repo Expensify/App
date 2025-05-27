@@ -6,10 +6,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import WorkspaceHeader from '@components/WorkspaceHeader';
+import type {WorkspaceHeaderProps} from '@components/WorkspaceHeader';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,7 +29,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'threeDotsAnchorPosition' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
+    Partial<Omit<WorkspaceHeaderProps, 'title'>> & {
         shouldSkipVBBACall?: boolean;
 
         /** The text to display in the header */
@@ -72,9 +72,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * */
         icon?: IconAsset;
 
-        /** Content to be added to the header */
-        headerContent?: ReactNode;
-
         /** TestID of the component */
         testID?: string;
 
@@ -114,16 +111,21 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
-    headerContent,
     testID,
     shouldShowNotFoundPage = false,
     isLoading: isPageLoading = false,
     onBackButtonPress,
-    shouldShowThreeDotsButton,
-    threeDotsMenuItems,
-    threeDotsAnchorPosition,
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
+    bulkActionButtonOptions,
+    bulkActionButtonTestID,
+    bulkActionButtonText,
+    shouldShowPrimaryButton,
+    primaryButtonProps,
+    shouldShowMoreButton,
+    moreButtonOptions,
+    moreButtonTestID,
+    selected,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
@@ -202,18 +204,22 @@ function WorkspacePageWithSections({
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <HeaderWithBackButton
+                <WorkspaceHeader
+                    bulkActionButtonOptions={bulkActionButtonOptions ?? []}
+                    bulkActionButtonTestID={bulkActionButtonTestID}
+                    bulkActionButtonText={bulkActionButtonText}
+                    shouldShowPrimaryButton={shouldShowPrimaryButton}
+                    primaryButtonProps={primaryButtonProps ?? {}}
+                    shouldShowMoreButton={shouldShowMoreButton}
+                    moreButtonOptions={moreButtonOptions ?? []}
+                    moreButtonTestID={moreButtonTestID}
+                    selected={selected ?? 0}
                     title={headerText}
                     onBackButtonPress={handleOnBackButtonPress}
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
-                >
-                    {headerContent}
-                </HeaderWithBackButton>
+                />
                 {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
