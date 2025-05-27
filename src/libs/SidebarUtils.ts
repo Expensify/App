@@ -67,7 +67,6 @@ import {
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
-    doesReportBelongToWorkspace,
     formatReportLastMessageText,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getChatRoomSubtitle,
@@ -198,18 +197,13 @@ function getOrderedReportIDs(
     policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    currentPolicyID = '',
-    policyMemberAccountIDs: number[] = [],
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
-    const allReportsDictValues =
-        currentPolicyID === ''
-            ? Object.values(reports ?? {})
-            : Object.values(reports ?? {}).filter((report) => report?.reportID === currentReportId || doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
+    const allReportsDictValues = Object.values(reports ?? {});
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay: Array<Report & {hasErrorsOtherThanFailedReceipt?: boolean}> = [];
     allReportsDictValues.forEach((report) => {
