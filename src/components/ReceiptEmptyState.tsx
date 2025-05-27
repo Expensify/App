@@ -47,6 +47,10 @@ function ReceiptEmptyState({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
+    let styleWithAspectRatio = {};
+    if (shouldUseAspectRatio) {
+        styleWithAspectRatio = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+    }
     const containerStyle = [
         styles.alignItemsCenter,
         styles.justifyContentCenter,
@@ -54,7 +58,7 @@ function ReceiptEmptyState({
         isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
         isThumbnail && !isInMoneyRequestView && styles.w100,
         isThumbnail && isInMoneyRequestView && styles.thumbnailImageContainerHighlight,
-        shouldUseAspectRatio ? (shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage) : {},
+        styleWithAspectRatio,
         hasError && styles.borderColorDanger,
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
     ];
