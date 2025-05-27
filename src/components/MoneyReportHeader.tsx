@@ -757,6 +757,7 @@ function MoneyReportHeader({
                     setIsDeleteReportModalVisible(true);
                 }
             },
+            shouldShow: canUseTableReportView,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
             text: translate('iou.undoClose'),
@@ -785,7 +786,7 @@ function MoneyReportHeader({
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
+    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false);
 
     useEffect(() => {
         if (!transactionThreadReportID) {
