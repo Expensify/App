@@ -1634,6 +1634,7 @@ type TravelNavigatorParamList = {
     };
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         domain: string;
+        backTo?: Routes;
     };
     [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
         backTo?: Routes;

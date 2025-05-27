@@ -55,7 +55,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
         const domain = selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
         if (isEmptyObject(policy?.address)) {
             // Spotnana requires an address anytime an entity is created for a policy
-            Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
+            Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
         } else {
             cleanupTravelProvisioningSession();
             Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
