@@ -118,14 +118,15 @@ function MoneyRequestParticipantsSelector({
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     const importAndSaveContacts = useCallback(() => {
-        // Only use native contact import if the beta flag is enabled
-        if (Permissions.canUseNativeContactImport(betas)) {
-            contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
-                setContactPermissionState(permissionStatus);
-                const usersFromContact = getContacts(contactList);
-                setContacts(usersFromContact);
-            });
+        if (!Permissions.canUseNativeContactImport(betas)) {
+            return;
         }
+        
+        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
+            setContactPermissionState(permissionStatus);
+            const usersFromContact = getContacts(contactList);
+            setContacts(usersFromContact);
+        });
     }, [betas]);
 
     useEffect(() => {
@@ -243,7 +244,6 @@ function MoneyRequestParticipantsSelector({
             chatOptions.selfDMChat,
             chatOptions?.userToInvite,
             chatOptions.workspaceChats,
-            cleanSearchTerm,
             debouncedSearchTerm,
             participants,
         ],
@@ -459,11 +459,13 @@ function MoneyRequestParticipantsSelector({
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
     const initiateContactImportAndSetState = useCallback(() => {
-        if (Permissions.canUseNativeContactImport(betas)) {
-            setContactPermissionState(RESULTS.GRANTED);
-            InteractionManager.runAfterInteractions(importAndSaveContacts);
-            setTextInputAutoFocus(true);
+        if (!Permissions.canUseNativeContactImport(betas)) {
+            return;
         }
+        
+        setContactPermissionState(RESULTS.GRANTED);
+        InteractionManager.runAfterInteractions(importAndSaveContacts);
+        setTextInputAutoFocus(true);
     }, [importAndSaveContacts, betas]);
 
     const footerContent = useMemo(() => {
