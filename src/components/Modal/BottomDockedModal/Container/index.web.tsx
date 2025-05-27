@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
-import Animated, {Easing, Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ModalProps from '@components/Modal/BottomDockedModal/types';
 import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,20 +16,10 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
             return;
         }
         isInitiated.set(true);
-        opacity.set(
-            withTiming(1, {duration: animationInTiming}, () => {
-                'worklet';
-
-                runOnJS(onOpenCallBack)();
-            }),
-        );
+        opacity.set(withTiming(1, {duration: animationInTiming}, onOpenCallBack));
     }, [animationInTiming, onOpenCallBack, opacity, isInitiated]);
 
-    const animatedStyles = useAnimatedStyle(() => {
-        'worklet';
-
-        return {opacity: opacity.get()};
-    }, [opacity]);
+    const animatedStyles = useAnimatedStyle(() => ({opacity: opacity.get()}), [opacity]);
 
     const Exiting = useMemo(() => {
         const FadeOut = new Keyframe({
