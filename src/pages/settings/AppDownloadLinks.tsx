@@ -65,7 +65,7 @@ function AppDownloadLinksPage() {
             />
 
             <QRShare
-                url="https://expensify.com/mobile"
+                url={CONST.EXPENSIFY_MOBILE_URL}
                 svgLogo={Illustrations.ExpensifyMobileApp}
                 logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
                 logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
