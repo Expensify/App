@@ -50,6 +50,7 @@
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
     "prettier": "prettier --write .",
+    "prettier-changed": "prettier --write --ignore-unknown $(git diff --diff-filter=AMR --name-only origin/main HEAD)",
     "prettier-watch": "onchange \"**/*.{js,mjs,ts,tsx}\" -- prettier --write --ignore-unknown {{changed}}",
     "print-version": "echo $npm_package_version",
     "storybook": "storybook dev -p 6006",
