@@ -39,7 +39,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspaceHubSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
@@ -126,7 +126,7 @@ function WorkspacesListPage() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const route = useRoute<PlatformStackRouteProp<WorkspaceHubSplitNavigatorParamList, typeof SCREENS.WORKSPACE_HUB.WORKSPACES>>();
+    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -136,6 +136,8 @@ function WorkspacesListPage() {
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
+
+    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -460,14 +462,14 @@ function WorkspacesListPage() {
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
             text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.SETTINGS_WORKSPACES.route)))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
             icon={Expensicons.Plus}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
         />
     );
 
     const onBackButtonPress = () => {
-        Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACE_HUB_INITIAL);
+        Navigation.goBack(route.params?.backTo);
         return true;
     };
 
@@ -485,9 +487,8 @@ function WorkspacesListPage() {
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldShowBackButton={false}
                     shouldDisplaySearchRouter
-                    onBackButtonPress={onBackButtonPress}
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
@@ -505,7 +506,7 @@ function WorkspacesListPage() {
                                 subtitle={translate('workspace.emptyWorkspace.subtitle')}
                                 ctaText={translate('workspace.new.newWorkspace')}
                                 ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                                onCtaPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.SETTINGS_WORKSPACES.route)))}
+                                onCtaPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
                                 illustration={LottieAnimations.WorkspacePlanet}
                                 // We use this style to vertically center the illustration, as the original illustration is not centered
                                 illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
@@ -514,6 +515,7 @@ function WorkspacesListPage() {
                         </View>
                     </ScrollView>
                 )}
+                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </ScreenWrapper>
         );
     }
@@ -529,7 +531,7 @@ function WorkspacesListPage() {
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldShowBackButton={false}
                     shouldDisplaySearchRouter
                     onBackButtonPress={onBackButtonPress}
                     icon={Illustrations.Buildings}
@@ -559,6 +561,7 @@ function WorkspacesListPage() {
                 isModalOpen={isSupportalActionRestrictedModalOpen}
                 hideSupportalModal={hideSupportalModal}
             />
+            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
     );
 }
