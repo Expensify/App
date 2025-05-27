@@ -126,7 +126,6 @@ function BaseEmojiPickerMenu(
                             scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT,
                         },
                     }}
-                    // Fix for choppy scrolling on iOS Safari, https://github.com/Expensify/App/issues/57183
                     scrollEnabled={data.length > 0}
                 />
             </View>
