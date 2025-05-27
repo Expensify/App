@@ -31,10 +31,6 @@ type SidebarLinksProps = {
 
     /** Method to change currently active report */
     isActiveReport: (reportID: string) => boolean;
-
-    /** ID of currently active workspace */
-    // eslint-disable-next-line react/no-unused-prop-types -- its used in withOnyx
-    activeWorkspaceID: string | undefined;
 };
 
 function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {

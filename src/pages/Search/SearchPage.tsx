@@ -66,7 +66,6 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
@@ -142,7 +141,6 @@ function SearchPage({route}: SearchPageProps) {
                         jsonQuery: JSON.stringify(queryJSON),
                         reportIDList,
                         transactionIDList: selectedTransactionsKeys,
-                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
                     },
                     () => {
                         setIsDownloadErrorModalVisible(true);
@@ -366,7 +364,6 @@ function SearchPage({route}: SearchPageProps) {
         isOffline,
         selectedReports,
         queryJSON,
-        activeWorkspaceID,
         clearSelectedTransactions,
         lastPaymentMethods,
         theme.icon,
@@ -428,11 +425,10 @@ function SearchPage({route}: SearchPageProps) {
             jsonQuery: JSON.stringify(queryJSON),
             reportIDList,
             transactionIDList: selectedTransactionsKeys,
-            policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
         });
         setExportMode(false);
         clearSelectedTransactions();
-    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID, setExportMode, clearSelectedTransactions]);
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, setExportMode, clearSelectedTransactions]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
