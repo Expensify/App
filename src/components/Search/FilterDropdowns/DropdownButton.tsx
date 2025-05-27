@@ -113,7 +113,6 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 anchorRef={triggerRef}
                 isVisible={isOverlayVisible}
                 onClose={toggleOverlay}
-                shouldSwitchPositionIfOverflow
                 anchorPosition={popoverTriggerPosition}
                 anchorAlignment={ANCHOR_ORIGIN}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}

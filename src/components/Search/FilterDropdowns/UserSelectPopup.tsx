@@ -39,8 +39,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Since accountIDs are passed as value, we need to "populate" them into OptionData
     const initialSelectedData: OptionData[] = useMemo(() => {
