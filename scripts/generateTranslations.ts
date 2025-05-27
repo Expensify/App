@@ -4,7 +4,9 @@
  * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
  */
 import {execSync} from 'child_process';
+import * as dotenv from 'dotenv';
 import fs from 'fs';
+import OpenAI from 'openai';
 import path from 'path';
 import type {StringLiteral, TemplateExpression} from 'typescript';
 import ts, {EmitHint} from 'typescript';
@@ -14,14 +16,62 @@ const TARGET_LANGUAGES = ['it'];
 const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
 const EN_SOURCE_FILE = path.join(LANGUAGES_DIR, 'en.ts');
 
+const isDryRun = process.argv.includes('--dry-run');
+if (isDryRun) {
+    console.log('🍸 Dry run enabled');
+}
+
+// Ensure OPEN_AI_KEY is set in environment
+if (!isDryRun && !process.env.OPENAI_API_KEY) {
+    dotenv.config({path: path.resolve(__dirname, '../.env')});
+    if (!process.env.OPENAI_API_KEY) {
+        console.error(`❌ OPENAI_API_KEY not found in environment.`);
+    }
+}
+
+// Initialize OpenAI API
+let openai: OpenAI | undefined;
+if (!isDryRun) {
+    openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    });
+}
+
 const tsPrinter = ts.createPrinter();
 const debugFile = ts.createSourceFile('tempDebug.ts', '', ts.ScriptTarget.Latest);
 
 /**
  * Translate a single string to a target language.
  */
-async function translate(text: string, targetLanguage: string): Promise<string> {
-    return Promise.resolve(`[${targetLanguage}] ${text}`);
+async function translate(text: string, targetLang: string): Promise<string> {
+    if (isDryRun || !openai) {
+        return Promise.resolve(`[${targetLang}] ${text}`);
+    }
+
+    try {
+        if (!text || text.trim().length === 0) {
+            return text;
+        }
+        const response = await openai.chat.completions.create({
+            model: 'gpt-4',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript function that returns a template string. Preserve placeholders like \${username}, \${count}, \${someBoolean ? 'valueIfTrue' : 'valueIfFalse'} etc without modifying their contents or removing the brackets. The contents of the placeholders are descriptive of what they represent in the phrase, but may include ternary expressions or other TypeScript code. If it can't be translated, reply with the same text unchanged.`,
+                },
+                {role: 'user', content: text},
+            ],
+            temperature: 0.3,
+        });
+
+        console.log(`Translating "${text}" to ${targetLang}`);
+        const translatedText = response.choices.at(0)?.message?.content?.trim() ?? text;
+        console.log(`   Translation: "${translatedText}"`);
+        return translatedText;
+    } catch (error) {
+        console.error(`Error translating "${text}" to ${targetLang}:`, error);
+        return text; // Fallback to English if translation fails
+    }
 }
 
 /**
