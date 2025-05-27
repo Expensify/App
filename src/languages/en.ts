@@ -4641,6 +4641,7 @@ const translations = {
         invite: {
             member: 'Invite member',
             members: 'Invite members',
+            inviteNewMember: 'Invite new member',
             invitePeople: 'Invite new members',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,

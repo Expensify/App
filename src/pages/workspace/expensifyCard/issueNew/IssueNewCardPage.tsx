@@ -17,6 +17,7 @@ import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
+import InviteNewMemberStep from './InviteeNewMemberStep';
 import LimitStep from './LimitStep';
 import LimitTypeStep from './LimitTypeStep';
 
@@ -39,6 +40,8 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
         switch (currentStep) {
             case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:
                 return <AssigneeStep policy={policy} />;
+            case CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER:
+                return <InviteNewMemberStep policy={policy} />;
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
                 return <CardTypeStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE:

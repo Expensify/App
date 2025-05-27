@@ -2472,7 +2472,7 @@ function updateMemberCustomField(policyID: string, login: string, customFieldTyp
     API.write(WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS, params, {optimisticData, successData, failureData});
 }
 
-function setWorkspaceInviteMessageDraft(policyID: string, message: string | null) {
+function setWorkspaceInviteMessageDraft(policyID: string | undefined, message: string | null) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
 }
 
