@@ -11,8 +11,9 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {EmojiPickerOnModalHide} from '@libs/actions/EmojiPickerAction';
+import {hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor, showEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getButtonState from '@libs/getButtonState';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
 type EmojiPickerButtonDropdownProps = {
@@ -20,7 +21,7 @@ type EmojiPickerButtonDropdownProps = {
     isDisabled?: boolean;
     accessibilityLabel?: string;
     role?: string;
-    onModalHide: EmojiPickerAction.OnModalHideValue;
+    onModalHide: EmojiPickerOnModalHide;
     onInputChange: (emoji: string) => void;
     value?: string;
     disabled?: boolean;
@@ -38,14 +39,14 @@ function EmojiPickerButtonDropdown(
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
 
-    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
+    useEffect(() => resetEmojiPopoverAnchor, []);
     const onPress = () => {
-        if (EmojiPickerAction.isEmojiPickerVisible()) {
-            EmojiPickerAction.hideEmojiPicker();
+        if (isEmojiPickerVisible()) {
+            hideEmojiPicker();
             return;
         }
 
-        EmojiPickerAction.showEmojiPicker({
+        showEmojiPicker({
             onModalHide,
             onEmojiSelected: (emoji) => onInputChange(emoji),
             emojiPopoverAnchor,

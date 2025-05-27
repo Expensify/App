@@ -15,16 +15,16 @@ type AnchorOrigin = {
 
 type EmojiPopoverAnchor = MutableRefObject<View | HTMLDivElement | TextInput | null>;
 
-type OnWillShowPicker = (callback?: CloseContextMenuCallback) => void;
+type EmojPickerOnWillShow = (callback?: CloseContextMenuCallback) => void;
 
-type OnModalHideValue = (isNavigating?: boolean) => void;
+type EmojiPickerOnModalHide = (isNavigating?: boolean) => void;
 
 type ShowEmojiPickerOptions = {
-    onModalHide: OnModalHideValue;
+    onModalHide: EmojiPickerOnModalHide;
     onEmojiSelected: OnEmojiSelected;
     emojiPopoverAnchor: EmojiPopoverAnchor;
     anchorOrigin?: AnchorOrigin;
-    onWillShow?: OnWillShowPicker;
+    onWillShow?: EmojPickerOnWillShow;
     id?: string;
     activeEmoji?: string;
     composerToRefocusOnClose?: ComposerType;
@@ -108,4 +108,4 @@ function resetEmojiPopoverAnchor() {
 }
 
 export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
-export type {AnchorOrigin, OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, OnWillShowPicker, ShowEmojiPickerOptions, EmojiPickerRef};
+export type {AnchorOrigin, EmojiPickerOnModalHide, OnEmojiSelected, EmojiPopoverAnchor, EmojPickerOnWillShow, ShowEmojiPickerOptions, EmojiPickerRef};

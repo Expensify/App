@@ -11,7 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
-import type {OnEmojiSelected, OnModalHideValue} from '@userActions/EmojiPickerAction';
+import type {EmojiPickerOnModalHide, OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
 type EmojiPickerButtonProps = {
@@ -27,7 +27,7 @@ type EmojiPickerButtonProps = {
     /** Emoji popup anchor offset shift vertical */
     shiftVertical?: number;
 
-    onModalHide: OnModalHideValue;
+    onModalHide: EmojiPickerOnModalHide;
 
     onEmojiSelected: OnEmojiSelected;
 };
