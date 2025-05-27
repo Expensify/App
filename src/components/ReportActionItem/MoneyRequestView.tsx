@@ -51,7 +51,7 @@ import {
     getBillable,
     getDescription,
     getDistanceInMeters,
-    getOriginalTransactionIfItIsSplit,
+    getOriginalTransactionWithSplitInfo,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -294,7 +294,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
-        if (getOriginalTransactionIfItIsSplit(transaction).isExpenseSplit) {
+        if (getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
         if (isCancelled) {

@@ -12,7 +12,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {getOriginalTransactionIfItIsSplit, isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
@@ -80,7 +80,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     let transactionPreview = transaction;
 
-    const {originalTransaction, isBillSplit} = getOriginalTransactionIfItIsSplit(transaction);
+    const {originalTransaction, isBillSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     if (isBillSplit) {
         transactionPreview = originalTransaction;

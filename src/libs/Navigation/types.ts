@@ -1998,8 +1998,8 @@ type SplitExpenseParamList = {
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
         reportID: string;
         transactionID: string;
-        backTo?: Routes;
         splitExpenseTransactionID?: string;
+        backTo?: Routes;
     };
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
         reportID: string;

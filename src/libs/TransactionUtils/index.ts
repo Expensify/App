@@ -1554,7 +1554,7 @@ function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
     return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0)?.transactionID, allTransactionViolations));
 }
 
-const getOriginalTransactionIfItIsSplit = (transaction: OnyxEntry<Transaction>) => {
+const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>) => {
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
 
@@ -1566,6 +1566,8 @@ const getOriginalTransactionIfItIsSplit = (transaction: OnyxEntry<Transaction>) 
         return {isBillSplit: false, isExpenseSplit: false, originalTransaction: transaction};
     }
 
+    // To determine if it’s a split bill or a split expense, we check for the presence of `comment.splits` on the original transaction.
+    // Since both splits use `comment.originalTransaction`, but split expenses won’t have `comment.splits`.
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: !originalTransaction?.comment?.splits, originalTransaction: originalTransaction ?? transaction};
 };
 
@@ -1666,7 +1668,7 @@ export {
     isPendingCardOrScanningTransaction,
     getTransactionOrDraftTransaction,
     checkIfShouldShowMarkAsCashButton,
-    getOriginalTransactionIfItIsSplit,
+    getOriginalTransactionWithSplitInfo,
 };
 
 export type {TransactionChanges};
