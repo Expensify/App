@@ -60,10 +60,10 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
-import clearCache from './clearCache';
-import updateSessionAuthTokens from './updateSessionAuthTokens';
 import afterSignOutRedirect from './afterSignOutRedirect';
+import clearCache from './clearCache';
 import showLoggingOutPage from './showLoggingOutPage';
+import updateSessionAuthTokens from './updateSessionAuthTokens';
 
 const INVALID_TOKEN = 'pizza';
 

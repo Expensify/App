@@ -1,6 +1,6 @@
-import Onyx from "react-native-onyx";
-import redirectToSignIn from "@libs/actions/SignInRedirect";
-import type {OnyxMultiSetInput} from "react-native-onyx";
+import Onyx from 'react-native-onyx';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+import redirectToSignIn from '@libs/actions/SignInRedirect';
 
 /**
  * Desktop does not need to sign out of OldDot because it's a separate device from the web browser where the user might have an OldDot session.
@@ -10,7 +10,7 @@ import type {OnyxMultiSetInput} from "react-native-onyx";
 const afterSignOutRedirect = (onyxSetParams: OnyxMultiSetInput, hasSwitchedAccountInHybridMode: boolean) => {
     redirectToSignIn().then(() => {
         Onyx.multiSet(onyxSetParams);
-    })
+    });
 };
 
 export default afterSignOutRedirect;

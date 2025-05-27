@@ -232,7 +232,12 @@ describe('Session', () => {
 
         await waitForBatchedUpdates();
 
-        expect(asyncOpenURL).toHaveBeenCalledWith(expect.any(Promise), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}?clean=true&signedOutFromNewExpensify=true`, true, true);
+        expect(asyncOpenURL).toHaveBeenCalledWith(
+            expect.any(Promise),
+            `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}?clean=true&signedOutFromNewExpensify=true`,
+            true,
+            true,
+        );
         expect(redirectToSignInSpy).toHaveBeenCalled();
         jest.clearAllMocks();
     });
