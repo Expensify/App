@@ -114,7 +114,7 @@ function MoneyRequestReportTransactionList({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
 
@@ -272,7 +272,7 @@ function MoneyRequestReportTransactionList({
                                 dateColumnSize={dateColumnSize}
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                                shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth || isLargeScreenWidth}
+                                shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
                                 onCheckboxPress={toggleTransaction}
                                 columns={allReportColumns}
                                 scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
