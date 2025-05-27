@@ -1,12 +1,13 @@
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
@@ -52,12 +53,13 @@ import {
     isReportTransactionThread,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
+import {getTransactionID} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
-import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
+import {initMoneyRequest, replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU';
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
@@ -129,6 +131,7 @@ function ReportActionCompose({
     onComposerBlur,
     didHideComposerInput,
 }: ReportActionComposeProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -214,6 +217,7 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const shouldDisplayDualDropZone = useMemo(() => !isChatRoom(report) && !isUserCreatedPolicyRoom(report) && !isAnnounceRoom(report) && !isAdminRoom(report), [report]);
     const isTransactionThreadView = isReportTransactionThread(report);
+    const transactionID = getTransactionID(reportID);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -380,6 +384,18 @@ function ReportActionCompose({
         clearComposer();
     }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
 
+    const measureComposer = useCallback(
+        (e: LayoutChangeEvent) => {
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.MEASURE_COMPOSER,
+                payload: {
+                    composerHeight: e.nativeEvent.layout.height,
+                },
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
+
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
 
@@ -425,29 +441,26 @@ function ReportActionCompose({
     const saveFileAndInitMoneyRequest = (file: FileObject) => {
         const source = URL.createObjectURL(file as Blob);
         const newReportID = generateReportID();
-        initMoneyRequest(newReportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
-        navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+
+        if (isTransactionThreadView && transactionID) {
+            replaceReceipt({transactionID, file: file as File, source});
+        } else {
+            initMoneyRequest(newReportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
+            navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+        }
     };
 
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
         validateAndResizeFile(originalFile, saveFileAndInitMoneyRequest, isPdfValidated);
     };
 
-    const replaceReceipt = (file: FileObject) => {
-        console.log(file);
-    };
-
     const handleAddingReceipt = (e: DragEvent) => {
         const file = e?.dataTransfer?.files[0];
         if (file) {
             file.uri = URL.createObjectURL(file);
-            if (isTransactionThreadView) {
-                replaceReceipt(file);
-            } else {
-                setReceiptAndNavigate(file);
-            }
+            setReceiptAndNavigate(file);
         }
     };
 
@@ -474,7 +487,10 @@ function ReportActionCompose({
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
-            <View style={isComposerFullSize ? styles.flex1 : {}}>
+            <View
+                onLayout={measureComposer}
+                style={isComposerFullSize ? styles.flex1 : {}}
+            >
                 <OfflineWithFeedback
                     shouldDisableOpacity
                     pendingAction={pendingAction}
@@ -499,6 +515,7 @@ function ReportActionCompose({
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
                             reportID={reportID}
+                            shouldHandleNavigationBack
                         >
                             {({displayFileInModal}) => (
                                 <>
