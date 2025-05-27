@@ -41,6 +41,7 @@ type DropdownOption<TValueType> = {
     subMenuItems?: PopoverMenuItem[];
     backButtonText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+    shouldShow?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
