@@ -573,7 +573,7 @@ describe('SidebarUtils', () => {
             );
         });
 
-        it('returns a welcome message for an archived chat roomreport', () => {
+        it('returns a welcome message for an archived chat room', () => {
             const MOCK_REPORT: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
@@ -598,7 +598,7 @@ describe('SidebarUtils', () => {
             );
         });
 
-        it('returns a welcome message for a non-archived chat roomreport', () => {
+        it('returns a welcome message for a non-archived chat room', () => {
             const MOCK_REPORT: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
