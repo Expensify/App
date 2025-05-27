@@ -711,6 +711,7 @@ function MoneyRequestReportPreviewContent({
                                                     height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.HEIGHT_WIDE,
                                                 },
                                                 styles.justifyContentCenter,
+                                                styles.mtn1,
                                             ]}
                                         >
                                             <ActivityIndicator

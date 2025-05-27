@@ -1537,7 +1537,7 @@ const CONST = {
         TRANSACTION_PREVIEW: {
             CAROUSEL: {
                 WIDTH_WIDE: 303,
-                HEIGHT_WIDE: 259,
+                HEIGHT_WIDE: 269,
             },
             DUPLICATE: {
                 HEIGHT_WIDE: 347,
