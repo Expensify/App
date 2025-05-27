@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
+import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
@@ -29,7 +30,7 @@ import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import {navigateToAndOpenReport} from '@userActions/Report';
+import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -219,7 +220,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             }
 
             onRouterClose();
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+            backHistory().then(() => {
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+            });
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
@@ -284,11 +287,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
             } else {
                 onRouterClose();
-                if (item?.reportID) {
-                    Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
-                } else if ('login' in item) {
-                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
-                }
+                backHistory().then(() => {
+                    if (item?.reportID) {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
+                    } else if ('login' in item) {
+                        navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                    }
+                });
             }
         },
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
@@ -355,6 +360,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     />
                     <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                        handleSearch={searchInServer}
                         searchQueryItem={searchQueryItem}
                         getAdditionalSections={getAdditionalSections}
                         onListItemPress={onListItemPress}
@@ -362,6 +368,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
                         ref={listRef}
+                        textInputRef={textInputRef}
                     />
                 </>
             )}

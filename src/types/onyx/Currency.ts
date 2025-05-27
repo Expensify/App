@@ -20,6 +20,9 @@ type Currency = {
 
     /** Cache burst */
     cacheBurst?: number;
+
+    /** Countries based on ISO4217 code */
+    countries?: string[];
 };
 
 /** Record of currencies, index by currency code */

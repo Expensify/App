@@ -7,18 +7,19 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChatAndDeleteReport} from '@libs/actions/Report';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
 import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {hasReportViolations, isReportOwner, shouldDisplayViolationsRBRInLHN} from '@libs/ReportUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -50,21 +51,28 @@ function DebugReportPage({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (attributes) => attributes?.reports?.[reportID],
+        canBeMissing: true,
+    });
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
+    const isReportArchived = useReportIsArchived(reportID);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
             return [];
         }
 
-        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
+        const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+        const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(reportID);
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
-        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations) ?? {};
+        const {reason: reasonRBR, reportAction: reportActionRBR} =
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, transactions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
@@ -112,7 +120,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, reportID, transactionViolations, translate]);
+    }, [report, transactionViolations, reportID, reportActions, transactions, reportAttributes?.reportErrors, isReportArchived, translate]);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -129,7 +137,10 @@ function DebugReportPage({
             >
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {metadata?.map(({title, subtitle, message, action}) => (
-                        <View style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}>
+                        <View
+                            key={title}
+                            style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}
+                        >
                             <View style={[styles.flexRow, styles.justifyContentBetween]}>
                                 <Text style={styles.h4}>{title}</Text>
                                 <Text>{subtitle}</Text>
@@ -213,7 +224,7 @@ function DebugReportPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMinHeight={canUseTouchScreen()}
             testID={DebugReportPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (

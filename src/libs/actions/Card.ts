@@ -18,6 +18,8 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getReportActionFromExpensifyCard} from '@libs/ReportActionsUtils';
+import {findReportIDForAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeed} from '@src/types/onyx';
@@ -99,6 +101,13 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
             value: {
                 isLoading: true,
                 errors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
             },
         },
     ];
@@ -589,6 +598,8 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
 function deactivateCard(workspaceAccountID: number, card?: Card) {
     const authToken = NetworkStore.getAuthToken();
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
+    const reportAction = getReportActionFromExpensifyCard(cardID);
+    const reportID = findReportIDForAction(reportAction) ?? reportAction?.reportID;
 
     if (!authToken) {
         return;
@@ -633,6 +644,28 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
             },
         },
     ];
+
+    if (reportAction?.reportActionID && reportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    ...reportAction,
+                    originalMessage: {
+                        cardID: null,
+                    },
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.reportID}`,
+            value: {
+                [reportAction.reportActionID]: reportAction,
+            },
+        });
+    }
 
     const parameters: CardDeactivateParams = {
         authToken,
@@ -790,7 +823,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
-        {...parameters},
+        {...parameters, policyID},
         {
             optimisticData,
             successData,
