@@ -2359,9 +2359,8 @@ function getReportActionsLength() {
     return Object.keys(allReportActions ?? {}).length;
 }
 
-function getReportActions(reportOrID: Report | string) {
-    const reportID = typeof reportOrID === 'string' ? reportOrID : reportOrID.reportID;
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+function getReportActions(report: Report) {
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
 }
 
 /**
