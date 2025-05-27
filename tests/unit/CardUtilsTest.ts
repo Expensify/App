@@ -289,6 +289,7 @@ const mockIllustrations = {
     GenericCompanyCard: 'GenericCompanyCard',
     GenericCSVCompanyCardLarge: 'GenericCSVCompanyCardLarge',
     GenericCompanyCardLarge: 'GenericCompanyCardLarge',
+    GenericPlaidCardLarge: 'GenericPlaidCardLarge',
 };
 
 jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);

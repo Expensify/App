@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({feed}: {feed: CompanyCardFeed}) {
+function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();

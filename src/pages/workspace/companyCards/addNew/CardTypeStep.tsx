@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
@@ -85,7 +85,7 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePl
 function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
     const [isError, setIsError] = useState(false);
     const {canUsePlaidCompanyCards} = usePermissions();
@@ -98,7 +98,7 @@ function CardTypeStep() {
         if (!typeSelected) {
             setIsError(true);
         } else {
-            CompanyCards.setAddNewCompanyCardStepAndData({
+            setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
                 data: {
                     feedType: typeSelected,
@@ -115,10 +115,10 @@ function CardTypeStep() {
 
     const handleBackButtonPress = () => {
         if (isOtherBankSelected) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
 
     return (
