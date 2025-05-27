@@ -45,7 +45,7 @@ function LoggingOutPage() {
             testID={LoggingOutPage.displayName}
         >
             <BlockingView
-                icon={Illustrations.Encryption}
+                icon={Illustrations.FishingRod}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}
                 title={translate('loggingOutPage.title')}
