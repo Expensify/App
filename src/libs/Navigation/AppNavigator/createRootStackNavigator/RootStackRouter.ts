@@ -1,8 +1,6 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import {updateLastAccessedWorkspaceSwitcher} from '@libs/actions/Policy/Policy';
 import * as Localize from '@libs/Localize';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
@@ -17,25 +15,12 @@ import {
     handlePushSearchPageAction,
     handlePushSettingsSplitAction,
     handleReplaceReportsSplitNavigatorAction,
-    handleSwitchPolicyIDAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {
-    DismissModalActionType,
-    OpenWorkspaceSplitActionType,
-    PushActionType,
-    ReplaceActionType,
-    RootStackNavigatorAction,
-    RootStackNavigatorRouterOptions,
-    SwitchPolicyIdActionType,
-} from './types';
+import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions} from './types';
 
 function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
-}
-
-function isSwitchPolicyIdAction(action: RootStackNavigatorAction): action is SwitchPolicyIdActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
 }
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
@@ -80,21 +65,12 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
-    const {setActiveWorkspaceID: setActiveWorkspaceIDUtils} = useActiveWorkspace();
-    const setActiveWorkspaceID = (workspaceID: string | undefined) => {
-        setActiveWorkspaceIDUtils?.(workspaceID);
-        updateLastAccessedWorkspaceSwitcher(workspaceID);
-    };
 
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
             if (isOpenWorkspaceSplitAction(action)) {
                 return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
-            }
-
-            if (isSwitchPolicyIdAction(action)) {
-                return handleSwitchPolicyIDAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
             }
 
             if (isDismissModalAction(action)) {

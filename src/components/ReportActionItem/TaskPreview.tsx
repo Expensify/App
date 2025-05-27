@@ -57,6 +57,9 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: () => void;
 
+    /** Callback that will do measure of necessary layout elements and run provided callback */
+    onShowContextMenu: (callback: () => void) => void;
+
     /** Style for the task preview container */
     style: StyleProp<ViewStyle>;
 
@@ -71,6 +74,7 @@ function TaskPreview({
     chatReportID,
     checkIfContextMenuActive,
     currentUserPersonalDetails,
+    onShowContextMenu,
     isHovered = false,
     style,
     shouldDisplayContextMenu = true,
@@ -120,12 +124,14 @@ function TaskPreview({
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => {
-                    if (!shouldDisplayContextMenu) {
-                        return;
-                    }
-                    showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
-                }}
+                onLongPress={(event) =>
+                    onShowContextMenu(() => {
+                        if (!shouldDisplayContextMenu) {
+                            return;
+                        }
+                        return showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                    })
+                }
                 shouldUseHapticsOnLongPress
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
