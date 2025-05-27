@@ -9,7 +9,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getOriginalTransactionIfBillIsSplit, getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
@@ -80,6 +80,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction);
 
+    const iouAction = isBillSplit && originalTransaction ? getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action : action;
+
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
     const showCashOrCardTranslation = isTransactionMadeWithCard ? 'iou.card' : 'iou.cash';
@@ -98,6 +100,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 <TransactionPreviewContent
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...props}
+                    action={iouAction}
                     isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
@@ -119,6 +122,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         <TransactionPreviewContent
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
+            action={iouAction}
             isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}
