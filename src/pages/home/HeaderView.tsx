@@ -38,7 +38,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -135,7 +134,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {canUseTalkToAISales} = usePermissions();
-    const isNativePlatform = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
     const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
@@ -223,7 +221,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || isAdminRoom(report));
-    const shouldShowOnBoardingHelpDropdownButton = (shouldShowTalkToSales && !isNativePlatform) || shouldShowRegisterForWebinar;
+    const shouldShowOnBoardingHelpDropdownButton = shouldShowTalkToSales || shouldShowRegisterForWebinar;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
