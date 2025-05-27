@@ -162,7 +162,7 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -244,7 +244,6 @@ type InitMoneyRequestParams = {
     reportID: string;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     isFromGlobalCreate?: boolean;
-    isFromReportsPageDragAndDrop?: boolean;
     currentIouRequestType?: IOURequestType | undefined;
     newIouRequestType: IOURequestType;
 };
@@ -822,16 +821,9 @@ Onyx.connect({
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
  * It is a helper function used only in this file.
  */
-function dismissModalAndOpenReportInInboxTab(reportID?: string, shouldResetSearchPageTab?: boolean) {
-    const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
-    if (isSearchPageTopmostFullScreenRoute || !reportID) {
+function dismissModalAndOpenReportInInboxTab(reportID?: string) {
+    if (isSearchTopmostFullScreenRoute() || !reportID) {
         Navigation.dismissModal();
-        if (isSearchPageTopmostFullScreenRoute && shouldResetSearchPageTab) {
-            const query = buildCannedSearchQuery();
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.setParams({q: query});
-            });
-        }
         return;
     }
     Navigation.dismissModalWithReport({reportID});
@@ -859,7 +851,7 @@ function getReportPreviewAction(chatReportID: string | undefined, iouReportID: s
  * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
  */
-function initMoneyRequest({reportID, policy, isFromGlobalCreate, isFromReportsPageDragAndDrop, currentIouRequestType, newIouRequestType}: InitMoneyRequestParams) {
+function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouRequestType, newIouRequestType}: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const personalPolicy = getPolicy(getPersonalPolicy()?.id);
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -876,7 +868,6 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, isFromReportsPa
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
             reportID,
             isFromGlobalCreate,
-            isFromReportsPageDragAndDrop,
             created,
             currency,
             transactionID: newTransactionID,
@@ -929,7 +920,6 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, isFromReportsPa
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
-        isFromReportsPageDragAndDrop,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
     });
@@ -5300,7 +5290,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     if (shouldHandleNavigation) {
         InteractionManager.runAfterInteractions(() => removeDraftTransactions());
         if (!requestMoneyInformation.isRetry) {
-            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID, !!transaction.isFromReportsPageDragAndDrop);
+            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
         }
 
         const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);

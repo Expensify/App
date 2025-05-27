@@ -463,9 +463,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
 
-        /** Whether the transaction was created from a reports page */
-        isFromReportsPageDragAndDrop?: boolean;
-
         /** The transaction tax rate */
         taxRate?: string | undefined;
 
