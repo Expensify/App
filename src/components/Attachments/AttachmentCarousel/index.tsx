@@ -7,22 +7,17 @@ import type {ComposedGesture, GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import {ToddBehindCloud} from '@components/Icon/Illustrations';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import AttachmentCarouselView from './AttachmentCarouselView/AttachmentCarouselView';
 import CarouselActions from './CarouselActions';
-import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
 import extractAttachments from './extractAttachments';
 import AttachmentCarouselPagerContext from './Pager/AttachmentCarouselPagerContext';
@@ -52,8 +47,6 @@ function DeviceAwareGestureDetector({canUseTouchScreen, gesture, children}: Devi
 }
 
 function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink, onAttachmentError}: AttachmentCarouselProps) {
-    const theme = useTheme();
-    const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -294,54 +287,42 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >
-            {page === -1 ? (
-                <BlockingView
-                    icon={ToddBehindCloud}
-                    iconColor={theme.offline}
-                    iconWidth={variables.modalTopIconWidth}
-                    iconHeight={variables.modalTopIconHeight}
-                    title={translate('notFound.notHere')}
-                />
-            ) : (
-                <>
-                    <CarouselButtons
-                        shouldShowArrows={shouldShowArrows}
-                        page={page}
-                        attachments={attachments}
-                        onBack={() => cycleThroughAttachments(-1)}
-                        onForward={() => cycleThroughAttachments(1)}
-                        autoHideArrow={autoHideArrows}
-                        cancelAutoHideArrow={cancelAutoHideArrows}
-                    />
-                    <AttachmentCarouselPagerContext.Provider value={context}>
-                        <DeviceAwareGestureDetector
-                            canUseTouchScreen={canUseTouchScreen}
-                            gesture={pan}
-                        >
-                            <Animated.FlatList
-                                keyboardShouldPersistTaps="handled"
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                // scrolling is controlled by the pan gesture
-                                scrollEnabled={false}
-                                ref={scrollRef}
-                                initialScrollIndex={page}
-                                initialNumToRender={3}
-                                windowSize={5}
-                                maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
-                                data={attachments}
-                                renderItem={renderItem}
-                                getItemLayout={getItemLayout}
-                                keyExtractor={extractItemKey}
-                                viewabilityConfig={viewabilityConfig}
-                                onViewableItemsChanged={updatePage}
-                            />
-                        </DeviceAwareGestureDetector>
-                    </AttachmentCarouselPagerContext.Provider>
+            <AttachmentCarouselView
+                cycleThroughAttachments={cycleThroughAttachments}
+                page={page}
+                attachments={attachments}
+                shouldShowArrows={shouldShowArrows}
+                autoHideArrows={autoHideArrows}
+                cancelAutoHideArrow={cancelAutoHideArrows}
+            >
+                <AttachmentCarouselPagerContext.Provider value={context}>
+                    <DeviceAwareGestureDetector
+                        canUseTouchScreen={canUseTouchScreen}
+                        gesture={pan}
+                    >
+                        <Animated.FlatList
+                            keyboardShouldPersistTaps="handled"
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            // scrolling is controlled by the pan gesture
+                            scrollEnabled={false}
+                            ref={scrollRef}
+                            initialScrollIndex={page}
+                            initialNumToRender={3}
+                            windowSize={5}
+                            maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
+                            data={attachments}
+                            renderItem={renderItem}
+                            getItemLayout={getItemLayout}
+                            keyExtractor={extractItemKey}
+                            viewabilityConfig={viewabilityConfig}
+                            onViewableItemsChanged={updatePage}
+                        />
+                    </DeviceAwareGestureDetector>
+                </AttachmentCarouselPagerContext.Provider>
 
-                    <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
-                </>
-            )}
+                <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
+            </AttachmentCarouselView>
         </View>
     );
 }

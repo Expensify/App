@@ -2,16 +2,12 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import * as Illustrations from '@components/Icon/Illustrations';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import CarouselButtons from './CarouselButtons';
+import AttachmentCarouselView from './AttachmentCarouselView/AttachmentCarouselView';
 import extractAttachments from './extractAttachments';
 import type {AttachmentCarouselPagerHandle} from './Pager';
 import AttachmentCarouselPager from './Pager';
@@ -20,7 +16,6 @@ import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID, onAttachmentError}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
@@ -121,40 +116,28 @@ function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownlo
     }
 
     return (
-        <View style={containerStyles}>
-            {page === -1 ? (
-                <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
-                    iconWidth={variables.modalTopIconWidth}
-                    iconHeight={variables.modalTopIconHeight}
-                    title={translate('notFound.notHere')}
+        <AttachmentCarouselView
+            cycleThroughAttachments={cycleThroughAttachments}
+            page={page}
+            attachments={attachments}
+            shouldShowArrows={shouldShowArrows}
+            autoHideArrows={autoHideArrows}
+            cancelAutoHideArrow={cancelAutoHideArrows}
+        >
+            <View style={containerStyles}>
+                <AttachmentCarouselPager
+                    items={attachments}
+                    initialPage={page}
+                    onAttachmentError={onAttachmentError}
+                    activeAttachmentID={activeAttachmentID}
+                    setShouldShowArrows={setShouldShowArrows}
+                    onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                    onClose={onClose}
+                    ref={pagerRef}
+                    reportID={report.reportID}
                 />
-            ) : (
-                <>
-                    <CarouselButtons
-                        shouldShowArrows={shouldShowArrows}
-                        page={page}
-                        attachments={attachments}
-                        onBack={() => cycleThroughAttachments(-1)}
-                        onForward={() => cycleThroughAttachments(1)}
-                        autoHideArrow={autoHideArrows}
-                        cancelAutoHideArrow={cancelAutoHideArrows}
-                    />
-
-                    <AttachmentCarouselPager
-                        items={attachments}
-                        initialPage={page}
-                        onAttachmentError={onAttachmentError}
-                        activeAttachmentID={activeAttachmentID}
-                        setShouldShowArrows={setShouldShowArrows}
-                        onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                        onClose={onClose}
-                        ref={pagerRef}
-                        reportID={report.reportID}
-                    />
-                </>
-            )}
-        </View>
+            </View>
+        </AttachmentCarouselView>
     );
 }
 
