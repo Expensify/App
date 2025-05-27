@@ -14,9 +14,9 @@ import PDFThumbnail from '@components/PDFThumbnail';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -82,7 +82,7 @@ function SearchPage({route}: SearchPageProps) {
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
-    const {q} = route.params;
+    const {q, name} = route.params;
 
     const {canUseMultiFilesDragAndDrop} = usePermissions();
 
@@ -473,6 +473,9 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackContext();
     const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
 
+    const isSearchNameModified = name === q;
+    const searchName = isSearchNameModified ? undefined : name;
+
     // TODO: to be refactored in step 3
     const PDFThumbnailView = pdfFile ? (
         <PDFThumbnail
@@ -523,6 +526,7 @@ function SearchPage({route}: SearchPageProps) {
             <>
                 <SearchPageNarrow
                     queryJSON={queryJSON}
+                    searchName={searchName}
                     headerButtonsOptions={headerButtonsOptions}
                     lastNonEmptySearchResults={lastNonEmptySearchResults}
                     currentSearchResults={currentSearchResults}
@@ -592,7 +596,7 @@ function SearchPage({route}: SearchPageProps) {
                                     headerButtonsOptions={headerButtonsOptions}
                                     handleSearch={handleSearchAction}
                                 />
-                                <SearchFiltersBar
+                                <SearchStatusBar
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
                                 />
