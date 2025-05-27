@@ -13,7 +13,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {findSelfDMReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
-import {getRequestType} from '@libs/TransactionUtils';
+import {getRequestType, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -307,6 +307,7 @@ function IOURequestStepParticipants({
                     onFinish={goToNextStep}
                     iouType={iouType}
                     action={action}
+                    isPerDiemRequest={isPerDiemRequest(initialTransaction)}
                 />
             )}
         </StepScreenWrapper>
