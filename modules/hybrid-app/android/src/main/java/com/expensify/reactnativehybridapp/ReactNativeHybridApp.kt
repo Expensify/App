@@ -50,4 +50,8 @@ class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
   override fun signOutFromOldDot() {
     Log.d(NAME, "`signOutFromOldDot` should never be called in standalone `New Expensify` app")
   }
+
+  override fun clearOldDotAfterSignOut() {
+    Log.d(NAME, "`clearOldDotAfterSignOut` should never be called in standalone `New Expensify` app")
+  }
 }

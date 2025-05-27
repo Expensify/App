@@ -84,46 +84,52 @@ function App({url, hybridAppSettings, timestamp}: AppProps) {
                     timestamp={timestamp}
                 >
                     <GestureHandlerRootView style={fill}>
-                        <ComposeProviders
-                            components={[
-                                OnyxProvider,
-                                ThemeProvider,
-                                ThemeStylesProvider,
-                                ThemeIllustrationsProvider,
-                                SafeAreaProvider,
-                                PortalProvider,
-                                SafeArea,
-                                LocaleContextProvider,
-                                HTMLEngineProvider,
-                                PopoverContextProvider,
-                                CurrentReportIDContextProvider,
-                                ScrollOffsetContextProvider,
-                                ReportAttachmentsProvider,
-                                PickerStateProvider,
-                                EnvironmentProvider,
-                                CustomStatusBarAndBackgroundContextProvider,
-                                ActiveElementRoleProvider,
-                                PlaybackContextProvider,
-                                FullScreenContextProvider,
-                                VolumeContextProvider,
-                                VideoPopoverMenuContextProvider,
-                                KeyboardProvider,
-                                KeyboardStateProvider,
-                                SearchRouterContextProvider,
-                                ProductTrainingContextProvider,
-                                InputBlurContextProvider,
-                                FullScreenBlockingViewContextProvider,
-                                FullScreenLoaderContextProvider,
-                            ]}
+                        <SafeAreaProvider
+                            initialMetrics={{
+                                insets: {top: 0, right: 0, bottom: 0, left: 0},
+                                frame: {x: 0, y: 0, width: 0, height: 0},
+                            }}
                         >
-                            <CustomStatusBarAndBackground />
-                            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                <ColorSchemeWrapper>
-                                    <Expensify />
-                                </ColorSchemeWrapper>
-                            </ErrorBoundary>
-                            <NavigationBar />
-                        </ComposeProviders>
+                            <ComposeProviders
+                                components={[
+                                    OnyxProvider,
+                                    ThemeProvider,
+                                    ThemeStylesProvider,
+                                    ThemeIllustrationsProvider,
+                                    PortalProvider,
+                                    SafeArea,
+                                    LocaleContextProvider,
+                                    HTMLEngineProvider,
+                                    PopoverContextProvider,
+                                    CurrentReportIDContextProvider,
+                                    ScrollOffsetContextProvider,
+                                    ReportAttachmentsProvider,
+                                    PickerStateProvider,
+                                    EnvironmentProvider,
+                                    CustomStatusBarAndBackgroundContextProvider,
+                                    ActiveElementRoleProvider,
+                                    PlaybackContextProvider,
+                                    FullScreenContextProvider,
+                                    VolumeContextProvider,
+                                    VideoPopoverMenuContextProvider,
+                                    KeyboardProvider,
+                                    KeyboardStateProvider,
+                                    SearchRouterContextProvider,
+                                    ProductTrainingContextProvider,
+                                    InputBlurContextProvider,
+                                    FullScreenBlockingViewContextProvider,
+                                    FullScreenLoaderContextProvider,
+                                ]}
+                            >
+                                <CustomStatusBarAndBackground />
+                                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                    <ColorSchemeWrapper>
+                                        <Expensify />
+                                    </ColorSchemeWrapper>
+                                </ErrorBoundary>
+                                <NavigationBar />
+                            </ComposeProviders>
+                        </SafeAreaProvider>
                     </GestureHandlerRootView>
                 </InitialURLContextProvider>
             </SplashScreenStateContextProvider>
