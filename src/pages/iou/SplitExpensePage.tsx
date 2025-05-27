@@ -199,7 +199,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         sections={sections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
-                        containerStyle={[styles.flexBasisAuto]}
+                        containerStyle={[styles.flexBasisAuto,styles.pt1]}
                         footerContent={footerContent}
                         disableKeyboardShortcuts
                         shouldSingleExecuteRowSelect
