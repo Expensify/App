@@ -69,6 +69,10 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
     quickbooksDesktop: 'QuickBooks Desktop',
+    sap: 'SAP',
+    oracle: 'Oracle',
+    microsoftDynamics: 'Microsoft Dynamics',
+    other: 'Other',
 };
 
 const connectionsVideoPaths = {
@@ -95,6 +99,7 @@ const backendOnboardingChoices = {
     ADMIN: 'newDotAdmin',
     SUBMIT: 'newDotSubmit',
     TRACK_WORKSPACE: 'newDotTrackWorkspace',
+    TEST_DRIVE_RECEIVER: 'testDriveReceiver',
 } as const;
 
 const onboardingChoices = {
@@ -114,21 +119,27 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-const selfGuidedTourTask: OnboardingTask = {
-    type: 'viewTour',
-    autoCompleted: false,
-    mediaAttributes: {},
-    title: ({navatticURL}) => `Take a [2-minute tour](${navatticURL})`,
-    description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
-};
-
 const getTestDriveTaskName = (testDriveURL?: string) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive');
-const testDriveTask: OnboardingTask = {
+const testDriveAdminTask: OnboardingTask = {
     type: 'viewTour',
     autoCompleted: false,
     mediaAttributes: {},
     title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
     description: ({testDriveURL}) => `[Take a quick product tour](${testDriveURL}) to see why Expensify is the fastest way to do your expenses.`,
+};
+const testDriveEmployeeTask: OnboardingTask = {
+    type: 'viewTour',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
+    description: ({testDriveURL}) => `Take us for a [test drive](${testDriveURL}) and get your team *3 free months of Expensify!*`,
+};
+const createTestDriveAdminWorkspaceTask: OnboardingTask = {
+    type: 'createWorkspace',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,
+    description: 'Create a workspace and configure the settings with the help of your setup specialist!',
 };
 
 const createWorkspaceTask: OnboardingTask = {
@@ -174,7 +185,7 @@ const setupCategoriesTask: OnboardingTask = {
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     tasks: [
-        selfGuidedTourTask,
+        testDriveEmployeeTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -198,7 +209,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
     ...onboardingEmployerOrSubmitMessage,
     tasks: [
-        selfGuidedTourTask,
+        testDriveEmployeeTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -223,7 +234,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
 const onboardingPersonalSpendMessage: OnboardingMessage = {
     message: 'Here’s how to track your spend in a few clicks.',
     tasks: [
-        selfGuidedTourTask,
+        testDriveEmployeeTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -247,7 +258,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
-        selfGuidedTourTask,
+        testDriveEmployeeTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -273,7 +284,7 @@ type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
 type OnboardingCompanySize = ValueOf<typeof onboardingCompanySize>;
 
-type OnboardingAccounting = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -299,6 +310,7 @@ type OnboardingTaskLinks = Partial<{
     workspaceMoreFeaturesLink: string;
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
+    workspaceConfirmationLink: string;
     navatticURL: string;
     testDriveURL: string;
     corporateCardLink: string;
@@ -417,6 +429,7 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     IMAGE_SVG_TRANSITION_DURATION: 200,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
+    LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
@@ -553,6 +566,7 @@ const CONST = {
         RIGHT: 'right',
     },
 
+    ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -703,6 +717,7 @@ const CONST = {
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
+        CORPAY_UNDEFINED_OPTION_VALUE: 'Undefined',
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -819,6 +834,7 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
+        NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
     },
     BUTTON_STATES: {
@@ -1210,6 +1226,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             REOPEN: 'reopen',
             MOVE_EXPENSE: 'moveExpense',
+            PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1406,10 +1423,22 @@ const CONST = {
             // Used when displaying reportActions list to handle unread messages icon/button
             SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
             ACTION_VISIBLE_THRESHOLD: 250,
+            MAX_GROUPING_TIME: 300000,
         },
         TRANSACTION_LIST: {
             COLUMNS: {
                 COMMENTS: 'comments',
+                RECEIPT: 'receipt',
+                DATE: 'date',
+                MERCHANT: 'merchant',
+                FROM: 'from',
+                TO: 'to',
+                CATEGORY: 'category',
+                TAG: 'tag',
+                TOTAL_AMOUNT: 'amount',
+                TYPE: 'type',
+                ACTION: 'action',
+                TAX: 'tax',
             },
         },
         CANCEL_PAYMENT_REASONS: {
@@ -1537,6 +1566,7 @@ const CONST = {
             STOPWATCH: 'stopwatch',
         },
     },
+    UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
@@ -2876,6 +2906,9 @@ const CONST = {
             TAX: 'tax',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
+        DEFAULT_FIELD_LIST_TYPE: 'formula',
+        DEFAULT_FIELD_LIST_TARGET: 'expense',
+        DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
@@ -3020,6 +3053,10 @@ const CONST = {
                 financialForce: 'FinancialForce',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
+                sap: 'SAP',
+                oracle: 'Oracle',
+                microsoftDynamics: 'Microsoft Dynamics',
+                other: 'Other',
             },
             AUTH_HELP_LINKS: {
                 intacct:
@@ -3542,8 +3579,6 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
-        PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
-        POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
         SHORT_MENTION: new RegExp(
             // We are ensuring that the short mention is not inside a code block. So we check that the short mention
             // is either not preceded by an open code block or not followed by a backtick on the same line.
@@ -3564,7 +3599,7 @@ const CONST = {
          * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
          * Group 3: Title is remaining characters
          */
-        TASK_TITLE_WITH_OPTONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN.source}))?\\s*([\\s\\S]*)`,
+        TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN.source}))?\\s*([\\s\\S]*)`,
     },
 
     PRONOUNS: {
@@ -3673,6 +3708,10 @@ const CONST = {
         // This const defines the initial container size, before layout measurement.
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
+
+        // This constant sets a margin equal to the rotate button's height (medium-sized Button (40px)), which is the tallest element in the controls row.
+        // It ensures the controls row isn't cropped if the browser height is reduced too much.
+        CONTAINER_VERTICAL_MARGIN: variables.componentSizeNormal,
     },
     MICROSECONDS_PER_MS: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
@@ -3719,7 +3758,6 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
-        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -3727,7 +3765,7 @@ const CONST = {
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
         EXPENSE_REPORTS_URL: `${USE_EXPENSIFY_URL}/expense-reports`,
         COMPANY_CARD_URL: `${USE_EXPENSIFY_URL}/company-credit-card`,
-        RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
+        RECEIPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
         BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
         INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
         PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
@@ -5078,6 +5116,7 @@ const CONST = {
         ERR_SAML_DOMAIN_CONTROL: 'err_saml_domain_control',
         ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
         ERR_ACCOUNT_LOCKED: 'err_account_locked',
+        ERR_MERGE_SELF: 'err_merge_self',
         TOO_MANY_ATTEMPTS: 'too_many_attempts',
         ACCOUNT_UNVALIDATED: 'account_unvalidated',
     },
@@ -5131,11 +5170,12 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            SET_PARAMS: 'SET_PARAMS',
 
             /** These action types are custom for RootNavigator */
-            SWITCH_POLICY_ID: 'SWITCH_POLICY_ID',
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
+            SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
         },
     },
     TIME_PERIOD: {
@@ -5212,7 +5252,7 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
-        TEST_DRIVE_COVER_ASPECT_RATIO: 500 / 300,
+        TEST_DRIVE_COVER_ASPECT_RATIO: 1000 / 508,
     },
 
     /**
@@ -5407,10 +5447,7 @@ const CONST = {
 
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 
-    WORKSPACE_SWITCHER: {
-        NAME: 'Expensify',
-        SUBSCRIPT_ICON_SIZE: 8,
-    },
+    EXPENSIFY_ICON_NAME: 'Expensify',
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
@@ -5429,7 +5466,7 @@ const CONST = {
             message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
             tasks: [
                 createWorkspaceTask,
-                testDriveTask,
+                testDriveAdminTask,
                 {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
@@ -5580,7 +5617,7 @@ const CONST = {
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             tasks: [
-                selfGuidedTourTask,
+                testDriveEmployeeTask,
                 {
                     type: 'startChat',
                     autoCompleted: false,
@@ -5656,6 +5693,10 @@ const CONST = {
             message:
                 "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             tasks: [],
+        },
+        [onboardingChoices.TEST_DRIVE_RECEIVER]: {
+            message: "*You've got 3 months free! Get started below.*",
+            tasks: [testDriveAdminTask, createTestDriveAdminWorkspaceTask],
         },
     } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
@@ -6409,7 +6450,10 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
-        LAST_VISITED_WORKSPACES_TAB_PATH: 'LAST_VISITED_WORKSPACES_TAB_PATH',
+        LAST_VISITED_TAB_PATH: {
+            WORKSPACES: 'LAST_VISITED_WORKSPACES_TAB_PATH',
+            SETTINGS: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        },
     },
 
     RESERVATION_TYPE: {
@@ -6487,6 +6531,7 @@ const CONST = {
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
+            CHANGE_REPORT: 'changeReport',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -7035,10 +7080,11 @@ const CONST = {
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
-        OUTSANDING_FILTER: 'outstandingFilter',
+        OUTSTANDING_FILTER: 'outstandingFilter',
         GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
+        SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -7088,6 +7134,12 @@ const CONST = {
         ONBOARDING_TASK_NAME: getTestDriveTaskName(),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
+        EMPLOYEE_FAKE_RECEIPT: {
+            AMOUNT: 2000,
+            CURRENCY: 'USD',
+            DESCRIPTION: 'My test drive receipt!',
+            MERCHANT: "Tommy's Tires",
+        },
     },
 
     SCHEDULE_CALL_STATUS: {
@@ -7122,6 +7174,7 @@ export type {
     OnboardingInvite,
     OnboardingAccounting,
     IOUActionParams,
+    OnboardingMessage,
 };
 
 export {getTestDriveTaskName};

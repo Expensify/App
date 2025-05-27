@@ -8,7 +8,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
-import type ReportAction from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -32,11 +31,6 @@ const allReports = createCollection<Report>(
         isUnreadWithMention: false,
     }),
     REPORTS_COUNT,
-);
-
-const reportActions = createCollection<ReportAction>(
-    (item) => `${item.reportActionID}`,
-    (index) => createRandomReportAction(index),
 );
 
 const personalDetails = createCollection<PersonalDetails>(
@@ -85,7 +79,6 @@ describe('SidebarUtils', () => {
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs,
-                reportActions,
                 personalDetails,
                 preferredLocale,
                 policy,
