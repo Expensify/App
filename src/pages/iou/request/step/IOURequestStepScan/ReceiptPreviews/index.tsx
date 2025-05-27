@@ -16,9 +16,10 @@ type ReceiptWithTransactionID = Receipt & {transactionID: string};
 
 type ReceiptPreviewsProps = {
     submit: () => void;
+    setTabSwipeDisabled?: (isDisabled: boolean) => void;
 };
 
-function ReceiptPreviews({submit}: ReceiptPreviewsProps) {
+function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const INITIAL_RECEIPTS_AMOUNT = 10;
@@ -62,6 +63,8 @@ function ReceiptPreviews({submit}: ReceiptPreviewsProps) {
                 horizontal
                 keyExtractor={(_, index) => index.toString()}
                 renderItem={renderItem}
+                onTouchStart={() => setTabSwipeDisabled?.(true)}
+                onTouchEnd={() => setTabSwipeDisabled?.(false)}
                 style={styles.pv2}
                 contentContainerStyle={{paddingRight: 52}}
             />

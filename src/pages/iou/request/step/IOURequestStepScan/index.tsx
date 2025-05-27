@@ -94,6 +94,7 @@ function IOURequestStepScan({
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
+    setTabSwipeDisabled,
     isTooltipAllowed = false,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
@@ -904,7 +905,12 @@ function IOURequestStepScan({
                 )}
             </View>
 
-            {isMultiScanEnabled && <ReceiptPreviews submit={submitReceipts} />}
+            {isMultiScanEnabled && (
+                <ReceiptPreviews
+                    submit={submitReceipts}
+                    setTabSwipeDisabled={setTabSwipeDisabled}
+                />
+            )}
         </>
     );
 
