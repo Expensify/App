@@ -3,7 +3,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -69,15 +69,14 @@ type PopoverMenuItem = MenuItemProps & {
     testID?: string;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
-    Pick<BottomDockedModalProps, 'animationInDelay'> & {
-        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
-        shouldUseNewModal?: boolean;
-    };
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<BottomDockedModalProps, 'animationInDelay'>;
 
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
+
+    /** Optional callback passed to popover's children container */
+    onLayout?: (e: LayoutChangeEvent) => void;
 
     /** Callback method fired when the modal is shown */
     onModalShow?: () => void;
@@ -177,6 +176,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    onLayout,
     onModalShow,
     headerText,
     fromSidebarMediumScreen,
@@ -203,7 +203,6 @@ function PopoverMenu({
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
-    shouldUseNewModal = true,
     shouldAvoidSafariException = false,
     testID,
 }: PopoverMenuProps) {
@@ -418,10 +417,12 @@ function PopoverMenu({
             innerContainerStyle={innerContainerStyle}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
-            shouldUseNewModal={shouldUseNewModal}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={[menuContainerStyle, containerStyles]}>
+                <View
+                    onLayout={onLayout}
+                    style={[menuContainerStyle, containerStyles]}
+                >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}

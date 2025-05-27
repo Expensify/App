@@ -104,6 +104,10 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: Routes;
     };
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
+        backTo?: Routes;
+        forwardTo?: Routes;
+    };
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
@@ -154,9 +158,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
-    [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
-        backTo?: Routes;
-    };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
@@ -1827,7 +1828,9 @@ type MigratedUserModalNavigatorParamList = {
 };
 
 type TestDriveModalNavigatorParamList = {
-    [SCREENS.TEST_DRIVE_MODAL.ROOT]: undefined;
+    [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
+        bossEmail?: string;
+    };
 };
 
 type TestDriveDemoNavigatorParamList = {
@@ -1992,6 +1995,7 @@ type MissingPersonalDetailsParamList = {
 type AddUnreportedExpensesParamList = {
     [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
         reportID: string;
+        backToReport?: string;
     };
 };
 
@@ -2049,7 +2053,8 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 
-type WorkspacesTabScreenName = typeof NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
+// There are two split navigators which can be displayed when the Workspaces tab is selected
+type WorkspacesTabNavigatorName = typeof NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
@@ -2134,5 +2139,5 @@ export type {
     TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
     TestDriveDemoNavigatorParamList,
-    WorkspacesTabScreenName,
+    WorkspacesTabNavigatorName,
 };

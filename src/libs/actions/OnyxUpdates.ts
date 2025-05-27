@@ -161,7 +161,7 @@ function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
     // We don't want to store the data in the updateParams if it's a HTTPS update since it is useless anyways
     // and it causes serialization issues when storing in Onyx
     if (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && updateParams.request) {
-        modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: undefined}};
+        modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams);
