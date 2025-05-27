@@ -1,12 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ImageStyle, StyleProp} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import Image from './Image';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 
@@ -28,11 +32,16 @@ type Props = {
 
     /** Whether the RBR indicator should be shown */
     shouldShowRBR?: boolean;
+
+    /** Image url for plaid bank account */
+    plaidUrl?: string | null;
 };
 
-function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false}: Props) {
+function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
+    const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)];
 
     return (
         <PressableWithFeedback
@@ -40,12 +49,20 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
             accessibilityLabel={feedName ?? ''}
         >
-            <Icon
-                src={cardIcon}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
-                additionalStyles={styles.cardIcon}
-            />
+            {plaidUrl ? (
+                <Image
+                    source={{uri: plaidUrl}}
+                    style={imageStyle}
+                    cachePolicy="memory-disk"
+                />
+            ) : (
+                <Icon
+                    src={cardIcon}
+                    height={variables.cardIconHeight}
+                    width={variables.cardIconWidth}
+                    additionalStyles={styles.cardIcon}
+                />
+            )}
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1]}>
                     <CaretWrapper style={styles.flex1}>

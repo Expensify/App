@@ -3901,6 +3901,8 @@ const translations = {
             assignedCard: ({assignee, link}: AssignedCardParams) => `ha asignado a ${assignee} una ${link}! Las transacciones importadas aparecerán en este chat.`,
             companyCard: 'tarjeta de empresa',
             chooseCardFeed: 'Elige feed de tarjetas',
+            ukRegulation:
+                'Expensify Limited es agente de Plaid Financial Ltd., una entidad de pago autorizada y regulada por la Autoridad de Conducta Financiera (FCA) según el Reglamento de Servicios de Pago de 2017 (Número de referencia de la empresa: 804718). Plaid le proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',

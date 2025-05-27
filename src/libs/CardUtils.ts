@@ -405,6 +405,24 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     return customFeedName ?? formattedFeedName;
 }
 
+function getPlaidInstitutionLink(plaid?: string) {
+    const bank = plaid?.split('.');
+    if (!bank || bank?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+        return '';
+    }
+
+    return `${CONST.COMPANY_CARD_PLAID}${bank.at(1)}.png`;
+}
+
+function getPlaidInstitutionId(plaid?: string) {
+    const bank = plaid?.split('.');
+    if (!bank || bank?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+        return '';
+    }
+
+    return bank.at(1);
+}
+
 function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData: CardFeedData | undefined): number {
     return cardFeedData?.domainID ?? workspaceAccountID;
 }
@@ -460,7 +478,7 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
 }
 
 function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): boolean {
-    if (!directFeed) {
+    if (!directFeed || !directFeed.expiration) {
         return false;
     }
 
@@ -686,5 +704,7 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
+    getPlaidInstitutionLink,
+    getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
 };

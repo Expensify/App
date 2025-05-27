@@ -53,10 +53,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const bankName = feed ? getBankName(feed) : bankNameFromRoute ?? addNewCard?.data?.plaidConnectedBank ?? selectedBank;
     const {canUsePlaidCompanyCards} = usePermissions();
-    const url =
-        canUsePlaidCompanyCards && addNewCard?.data?.publicToken
-            ? getCompanyCardPlaidConnection(policyID, addNewCard.data.publicToken, addNewCard?.data?.plaidConnectedBank)
-            : getCompanyCardBankConnection(policyID, bankName);
+    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
+    const plaidFeed = addNewCard?.data?.plaidConnectedBank ?? assignCard?.data?.institutionId;
+    const plaidFeedName = addNewCard?.data?.plaidConnectedBankName ?? assignCard?.data?.plaidConnectedBankName;
+    const url = canUsePlaidCompanyCards && plaidToken ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName) : getCompanyCardBankConnection(policyID, bankName);
     const [cardFeeds] = useCardFeeds(policyID);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);

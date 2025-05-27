@@ -1,13 +1,15 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +18,7 @@ import {
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
+    getPlaidInstitutionId,
     getSelectedFeed,
     hasOnlyOneCardToAssign,
     isCustomFeed,
@@ -53,6 +56,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [cardFeeds] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useCardsList(policyID, selectedFeed);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const {canUsePlaidCompanyCards} = usePermissions();
 
     const {cardList, ...cards} = cardsList ?? {};
 
@@ -76,6 +81,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
+    const isGB = countryByIp === CONST.COUNTRY.GB;
 
     useEffect(() => {
         fetchCompanyCards();
@@ -131,7 +137,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         }
 
         if (isFeedExpired) {
-            currentStep = CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
+            const institutionId = getPlaidInstitutionId(selectedFeed);
+            currentStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
         }
 
         setAssignCardStepAndData({data, currentStep});
@@ -177,6 +184,11 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             handleAssignCard={handleAssignCard}
                             isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}
                         />
+                    )}
+                    {isGB && !!canUsePlaidCompanyCards && (isNoFeed || isPending) && (
+                        <View style={[styles.sidebarFooter, styles.mb5]}>
+                            <Text style={[styles.chatItemMessageHeaderTimestamp]}>{translate('workspace.companyCards.ukRegulation')}</Text>
+                        </View>
                     )}
                 </WorkspacePageWithSections>
             )}

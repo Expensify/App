@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
+import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {handleRestrictedEvent} from '@userActions/App';
@@ -20,9 +20,10 @@ import {setPlaidEvent} from '@userActions/BankAccounts';
 import {openPlaidCompanyCardLogin} from '@userActions/Plaid';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep() {
+function PlaidConnectionStep({feed}: {feed: CompanyCardFeed}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -126,11 +127,26 @@ function PlaidConnectionStep() {
 
                         const plaidConnectedBank =
                             (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
+                        const plaidConnectedBankName =
+                            (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
+
+                        if (feed) {
+                            setAssignCardStepAndData({
+                                data: {
+                                    plaidAccessToken: publicToken,
+                                    institutionId: plaidConnectedBank,
+                                    plaidConnectedBankName,
+                                },
+                                currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
+                            });
+                            return;
+                        }
                         setAddNewCompanyCardStepAndData({
                             step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
                                 plaidConnectedBank,
+                                plaidConnectedBankName,
                             },
                         });
                     }}

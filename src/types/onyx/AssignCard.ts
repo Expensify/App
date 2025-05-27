@@ -26,6 +26,15 @@ type AssignCardData = {
 
     /** An option based on which the transaction start date is chosen */
     dateOption: string;
+
+    /** bank id for Plaid */
+    institutionId?: string;
+
+    /** access token for Plaid bank */
+    plaidAccessToken?: string;
+
+    /** Plaid bank name */
+    plaidConnectedBankName?: string;
 };
 
 /** Model of assign card flow */

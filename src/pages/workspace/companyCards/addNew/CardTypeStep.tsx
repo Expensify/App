@@ -12,6 +12,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -23,10 +24,11 @@ type AvailableCompanyCardTypes = {
     translate: LocaleContextProps['translate'];
     typeSelected?: CardFeedProvider;
     styles: StyleProp<ViewStyle>;
+    canUsePlaidCompanyCards?: boolean;
 };
 
-function getAvailableCompanyCardTypes({translate, typeSelected, styles}: AvailableCompanyCardTypes) {
-    return [
+function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePlaidCompanyCards}: AvailableCompanyCardTypes) {
+    const defaultCards = [
         {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             text: translate('workspace.companyCards.addNewCard.cardProviders.cdf'),
@@ -56,6 +58,28 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles}: Availab
             ),
         },
     ];
+
+    if (!canUsePlaidCompanyCards) {
+        return defaultCards;
+    }
+
+    return [
+        {
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.gl1025'),
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            leftElement: (
+                <Icon
+                    src={Illustrations.AmexCardCompanyCardDetail}
+                    height={variables.iconSizeExtraLarge}
+                    width={variables.iconSizeExtraLarge}
+                    additionalStyles={styles}
+                />
+            ),
+        },
+        ...defaultCards,
+    ];
 }
 
 function CardTypeStep() {
@@ -64,7 +88,8 @@ function CardTypeStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
     const [isError, setIsError] = useState(false);
-    const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3});
+    const {canUsePlaidCompanyCards} = usePermissions();
+    const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3, canUsePlaidCompanyCards});
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;

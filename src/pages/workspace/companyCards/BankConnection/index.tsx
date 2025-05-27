@@ -56,11 +56,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
     const {isOffline} = useNetwork();
     const {canUsePlaidCompanyCards} = usePermissions();
+    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
+    const plaidFeed = addNewCard?.data?.plaidConnectedBank ?? assignCard?.data?.institutionId;
+    const plaidFeedName = addNewCard?.data?.plaidConnectedBankName ?? assignCard?.data?.plaidConnectedBankName;
 
-    const url =
-        canUsePlaidCompanyCards && addNewCard?.data?.publicToken
-            ? getCompanyCardPlaidConnection(policyID, addNewCard.data.publicToken, addNewCard?.data?.plaidConnectedBank)
-            : getCompanyCardBankConnection(policyID, bankName);
+    const url = canUsePlaidCompanyCards && plaidToken ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName) : getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;

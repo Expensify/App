@@ -5122,6 +5122,14 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        plaidIcon: {
+            height: variables.iconSizeUltraLarge,
+            width: variables.iconSizeUltraLarge,
+            position: 'absolute',
+            right: 20,
+            top: 20,
+        },
+
         walletCardNumber: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,

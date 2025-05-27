@@ -15,6 +15,7 @@ type CompanyCardPlaidConnection = {
     authToken: string;
     publicToken: string;
     domainName: string;
+    feedName: string;
     feed: string;
 };
 
@@ -46,14 +47,15 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
     return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
 }
 
-function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, feed?: string) {
-    if (!policyID || !publicToken || !feed) {
+function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, feed?: string, feedName?: string) {
+    if (!policyID || !publicToken || !feed || !feedName) {
         return null;
     }
     const authToken = NetworkStore.getAuthToken();
     const params: CompanyCardPlaidConnection = {
         authToken: authToken ?? '',
         feed,
+        feedName,
         publicToken,
         domainName: PolicyUtils.getDomainNameForPolicy(policyID),
     };
