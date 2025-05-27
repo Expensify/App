@@ -14,7 +14,6 @@ import PushNotification from '@libs/Notification/PushNotification';
 import '@libs/Notification/PushNotification/subscribeToPushNotifications';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import * as SessionUtil from '@src/libs/actions/Session';
 import {signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
