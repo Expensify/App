@@ -171,7 +171,6 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     }, [isOffline, policy?.employeeList]);
 
     const sections = useMemo(() => {
-
         if (!debouncedSearchValue) {
             return [
                 {
