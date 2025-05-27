@@ -823,7 +823,6 @@ const ONYXKEYS = {
         WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
     },
     DERIVED: {
-        CONCIERGE_CHAT_REPORT_ID: 'conciergeChatReportID',
         REPORT_ATTRIBUTES: 'reportAttributes',
     },
 } as const;
@@ -1169,7 +1168,6 @@ type OnyxValuesMapping = {
 };
 
 type OnyxDerivedValuesMapping = {
-    [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: string | undefined;
     [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: OnyxTypes.ReportAttributesDerivedValue;
 };
 
