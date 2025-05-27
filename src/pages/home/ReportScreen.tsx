@@ -380,6 +380,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 report={report}
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
+                isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                 reportActions={reportActions}
                 onBackButtonPress={onBackButtonPress}
             />
@@ -828,6 +829,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
+                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                     />
                                 ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (
