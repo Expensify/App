@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import BaseModalProps from '@components/Modal/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -18,7 +19,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ThreeDotsMenuProps from './types';
-import BaseModalProps from '@components/Modal/types';
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -147,7 +147,7 @@ function ThreeDotsMenu({
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item) => {
-                    setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE); 
+                    setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
                     hidePopoverMenu(item);
                 }}
                 menuItems={menuItems}
