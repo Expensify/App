@@ -11,7 +11,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -58,7 +57,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -80,10 +78,10 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReports));
+        setChatTabBrickRoad(getChatTabBrickRoad(orderedReports));
         // We need to get a new brick road state when report attributes are updated, otherwise we'll be showing an outdated brick road.
         // That's why reportAttributes is added as a dependency here
-    }, [activeWorkspaceID, orderedReports, reportAttributes]);
+    }, [orderedReports, reportAttributes]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -234,7 +232,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                     <DebugTabView
                         selectedTab={selectedTab}
                         chatTabBrickRoad={chatTabBrickRoad}
-                        activeWorkspaceID={activeWorkspaceID}
                     />
                 )}
                 <View style={styles.leftNavigationTabBarContainer}>
@@ -370,7 +367,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
-                    activeWorkspaceID={activeWorkspaceID}
                 />
             )}
             <View style={styles.navigationTabBarContainer}>
