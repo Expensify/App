@@ -3,7 +3,6 @@ import {useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
-import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {MoneyRequestReportContextProvider} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
@@ -72,7 +71,6 @@ import defaultScreenOptions from './defaultScreenOptions';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
-import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
@@ -555,9 +553,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders
-            components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}
-        >
+        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}>
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
@@ -675,12 +671,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             setShouldShowRequire2FAPage(false);
                         },
                     }}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.leftModalNavigator}
-                    component={LeftModalNavigator}
-                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
