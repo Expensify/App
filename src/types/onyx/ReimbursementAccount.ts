@@ -34,6 +34,8 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CURRENCY]: string;
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
+    /** Company website */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_WEBSITE]: string;
     /** Company address - street */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STREET]: string;
     /** Company address - city */
@@ -104,6 +106,8 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
     /** Stringified array of owners data */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
+    /** Indicates that the PDS and FSD document has been downloaded */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.DOWNLOADED_PDS_AND_FSG]?: boolean;
 };
 
 /** Model of ACH data */
@@ -192,6 +196,12 @@ type ACHDataReimbursementAccount = Omit<ACHData, 'subStep' | 'currentStep'> & {
 
     /** Optional subStep we would like the user to start back on */
     subStep?: ReimbursementAccountSubStep;
+
+    /** The reportActionID of the ACH request message in the Concierge chat.
+     *  That message asks the user to provide additional information to validate the bank account.
+     *  The ID is used to link to this exact message when the user clicks the link in the bank account flow to finish in chat
+     * */
+    ACHRequestReportActionID: string;
 };
 
 /** Model of reimbursement account data */

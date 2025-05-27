@@ -27,6 +27,7 @@ function TableListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     titleContainerStyles,
+    shouldUseDefaultRightHandSideCheckmark,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -80,6 +81,7 @@ function TableListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
+            shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
         >
             {(hovered) => (
                 <>

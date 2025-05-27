@@ -5,6 +5,7 @@ import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
@@ -15,6 +16,8 @@ function Backdrop({
     onBackdropPress,
     animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
     animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
+    isBackdropVisible,
+    backdropOpacity = variables.overlayOpacity,
 }: BackdropProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,6 +46,13 @@ function Backdrop({
         return FadeOut.duration(animationOutTiming);
     }, [animationOutTiming]);
 
+    const backdropStyle = useMemo(
+        () => ({
+            opacity: backdropOpacity,
+        }),
+        [backdropOpacity],
+    );
+
     if (!customBackdrop) {
         return (
             <PressableWithoutFeedback
@@ -50,22 +60,25 @@ function Backdrop({
                 accessibilityLabel={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}
             >
-                <Animated.View
-                    style={[styles.modalBackdrop, style]}
-                    entering={Entering}
-                    exiting={Exiting}
-                />
+                {isBackdropVisible && (
+                    <Animated.View
+                        style={[styles.modalBackdrop, backdropStyle, style]}
+                        entering={Entering}
+                        exiting={Exiting}
+                    />
+                )}
             </PressableWithoutFeedback>
         );
     }
-
     return (
-        <Animated.View
-            entering={Entering}
-            exiting={Exiting}
-        >
-            <View style={[styles.modalBackdrop, style]}>{!!customBackdrop && customBackdrop}</View>
-        </Animated.View>
+        isBackdropVisible && (
+            <Animated.View
+                entering={Entering}
+                exiting={Exiting}
+            >
+                <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
+            </Animated.View>
+        )
     );
 }
 
