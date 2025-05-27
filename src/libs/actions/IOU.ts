@@ -5171,29 +5171,19 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         },
     };
 
-    const {
-        payerAccountID,
-        payerEmail,
-        iouReport,
-        chatReport,
-        transaction,
-        iouAction,
-        createdChatReportActionID,
-        createdIOUReportActionID,
-        reportPreviewAction,
-        onyxData,
-    } = getMoneyRequestInformation({
-        parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
-        participantParams,
-        policyParams,
-        transactionParams,
-        moneyRequestReportID,
-        existingTransactionID,
-        existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
-        retryParams,
-        shouldGenerateOptimisticTransactionThread: false,
-        testDriveCommentReportActionID,
-    });
+    const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
+        getMoneyRequestInformation({
+            parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
+            participantParams,
+            policyParams,
+            transactionParams,
+            moneyRequestReportID,
+            existingTransactionID,
+            existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
+            retryParams,
+            shouldGenerateOptimisticTransactionThread: false,
+            testDriveCommentReportActionID,
+        });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
     if (shouldPlaySound) {
