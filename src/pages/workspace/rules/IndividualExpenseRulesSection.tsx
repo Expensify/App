@@ -84,7 +84,6 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, styles}: Indi
 function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {canUseProhibitedExpenses} = usePermissions();
     const policy = usePolicy(policyID);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -173,14 +172,12 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         },
     ];
 
-    if (canUseProhibitedExpenses) {
-        individualExpenseRulesItems.push({
-            title: prohibitedExpenses,
-            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
-            action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
-            pendingAction: policy?.pendingFields?.prohibitedExpenses,
-        });
-    }
+    individualExpenseRulesItems.push({
+        title: prohibitedExpenses,
+        descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
+        action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
+        pendingAction: policy?.pendingFields?.prohibitedExpenses,
+    });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
 

@@ -28,7 +28,6 @@ function RulesProhibitedDefaultPage({
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
-    const {canUseProhibitedExpenses} = usePermissions();
     const styles = useThemeStyles();
 
     return (
@@ -36,7 +35,6 @@ function RulesProhibitedDefaultPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            shouldBeBlocked={!canUseProhibitedExpenses}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
