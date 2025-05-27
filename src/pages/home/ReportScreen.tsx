@@ -338,7 +338,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
-        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
+        if (backTo === SCREENS.SEARCH.REPORT_RHP) {
+            Navigation.goBack();
+        }
+        if (isInNarrowPaneModal) {
             Navigation.dismissModal();
             return;
         }
@@ -346,11 +349,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.popToSidebar();
             return;
         }
-        if (backTo) {
-            Navigation.goBack(backTo as Route);
-            return;
-        }
-        Navigation.goBack();
+        Navigation.goBack(backTo as Route);
     }, [isInNarrowPaneModal, backTo]);
 
     let headerView = (
