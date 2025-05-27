@@ -1,21 +1,17 @@
+import {Image} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import type {FileObject} from '@components/AttachmentModal';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import getFileURL from './getFileURL';
+import getFile from './getFile';
 import type {SetTestReceipt} from './types';
 
 const setTestReceipt: SetTestReceipt = (asset, assetExtension, onFileRead, onFileError) => {
     const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.${assetExtension}`;
     const path = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${filename}`;
-    const source = getFileURL(asset, assetExtension);
+    const source = Image.resolveAssetSource(asset).uri;
 
-    ReactNativeBlobUtil.config({
-        fileCache: true,
-        appendExt: assetExtension,
-        path,
-    })
-        .fetch('GET', source)
+    getFile(source, path, assetExtension)
         .then(() => {
             const file: FileObject = {
                 uri: `file://${path}`,
