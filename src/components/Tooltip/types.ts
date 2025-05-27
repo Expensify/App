@@ -72,10 +72,6 @@ type GenericTooltipProps = SharedTooltipProps & {
 
     /** Whether it is education tooltip */
     isEducationTooltip?: boolean;
-
-    /** Whether the tooltip is allowed to extend into the gutters */
-    ignoreGutter?: boolean;
-
 };
 
 type TooltipProps = ChildrenProps &
@@ -85,9 +81,6 @@ type TooltipProps = ChildrenProps &
 
         /** Whether the current screen or component is actively focused via navigation */
         isFocused?: boolean;
-
-        /** Whether the tooltip is allowed to extend into the gutters */
-        ignoreGutter?: boolean;
     };
 
 type EducationalTooltipProps = ChildrenProps &

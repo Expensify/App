@@ -51,7 +51,6 @@ type TooltipParams = {
     anchorAlignment?: TooltipAnchorAlignment;
     shouldAddHorizontalPadding?: boolean;
     isEducationTooltip?: boolean;
-    ignoreGutter?: boolean;
 };
 
 type TooltipAnimationProps = {
@@ -107,7 +106,6 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         },
         wrapperStyle = {},
         isEducationTooltip = false,
-        ignoreGutter = false,
     }) => {
         const pointerWidth = isEducationTooltip ? EDUCATION_POINTER_WIDTH : POINTER_WIDTH;
         const pointerHeight = isEducationTooltip ? EDUCATION_POINTER_HEIGHT : POINTER_HEIGHT;
