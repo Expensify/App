@@ -413,7 +413,7 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const {canUseTableReportView} = usePermissions();
+    const {canUseTableReportView, canUseTrackFlows} = usePermissions();
     const shouldRenderViewBasedOnAction = useNewTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -678,7 +678,7 @@ function PureReportActionItem({
 
         if (isActionableTrackExpense(action)) {
             const transactionID = getOriginalMessage(action)?.transactionID;
-            return [
+            const options = [
                 {
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
@@ -686,28 +686,34 @@ function PureReportActionItem({
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
                 },
-                {
-                    text: 'actionableMentionTrackExpense.categorize',
-                    key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
-                    onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
-                    },
-                },
-                {
-                    text: 'actionableMentionTrackExpense.share',
-                    key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
-                    onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
-                    },
-                },
-                {
-                    text: 'actionableMentionTrackExpense.nothing',
-                    key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
-                    onPress: () => {
-                        dismissTrackExpenseActionableWhisper(reportID, action);
-                    },
-                },
             ];
+
+            if (canUseTrackFlows) {
+                options.push(
+                    {
+                        text: 'actionableMentionTrackExpense.categorize',
+                        key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
+                        onPress: () => {
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                        },
+                    },
+                    {
+                        text: 'actionableMentionTrackExpense.share',
+                        key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
+                        onPress: () => {
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                        },
+                    },
+                );
+            }
+            options.push({
+                text: 'actionableMentionTrackExpense.nothing',
+                key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
+                onPress: () => {
+                    dismissTrackExpenseActionableWhisper(reportID, action);
+                },
+            });
+            return options;
         }
 
         if (isActionableJoinRequest(action)) {
