@@ -312,6 +312,8 @@ type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
 type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean | string | number; newValue?: boolean | string | number};
 
+type UpdatedPolicyCategoryDescriptionHintTypeParams = {categoryName: string; oldValue?: string; newValue?: string};
+
 type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
@@ -913,6 +915,7 @@ export type {
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyCategoryParams,
+    UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
