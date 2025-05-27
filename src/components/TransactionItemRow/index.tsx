@@ -65,6 +65,7 @@ function TransactionItemRow({
     isParentHovered,
     columnWrapperStyles,
     scrollToNewTransaction,
+    isInReportRow = false,
 }: {
     transactionItem: TransactionWithOptionalSearchFields;
     shouldUseNarrowLayout: boolean;
@@ -80,6 +81,7 @@ function TransactionItemRow({
     isParentHovered?: boolean;
     columnWrapperStyles?: ViewStyle[];
     scrollToNewTransaction?: ((offset: number) => void) | undefined;
+    isInReportRow?: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -249,7 +251,7 @@ function TransactionItemRow({
             ref={viewRef}
         >
             {shouldUseNarrowLayout ? (
-                <Animated.View style={[animatedHighlightStyle]}>
+                <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
                     <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
                         <View style={[styles.flexRow]}>
                             {shouldShowCheckbox && (
@@ -337,7 +339,7 @@ function TransactionItemRow({
                     </View>
                 </Animated.View>
             ) : (
-                <Animated.View style={[animatedHighlightStyle]}>
+                <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
                     <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles, styles.mw100]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <View style={[styles.mr1]}>

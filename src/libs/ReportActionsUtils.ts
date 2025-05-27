@@ -1827,25 +1827,14 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
-    if (reimbursableUrls.length || nonReimbursableUrls.length) {
-        result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionThree'),
-            url: '',
-        });
-    }
+
     if (reimbursableUrls.length === 1) {
-        const shouldAddPeriod = nonReimbursableUrls.length === 0;
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
+            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
             url: reimbursableUrls.at(0) ?? '',
         });
     }
-    if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
-        result.push({
-            text: translateLocal('common.and'),
-            url: '',
-        });
-    }
+
     if (nonReimbursableUrls.length) {
         const text = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
         let url = '';
@@ -2409,6 +2398,16 @@ function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
 
+function getReportActionFromExpensifyCard(cardID: number) {
+    return Object.values(allReportActions ?? {})
+        .map((reportActions) => Object.values(reportActions ?? {}))
+        .flat()
+        .find((reportAction) => {
+            const cardIssuedActionOriginalMessage = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ? getOriginalMessage(reportAction) : undefined;
+            return cardIssuedActionOriginalMessage?.cardID === cardID;
+        });
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -2555,6 +2554,7 @@ export {
     getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
+    getReportActionFromExpensifyCard,
 };
 
 export type {LastVisibleMessage};

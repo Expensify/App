@@ -108,6 +108,7 @@ function ReportListItem<TItem extends ListItem>({
         ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
         ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
+        COLUMNS.COMMENTS,
         COLUMNS.TOTAL_AMOUNT,
         COLUMNS.ACTION,
     ] as Array<ValueOf<typeof COLUMNS>>;
@@ -173,6 +174,7 @@ function ReportListItem<TItem extends ListItem>({
                                     }}
                                     isParentHovered={hovered}
                                     columnWrapperStyles={[styles.ph3, styles.pv1half]}
+                                    isInReportRow
                                 />
                             </View>
                         ))
