@@ -5,6 +5,7 @@ import {Linking} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {setupNewDotAfterTransitionFromOldDot} from '@libs/actions/Session';
 import Navigation, {navigationRef} from '@navigation/Navigation';
+import * as HybridAppActions from '@userActions/HybridApp';
 import type {AppProps} from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,10 +56,9 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
                 Navigation.navigate(parsedUrl);
             });
 
-            if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
-                return;
+            if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
+                setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             }
-            setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
         },
         [splashScreenState, setSplashScreenState],
     );
@@ -68,8 +68,12 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
             if (!isLoading) {
                 if (!setupCalled.current) {
                     setupCalled.current = true;
-                    setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
+                    const parsedHybridAppSettings = HybridAppActions.parseHybridAppSettings(hybridAppSettings);
+                    setupNewDotAfterTransitionFromOldDot(parsedHybridAppSettings, tryNewDot).then(() => {
                         handleNavigation(url);
+                        if (parsedHybridAppSettings.hybridApp?.loggedOutFromOldDot) {
+                            setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+                        }
                     });
                     return;
                 }

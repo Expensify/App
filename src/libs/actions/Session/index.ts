@@ -50,6 +50,7 @@ import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import * as HybridAppActions from '@userActions/HybridApp';
+import type HybridAppSettings from '@userActions/HybridApp/types';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -518,8 +519,8 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
-function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: string, tryNewDot?: TryNewDot) {
-    const {hybridApp, ...newDotOnyxValues} = HybridAppActions.parseHybridAppSettings(hybridAppSettings);
+function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot?: TryNewDot) {
+    const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
 
     const clearOnyxBeforeSignIn = () => {
         if (!hybridApp.useNewDotSignInPage) {
