@@ -4075,12 +4075,13 @@ const declineMoneyRequestReason =  (reportAction: OnyxEntry<ReportAction>): void
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
-    const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID;
 
-    const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
+    const originalMessage = getOriginalMessage(reportAction);
+    const moneyRequestReportID = originalMessage?.IOUReportID;
+    const transactionID = originalMessage?.IOUTransactionID;
 
     if (!transactionID || !moneyRequestReportID) {
-        Log.warn('Missing transactionID and reportAction.childReportID during the change of the money request hold status');
+        Log.warn('Missing transactionID and moneyRequestReportID during the change of the money request hold status');
         return;
     }   
     
