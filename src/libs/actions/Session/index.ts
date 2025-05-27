@@ -519,8 +519,7 @@ function signUpUser() {
 }
 
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: string, tryNewDot?: TryNewDot) {
-    const {initialOnyxValues} = HybridAppActions.parseHybridAppSettings(hybridAppSettings);
-    const {hybridApp, ...newDotOnyxValues} = initialOnyxValues;
+    const {hybridApp, ...newDotOnyxValues} = HybridAppActions.parseHybridAppSettings(hybridAppSettings);
 
     const clearOnyxBeforeSignIn = () => {
         if (!hybridApp.useNewDotSignInPage) {
