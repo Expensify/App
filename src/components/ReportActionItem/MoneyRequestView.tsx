@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -77,7 +78,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type MoneyRequestViewProps = {
     /** The report currently being looked at */
@@ -112,7 +112,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {isOffline} = useNetwork();
     const {canUseTableReportView} = usePermissions();
     const {translate, toLocaleDigit} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const policyID = report?.policyID;
@@ -577,7 +577,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         dismissError={dismissReceiptError}
                     >
                         {hasReceipt && (
-                            <View style={[styles.moneyRequestViewImage, isSmallScreenWidth ? styles.expenseViewImageSmall : styles.expenseViewImage]}>
+                            <View style={[styles.moneyRequestViewImage, shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage]}>
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
                                     fileExtension={receiptURIs?.fileExtension}

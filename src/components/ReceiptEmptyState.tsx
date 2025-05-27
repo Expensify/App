@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type ReceiptEmptyStateProps = {
     /** Whether or not there is an error */
@@ -32,11 +32,19 @@ type ReceiptEmptyStateProps = {
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseAspectRatio = false, shouldUseFullHeight = false}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({
+    hasError = false,
+    onPress,
+    disabled = false,
+    isThumbnail = false,
+    isInMoneyRequestView = false,
+    shouldUseAspectRatio = false,
+    shouldUseFullHeight = false,
+}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = [
@@ -46,7 +54,7 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
         isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
         isThumbnail && !isInMoneyRequestView && styles.w100,
         isThumbnail && isInMoneyRequestView && styles.thumbnailImageContainerHighlight,
-        shouldUseAspectRatio ? isSmallScreenWidth ? styles.expenseViewImageSmall : styles.expenseViewImage : {},
+        shouldUseAspectRatio ? (shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage) : {},
         hasError && styles.borderColorDanger,
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
     ];
