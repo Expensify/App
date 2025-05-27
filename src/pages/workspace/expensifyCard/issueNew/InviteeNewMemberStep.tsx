@@ -41,7 +41,7 @@ function InviteNewMemberStep({policy}: InviteeNewMemberStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [welcomeNote, setWelcomeNote] = useState<string>();
-    const policyID = policy.id;
+    const policyID = policy?.id;
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, {
         canBeMissing: true,
     });
