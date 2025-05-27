@@ -1,5 +1,6 @@
+/* eslint-disable rulesdir/prefer-early-return */
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -28,6 +29,7 @@ import DateUtils from '@libs/DateUtils';
 import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
@@ -36,18 +38,20 @@ import {
     getOneTransactionThreadReportID,
     hasNextActionMadeBySameActor,
     isConsecutiveChronosAutomaticTimerAction,
+    isCurrentActionUnread,
     isDeletedParentAction,
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import variables from '@styles/variables';
-import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
+import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -114,6 +118,9 @@ function MoneyRequestReportActionsList({
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
+    const lastMessageTime = useRef<string | null>(null);
+    const [isVisible, setIsVisible] = useState(Visibility.isVisible);
+    const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
 
     const reportID = report?.reportID;
@@ -229,6 +236,64 @@ function MoneyRequestReportActionsList({
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
+
+    useEffect(() => {
+        const unsubscribe = Visibility.onVisibilityChange(() => {
+            setIsVisible(Visibility.isVisible());
+        });
+
+        return unsubscribe;
+    }, []);
+
+    useEffect(() => {
+        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
+            // On desktop, when the notification center is displayed, isVisible will return false.
+            // Currently, there's no programmatic way to dismiss the notification center panel.
+            // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
+            const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+            if ((isVisible || isFromNotification) && scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+                readNewestAction(report.reportID);
+                if (isFromNotification) {
+                    Navigation.setParams({referrer: undefined});
+                }
+            } else {
+                readActionSkipped.current = true;
+            }
+        }
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
+
+    useEffect(() => {
+        if (!isVisible || !isFocused) {
+            if (!lastMessageTime.current) {
+                lastMessageTime.current = lastAction?.created ?? '';
+            }
+            return;
+        }
+
+        // In case the user read new messages (after being inactive) with other device we should
+        // show marker based on report.lastReadTime
+        const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        lastMessageTime.current = null;
+
+        const hasNewMessagesInView = scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+        const hasUnreadReportAction = reportActions.some(
+            (reportAction) => newMessageTimeReference && newMessageTimeReference < reportAction.created && reportAction.actorAccountID !== getCurrentUserAccountID(),
+        );
+
+        if (!hasNewMessagesInView || !hasUnreadReportAction) {
+            return;
+        }
+
+        readNewestAction(report.reportID);
+        userActiveSince.current = DateUtils.getDBTime();
+
+        // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
+        //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
+        // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
+        // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isFocused, isVisible]);
 
     /**
      * The index of the earliest message that was received while offline
