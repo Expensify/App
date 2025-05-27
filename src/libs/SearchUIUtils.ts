@@ -59,7 +59,14 @@ import {
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
-import {getCurrency, getTaxAmount, getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
+import {
+    getCurrency,
+    getTaxAmount,
+    getAmount as getTransactionAmount,
+    getCreated as getTransactionCreatedDate,
+    getMerchant as getTransactionMerchant,
+    isPendingCardOrScanningTransaction,
+} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
 const transactionColumnNamesToSortingProperty = {
@@ -252,11 +259,12 @@ function isTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTra
 
 /**
  * Determines whether the year should be shown for items based on their creation date,
- * and whether the amount display requires extra space due to its length.
+ * and whether the amount and tax amount display requires extra space due to its length.
  *
  * Returns an object with:
  * - shouldShowYear: true if any item is from a previous year.
  * - isAmountLengthLong: true if any item's formatted amount is too long to fit normally.
+ * - isTaxAmountLengthLong: true if any item's tax amount is too long to fit normally.
  */
 function getSearchTableYearAndAmountWidth(data: TransactionListItemType[] | ReportListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
     const result = {shouldShowYear: false, isAmountLengthLong: false, isTaxAmountLengthLong: false};
