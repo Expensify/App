@@ -1191,16 +1191,24 @@ function isTagModificationAction(actionName: string): boolean {
     );
 }
 
-const isIOUActionTransactionMatchingReport = (
+/**
+ * Determines whether the given action is an IOU and, if a list of report transaction IDs is provided,
+ * whether it corresponds to one of those transactions.
+ *
+ * For compatibility and to avoid using isMoneyRequest next to this function as it is checked here already:
+ * - If the action is not a money request and `defaultToFalseForNonIOU` is false (default), the result is true.
+ * - If no `reportTransactionIDs` are provided, the function returns true if the action is an IOU.
+ * - If `reportTransactionIDs` are provided, the function checks if the IOU transaction ID from the action matches any of them.
+ */
+const isIOUActionMatchingTransactionList = (
     action: ReportAction,
     reportTransactionIDs?: string[],
-    returnFalseIfActionIsNotIOU = false,
+    defaultToFalseForNonIOU = false,
 ): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
     if (!isMoneyRequestAction(action)) {
-        return !returnFalseIfActionIsNotIOU;
+        return !defaultToFalseForNonIOU;
     }
 
-    // For compatibility, if the function is called without the reportTransactionIDs parameter, it only checks whether the action is an IOU.
     if (reportTransactionIDs === undefined) {
         return true;
     }
@@ -1232,7 +1240,7 @@ function getOneTransactionThreadReportID(
 
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
-        if (!isIOUActionTransactionMatchingReport(action, reportTransactionIDs, true)) {
+        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true)) {
             // eslint-disable-next-line no-continue
             continue;
         }
@@ -2530,7 +2538,7 @@ export {
     isForwardedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
-    isIOUActionTransactionMatchingReport,
+    isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
     shouldHideNewMarker,
     shouldReportActionBeVisible,

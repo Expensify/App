@@ -36,7 +36,7 @@ import {
     hasNextActionMadeBySameActor,
     isConsecutiveChronosAutomaticTimerAction,
     isDeletedParentAction,
-    isIOUActionTransactionMatchingReport,
+    isIOUActionMatchingTransactionList,
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
@@ -159,7 +159,7 @@ function MoneyRequestReportActionsList({
                 isActionVisibleOnMoneyReport &&
                 (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
                 shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
-                isIOUActionTransactionMatchingReport(reportAction, reportTransactionIDs)
+                isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)
             );
         });
 

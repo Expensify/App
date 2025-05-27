@@ -26,7 +26,7 @@ import {
     getSortedReportActionsForDisplay,
     isCreatedAction,
     isDeletedParentAction,
-    isIOUActionTransactionMatchingReport,
+    isIOUActionMatchingTransactionList,
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
@@ -200,7 +200,7 @@ function ReportActionsView({
                 (reportAction) =>
                     (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
                     shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
-                    isIOUActionTransactionMatchingReport(reportAction, reportTransactionIDs),
+                    isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
             ),
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
