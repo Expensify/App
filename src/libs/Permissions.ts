@@ -82,6 +82,10 @@ function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
 }
 
+function canUseMultiScan(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_SCAN) || canUseAllBetas(betas);
+}
+
 function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
 }
@@ -105,5 +109,6 @@ export default {
     canUseRetractNewDot,
     canUseMultiLevelTags,
     canUseMultiFilesDragAndDrop,
+    canUseMultiScan,
     canUsePlaidCompanyCards,
 };
