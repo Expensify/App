@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -119,8 +120,11 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
     return (
-        <>
-            {allCards.length > 0 && (
+        <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+        >
+            {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.companyCards.findCard')}
                     inputValue={inputValue}
@@ -136,7 +140,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
                 ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
                 stickyHeaderIndices={[0]}
             />
-        </>
+        </ScrollView>
     );
 }
 

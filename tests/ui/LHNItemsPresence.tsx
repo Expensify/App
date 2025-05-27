@@ -24,7 +24,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
 jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
@@ -464,7 +463,7 @@ describe('SidebarLinksData', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, expenseTransaction);
 
-            // Then such report should not appear in the sidebar because the highest level context is on the workspace chat with GBR that is visible in the LHN
+            // Then such report should not appear in the sidebar because the highest level context is on the expense chat with GBR that is visible in the LHN
             expect(getOptionRows()).toHaveLength(0);
         });
 
