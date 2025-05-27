@@ -62,10 +62,10 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
         shouldShowPendingDeletePolicy: false,
         selectedPolicyID: report.policyID,
         searchTerm: debouncedSearchTerm,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session),
+        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies),
     });
 
-    if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report) || (!report.total && !report.unheldTotal)) {
+    if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
         return <NotFoundPage />;
     }
 

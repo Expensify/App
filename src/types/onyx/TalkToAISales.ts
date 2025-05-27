@@ -11,7 +11,7 @@ type TalkToAISales = {
         /** OpenAI Ephermeral token for the current session */
         ephemeralToken: string;
 
-        /** Expiration time in ephoch time for the ephemeral token. */
+        /** Expiration time in epoch time for the ephemeral token. */
         expiresAt: number;
     };
 };
