@@ -18,6 +18,8 @@ import {addBillingCardAndRequestPolicyOwnerChange} from '@userActions/Policy/Pol
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import RenderHtml from 'react-native-render-html';
+import { useWindowDimensions } from 'react-native';
 
 type WorkspaceOwnerPaymentCardFormProps = {
     /** The policy */
@@ -28,6 +30,8 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const { width } = useWindowDimensions();
+
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
 
     const policyID = policy?.id;
@@ -83,23 +87,30 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
             headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>}
             footerContent={
                 <>
-                    <Text style={[styles.textMicroSupporting, styles.mt5]}>
-                        {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart1')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
-                        >
-                            {translate('workspace.changeOwner.addPaymentCardTerms')}
-                        </TextLink>{' '}
-                        {translate('workspace.changeOwner.addPaymentCardAnd')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                        >
-                            {translate('workspace.changeOwner.addPaymentCardPrivacy')}
-                        </TextLink>{' '}
-                        {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart2')}
-                    </Text>
+                    <View style={[styles.mt5]}>
+                        <RenderHtml
+                            contentWidth={width}
+                            source={{
+                                html: `
+                                    ${translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart')}
+                                    <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">${translate('workspace.changeOwner.addPaymentCardTerms')}</a>
+                                    ${translate('workspace.changeOwner.addPaymentCardAnd')}
+                                    <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">${translate('workspace.changeOwner.addPaymentCardPrivacy')}</a>
+                                    ${translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart')}
+                                `,
+                            }}
+                            tagsStyles={{
+                                a: {
+                                    ...styles.textMicroSupporting,
+                                    ...styles.link,
+                                },
+                                body: {
+                                    ...styles.textMicroSupporting,
+                                },
+                            }}
+                            enableExperimentalMarginCollapsing={true}
+                        />
+                    </View>
                     <Section
                         icon={Illustrations.ShieldYellow}
                         cardLayout={CARD_LAYOUT.ICON_ON_LEFT}

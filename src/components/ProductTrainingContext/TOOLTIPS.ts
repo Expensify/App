@@ -2,6 +2,8 @@ import type {ValueOf} from 'type-fest';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import RenderHtml from 'react-native-render-html';
+import { useWindowDimensions } from 'react-native';
 
 const {
     CONCIERGE_LHN_GBR,
@@ -18,6 +20,8 @@ const {
     EXPENSE_REPORTS_FILTER,
     SCAN_TEST_DRIVE_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+
+const { width } = useWindowDimensions();
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
 
@@ -96,10 +100,17 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GBR_RBR_CHAT]: {
         content: [
-            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
-            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{
+                            html: translate('productTrainingTooltip.GBRRBRChat.full'),
+                        }}
+                    />
+                ),
+                isBold: false,
+            },
         ],
         onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
         name: GBR_RBR_CHAT,

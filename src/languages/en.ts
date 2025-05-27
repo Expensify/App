@@ -4755,8 +4755,7 @@ const translations = {
             changeOwnerPageTitle: 'Transfer owner',
             addPaymentCardTitle: 'Enter your payment card to transfer ownership',
             addPaymentCardButtonText: 'Accept terms & add payment card',
-            addPaymentCardReadAndAcceptTextPart1: 'Read and accept',
-            addPaymentCardReadAndAcceptTextPart2: 'policy to add your card',
+            addPaymentCardReadAndAcceptText: `Read and accept <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}"></a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">policy</a> to add your card.`,
             addPaymentCardTerms: 'terms',
             addPaymentCardPrivacy: 'privacy',
             addPaymentCardAnd: '&',
@@ -6346,10 +6345,7 @@ const translations = {
             part4: ' Try it out!',
         },
         GBRRBRChat: {
-            part1: 'You’ll see 🟢 on ',
-            part2: 'actions to take',
-            part3: ',\nand 🔴 on ',
-            part4: 'items to review.',
+            full: 'You’ll see 🟢 on <b>actions to take</b>,\nand 🔴 on <b>items to review</b>.',
         },
         accountSwitcher: {
             part1: 'Access your ',
