@@ -200,7 +200,7 @@ function ReportActionsView({
                 (reportAction) =>
                     (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
                     shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
-                    isIOUActionTransactionMatchingReport(reportAction, reportTransactionIDs ?? []),
+                    isIOUActionTransactionMatchingReport(reportAction, reportTransactionIDs),
             ),
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );

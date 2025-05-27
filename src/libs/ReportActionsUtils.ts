@@ -1191,13 +1191,22 @@ function isTagModificationAction(actionName: string): boolean {
     );
 }
 
-const isIOUActionTransactionMatchingReport = (action: ReportAction, reportTransactionIDs: string[]) => {
+const isIOUActionTransactionMatchingReport = (
+    action: ReportAction,
+    reportTransactionIDs?: string[],
+    returnFalseIfActionIsNotIOU = false,
+): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
     if (!isMoneyRequestAction(action)) {
-        return false;
+        return !returnFalseIfActionIsNotIOU;
+    }
+
+    // For compatibility, if the function is called without the reportTransactionIDs parameter, it only checks whether the action is an IOU.
+    if (reportTransactionIDs === undefined) {
+        return true;
     }
 
     const {IOUTransactionID} = getOriginalMessage(action) ?? {};
-    return IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
+    return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
 };
 
 /**
@@ -1223,7 +1232,7 @@ function getOneTransactionThreadReportID(
 
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
-        if (!isMoneyRequestAction(action) || !isIOUActionTransactionMatchingReport(action, reportTransactionIDs ?? [])) {
+        if (!isIOUActionTransactionMatchingReport(action, reportTransactionIDs, true)) {
             // eslint-disable-next-line no-continue
             continue;
         }
