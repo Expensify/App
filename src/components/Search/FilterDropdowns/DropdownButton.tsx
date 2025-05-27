@@ -2,10 +2,14 @@ import React, {useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
+import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 
 type PopoverComponentProps = {
@@ -19,6 +23,9 @@ type DropdownButtonProps = {
     /** The selected value(s) if any */
     value: string | string[] | null;
 
+    /** The viewport's offset */
+    viewportOffsetTop: number;
+
     /** The component to render in the popover */
     PopoverComponent: React.FC<PopoverComponentProps>;
 };
@@ -30,12 +37,14 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
+function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {windowHeight} = useWindowDimensions();
     const triggerRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
     const [popoverTriggerPosition, setPopoverTriggerPosition] = useState({
@@ -104,23 +113,25 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
                 anchorRef={triggerRef}
                 isVisible={isOverlayVisible}
                 onClose={toggleOverlay}
-                avoidKeyboard
+                shouldSwitchPositionIfOverflow
                 anchorPosition={popoverTriggerPosition}
                 anchorAlignment={ANCHOR_ORIGIN}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}
+                outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
                 // This must be false because we dont want the modal to close if we open the RHP for selections
                 // such as date years
                 shouldCloseWhenBrowserNavigationChanged={false}
-                outerStyle={containerStyles}
                 innerContainerStyle={containerStyles}
                 popoverDimensions={{
                     width: CONST.POPOVER_DROPDOWN_WIDTH,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                <PopoverComponent closeOverlay={toggleOverlay} />
+                <FocusTrapForModal active={isOverlayVisible}>
+                    <PopoverComponent closeOverlay={toggleOverlay} />
+                </FocusTrapForModal>
             </PopoverWithMeasuredContent>
         </>
     );
@@ -128,4 +139,4 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
 
 DropdownButton.displayName = 'DropdownButton';
 export type {PopoverComponentProps};
-export default DropdownButton;
+export default withViewportOffsetTop(DropdownButton);
