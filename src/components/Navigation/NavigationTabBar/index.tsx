@@ -11,7 +11,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
@@ -23,7 +22,12 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {getLastVisitedWorkspacesTabPath, getLastVisitedWorkspaceTabScreen, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/getLastVisitedWorkspaceTabScreen';
+import {
+    getLastVisitedTabPath,
+    getLastVisitedWorkspaceTabScreen,
+    getSettingsTabStateFromSessionStorage,
+    getWorkspacesTabStateFromSessionStorage,
+} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -51,11 +55,10 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
@@ -72,10 +75,10 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReports));
+        setChatTabBrickRoad(getChatTabBrickRoad(orderedReports));
         // We need to get a new brick road state when report attributes are updated, otherwise we'll be showing an outdated brick road.
         // That's why reportAttributes is added as a dependency here
-    }, [activeWorkspaceID, orderedReports, reportAttributes]);
+    }, [orderedReports, reportAttributes]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -121,9 +124,17 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
         interceptAnonymousUser(() => {
+            const settingsTabState = getSettingsTabStateFromSessionStorage();
+            if (settingsTabState && !shouldUseNarrowLayout) {
+                const lastVisitedSettingsRoute = getLastVisitedTabPath(settingsTabState);
+                if (lastVisitedSettingsRoute) {
+                    Navigation.navigate(lastVisitedSettingsRoute);
+                    return;
+                }
+            }
             Navigation.navigate(ROUTES.SETTINGS);
         });
-    }, [selectedTab]);
+    }, [selectedTab, shouldUseNarrowLayout]);
 
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
@@ -185,7 +196,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             // If the path stored in the session storage leads to a settings screen, we just navigate to it on a wide layout.
             // On a small screen, we want to go to the page containing the bottom tab bar (ROUTES.SETTINGS or ROUTES.SETTINGS_WORKSPACES) when changing tabs
             if (workspacesTabState && !shouldUseNarrowLayout) {
-                const lastVisitedSettingsRoute = getLastVisitedWorkspacesTabPath(workspacesTabState);
+                const lastVisitedSettingsRoute = getLastVisitedTabPath(workspacesTabState);
                 if (lastVisitedSettingsRoute) {
                     Navigation.navigate(lastVisitedSettingsRoute);
                     return;
@@ -209,7 +220,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                     <DebugTabView
                         selectedTab={selectedTab}
                         chatTabBrickRoad={chatTabBrickRoad}
-                        activeWorkspaceID={activeWorkspaceID}
                     />
                 )}
                 <View style={styles.leftNavigationTabBarContainer}>
@@ -345,7 +355,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
-                    activeWorkspaceID={activeWorkspaceID}
                 />
             )}
             <View style={styles.navigationTabBarContainer}>
