@@ -121,7 +121,7 @@ function MoneyRequestParticipantsSelector({
         if (!Permissions.canUseNativeContactImport(betas)) {
             return;
         }
-        
+
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
             const usersFromContact = getContacts(contactList);
@@ -244,6 +244,7 @@ function MoneyRequestParticipantsSelector({
             chatOptions.selfDMChat,
             chatOptions?.userToInvite,
             chatOptions.workspaceChats,
+            cleanSearchTerm,
             debouncedSearchTerm,
             participants,
         ],
@@ -332,7 +333,6 @@ function MoneyRequestParticipantsSelector({
         translate,
         showImportContacts,
         inputHelperText,
-        cleanSearchTerm,
         isPerDiemRequest,
     ]);
 
@@ -462,7 +462,7 @@ function MoneyRequestParticipantsSelector({
         if (!Permissions.canUseNativeContactImport(betas)) {
             return;
         }
-        
+
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
         setTextInputAutoFocus(true);
