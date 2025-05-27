@@ -49,6 +49,7 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isChatRoom,
+    isReportTransactionThread,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -212,6 +213,7 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const shouldDisplayDualDropZone = useMemo(() => !isChatRoom(report) && !isUserCreatedPolicyRoom(report) && !isAnnounceRoom(report) && !isAdminRoom(report), [report]);
+    const isTransactionThreadView = isReportTransactionThread(report);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -433,11 +435,19 @@ function ReportActionCompose({
         validateAndResizeFile(originalFile, saveFileAndInitMoneyRequest, isPdfValidated);
     };
 
-    const initScanRequest = (e: DragEvent) => {
+    const replaceReceipt = (file: FileObject) => {
+        console.log(file);
+    };
+
+    const handleAddingReceipt = (e: DragEvent) => {
         const file = e?.dataTransfer?.files[0];
         if (file) {
             file.uri = URL.createObjectURL(file);
-            setReceiptAndNavigate(file);
+            if (isTransactionThreadView) {
+                replaceReceipt(file);
+            } else {
+                setReceiptAndNavigate(file);
+            }
         }
     };
 
@@ -553,7 +563,7 @@ function ReportActionCompose({
                                     {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
                                     {!!canUseMultiFilesDragAndDrop && shouldDisplayDualDropZone && (
                                         <DualDropZone
-                                            isEditing={false}
+                                            isEditing={isTransactionThreadView}
                                             onAttachmentDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {
                                                     return;
@@ -564,7 +574,7 @@ function ReportActionCompose({
                                                     displayFileInModal(data);
                                                 }
                                             }}
-                                            onReceiptDrop={initScanRequest}
+                                            onReceiptDrop={handleAddingReceipt}
                                         />
                                     )}
                                     {!!canUseMultiFilesDragAndDrop && !shouldDisplayDualDropZone && (
