@@ -1,6 +1,7 @@
 import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useIsFocused} from '@react-navigation/native';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
@@ -8,7 +9,6 @@ import {isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
-import useDebounce from './useDebounce';
 import usePrevious from './usePrevious';
 
 type UseSearchHighlightAndScroll = {
@@ -25,6 +25,7 @@ type UseSearchHighlightAndScroll = {
  * Hook used to trigger a search when a new transaction or report action is added and handle highlighting and scrolling.
  */
 function useSearchHighlightAndScroll({searchResults, transactions, previousTransactions, reportActions, previousReportActions, queryJSON, offset}: UseSearchHighlightAndScroll) {
+    const isFocused = useIsFocused();
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
@@ -34,13 +35,6 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
-
-    const performSearch = useCallback(() => {
-        search({queryJSON, offset});
-        searchTriggeredRef.current = true;
-    }, [queryJSON, offset]);
-
-    const debouncedSearch = useDebounce(performSearch, 150);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
@@ -65,16 +59,34 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
+            // Check if the detected changes are actually missing from current search results
+            const currentSearchResultIDs = isChat
+                ? extractReportActionIDsFromSearchResults(searchResults?.data ?? {})
+                : extractTransactionIDsFromSearchResults(searchResults?.data ?? {});
+
+            const newIDs = isChat ? reportActionsIDs : transactionsIDs;
+            const genuinelyNewIDs = newIDs.filter(id => !currentSearchResultIDs.includes(id));
+
+            // Only trigger search if there are genuinely new items not in current search results AND we're focused
+            if (genuinelyNewIDs.length === 0 || !isFocused) {
+                return;
+            }
+
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
             hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
 
+            // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
-            searchTriggeredRef.current = false; // Reset before triggering search
-            debouncedSearch();
+
+            // Trigger the search
+            search({queryJSON, offset});
+
+            // Set the ref to prevent further triggers until reset
+            searchTriggeredRef.current = true;
         }
-    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, debouncedSearch]);
+    }, [isFocused, transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
@@ -182,6 +194,8 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
             // Perform the scrolling action
             ref.scrollToIndex(indexOfNewItem);
+            // Reset the trigger flag to prevent unintended future scrolls and highlights
+            triggeredByHookRef.current = false;
         },
         [newSearchResultKey, isChat],
     );
