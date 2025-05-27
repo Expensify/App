@@ -977,7 +977,7 @@ function MoneyReportHeader({
                         </View>
                     )}
                     {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                    {shouldShowNextStep && !optimisticNextStep?.message?.length && !!isLoadingInitialReportActions && <MoneyReportHeaderStatusBarSkeleton />}
+                    {shouldShowNextStep && !optimisticNextStep?.message?.length && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
                     {!!statusBarProps && (
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}

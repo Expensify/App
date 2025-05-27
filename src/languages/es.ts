@@ -4343,11 +4343,6 @@ const translations = {
             notFound: 'No se encontró ningún espacio de trabajo',
             description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para comenzar a colaborar, cree o únase a un espacio de trabajo',
         },
-        switcher: {
-            headerTitle: 'Filtrar por espacio de trabajo',
-            everythingSection: 'Todo',
-            placeholder: 'Encuentra un espacio de trabajo',
-        },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
