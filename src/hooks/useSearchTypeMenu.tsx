@@ -70,7 +70,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
             const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
             return searchQueryJSON?.hash === hash;
         });
-    }, [hash, typeMenuSections]);
+    }, [hash, searchName, typeMenuSections]);
 
     const closeMenu = useCallback(() => {
         setIsPopoverVisible(false);
@@ -177,7 +177,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
         }
 
         setProcessedMenuItems(items as PopoverMenuItem[]);
-    }, [savedSearches, popoverMenuItems, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies, translate]);
+    }, [savedSearches, popoverMenuItems, searchName, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies, translate]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);
