@@ -13,9 +13,9 @@ type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BUL
 
 type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
 
-type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
+type WorkspaceBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
-type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
+type WorkspaceActionType = DeepValueOf<typeof CONST.POLICY.ACTION_TYPES>;
 
 type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
@@ -140,9 +140,9 @@ export type {
     PaymentType,
     WorkspaceMemberBulkActionType,
     RoomMemberBulkActionType,
-    WorkspaceDistanceRatesBulkActionType,
+    WorkspaceBulkActionType,
     DropdownOption,
     ButtonWithDropdownMenuProps,
-    WorkspaceTaxRatesBulkActionType,
+    WorkspaceActionType,
     ReportExportType,
 };

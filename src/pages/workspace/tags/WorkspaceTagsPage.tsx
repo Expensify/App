@@ -2,17 +2,13 @@ import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption, WorkspaceActionType, WorkspaceBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -23,6 +19,7 @@ import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import WorkspaceHeader from '@components/WorkspaceHeader';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -36,7 +33,6 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -73,7 +69,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 
 type WorkspaceTagsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
@@ -85,7 +80,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -277,9 +271,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const navigateToTagsSettings = () => {
+    const navigateToTagsSettings = useCallback(() => {
         Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
-    };
+    }, [backTo, isQuickSettingsFlow, policyID]);
 
     const navigateToCreateTagPage = () => {
         Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_CREATE.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
@@ -310,33 +304,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const isLoading = !isOffline && policyTags === undefined;
 
-    const getHeaderButtons = () => {
+    const bulkActionButtonOptions = useMemo(() => {
         const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
-
-        if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTags.length === 0) {
-            return (
-                <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                    {!hasAccountingConnections && !isMultiLevelTags && (
-                        <Button
-                            success
-                            onPress={navigateToCreateTagPage}
-                            icon={Expensicons.Plus}
-                            text={translate('workspace.tags.addTag')}
-                            style={[shouldUseNarrowLayout && styles.flex1]}
-                        />
-                    )}
-                    <Button
-                        onPress={navigateToTagsSettings}
-                        icon={Expensicons.Gear}
-                        text={translate('common.settings')}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
-                    />
-                </View>
-            );
-        }
-
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
+        const options: Array<DropdownOption<WorkspaceBulkActionType>> = [];
 
         if (!hasAccountingConnections) {
             options.push({
@@ -402,30 +373,26 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        return (
-            <ButtonWithDropdownMenu
-                onPress={() => null}
-                shouldAlwaysShowDropdownMenu
-                pressOnEnter
-                isSplitButton={false}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', {count: selectedTags.length})}
-                options={options}
-                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                isDisabled={!selectedTags.length}
-                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
-            />
-        );
-    };
+        return options;
+    }, [filteredTagListKeyedByName, policy, policyID, policyTagLists, selectedTags, setSelectedTags, translate]);
 
     const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    const threeDotsMenuItems = useMemo(() => {
-        const menuItems: PopoverMenuItem[] = [];
+    const moreMenuItems = useMemo(() => {
+        const menuItems: Array<DropdownOption<WorkspaceActionType>> = [];
+
+        menuItems.push({
+            icon: Expensicons.Gear,
+            text: translate('common.settings'),
+            value: CONST.POLICY.ACTION_TYPES.SETTINGS,
+            onSelected: navigateToTagsSettings,
+        });
+
         if (!hasAccountingConnectionsPolicyUtils(policy)) {
             menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
+                value: CONST.POLICY.ACTION_TYPES.IMPORT_SPREADSHEET,
                 onSelected: () => {
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
@@ -444,6 +411,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
+                value: CONST.POLICY.ACTION_TYPES.DOWNLOAD_CSV,
                 onSelected: () => {
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
@@ -465,7 +433,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo, canUseMultiLevelTags, hasIndependentTags]);
+    }, [translate, navigateToTagsSettings, policy, hasVisibleTags, isOffline, isQuickSettingsFlow, policyID, backTo, hasIndependentTags, canUseMultiLevelTags]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -483,11 +451,23 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     shouldShowOfflineIndicatorInWideScreen
                     offlineIndicatorStyle={styles.mtAuto}
                 >
-                    <HeaderWithBackButton
+                    <WorkspaceHeader
+                        bulkActionButtonOptions={bulkActionButtonOptions}
+                        bulkActionButtonText={translate('workspace.common.selected', {count: selectedTags.length})}
+                        bulkActionButtonTestID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
+                        shouldShowPrimaryButton={!hasAccountingConnectionsPolicyUtils(policy) && !isMultiLevelTags}
+                        primaryButtonProps={{
+                            icon: Expensicons.Plus,
+                            success: true,
+                            text: translate('workspace.tags.addTag'),
+                            onPress: navigateToCreateTagPage,
+                        }}
+                        shouldShowMoreButton={canUseMultiLevelTags ? !hasDependentTags : !policy?.hasMultipleTagLists}
+                        moreButtonOptions={moreMenuItems}
+                        moreButtonTestID={`${WorkspaceTagsPage.displayName}-header-more-dropdown-menu-button`}
+                        selected={selectedTags.length}
                         icon={!selectionModeHeader ? Illustrations.Tag : undefined}
-                        shouldUseHeadlineHeader={!selectionModeHeader}
                         title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
-                        shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={() => {
                             if (selectionMode?.isEnabled) {
                                 setSelectedTags([]);
@@ -502,13 +482,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.popToSidebar();
                         }}
-                        shouldShowThreeDotsButton={canUseMultiLevelTags ? !hasDependentTags : !policy?.hasMultipleTagLists}
-                        threeDotsMenuItems={threeDotsMenuItems}
-                        threeDotsAnchorPosition={threeDotsAnchorPosition}
-                    >
-                        {!shouldUseNarrowLayout && getHeaderButtons()}
-                    </HeaderWithBackButton>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    />
                     <ScrollView
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}

@@ -2,13 +2,10 @@ import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption, WorkspaceActionType, WorkspaceBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -23,6 +20,7 @@ import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import WorkspaceHeader from '@components/WorkspaceHeader';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
@@ -36,7 +34,6 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -55,7 +52,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategory} from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type PolicyOption = ListItem & {
     /** Category name is used as a key for the selectedCategories state */
@@ -70,7 +66,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {translate} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
@@ -211,9 +206,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         );
     };
 
-    const navigateToCategoriesSettings = () => {
+    const navigateToCategoriesSettings = useCallback(() => {
         Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
-    };
+    }, [backTo, isQuickSettingsFlow, policyId]);
 
     const navigateToCreateCategoryPage = () => {
         Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
@@ -232,112 +227,77 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         });
     };
 
-    const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
+    const bulkActionButtonOptions = useMemo(() => {
+        const options: Array<DropdownOption<WorkspaceBulkActionType>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
         const selectedCategoriesObject = selectedCategories.map((key) => policyCategories?.[key]);
 
-        if (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0) {
-            if (!isThereAnyAccountingConnection) {
-                options.push({
-                    icon: Expensicons.Trashcan,
-                    text: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
-                    value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => {
-                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
-                            return;
-                        }
+        if (!isThereAnyAccountingConnection) {
+            options.push({
+                icon: Expensicons.Trashcan,
+                text: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                onSelected: () => {
+                    if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
+                        setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                        return;
+                    }
 
-                        setDeleteCategoriesConfirmModalVisible(true);
-                    },
-                });
-            }
-
-            const enabledCategories = selectedCategories.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
-            if (enabledCategories.length > 0) {
-                const categoriesToDisable = selectedCategories
-                    .filter((categoryName) => policyCategories?.[categoryName]?.enabled)
-                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
-                        acc[categoryName] = {
-                            name: categoryName,
-                            enabled: false,
-                        };
-                        return acc;
-                    }, {});
-                options.push({
-                    icon: Expensicons.Close,
-                    text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
-                    value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
-                    onSelected: () => {
-                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
-                            return;
-                        }
-                        setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
-                    },
-                });
-            }
-
-            const disabledCategories = selectedCategories.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
-            if (disabledCategories.length > 0) {
-                const categoriesToEnable = selectedCategories
-                    .filter((categoryName) => !policyCategories?.[categoryName]?.enabled)
-                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
-                        acc[categoryName] = {
-                            name: categoryName,
-                            enabled: true,
-                        };
-                        return acc;
-                    }, {});
-                options.push({
-                    icon: Expensicons.Checkmark,
-                    text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
-                    value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
-                    onSelected: () => {
-                        setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable);
-                    },
-                });
-            }
-
-            return (
-                <ButtonWithDropdownMenu
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedCategories.length})}
-                    options={options}
-                    isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    isDisabled={!selectedCategories.length}
-                    testID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
-                />
-            );
+                    setDeleteCategoriesConfirmModalVisible(true);
+                },
+            });
         }
 
-        return (
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                {!hasAccountingConnections(policy) && (
-                    <Button
-                        success
-                        onPress={navigateToCreateCategoryPage}
-                        icon={Expensicons.Plus}
-                        text={translate('workspace.categories.addCategory')}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
-                    />
-                )}
-                <Button
-                    onPress={navigateToCategoriesSettings}
-                    icon={Expensicons.Gear}
-                    text={translate('common.settings')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
-                />
-            </View>
-        );
-    };
+        const enabledCategories = selectedCategories.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
+        if (enabledCategories.length > 0) {
+            const categoriesToDisable = selectedCategories
+                .filter((categoryName) => policyCategories?.[categoryName]?.enabled)
+                .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
+                    acc[categoryName] = {
+                        name: categoryName,
+                        enabled: false,
+                    };
+                    return acc;
+                }, {});
+            options.push({
+                icon: Expensicons.Close,
+                text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                onSelected: () => {
+                    if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
+                        setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                        return;
+                    }
+                    setSelectedCategories([]);
+                    setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
+                },
+            });
+        }
+
+        const disabledCategories = selectedCategories.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
+        if (disabledCategories.length > 0) {
+            const categoriesToEnable = selectedCategories
+                .filter((categoryName) => !policyCategories?.[categoryName]?.enabled)
+                .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
+                    acc[categoryName] = {
+                        name: categoryName,
+                        enabled: true,
+                    };
+                    return acc;
+                }, {});
+            options.push({
+                icon: Expensicons.Checkmark,
+                text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                onSelected: () => {
+                    setSelectedCategories([]);
+                    setWorkspaceCategoryEnabled(policyId, categoriesToEnable);
+                },
+            });
+        }
+
+        return options;
+    }, [policy, policyCategories, policyId, selectedCategories, setSelectedCategories, translate]);
 
     const isLoading = !isOffline && policyCategories === undefined;
 
@@ -351,12 +311,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [];
+    const moreMenuItems = useMemo(() => {
+        const menuItems: Array<DropdownOption<WorkspaceActionType>> = [];
+
+        menuItems.push({
+            icon: Expensicons.Gear,
+            text: translate('common.settings'),
+            value: CONST.POLICY.ACTION_TYPES.SETTINGS,
+            onSelected: navigateToCategoriesSettings,
+        });
+
         if (!hasAccountingConnections(policy)) {
             menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
+                value: CONST.POLICY.ACTION_TYPES.IMPORT_SPREADSHEET,
                 onSelected: () => {
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
@@ -374,6 +343,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
+                value: CONST.POLICY.ACTION_TYPES.DOWNLOAD_CSV,
                 onSelected: () => {
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
@@ -389,7 +359,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [policyId, translate, isOffline, hasVisibleCategories, policy, isQuickSettingsFlow, backTo]);
+    }, [translate, navigateToCategoriesSettings, policy, hasVisibleCategories, isOffline, isQuickSettingsFlow, policyId, backTo]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -406,11 +376,23 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldShowBackButton={shouldUseNarrowLayout}
+                <WorkspaceHeader
+                    bulkActionButtonOptions={bulkActionButtonOptions}
+                    bulkActionButtonText={translate('workspace.common.selected', {count: selectedCategories.length})}
+                    bulkActionButtonTestID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
+                    shouldShowPrimaryButton={!hasAccountingConnections(policy)}
+                    primaryButtonProps={{
+                        icon: Expensicons.Plus,
+                        success: true,
+                        text: translate('workspace.categories.addCategory'),
+                        onPress: navigateToCreateCategoryPage,
+                    }}
+                    shouldShowMoreButton
+                    moreButtonOptions={moreMenuItems}
+                    moreButtonTestID={`${WorkspaceCategoriesPage.displayName}-header-more-dropdown-menu-button`}
+                    selected={selectedCategories.length}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
                     icon={!selectionModeHeader ? Illustrations.FolderOpen : undefined}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedCategories([]);
@@ -425,12 +407,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
                         Navigation.popToSidebar();
                     }}
-                    shouldShowThreeDotsButton
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
-                >
-                    {!shouldUseNarrowLayout && getHeaderButtons()}
-                </HeaderWithBackButton>
+                />
                 <ConfirmModal
                     isVisible={deleteCategoriesConfirmModalVisible}
                     onConfirm={handleDeleteCategories}
@@ -441,7 +418,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}

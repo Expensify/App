@@ -2967,6 +2967,11 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
+        ACTION_TYPES: {
+            SETTINGS: 'settings',
+            IMPORT_SPREADSHEET: 'importSpreadsheet',
+            DOWNLOAD_CSV: 'downloadCSV',
+        },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
             ARE_TAGS_ENABLED: 'areTagsEnabled',
