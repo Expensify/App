@@ -37,6 +37,7 @@ function ButtonWithDropdownMenu<IValueType>({
     onPress,
     options,
     onOptionSelected,
+    onSubItemSelected,
     onOptionsMenuShow,
     onOptionsMenuHide,
     enterKeyEventListenerPriority = 0,
@@ -218,7 +219,10 @@ function ButtonWithDropdownMenu<IValueType>({
                         onOptionsMenuHide?.();
                     }}
                     onModalShow={onOptionsMenuShow}
-                    onItemSelected={() => setIsMenuVisible(false)}
+                    onItemSelected={(selectedSubitem, index, event) => {
+                        onSubItemSelected?.(selectedSubitem, index, event);
+                        setIsMenuVisible(false);
+                    }}
                     anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverButtonDropdownMenuOffset(windowWidth) : popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
