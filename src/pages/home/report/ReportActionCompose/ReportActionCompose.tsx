@@ -53,7 +53,7 @@ import {
     isReportTransactionThread,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
-import {getTransactionID} from '@libs/TransactionUtils';
+import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
@@ -216,8 +216,12 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const shouldDisplayDualDropZone = useMemo(() => !isChatRoom(report) && !isUserCreatedPolicyRoom(report) && !isAnnounceRoom(report) && !isAdminRoom(report), [report]);
-    const isTransactionThreadView = isReportTransactionThread(report);
-    const transactionID = getTransactionID(reportID);
+    const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
+    const transactionID = useMemo(() => getTransactionID(reportID), [reportID]);
+
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+
+    const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -580,7 +584,7 @@ function ReportActionCompose({
                                     {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
                                     {!!canUseMultiFilesDragAndDrop && shouldDisplayDualDropZone && (
                                         <DualDropZone
-                                            isEditing={isTransactionThreadView}
+                                            isEditing={isTransactionThreadView && hasReceipt}
                                             onAttachmentDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {
                                                     return;
