@@ -16,13 +16,11 @@ To adjust your card feed configuration:
 1. Go to **Workspaces > [Workspace Name] > Company Cards**.
 2. Click **Settings** in the top-right corner.
 
-Available actions include:
+**Available actions include:**
 
 - **Rename the card feed connection**
-- **Control whether cardholders can delete transactions**  
-  (Only affects **new** transactions going forward)
-- **Remove the card connection**  
-  (Unassigns all cards and deletes unsubmitted expenses in draft reports)
+- **Control whether cardholders can delete transactions:** Only affects **new** transactions going forward
+- **Remove the card connection:** Unassigns all cards and deletes unsubmitted expenses in draft reports
 
 ![Tap settings to open the card feed settings page]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_12.png){:width="100%"}
 
