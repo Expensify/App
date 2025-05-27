@@ -6,7 +6,7 @@ import {putOnHold} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchReportParamList} from '@libs/Navigation/types';
-import {getIOUActionForTransactionID, getReportActions} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import {clearErrorFields, clearErrors} from '@userActions/FormActions';
@@ -22,7 +22,7 @@ function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProp
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         selectedTransactionsID.forEach((transactionID) => {
-            const iouAction = getIOUActionForTransactionID(Object.values(getReportActions(reportID) ?? {}), transactionID);
+            const iouAction = getIOUActionForReportID(reportID, transactionID);
             const transactionThreadReportID = iouAction?.childReportID;
             if (!transactionThreadReportID) {
                 return;
