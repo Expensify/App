@@ -1,5 +1,5 @@
 import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react';
-import React, {forwardRef, useContext} from 'react';
+import React, {forwardRef, useContext, useMemo} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import type RoomNameInputProps from '@components/RoomNameInput/types';
@@ -69,15 +69,47 @@ type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey =
          * Currently, meaningful only for text inputs.
          */
         shouldSubmitForm?: boolean;
+
+        /**
+         * Should this input automatically receive focus when the screen loads?
+         * Defaults to true. Set to false for all but one input in a form.
+         */
+        shouldAutoFocus?: boolean;
+
+        /**
+         * Is this a multiline input? Used to determine the appropriate auto-focus behavior.
+         */
+        isMultiline?: boolean;
     };
 
 function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>(props: InputWrapperProps<TInput, TValue>, ref: ForwardedRef<AnimatedTextInputRef>) {
-    const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props as InputComponentBaseProps;
+    const {
+        InputComponent,
+        inputID,
+        valueType = 'string',
+        shouldSubmitForm: propShouldSubmitForm,
+        shouldAutoFocus = true,
+        isMultiline = false,
+        ...rest
+    } = props as InputComponentBaseProps & { shouldAutoFocus?: boolean; isMultiline?: boolean };
     const {registerInput} = useContext(FormContext);
+    // TODO: do we still need this for `isMultiline`?
+    // const {inputCallbackRef, inputRef} = useAutoFocusInput(isMultiline);
+    // const combinedRef = useCombinedRefs(ref, inputCallbackRef);
 
     const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
+
+    const registerInputOptions = useMemo(() => ({
+        ref, //: shouldAutoFocus ? combinedRef : ref,
+        valueType,
+        ...rest,
+        shouldSetTouchedOnBlurOnly,
+        blurOnSubmit,
+        autoFocus: shouldAutoFocus,
+    }), [shouldAutoFocus, ref, valueType, rest, shouldSetTouchedOnBlurOnly, blurOnSubmit]);
+
     // eslint-disable-next-line react-compiler/react-compiler
-    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, blurOnSubmit});
+    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, registerInputOptions);
 
     return (
         <InputComponent

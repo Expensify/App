@@ -177,6 +177,9 @@ type CustomBaseTextInputProps = {
 
     /** Callback when the input is cleared using the clear button */
     onClearInput?: () => void;
+
+    /** Whether the input should auto focus */
+    shouldAutoFocus?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
