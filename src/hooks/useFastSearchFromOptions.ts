@@ -1,6 +1,5 @@
 import deburr from 'lodash/deburr';
 import {useCallback, useEffect, useRef, useState} from 'react';
-import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
@@ -138,7 +137,9 @@ function useFastSearchFromOptions(
  * @returns true if the options are shallowly equal, false otherwise.
  */
 function shallowCompareOptions(prev: ReportAndPersonalDetailOptions, next: ReportAndPersonalDetailOptions): boolean {
-    if (!prev || !next) return false;
+    if (!prev || !next) {
+        return false;
+    }
 
     // Compare lengths first
     if (prev.personalDetails.length !== next.personalDetails.length || prev.recentReports.length !== next.recentReports.length) {
@@ -146,13 +147,13 @@ function shallowCompareOptions(prev: ReportAndPersonalDetailOptions, next: Repor
     }
 
     for (let i = 0; i < prev.personalDetails.length; i++) {
-        if (prev.personalDetails[i]?.keyForList !== next.personalDetails[i]?.keyForList) {
+        if (prev.personalDetails.at(i)?.keyForList !== next.personalDetails.at(i)?.keyForList) {
             return false;
         }
     }
 
     for (let i = 0; i < prev.recentReports.length; i++) {
-        if (prev.recentReports[i]?.keyForList !== next.recentReports[i]?.keyForList) {
+        if (prev.recentReports.at(i)?.keyForList !== next.recentReports.at(i)?.keyForList) {
             return false;
         }
     }
