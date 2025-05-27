@@ -20,7 +20,10 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
 type TransactionItemRowRBRProps = {
+    /** Transaction item */
     transaction: Transaction;
+
+    /** Styles for the RBR messages container */
     containerStyles?: ViewStyle[];
 };
 

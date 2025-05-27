@@ -123,7 +123,7 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
 
-    const pendingChangesOpacity = useMemo(() => {
+    const pendingActionsOpacity = useMemo(() => {
         const pendingAction = transactions.some(getTransactionPendingAction);
         return pendingAction && styles.opacitySemiTransparent;
     }, [styles.opacitySemiTransparent, transactions]);
@@ -320,7 +320,7 @@ function MoneyRequestReportTransactionList({
                 </Animated.Text>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
-                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, pendingChangesOpacity]}>
+                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, pendingActionsOpacity]}>
                         {convertToDisplayString(totalDisplaySpend, report?.currency)}
                     </Text>
                 </View>
