@@ -136,7 +136,7 @@ function AttachmentView({
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
     const firstRenderRoute = useFirstRenderRoute();
     const isInFocusedModal = firstRenderRoute.isFocused && isFocused === undefined;
-
+    console.log('AttachmentView>useEffect', file, source);
     useEffect(() => {
         if (!isFocused && !isInFocusedModal && !(file && isUsedInAttachmentModal)) {
             return;

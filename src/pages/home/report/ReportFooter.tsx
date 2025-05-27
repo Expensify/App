@@ -79,6 +79,7 @@ function ReportFooter({
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
+    console.log('ReportFooter>render');
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -120,9 +121,13 @@ function ReportFooter({
 
     const allPersonalDetails = usePersonalDetails();
 
+    useEffect(() => {
+        console.log('ReportFooter>useEffect');
+    }, []);
+
     const handleCreateTask = useCallback(
         (text: string): boolean => {
-            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
             if (!match) {
                 return false;
             }
@@ -164,7 +169,7 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            addComment(report.reportID, text);
+            addComment(report.reportID, text, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],

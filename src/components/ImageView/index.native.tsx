@@ -9,7 +9,10 @@ function ImageView({isAuthTokenRequired = false, url, style, zoomRange = DEFAULT
             uri={url}
             zoomRange={zoomRange}
             isAuthTokenRequired={isAuthTokenRequired}
-            onError={onError}
+            onError={(errorEvent) => {
+                console.log('ImageView>onError', errorEvent);
+                onError();
+            }}
             style={style}
         />
     );

@@ -244,7 +244,10 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                         setZoomScale(0);
                         setIsZoomed(false);
                     }}
-                    onError={onError}
+                    onError={(errorEvent) => {
+                        console.log('ImageView>onError', errorEvent);
+                        onError();
+                    }}
                 />
             </PressableWithoutFeedback>
 

@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import useTheme from '@hooks/useTheme';
 // eslint-disable-next-line no-restricted-imports
 import styles from '@styles/index';
@@ -10,6 +10,10 @@ type ThemeStylesProviderProps = React.PropsWithChildren;
 
 function ThemeStylesProvider({children}: ThemeStylesProviderProps) {
     const theme = useTheme();
+
+    useEffect(() => {
+        console.log('ThemeStylesProvider>render');
+    }, [theme]);
 
     const themeStyles = useMemo(() => styles(theme), [theme]);
     const StyleUtils = useMemo(() => createStyleUtils(theme, themeStyles), [theme, themeStyles]);
