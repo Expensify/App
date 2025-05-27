@@ -112,9 +112,6 @@ type Response = {
 
     /** Whether the account already exists */
     accountExists?: boolean;
-
-    /** [HybridApp] Determines which app should be opened, NewDot or OldDot */
-    tryNewDot?: boolean;
 };
 
 export default Response;

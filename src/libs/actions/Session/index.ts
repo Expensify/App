@@ -515,8 +515,7 @@ function signUpUser() {
 
     const params: SignUpUserParams = {email: credentials.login, preferredLocale};
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData}).then(() => {});
+    API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: string, tryNewDot?: TryNewDot) {
@@ -694,12 +693,11 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
             params.validateCode = validateCode || credentials.validateCode;
         }
 
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_USER, params, {
+        API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {
             optimisticData,
             successData,
             failureData,
-        }).then(() => {});
+        });
     });
 }
 

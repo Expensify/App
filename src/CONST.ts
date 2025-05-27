@@ -5201,9 +5201,6 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
-        HYBRID_APP: {
-            ON_SIGN_IN_FINISHED: 'onSignInFinished',
-        },
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
