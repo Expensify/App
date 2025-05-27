@@ -554,15 +554,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders
-            components={[
-                OptionsListContextProvider,
-                ActiveWorkspaceContextProvider,
-                SidebarOrderedReportsContextProvider,
-                SearchContextProvider(),
-                SearchContextProvider(CONST.TEMPORARY_MONEY_REQUEST_REPORT_CONTEXT),
-            ]}
-        >
+        <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider]}>
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen

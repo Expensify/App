@@ -125,7 +125,7 @@ function MoneyRequestReportTransactionList({
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
-    const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useSearchContext(CONST.TEMPORARY_MONEY_REQUEST_REPORT_CONTEXT);
+    const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
 
     useFocusEffect(

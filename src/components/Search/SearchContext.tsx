@@ -1,10 +1,10 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
+import {getReportsFromSelectedTransactions} from '@libs/ReportUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {SearchContext, SelectedTransactions, TMoneyRequestReportContext} from './types';
+import type {SearchContext as SearchContextOld, SelectedTransactions, TMoneyRequestReportContext} from './types';
+
+type SearchContext = TMoneyRequestReportContext & SearchContextOld;
 
 const defaultSearchContext: SearchContext = {
     currentSearchHash: -1,
@@ -23,9 +23,7 @@ const defaultSearchContext: SearchContext = {
     isExportMode: false,
     setExportMode: () => {},
     isOnSearch: false,
-};
-
-const defaultMoneyRequestReportContext: TMoneyRequestReportContext = {
+    /** **************** */
     selectedTransactionsID: [],
     setSelectedTransactionsID: () => {},
     toggleTransaction: () => {},
@@ -34,47 +32,11 @@ const defaultMoneyRequestReportContext: TMoneyRequestReportContext = {
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
-const MoneyRequestReportContext = React.createContext<TMoneyRequestReportContext>(defaultMoneyRequestReportContext);
 
-function getReportsFromSelectedTransactions(
-    data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[],
-    selectedTransactions: SelectedTransactions,
-) {
-    if (data.length === 0) {
-        return [];
-    }
-
-    if (isReportListItemType(data[0]) || isMoneyRequestReport(data[0])) {
-        return data
-            .filter(
-                (item): item is ReportListItemType =>
-                    isReportListItemType(item) && isMoneyRequestReport(item) && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected),
-            )
-            .map((item) => ({
-                reportID: item.reportID,
-                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: item.total ?? CONST.DEFAULT_NUMBER_ID,
-                policyID: item.policyID,
-            }));
-    }
-
-    if (isTransactionListItemType(data[0])) {
-        return data
-            .filter((transaction) => transaction.keyForList != null && selectedTransactions[transaction.keyForList]?.isSelected)
-            .map((transaction) => ({
-                reportID: transaction.reportID,
-                action: 'action' in transaction ? transaction.action ?? CONST.SEARCH.ACTION_TYPES.VIEW : CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: 'amount' in transaction ? transaction.amount ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID,
-                policyID: transaction.policyID,
-            }));
-    }
-
-    return [];
-}
-
-function ContextProvider({children}: ChildrenProps) {
+function SearchContextProvider({children}: ChildrenProps) {
     const [shouldShowExportModeOption, setShouldShowExportModeOption] = useState(false);
     const [isExportMode, setExportMode] = useState(false);
+    const [selectedTransactionsID, setSelectedTransactionsID] = useState<string[]>([]);
 
     const [searchContextData, setSearchContextData] = useState<
         Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports' | 'isOnSearch'>
@@ -92,6 +54,23 @@ function ContextProvider({children}: ChildrenProps) {
             currentSearchHash: searchHash,
         }));
     }, []);
+
+    const toggleTransaction = useCallback((transactionID: string) => {
+        setSelectedTransactionsID((prev) => {
+            if (prev.includes(transactionID)) {
+                return prev.filter((t) => t !== transactionID);
+            }
+            return [...prev, transactionID];
+        });
+    }, []);
+
+    const removeTransaction = useCallback((transactionID?: string) => {
+        setSelectedTransactionsID((prev) => {
+            return prev.filter((t) => t !== transactionID);
+        });
+    }, []);
+
+    const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionsID.includes(transactionID), [selectedTransactionsID]);
 
     const setSelectedTransactions = useCallback(
         (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]) => {
@@ -142,6 +121,12 @@ function ContextProvider({children}: ChildrenProps) {
             setShouldShowExportModeOption,
             isExportMode,
             setExportMode,
+            /** **************** */
+            selectedTransactionsID,
+            setSelectedTransactionsID,
+            toggleTransaction,
+            isTransactionSelected,
+            removeTransaction,
         }),
         [
             searchContextData,
@@ -154,76 +139,22 @@ function ContextProvider({children}: ChildrenProps) {
             setShouldShowExportModeOption,
             isExportMode,
             setExportMode,
+            /** **************** */
+            selectedTransactionsID,
+            setSelectedTransactionsID,
+            toggleTransaction,
+            isTransactionSelected,
+            removeTransaction,
         ],
     );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;
 }
 
-// TODO merge it with SearchContext in follow-up - https://github.com/Expensify/App/issues/59431
-function MoneyRequestReportContextProvider({children}: ChildrenProps) {
-    const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
-
-    const setSelectedTransactionsID = useCallback((transactionsID: string[]) => {
-        setSelectedTransactions(transactionsID);
-    }, []);
-
-    const toggleTransaction = useCallback((transactionID: string) => {
-        setSelectedTransactions((prev) => {
-            if (prev.includes(transactionID)) {
-                return prev.filter((t) => t !== transactionID);
-            }
-            return [...prev, transactionID];
-        });
-    }, []);
-
-    const removeTransaction = useCallback((transactionID?: string) => {
-        setSelectedTransactions((prev) => {
-            return prev.filter((t) => t !== transactionID);
-        });
-    }, []);
-
-    const isTransactionSelected = useCallback((transactionID: string) => selectedTransactions.includes(transactionID), [selectedTransactions]);
-
-    const context = useMemo(
-        () => ({
-            selectedTransactionsID: selectedTransactions,
-            setSelectedTransactionsID,
-            toggleTransaction,
-            isTransactionSelected,
-            removeTransaction,
-        }),
-        [isTransactionSelected, removeTransaction, selectedTransactions, setSelectedTransactionsID, toggleTransaction],
-    );
-
-    return <MoneyRequestReportContext.Provider value={context}>{children}</MoneyRequestReportContext.Provider>;
+function useSearchContext() {
+    return useContext(Context);
 }
 
-type ExtractContextType<T extends boolean> = T extends true ? TMoneyRequestReportContext : SearchContext;
-
-function useSearchContext(shouldUseMoneyRequestContext?: false): SearchContext;
-function useSearchContext(shouldUseMoneyRequestContext: true): TMoneyRequestReportContext;
-function useSearchContext(shouldUseMoneyRequestContext: boolean): ExtractContextType<typeof shouldUseMoneyRequestContext>;
-
-function useSearchContext(shouldUseMoneyRequestContext = false) {
-    const moneyRequestContext = useContext(MoneyRequestReportContext);
-    const context = useContext(Context);
-
-    if (shouldUseMoneyRequestContext) {
-        return moneyRequestContext;
-    }
-
-    return context;
-}
-
-function SearchContextProvider(shouldUseMoneyRequestContext = false) {
-    if (shouldUseMoneyRequestContext) {
-        return MoneyRequestReportContextProvider;
-    }
-    return ContextProvider;
-}
-
-MoneyRequestReportContextProvider.displayName = 'MoneyRequestReportContextProvider';
 SearchContextProvider.displayName = 'SearchContextProvider';
 
 export {SearchContextProvider, useSearchContext, Context};

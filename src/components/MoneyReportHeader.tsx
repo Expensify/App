@@ -259,7 +259,7 @@ function MoneyReportHeader({
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext(CONST.TEMPORARY_MONEY_REQUEST_REPORT_CONTEXT);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext();
 
     const {
         options: selectedTransactionsOptions,

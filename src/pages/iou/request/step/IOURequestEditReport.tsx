@@ -21,7 +21,7 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID} = route.params;
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext(CONST.TEMPORARY_MONEY_REQUEST_REPORT_CONTEXT);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext();
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
 

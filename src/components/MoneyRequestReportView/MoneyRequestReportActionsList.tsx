@@ -138,7 +138,7 @@ function MoneyRequestReportActionsList({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext(CONST.TEMPORARY_MONEY_REQUEST_REPORT_CONTEXT);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext();
 
     const {selectionMode} = useMobileSelectionMode();
     const {

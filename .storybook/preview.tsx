@@ -23,7 +23,7 @@ Onyx.init({
 const decorators = [
     (Story: React.ElementType) => (
         <ComposeProviders
-            components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider, SearchContextProvider(true)]}
+            components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider, SearchContextProvider]}
         >
             <Story />
         </ComposeProviders>

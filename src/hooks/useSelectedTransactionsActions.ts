@@ -42,7 +42,7 @@ function useSelectedTransactionsActions({
     session?: Session;
     onExportFailed?: () => void;
 }) {
-    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext(CONST.TEMPORARY_MONEY_REQUEST_REPORT_CONTEXT);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const selectedTransactions = useMemo(
         () =>

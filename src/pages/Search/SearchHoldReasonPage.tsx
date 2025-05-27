@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchContext, TMoneyRequestReportContext} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
@@ -20,23 +19,23 @@ type Props = PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEAR
 function SearchHoldReasonPage({route}: Props) {
     const {translate} = useLocalize();
     const {backTo = ''} = route.params ?? {};
-    const shouldUseMoneyRequestContext = route.name !== SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP;
-    const contextValue = useSearchContext(shouldUseMoneyRequestContext);
+    const isOnSearchHoldReason = route.name !== SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP;
+    const contextValue = useSearchContext();
 
     const onSubmit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-            if (shouldUseMoneyRequestContext) {
-                const {selectedTransactionsID, setSelectedTransactionsID} = contextValue as TMoneyRequestReportContext;
+            if (isOnSearchHoldReason) {
+                const {selectedTransactionsID, setSelectedTransactionsID} = contextValue;
                 selectedTransactionsID.forEach((transactionID) => putOnHold(transactionID, values.comment, route.params.reportID));
                 setSelectedTransactionsID([]);
             } else {
-                const {currentSearchHash, selectedTransactions, clearSelectedTransactions} = contextValue as SearchContext;
+                const {currentSearchHash, selectedTransactions, clearSelectedTransactions} = contextValue;
                 holdMoneyRequestOnSearch(currentSearchHash, Object.keys(selectedTransactions), values.comment);
                 clearSelectedTransactions();
             }
             Navigation.goBack();
         },
-        [contextValue, route.params?.reportID, shouldUseMoneyRequestContext],
+        [contextValue, route.params?.reportID, isOnSearchHoldReason],
     );
 
     const validate = useCallback(
