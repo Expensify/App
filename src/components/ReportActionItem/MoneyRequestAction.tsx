@@ -8,9 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -93,6 +93,7 @@ function MoneyRequestAction({
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {canUseTableReportView} = usePermissions();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
@@ -163,8 +164,7 @@ function MoneyRequestAction({
     // Condition extracted from MoneyRequestPreview
     const renderCondition = !(lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction)) && canUseTableReportView && isReviewDuplicateTransactionPage;
     const isLayoutWidthInvalid = (layoutWidth: number) => {
-        const isNarrowLayout = getIsNarrowLayout();
-        return (isNarrowLayout && layoutWidth > variables.mobileResponsiveWidthBreakpoint) || (!isNarrowLayout && layoutWidth > variables.sideBarWidth);
+        return (shouldUseNarrowLayout && layoutWidth > variables.mobileResponsiveWidthBreakpoint) || (!shouldUseNarrowLayout && layoutWidth > variables.sideBarWidth);
     };
 
     return renderCondition ? (
