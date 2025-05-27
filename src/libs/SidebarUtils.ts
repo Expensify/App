@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
@@ -68,14 +69,12 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     formatReportLastMessageText,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
-    getAllReportErrors,
     getChatRoomSubtitle,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getIcons,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReportAttributes,
     getReportDescription,
     getReportName,
     getReportNameValuePairs,
@@ -164,18 +163,6 @@ Onyx.connect({
     },
 });
 
-let allTransactions: OnyxCollection<Transaction> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
-    },
-});
-
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
         return -1;
@@ -230,7 +217,7 @@ function getOrderedReportIDs(
         const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const isHidden = isHiddenForCurrentUser(report);
         const isFocused = report.reportID === currentReportId;
-        const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
+        const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations, reportAttributes);
         const isReportInAccessible = report?.errorFields?.notFound;
         if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
             return;
@@ -251,7 +238,7 @@ function getOrderedReportIDs(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
             (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
-            getReportAttributes(report.reportID, reportAttributes)?.requiresAttention;
+            reportAttributes?.[report?.reportID]?.requiresAttention;
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
@@ -300,7 +287,7 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const rNVPs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        if (isPinned || getReportAttributes(report?.reportID, reportAttributes)?.requiresAttention) {
+        if (isPinned || reportAttributes?.[report?.reportID]?.requiresAttention) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
@@ -352,11 +339,13 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
+    reportErrors: Errors,
+    transactions: OnyxCollection<Transaction>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
-    const errors = getAllReportErrors(report, reportActions);
+    const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
     if (isReportArchived) {
@@ -385,7 +374,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
     if (transactionThreadReportID) {
         const transactionID = getTransactionID(transactionThreadReportID);
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (hasReceiptError(transaction)) {
             return {
                 reason: CONST.RBR_REASONS.HAS_ERRORS,
@@ -393,7 +382,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         }
     }
     const transactionID = getTransactionID(report.reportID);
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
         return {
             reason: CONST.RBR_REASONS.HAS_ERRORS,
@@ -407,10 +396,12 @@ function shouldShowRedBrickRoad(
     report: Report,
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
+    reportErrors: Errors,
+    transactions: OnyxCollection<Transaction>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isReportArchived);
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isReportArchived);
 }
 
 /**
@@ -421,7 +412,6 @@ function getOptionData({
     reportAttributes,
     oneTransactionThreadReport,
     reportNameValuePairs,
-    reportActions,
     personalDetails,
     preferredLocale,
     policy,
@@ -432,7 +422,6 @@ function getOptionData({
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
-    reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
     policy: OnyxEntry<Policy> | undefined;
@@ -451,7 +440,7 @@ function getOptionData({
     const result: OptionData = {
         text: '',
         alternateText: undefined,
-        allReportErrors: getAllReportErrors(report, reportActions),
+        allReportErrors: reportAttributes?.reportErrors,
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: undefined,
