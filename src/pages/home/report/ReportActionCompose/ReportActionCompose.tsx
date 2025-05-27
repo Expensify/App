@@ -412,7 +412,7 @@ function ReportActionCompose({
             style={[
                 shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow,
                 isComposerFullSize && styles.chatItemFullComposeRow,
-                !shouldShowReportRecipientLocalTime ? styles.pt4 : {},
+                !shouldShowReportRecipientLocalTime && !isComposerFullSize ? styles.pt4 : {},
             ]}
         >
             <OfflineWithFeedback pendingAction={pendingAction}>
