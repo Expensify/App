@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
@@ -26,7 +27,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
@@ -54,6 +55,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Whether the report that these transactions belong to has any chat comments */
     hasComments: boolean;
+
+    /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
+    isLoadingInitialReportActions?: boolean;
 
     /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
     scrollToNewTransaction: (offset: number) => void;
@@ -97,11 +101,20 @@ const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColu
     return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
 };
 
-function MoneyRequestReportTransactionList({report, transactions, newTransactions, reportActions, hasComments, scrollToNewTransaction}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({
+    report,
+    transactions,
+    newTransactions,
+    reportActions,
+    hasComments,
+    isLoadingInitialReportActions: isLoadingReportActions,
+    scrollToNewTransaction,
+}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
 
@@ -209,6 +222,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
 
                                 setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                             }}
+                            isIOUReport={isIOUReport(report)}
                         />
                     )}
                 </View>
@@ -242,7 +256,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                             onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
                             onLongPress={() => {
-                                if (!shouldUseNarrowLayout) {
+                                if (!isSmallScreenWidth) {
                                     return;
                                 }
                                 if (selectionMode?.isEnabled) {
@@ -259,7 +273,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                                 dateColumnSize={dateColumnSize}
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                                shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}
+                                shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
                                 onCheckboxPress={toggleTransaction}
                                 columns={allReportColumns}
                                 scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
@@ -292,7 +306,13 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                 </View>
             )}
             <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
-                <Text style={[styles.textLabelSupporting]}>{hasComments ? translate('common.comments') : ''}</Text>
+                <Animated.Text
+                    style={[styles.textLabelSupporting]}
+                    entering={hasComments ? undefined : FadeIn}
+                    exiting={FadeOut}
+                >
+                    {hasComments || isLoadingReportActions ? translate('common.comments') : ''}
+                </Animated.Text>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
                     <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold]}>
