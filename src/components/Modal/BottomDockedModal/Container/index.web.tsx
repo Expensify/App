@@ -16,7 +16,7 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
             return;
         }
         isInitiated.set(true);
-        opacity.set(withTiming(1, {duration: animationInTiming}, onOpenCallBack));
+        opacity.set(withTiming(1, {duration: animationInTiming, easing}, onOpenCallBack));
     }, [animationInTiming, onOpenCallBack, opacity, isInitiated]);
 
     const animatedStyles = useAnimatedStyle(() => ({opacity: opacity.get()}), [opacity]);
