@@ -1,7 +1,7 @@
 import React, {useCallback, useRef} from 'react';
+import type {MouseEvent} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
-import type {MouseEvent} from 'react';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import TestToolsModalPage from '@components/TestToolsModalPage';
