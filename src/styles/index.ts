@@ -5752,18 +5752,17 @@ const styles = (theme: ThemeColors) =>
             ...sizing.mh65vh,
         }),
 
-        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
+        getUserSelectionListPopoverHeight: (itemCount: number, shouldUseNarrowLayout: boolean) => {
             const SEARCHBAR_HEIGHT = 50;
             const SEARCHBAR_MARGIN = 14;
             const BUTTON_HEIGHT = 40;
             const PADDING = 44 - (shouldUseNarrowLayout ? 32 : 0);
 
             const listHeight = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
-            const screenPercentage = shouldUseNarrowLayout ? 0.85 : 0.65;
 
             // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
             // the listHeight or a % of the screen
-            const height = Math.min(listHeight, windowHeight * screenPercentage);
+            const height = Math.min(listHeight, CONST.POPOVER_DROPDOWN_MAX_HEIGHT);
 
             return {height};
         },

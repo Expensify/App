@@ -111,6 +111,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
             {/* Dropdown overlay */}
             <PopoverWithMeasuredContent
                 anchorRef={triggerRef}
+                avoidKeyboard
                 isVisible={isOverlayVisible}
                 onClose={toggleOverlay}
                 anchorPosition={popoverTriggerPosition}

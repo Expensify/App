@@ -11,7 +11,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -38,7 +37,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {options} = useOptionsList();
-    const {windowHeight} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -155,7 +153,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const dataLength = sections.flatMap((section) => section.data).length;
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
+        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, shouldUseNarrowLayout)]}>
             <SelectionList
                 canSelectMultiple
                 textInputAutoFocus={false}
