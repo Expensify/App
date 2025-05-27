@@ -69,6 +69,7 @@ import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
@@ -285,6 +286,7 @@ export {
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
+    DocumentMerge,
     DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
