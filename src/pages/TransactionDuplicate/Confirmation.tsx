@@ -88,6 +88,7 @@ function Confirmation() {
             action: reportAction,
             report,
             checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
             reportNameValuePairs: undefined,
             anchor: null,
             isDisabled: false,
@@ -131,7 +132,7 @@ function Confirmation() {
                             </Text>
                             <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
                         </View>
-                        {/* We need that provider here becuase MoneyRequestView component requires that */}
+                        {/* We need that provider here because MoneyRequestView component requires that */}
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <MoneyRequestView
                                 report={report}
