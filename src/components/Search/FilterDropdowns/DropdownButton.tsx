@@ -98,10 +98,10 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}]}
                 onPress={toggleOverlay}
             >
-                <CaretWrapper style={styles.mw100}>
+                <CaretWrapper style={styles.flex1}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textMicroBold]}
+                        style={[styles.textMicroBold, styles.flexShrink1]}
                     >
                         {buttonText}
                     </Text>
