@@ -40,7 +40,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
-    const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? data?.email;
 
     useEffect(() => {
         if (!assignCard?.isAssigned) {

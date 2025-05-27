@@ -3235,6 +3235,7 @@ const CONST = {
         STEP: {
             BANK_CONNECTION: 'BankConnection',
             ASSIGNEE: 'Assignee',
+            INVITE_NEW_MEMBER: 'InviteNewMember',
             CARD: 'Card',
             CARD_NAME: 'CardName',
             TRANSACTION_START_DATE: 'TransactionStartDate',
@@ -3278,6 +3279,7 @@ const CONST = {
         STEP: {
             ASSIGNEE: 'Assignee',
             INVITE_NEW_MEMBER: 'InviteNewMember',
+
             CARD_TYPE: 'CardType',
             LIMIT_TYPE: 'LimitType',
             LIMIT: 'Limit',

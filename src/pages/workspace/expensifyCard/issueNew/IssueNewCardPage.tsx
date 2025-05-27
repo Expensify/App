@@ -17,7 +17,7 @@ import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
-import InviteNewMemberStep from './InviteeNewMemberStep';
+import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitStep from './LimitStep';
 import LimitTypeStep from './LimitTypeStep';
 
