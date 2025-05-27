@@ -44,6 +44,7 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
@@ -87,15 +88,15 @@ function MoneyRequestParticipantsSelector({
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
-    const showImportContacts = !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
+    const showImportContacts = Permissions.canUseNativeContactImport(betas) && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
@@ -113,12 +114,15 @@ function MoneyRequestParticipantsSelector({
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     const importAndSaveContacts = useCallback(() => {
-        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
-            setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
-            setContacts(usersFromContact);
-        });
-    }, []);
+        // Only use native contact import if the beta flag is enabled
+        if (Permissions.canUseNativeContactImport(betas)) {
+            contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
+                setContactPermissionState(permissionStatus);
+                const usersFromContact = getContacts(contactList);
+                setContacts(usersFromContact);
+            });
+        }
+    }, [betas]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -435,10 +439,12 @@ function MoneyRequestParticipantsSelector({
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
     const initiateContactImportAndSetState = useCallback(() => {
-        setContactPermissionState(RESULTS.GRANTED);
-        InteractionManager.runAfterInteractions(importAndSaveContacts);
-        setTextInputAutoFocus(true);
-    }, [importAndSaveContacts]);
+        if (Permissions.canUseNativeContactImport(betas)) {
+            setContactPermissionState(RESULTS.GRANTED);
+            InteractionManager.runAfterInteractions(importAndSaveContacts);
+            setTextInputAutoFocus(true);
+        }
+    }, [importAndSaveContacts, betas]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
@@ -551,10 +557,12 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <>
-            <ContactPermissionModal
-                onGrant={initiateContactImportAndSetState}
-                onDeny={setContactPermissionState}
-            />
+            {Permissions.canUseNativeContactImport(betas) && (
+                <ContactPermissionModal
+                    onGrant={initiateContactImportAndSetState}
+                    onDeny={setContactPermissionState}
+                />
+            )}
             <SelectionList
                 onConfirm={handleConfirmSelection}
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}

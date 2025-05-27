@@ -90,6 +90,10 @@ function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
 }
 
+function canUseNativeContactImport(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NATIVE_CONTACT_IMPORT) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -111,4 +115,5 @@ export default {
     canUseMultiLevelTags,
     canUseMultiFilesDragAndDrop,
     canUsePlaidCompanyCards,
+    canUseNativeContactImport,
 };
