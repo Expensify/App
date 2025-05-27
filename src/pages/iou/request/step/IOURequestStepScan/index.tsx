@@ -131,7 +131,9 @@ function IOURequestStepScan({
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     // TODO: remove when multi-scan functionality is removed from beta
-    const {canUseMultiScan} = usePermissions();
+    const {canUseMultiScan: canUseMultiScanBeta} = usePermissions();
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const canUseMultiScan = canUseMultiScanBeta && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
@@ -146,8 +148,6 @@ function IOURequestStepScan({
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();
-
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -846,6 +846,7 @@ function IOURequestStepScan({
                         <PressableWithFeedback
                             accessibilityLabel={translate('common.chooseFile')}
                             role={CONST.ROLE.BUTTON}
+                            style={isMultiScanEnabled && styles.opacity0}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
