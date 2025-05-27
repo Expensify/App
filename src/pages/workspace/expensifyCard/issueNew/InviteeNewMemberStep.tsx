@@ -122,7 +122,7 @@ function InviteNewMemberStep({policy}: InviteeNewMemberStepProps) {
 
     useEffect(() => {
         return () => {
-            clearWorkspaceInviteRoleDraft(policyID ?? '');
+            clearWorkspaceInviteRoleDraft(policyID);
         };
     }, [policyID]);
 
