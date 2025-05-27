@@ -1,10 +1,10 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
-import type {AssetExtension} from '@userActions/setTestReceipt/types';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type GetFile from './types';
 
-function getFile(source: string, path: string, assetExtension: AssetExtension) {
+const getFile: GetFile = (source, path, assetExtension) => {
     if (CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
         return ReactNativeBlobUtil.config({
             fileCache: true,
@@ -14,6 +14,6 @@ function getFile(source: string, path: string, assetExtension: AssetExtension) {
     }
 
     return RNFS.copyFileRes(`${source}.${assetExtension}`, path);
-}
+};
 
 export default getFile;

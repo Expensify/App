@@ -7,9 +7,6 @@ type OnFileError = (error: unknown) => void;
 
 type AssetExtension = 'jpg' | 'png';
 
-type Asset = ImageSourcePropType;
+type SetTestReceipt = (asset: ImageSourcePropType, assetExtension: AssetExtension, onFileRead: OnFileRead, onFileError?: OnFileError) => void;
 
-type SetTestReceipt = (asset: Asset, assetExtension: AssetExtension, onFileRead: OnFileRead, onFileError?: OnFileError) => void;
-
-// eslint-disable-next-line import/prefer-default-export
-export type {Asset, AssetExtension, SetTestReceipt};
+export type {AssetExtension, SetTestReceipt};
