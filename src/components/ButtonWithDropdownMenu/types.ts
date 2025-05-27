@@ -133,7 +133,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     secondLineText?: string;
 
     /** Callback to execute when a dropdown submenu option is selected */
-    onSubitemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
+    onSubItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Icon for main button */
     icon?: IconAsset;

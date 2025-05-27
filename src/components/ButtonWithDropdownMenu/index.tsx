@@ -37,7 +37,7 @@ function ButtonWithDropdownMenu<IValueType>({
     onPress,
     options,
     onOptionSelected,
-    onSubitemSelected,
+    onSubItemSelected,
     onOptionsMenuShow,
     onOptionsMenuHide,
     enterKeyEventListenerPriority = 0,
@@ -220,7 +220,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     }}
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={(selectedSubitem, index, event) => {
-                        onSubitemSelected?.(selectedSubitem, index, event);
+                        onSubItemSelected?.(selectedSubitem, index, event);
                         setIsMenuVisible(false);
                     }}
                     anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverButtonDropdownMenuOffset(windowWidth) : popoverAnchorPosition}

@@ -894,7 +894,7 @@ function MoneyReportHeader({
                 <ButtonWithDropdownMenu
                     success={false}
                     onPress={() => {}}
-                    onSubitemSelected={(item, index, event) => {
+                    onSubItemSelected={(item, index, event) => {
                         if (!isSecondaryActionAPaymentOption(item)) {
                             return;
                         }
