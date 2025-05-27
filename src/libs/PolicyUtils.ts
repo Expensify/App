@@ -241,7 +241,7 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
 }
 
 function getPolicyNameByID(policyID: string): string {
-    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? policyID;
+    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '';
 }
 
 /**
@@ -526,19 +526,11 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
     return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
-function extractPolicyIDFromPath(path: string) {
-    return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
-}
-
 /**
  * Whether the policy has active accounting integration connections
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
     return !isEmptyObject(policy?.connections);
-}
-
-function getPathWithoutPolicyID(path: string) {
-    return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
 
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
@@ -1416,7 +1408,6 @@ function isUserInvitedToWorkspace(): boolean {
 
 export {
     canEditTaxRate,
-    extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
     getPerDiemCustomUnits,
@@ -1429,7 +1420,6 @@ export {
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
-    getPathWithoutPolicyID,
     getPersonalPolicy,
     getPolicy,
     getPolicyBrickRoadIndicatorStatus,

@@ -160,6 +160,11 @@ const baseFilterConfig = {
         description: 'common.assignee' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_ASSIGNEE,
     },
+    createdBy: {
+        getTitle: getFilterParticipantDisplayTitle,
+        description: 'common.createdBy' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_CREATED_BY,
+    },
     reimbursable: {
         getTitle: getFilterDisplayTitle,
         description: 'common.reimbursable' as const,
@@ -266,8 +271,8 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
         ],
     ],
@@ -340,25 +345,20 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         // the value of date filter is a combination of dateBefore + dateAfter values
         const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
         const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
-        const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
         const dateBefore = filters[keyBefore];
         const dateAfter = filters[keyAfter];
-        const dateOn = filters[keyOn];
-        const dateValue = [];
-
+        let dateValue = '';
         if (dateBefore) {
-            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
+            dateValue = translate('search.filters.date.before', {date: dateBefore});
         }
-
-        if (dateOn) {
-            dateValue.push(dateOn === CONST.SEARCH.NEVER ? translate('common.never') : translate('search.filters.date.on', {date: dateOn}));
+        if (dateBefore && dateAfter) {
+            dateValue += ', ';
         }
-
         if (dateAfter) {
-            dateValue.push(translate('search.filters.date.after', {date: dateAfter}));
+            dateValue += translate('search.filters.date.after', {date: dateAfter});
         }
 
-        return dateValue.join(', ');
+        return dateValue;
     }
 
     const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY>;
@@ -564,11 +564,9 @@ function AdvancedSearchFilters() {
             return section
                 .map((key) => {
                     // 'feed' filter row does not appear in advanced filters, it is created using selected cards
-                    // 'payer' and 'reimburser' do not appear in advanced filters, they are created using suggested searches
-                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
                         return;
                     }
-
                     const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
                     let filterTitle;
                     if (
@@ -613,7 +611,12 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
+                    } else if (
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY
+                    ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);

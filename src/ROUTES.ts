@@ -71,6 +71,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
     SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
+    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -167,7 +168,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
         },
     },
-    WORKSPACE_SWITCHER: 'workspace-switcher',
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
@@ -1963,7 +1963,10 @@ const ROUTES = {
     },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
-    TEST_DRIVE_MODAL_ROOT: 'onboarding/test-drive',
+    TEST_DRIVE_MODAL_ROOT: {
+        route: 'onboarding/test-drive',
+        getRoute: (bossEmail?: string) => `onboarding/test-drive${bossEmail ? `?bossEmail=${encodeURIComponent(bossEmail)}` : ''}` as const,
+    },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     WORKSPACE_CONFIRMATION: {
         route: 'workspace/confirmation',
