@@ -1715,6 +1715,7 @@ function getValidOptions(
         shouldSeparateWorkspaceChat = false,
         excludeHiddenThreads = false,
         canShowManagerMcTest = false,
+        includeSelfDM = false,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -1785,7 +1786,7 @@ function getValidOptions(
         if (currentUserLogin) {
             personalDetailLoginsToExclude = {
                 ...loginsToExclude,
-                [currentUserLogin]: !config.includeSelfDM,
+                [currentUserLogin]: !includeSelfDM,
             };
         }
 
