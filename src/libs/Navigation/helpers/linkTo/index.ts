@@ -1,12 +1,11 @@
 import {getActionFromState} from '@react-navigation/core';
-import type {NavigationContainerRef, NavigationState, PartialState, StackActionType} from '@react-navigation/native';
+import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -18,23 +17,6 @@ import type {LinkToOptions} from './types';
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
 };
-
-function createActionWithPolicyID(action: StackActionType, policyID: string): StackActionType | undefined {
-    if (action.type !== 'PUSH' && action.type !== 'REPLACE') {
-        return;
-    }
-
-    return {
-        ...action,
-        payload: {
-            ...action.payload,
-            params: {
-                ...action.payload.params,
-                policyID,
-            },
-        },
-    };
-}
 
 function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -73,14 +55,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // We know that the options are always defined because we have default options.
     const {forceReplace} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
 
-    const normalizedPath = normalizePath(path);
-    const extractedPolicyID = extractPolicyIDFromPath(normalizedPath);
-    const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath) as Route;
+    const normalizedPath = normalizePath(path) as Route;
 
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
-    const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const stateFromPath = getStateFromPath(normalizedPath) as PartialState<NavigationState<RootNavigatorParamList>>;
     const currentState = navigation.getRootState() as NavigationState<RootNavigatorParamList>;
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
@@ -119,17 +99,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     ) {
         // We want to PUSH by default to add entries to the browser history.
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-    }
-
-    // Handle deep links including policyID as /w/:policyID.
-    if (extractedPolicyID) {
-        const actionWithPolicyID = createActionWithPolicyID(action as StackActionType, extractedPolicyID);
-        if (!actionWithPolicyID) {
-            return;
-        }
-
-        navigation.dispatch(actionWithPolicyID);
-        return;
     }
 
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
