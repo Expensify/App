@@ -1,64 +1,50 @@
 ---
-title: Unlock a Business Bank Account
-description: Learn how to resolve issues with a locked business bank account in Expensify.
-keywords: [New Expensify, unlock bank account, reimbursements, direct debit, ACH, bank rejected withdrawal]
+title: Validate a Business Bank Account
+description: Finish connecting your business bank account by verifying test transactions in Expensify.
+keywords: [New Expensify, bank account verification, test deposits, ACH validation, business bank account, workspace payments]
 ---
 <div id="new-expensify" markdown="1">
 
-When you reimburse a report, Expensify initiates a withdrawal from your connected business bank account. If your bank rejects this withdrawal—due to **insufficient funds**, **missing authorization**, or **direct debit restrictions**—your account will be **locked** until the issue is resolved.
+Once your business bank account connection is approved in Expensify, you’ll receive a series of **test deposits** to confirm the connection. This step is required before you can start using the account for reimbursements or payments.
 
 ---
 
-# Why Is My Bank Account Locked?
-
-Common reasons include:
-
-- Your bank account is not enabled for **ACH direct debits**
-- There were **insufficient funds** available during a reimbursement attempt
-- Your bank blocked the debit attempt
-
-When this occurs, Expensify pauses reimbursements and locks the verified account as a precaution.
-
----
-
-# How to Request an Unlock
-
-To unlock your account:
+# How to Validate Your Bank Account
 
 1. Go to **Workspaces > [Workspace Name] > Bank Account**.
-2. Click the **Fix** button next to the locked account.
+2. Review the account status:
+   - **Verifying** – Expensify requested more info. Check your email for the next steps.
+   - **Pending** – Your account is ready for validation. Continue with the steps below.
+3. Within **1–2 business days**, Expensify will send **three test transactions** to your business bank account.
+4. Return to **Workspaces > [Workspace Name] > Bank Account**.
+5. Enter the exact **transaction amounts** when prompted.
 
-This sends a request to the Expensify support team. A Concierge agent will contact you with the next steps.
-
-**Note:** Unlocking a bank account may take several business days due to ACH processing timelines and clawback periods.
-
----
-
-# Enable Direct Debit with Your Bank
-
-To ensure your bank allows direct debit from Expensify, share the following ACH details with your financial institution:
-
-## For Reimbursements via Expensify:
-
-- **ACH Company IDs**:  
-  `1270239450`, `4270239450`, `2270239450`  
-- **ACH Originator Name**: `Expensify`
-
-## For Bill Payments via Stripe:
-
-- **ACH Company IDs**:  
-  `1800948598`, `4270465600`  
-- **ACH Originator Name**: `expensify.com`  
-- [Stripe ACH ID Reference](https://support.stripe.com/questions/ach-direct-debit-company-ids-for-stripe)
-
-## For International Reimbursements via CorPay:
-
-- **ACH Company IDs**:  
-  `1522304924`, `2522304924`  
-- **ACH Originator Name**: `Cambridge Global Payments`
+Once submitted correctly, your account will be fully validated and ready to use.
 
 ---
 
-Once your bank has approved these IDs and your account is reviewed, Concierge will notify you when it is unlocked and reimbursements can resume.
+# FAQ
+
+## How Many Test Deposits Will I Receive?
+
+You’ll see **three transactions**:
+- **Two small withdrawals**
+- **One small deposit**
+
+These are temporary and used to confirm your ownership of the account.
+
+## What If I Don’t See the Test Transactions?
+
+If the test deposits don’t appear after two business days:
+
+- Your bank account may not support **ACH direct debits** yet.
+- Provide your bank with the following information to enable ACH access:
+
+  - **ACH Company IDs**:  
+    `1270239450`, `4270239450`, `2270239450`
+  - **ACH Originator Name**:  
+    `Expensify`
+
+Still not seeing them? Contact **Expensify Support via Concierge**, and we’ll help investigate.
 
 </div>
