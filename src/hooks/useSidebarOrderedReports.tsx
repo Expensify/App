@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
-import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -51,39 +50,29 @@ function SidebarOrderedReportsContextProvider({
      */
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
-    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
     const draftAmount = Object.keys(reportsDrafts ?? {}).length;
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
-    const {activeWorkspaceID} = useActiveWorkspace();
 
-    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID), [policies, activeWorkspaceID, accountID]);
+    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
-            SidebarUtils.getOrderedReportIDs(
-                currentReportID,
-                chatReports,
-                betas,
-                policies,
-                priorityMode,
-                transactionViolations,
-                activeWorkspaceID,
-                policyMemberAccountIDs,
-                reportNameValuePairs,
-            ),
+            SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes),
         // we need reports draft in deps array to reload the list when a draft is added or removed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, draftAmount, reportNameValuePairs],
+        [chatReports, betas, policies, priorityMode, transactionViolations, draftAmount, reportNameValuePairs, reportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
