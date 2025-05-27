@@ -59,21 +59,19 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
 
     const onPress = () => {
         const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin) => {
-            const wasComposerFocused = contextMenuRef.current?.wasComposerFocused;
-            showEmojiPicker(
-                () => {
+            showEmojiPicker({
+                onModalHide: () => {
                     setIsEmojiPickerActive?.(false);
                 },
-                (emojiCode, emojiObject) => {
+                onEmojiSelected: (emojiCode, emojiObject) => {
                     onSelectEmoji(emojiObject);
                 },
-                refParam ?? ref,
+                emojiPopoverAnchor: refParam ?? ref,
                 anchorOrigin,
-                onWillShowPicker,
-                reportAction.reportActionID,
-                undefined,
-                wasComposerFocused,
-            );
+                onWillShow: onWillShowPicker,
+                id: reportAction.reportActionID,
+                composerToRefocusOnClose: contextMenuRef.current?.composerToRefocusOnCloseEmojiPicker,
+            });
         };
 
         if (!emojiPickerRef.current?.isEmojiPickerVisible) {

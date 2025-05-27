@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -78,7 +79,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         height: 0,
     });
 
-    const [wasComposerFocused, setWasComposerFocused] = useState(false);
+    const [composerToRefocusOnCloseEmojiPicker, setComposerToRefocusOnCloseEmojiPicker] = useState<ComposerType>();
 
     const onPopoverShow = useRef(() => {});
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
@@ -172,7 +173,11 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             shouldCloseOnTarget = false,
             isOverflowMenu = false,
         } = showContextMenuParams;
-        setWasComposerFocused(ReportActionComposeFocusManager.isFocused());
+        if (ReportActionComposeFocusManager.isFocused()) {
+            setComposerToRefocusOnCloseEmojiPicker('main');
+        } else if (ReportActionComposeFocusManager.isEditFocused()) {
+            setComposerToRefocusOnCloseEmojiPicker('edit');
+        }
 
         const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = report;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
@@ -326,7 +331,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         clearActiveReportAction,
         contentRef,
         isContextMenuOpening,
-        wasComposerFocused,
+        composerToRefocusOnCloseEmojiPicker,
     }));
 
     const reportAction = reportActionRef.current;

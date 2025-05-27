@@ -4,6 +4,7 @@ import type {RefObject} from 'react';
 import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {ContextMenuAction} from './ContextMenuActions';
@@ -59,7 +60,7 @@ type ReportActionContextMenu = {
     clearActiveReportAction: () => void;
     contentRef: RefObject<View>;
     isContextMenuOpening: boolean;
-    wasComposerFocused: boolean;
+    composerToRefocusOnCloseEmojiPicker?: ComposerType;
 };
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();

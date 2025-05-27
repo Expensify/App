@@ -45,19 +45,17 @@ function EmojiPickerButtonDropdown(
             return;
         }
 
-        EmojiPickerAction.showEmojiPicker(
+        EmojiPickerAction.showEmojiPicker({
             onModalHide,
-            (emoji) => onInputChange(emoji),
+            onEmojiSelected: (emoji) => onInputChange(emoji),
             emojiPopoverAnchor,
-            {
+            anchorOrigin: {
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 shiftVertical: 4,
             },
-            () => {},
-            undefined,
-            value,
-        );
+            activeEmoji: value,
+        });
     };
 
     return (

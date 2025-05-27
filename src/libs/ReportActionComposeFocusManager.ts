@@ -7,6 +7,8 @@ import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
 import navigationRef from './Navigation/navigationRef';
 import preventTextInputFocusOnFirstResponderOnce from './preventTextInputFocusOnFirstResponderOnce';
 
+type ComposerType = 'main' | 'edit';
+
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
 const composerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
@@ -88,8 +90,16 @@ function isEditFocused(): boolean {
  * This will prevent the composer's text input from focusing the next time it becomes the
  * first responder in the UIResponder chain. (iOS only, no-op on Android)
  */
-function preventFocusOnFirstResponderOnce() {
+function preventComposerFocusOnFirstResponderOnce() {
     preventTextInputFocusOnFirstResponderOnce(composerRef);
+}
+
+/**
+ * This will prevent the edit composer's text input from focusing the next time it becomes the
+ * first responder in the UIResponder chain. (iOS only, no-op on Android)
+ */
+function preventEditComposerFocusOnFirstResponderOnce() {
+    preventTextInputFocusOnFirstResponderOnce(editComposerRef);
 }
 
 export default {
@@ -100,5 +110,8 @@ export default {
     isFocused,
     editComposerRef,
     isEditFocused,
-    preventFocusOnFirstResponderOnce,
+    preventComposerFocusOnFirstResponderOnce,
+    preventEditComposerFocusOnFirstResponderOnce,
 };
+
+export type {ComposerType};

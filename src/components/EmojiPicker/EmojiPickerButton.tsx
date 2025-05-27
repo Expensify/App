@@ -50,18 +50,17 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                         return;
                     }
                     if (!EmojiPickerAction.emojiPickerRef?.current?.isEmojiPickerVisible) {
-                        EmojiPickerAction.showEmojiPicker(
+                        EmojiPickerAction.showEmojiPicker({
                             onModalHide,
                             onEmojiSelected,
                             emojiPopoverAnchor,
-                            {
+                            anchorOrigin: {
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                 shiftVertical,
                             },
-                            () => {},
-                            emojiPickerID,
-                        );
+                            id: emojiPickerID,
+                        });
                     } else {
                         EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
                     }

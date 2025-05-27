@@ -4,6 +4,7 @@ import type {TextInput, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {CloseContextMenuCallback} from '@components/Reactions/QuickEmojiReactions/types';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import type CONST from '@src/CONST';
 
 type AnchorOrigin = {
@@ -18,17 +19,19 @@ type OnWillShowPicker = (callback?: CloseContextMenuCallback) => void;
 
 type OnModalHideValue = (isNavigating?: boolean) => void;
 
+type ShowEmojiPickerOptions = {
+    onModalHide: OnModalHideValue;
+    onEmojiSelected: OnEmojiSelected;
+    emojiPopoverAnchor: EmojiPopoverAnchor;
+    anchorOrigin?: AnchorOrigin;
+    onWillShow?: OnWillShowPicker;
+    id?: string;
+    activeEmoji?: string;
+    composerToRefocusOnClose?: ComposerType;
+};
+
 type EmojiPickerRef = {
-    showEmojiPicker: (
-        onModalHideValue: OnModalHideValue,
-        onEmojiSelectedValue: OnEmojiSelected,
-        emojiPopoverAnchor: EmojiPopoverAnchor,
-        anchorOrigin?: AnchorOrigin,
-        onWillShow?: OnWillShowPicker,
-        id?: string,
-        activeEmoji?: string,
-        wasComposerFocused?: boolean,
-    ) => void;
+    showEmojiPicker: (options: ShowEmojiPickerOptions) => void;
     isActive: (id: string) => boolean;
     clearActive: () => void;
     hideEmojiPicker: (isNavigating?: boolean) => void;
@@ -50,21 +53,12 @@ const emojiPickerRef = React.createRef<EmojiPickerRef>();
  * @param onWillShow - Run a callback when Popover will show
  * @param id - Unique id for EmojiPicker
  */
-function showEmojiPicker(
-    onModalHide: OnModalHideValue,
-    onEmojiSelected: OnEmojiSelected,
-    emojiPopoverAnchor: EmojiPopoverAnchor,
-    anchorOrigin?: AnchorOrigin,
-    onWillShow: OnWillShowPicker = () => {},
-    id?: string,
-    activeEmoji?: string,
-    wasComposerFocused?: boolean,
-) {
+function showEmojiPicker(options: ShowEmojiPickerOptions) {
     if (!emojiPickerRef.current) {
         return;
     }
 
-    emojiPickerRef.current.showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow, id, activeEmoji, wasComposerFocused);
+    emojiPickerRef.current.showEmojiPicker(options);
 }
 
 /**
@@ -114,4 +108,4 @@ function resetEmojiPopoverAnchor() {
 }
 
 export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
-export type {AnchorOrigin, OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, OnWillShowPicker, EmojiPickerRef};
+export type {AnchorOrigin, OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, OnWillShowPicker, ShowEmojiPickerOptions, EmojiPickerRef};
