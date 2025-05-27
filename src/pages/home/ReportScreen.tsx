@@ -15,7 +15,6 @@ import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/Mo
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
@@ -144,7 +143,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {canUseDefaultRooms, canUseTableReportView} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const currentReportIDValue = useCurrentReportID();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
@@ -170,14 +168,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
             const reportActionID = route?.params?.reportActionID;
-            const isValidReportActionID = isNumeric(reportActionID);
+            const isValidReportActionID = reportActionID && isNumeric(reportActionID);
             if (reportActionID && !isValidReportActionID) {
                 navigation.setParams({reportActionID: ''});
             }
             return;
         }
 
-        const lastAccessedReportID = findLastAccessedReport(!canUseDefaultRooms, !!route.params.openOnAdminRoom, activeWorkspaceID)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(!canUseDefaultRooms, !!route.params.openOnAdminRoom)?.reportID;
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
@@ -187,7 +185,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
-    }, [activeWorkspaceID, canUseDefaultRooms, navigation, route]);
+    }, [canUseDefaultRooms, navigation, route]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
@@ -309,6 +307,18 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isTransactionThreadView = isReportTransactionThread(report);
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
 
+    const prevTransactions = usePrevious(reportTransactions);
+
+    const newTransactions = useMemo(() => {
+        if (!prevTransactions || reportTransactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
+        return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+        // Depending only on transactions is enough because prevTransactions is a helper object.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportTransactions]);
+
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
             return;
@@ -368,6 +378,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 report={report}
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
+                isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                 reportActions={reportActions}
                 onBackButtonPress={onBackButtonPress}
             />
@@ -449,7 +460,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        if (reportMetadata.isOptimisticReport) {
+        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT) {
             return;
         }
 
@@ -469,13 +480,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
-        route.params?.moneyRequestReportActionID,
-        route.params?.transactionID,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        currentUserEmail,
+        report?.type,
         report?.errorFields?.notFound,
         isOffline,
+        route.params?.moneyRequestReportActionID,
+        route.params?.transactionID,
+        currentUserEmail,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
     ]);
 
     useEffect(() => {
@@ -813,8 +825,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         policy={policy}
                                         reportActions={reportActions}
                                         transactions={reportTransactions}
+                                        newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
+                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                     />
                                 ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (
