@@ -5,9 +5,10 @@ import type {ValueOf} from 'type-fest';
 import type {PartialPolicyForSidebar} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
@@ -67,17 +68,14 @@ import {
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
-    doesReportBelongToWorkspace,
     formatReportLastMessageText,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
-    getAllReportErrors,
     getChatRoomSubtitle,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getIcons,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReportAttributes,
     getReportDescription,
     getReportName,
     getReportNameValuePairs,
@@ -118,7 +116,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
-import {getTransaction, getTransactionID} from './TransactionUtils';
+import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; phrase4?: string; messageText?: string; messageHtml?: string};
 
@@ -200,18 +198,13 @@ function getOrderedReportIDs(
     policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    currentPolicyID = '',
-    policyMemberAccountIDs: number[] = [],
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
-    const allReportsDictValues =
-        currentPolicyID === ''
-            ? Object.values(reports ?? {})
-            : Object.values(reports ?? {}).filter((report) => report?.reportID === currentReportId || doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
+    const allReportsDictValues = Object.values(reports ?? {});
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay: Array<Report & {hasErrorsOtherThanFailedReceipt?: boolean}> = [];
     allReportsDictValues.forEach((report) => {
@@ -225,7 +218,7 @@ function getOrderedReportIDs(
         const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const isHidden = isHiddenForCurrentUser(report);
         const isFocused = report.reportID === currentReportId;
-        const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
+        const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations, reportAttributes);
         const isReportInAccessible = report?.errorFields?.notFound;
         if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
             return;
@@ -246,7 +239,7 @@ function getOrderedReportIDs(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
             (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
-            getReportAttributes(report.reportID, reportAttributes)?.requiresAttention;
+            reportAttributes?.[report?.reportID]?.requiresAttention;
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
@@ -295,7 +288,7 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const rNVPs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        if (isPinned || getReportAttributes(report?.reportID, reportAttributes)?.requiresAttention) {
+        if (isPinned || reportAttributes?.[report?.reportID]?.requiresAttention) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
@@ -347,11 +340,13 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
+    reportErrors: Errors,
+    transactions: OnyxCollection<Transaction>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
-    const errors = getAllReportErrors(report, reportActions);
+    const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
     if (isReportArchived) {
@@ -380,7 +375,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
     if (transactionThreadReportID) {
         const transactionID = getTransactionID(transactionThreadReportID);
-        const transaction = getTransaction(transactionID);
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (hasReceiptError(transaction)) {
             return {
                 reason: CONST.RBR_REASONS.HAS_ERRORS,
@@ -388,7 +383,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         }
     }
     const transactionID = getTransactionID(report.reportID);
-    const transaction = getTransaction(transactionID);
+    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
         return {
             reason: CONST.RBR_REASONS.HAS_ERRORS,
@@ -402,10 +397,12 @@ function shouldShowRedBrickRoad(
     report: Report,
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
+    reportErrors: Errors,
+    transactions: OnyxCollection<Transaction>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isReportArchived);
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isReportArchived);
 }
 
 /**
@@ -416,7 +413,6 @@ function getOptionData({
     reportAttributes,
     oneTransactionThreadReport,
     reportNameValuePairs,
-    reportActions,
     personalDetails,
     preferredLocale,
     policy,
@@ -427,7 +423,6 @@ function getOptionData({
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
-    reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
     policy: OnyxEntry<Policy> | undefined;
@@ -446,7 +441,7 @@ function getOptionData({
     const result: OptionData = {
         text: '',
         alternateText: undefined,
-        allReportErrors: getAllReportErrors(report, reportActions),
+        allReportErrors: reportAttributes?.reportErrors,
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: undefined,
