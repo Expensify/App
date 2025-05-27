@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
@@ -1379,8 +1380,16 @@ type RBRReasonAndReportAction = {
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, isArchivedReport = false): RBRReasonAndReportAction | null {
-    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isArchivedReport) ?? {};
+function getReasonAndReportActionForRBRInLHNRow(
+    report: Report,
+    reportActions: OnyxEntry<ReportActions>,
+    transactions: OnyxCollection<Transaction>,
+    hasViolations: boolean,
+    reportErrors: Errors,
+    isArchivedReport = false,
+): RBRReasonAndReportAction | null {
+    const {reason, reportAction} =
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

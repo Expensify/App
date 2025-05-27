@@ -419,7 +419,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const policyAvatar = useMemo(() => {
         if (!policy) {
-            return {source: ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
+            return {source: ExpensifyAppIcon, name: CONST.EXPENSIFY_ICON_NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
         const avatar = policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name);
