@@ -4077,19 +4077,17 @@ const declineMoneyRequestReason =  (reportAction: OnyxEntry<ReportAction>): void
     }
     const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID;
 
-    const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
-    if (!moneyRequestReportID || !moneyRequestReport) {
-        return;
-    }
-
     const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
-    if (!transactionID || !reportAction.childReportID) {
+
+    Log.warn(`Missing TransactionID`, { transactionID, reportAction});
+
+    if (!transactionID || !moneyRequestReportID) {
         Log.warn('Missing transactionID and reportAction.childReportID during the change of the money request hold status');
         return;
     }   
     
     const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
-    Navigation.navigate(ROUTES.DECLINE_MONEY_REQUEST_REASON.getRoute(transactionID, reportAction.childReportID, activeRoute));
+    Navigation.navigate(ROUTES.DECLINE_MONEY_REQUEST_REASON.getRoute(transactionID, moneyRequestReportID, activeRoute));
 }
 
 /**
