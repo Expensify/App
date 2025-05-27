@@ -176,6 +176,7 @@ type ContextMenuActionPayload = {
     draftMessage: string;
     selection: string;
     close: () => void;
+    transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;

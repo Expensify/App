@@ -38,7 +38,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 return;
             }
         }
-        Navigation.goBack(backTo);
+        if (isEditing) {
+            Navigation.dismissModalWithReport({reportID: item.value});
+        } else {
+            Navigation.goBack(backTo);
+        }
     };
 
     return (

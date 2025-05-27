@@ -46,6 +46,10 @@ const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUN
         return CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_NOT_SUPPORTED;
     }
 
+    if (err.includes('400 Cannot merge account into itself')) {
+        return CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF;
+    }
+
     return null;
 };
 
