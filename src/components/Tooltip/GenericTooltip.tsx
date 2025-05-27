@@ -20,7 +20,7 @@ import type {GenericTooltipProps} from './types';
 function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
-    maxWidth = variables.sideBarWidth,
+    maxWidth = variables.tooltipWidth,
     text = '',
     renderTooltipContent,
     renderTooltipContentKey = [],
@@ -38,6 +38,7 @@ function GenericTooltip({
     shouldRender = true,
     isEducationTooltip = false,
     onTooltipPress = () => {},
+    ignoreGutter = false,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -189,6 +190,7 @@ function GenericTooltip({
                     shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                     onHideTooltip={onPressOverlay}
                     onTooltipPress={onTooltipPress}
+                    ignoreGutter={ignoreGutter}
                 />
             )}
             {/* eslint-disable-next-line react-compiler/react-compiler */}

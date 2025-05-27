@@ -42,6 +42,7 @@ function BaseGenericTooltip({
     shouldUseOverlay = false,
     onHideTooltip = () => {},
     isEducationTooltip = false,
+    ignoreGutter = false,
     onTooltipPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
@@ -97,6 +98,7 @@ function BaseGenericTooltip({
                 anchorAlignment,
                 wrapperStyle,
                 isEducationTooltip,
+                ignoreGutter
             }),
         [
             StyleUtils,

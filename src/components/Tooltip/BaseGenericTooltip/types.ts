@@ -36,6 +36,9 @@ type BaseGenericTooltipProps = {
 
     /** Whether it is education tooltip */
     isEducationTooltip?: boolean;
+
+    /** Whether the tooltip is allowed to extend into the gutters */
+    ignoreGutter?: boolean;
 } & Pick<
     SharedTooltipProps,
     'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onTooltipPress'

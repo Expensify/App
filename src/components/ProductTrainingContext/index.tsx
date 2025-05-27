@@ -274,7 +274,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         styles.alignItemsCenter,
                         styles.flexRow,
                         tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
-                        styles.flexWrap,
                         styles.textAlignCenter,
                         styles.gap3,
                         styles.pv2,
