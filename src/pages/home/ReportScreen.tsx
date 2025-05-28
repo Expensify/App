@@ -297,7 +297,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
         canBeMissing: false,
     });
-    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
+    const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -460,7 +461,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        if (reportMetadata.isOptimisticReport) {
+        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT) {
             return;
         }
 
@@ -480,13 +481,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
-        route.params?.moneyRequestReportActionID,
-        route.params?.transactionID,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        currentUserEmail,
+        report?.type,
         report?.errorFields?.notFound,
         isOffline,
+        route.params?.moneyRequestReportActionID,
+        route.params?.transactionID,
+        currentUserEmail,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
     ]);
 
     useEffect(() => {
