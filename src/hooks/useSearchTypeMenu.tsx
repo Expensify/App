@@ -169,6 +169,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
 
         if (savedSearchItems.length > 0) {
             items.push({
+                shouldShowBasicTitle: true,
                 text: translate('search.savedSearchesMenuItemTitle'),
                 styles: [styles.textSupporting],
                 disabled: true,
