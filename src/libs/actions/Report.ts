@@ -1639,17 +1639,21 @@ function markAllMessagesAsRead() {
         return;
     }
 
-    const optimisticData = [{
-        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-        key: ONYXKEYS.COLLECTION.REPORT,
-        value: optimisticUnreadReports,
-    }];
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: ONYXKEYS.COLLECTION.REPORT,
+            value: optimisticUnreadReports,
+        },
+    ];
 
-    const failureData = [{
-        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-        key: ONYXKEYS.COLLECTION.REPORT,
-        value: failureUnreadReports,
-    }];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: ONYXKEYS.COLLECTION.REPORT,
+            value: failureUnreadReports,
+        },
+    ];
 
     const parameters: MarkAllMessagesAsReadParams = {
         reportIDs,
