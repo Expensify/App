@@ -572,7 +572,7 @@ function SearchPage({route}: SearchPageProps) {
                                         isDraggingOver
                                         icon={Expensicons.SmartScan}
                                         dropTitle={translate('dropzone.scanReceipts')}
-                                        dropStyles={styles.receiptDropOverlay}
+                                        dropStyles={styles.receiptDropOverlay()}
                                         dropTextStyles={styles.receiptDropText}
                                         dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
                                     />

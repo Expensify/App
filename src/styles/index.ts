@@ -3015,8 +3015,15 @@ const styles = (theme: ThemeColors) =>
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
-            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1} satisfies ViewStyle),
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
+            ({
+                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize,
+                flex: 1,
+            } satisfies ViewStyle),
+        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
+            ({
+                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth,
+                flex: 1,
+            } satisfies ViewStyle),
 
         avatarInnerTextChat: {
             color: theme.text,
@@ -3999,9 +4006,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.fileDropUIBG,
         },
 
-        attachmentDropOverlay: {
-            backgroundColor: theme.attachmentDropUIBG,
-        },
+        attachmentDropOverlay: (isActive?: boolean) => ({
+            backgroundColor: isActive ? theme.attachmentDropUIBGActive : theme.attachmentDropUIBG,
+            transition: 'background-color 0.2s ease-in',
+        }),
 
         attachmentDropText: {
             color: theme.textAttachmentDropZone,
@@ -4011,10 +4019,10 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.attachmentDropBorderColor,
         },
 
-        receiptDropOverlay: {
-            backgroundColor: theme.receiptDropUIBG,
-            zIndex: 2,
-        },
+        receiptDropOverlay: (isActive?: boolean) => ({
+            backgroundColor: isActive ? theme.receiptDropUIBGActive : theme.receiptDropUIBG,
+            transition: 'background-color 0.2s ease-in',
+        }),
 
         receiptDropText: {
             color: theme.textReceiptDropZone,
