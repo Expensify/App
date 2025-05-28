@@ -1192,32 +1192,6 @@ function isTagModificationAction(actionName: string): boolean {
 }
 
 /**
- * Determines whether the given action is an IOU and, if a list of report transaction IDs is provided,
- * whether it corresponds to one of those transactions.
- *
- * For compatibility and to avoid using isMoneyRequest next to this function as it is checked here already:
- * - If the action is not a money request and `defaultToFalseForNonIOU` is false (default), the result is true.
- * - If no `reportTransactionIDs` are provided, the function returns true if the action is an IOU.
- * - If `reportTransactionIDs` are provided, the function checks if the IOU transaction ID from the action matches any of them.
- */
-const isIOUActionMatchingTransactionList = (
-    action: ReportAction,
-    reportTransactionIDs?: string[],
-    defaultToFalseForNonIOU = false,
-): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
-    if (!isMoneyRequestAction(action)) {
-        return !defaultToFalseForNonIOU;
-    }
-
-    if (reportTransactionIDs === undefined) {
-        return true;
-    }
-
-    const {IOUTransactionID} = getOriginalMessage(action) ?? {};
-    return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
-};
-
-/**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
@@ -1225,7 +1199,6 @@ function getOneTransactionThreadReportID(
     reportID: string | undefined,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
-    reportTransactionIDs?: string[],
 ): string | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1240,7 +1213,7 @@ function getOneTransactionThreadReportID(
 
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
-        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true)) {
+        if (!isMoneyRequestAction(action)) {
             // eslint-disable-next-line no-continue
             continue;
         }
@@ -2538,7 +2511,6 @@ export {
     isForwardedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
-    isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
