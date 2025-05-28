@@ -2479,13 +2479,13 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
     API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
-function updateDescription(reportID: string, previousValue: string, newValue: string) {
+function updateDescription(reportID: string, currentDescription: string, newMarkdownValue: string) {
     // No change needed
-    if (previousValue === newValue) {
+    if (Parser.htmlToMarkdown(currentDescription) === newMarkdownValue) {
         return;
     }
 
-    const parsedDescription = getParsedComment(newValue, {reportID});
+    const parsedDescription = getParsedComment(newMarkdownValue, {reportID});
     const optimisticDescriptionUpdatedReportAction = buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -2514,7 +2514,7 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                description: previousValue,
+                description: currentDescription,
                 pendingFields: {description: null},
                 lastActorAccountID: report?.lastActorAccountID,
                 lastVisibleActionCreated: report?.lastVisibleActionCreated,

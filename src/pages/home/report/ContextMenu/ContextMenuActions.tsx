@@ -598,6 +598,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(translateLocal('iou.unheldExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
+                    Clipboard.setString(translateLocal('iou.retracted'));
                 } else if (isOldDotReportAction(reportAction)) {
                     const oldDotActionMessage = getMessageOfOldDotReportAction(reportAction);
                     Clipboard.setString(oldDotActionMessage);
