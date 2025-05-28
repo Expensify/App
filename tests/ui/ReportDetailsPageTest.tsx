@@ -106,7 +106,7 @@ describe('ReportDetailsPage', () => {
             <OnyxProvider>
                 <LocaleContextProvider>
                     <ReportDetailsPage
-                        betas={[CONST.BETAS.TRACK_FLOWS]}
+                        betas={[]}
                         isLoadingReportData={false}
                         navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['navigation']}
                         policies={{}}
