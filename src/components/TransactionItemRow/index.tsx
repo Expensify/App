@@ -239,7 +239,7 @@ function TransactionItemRow({
                 </View>
             ),
         }),
-        [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
+        [StyleUtils, createdAt, isDateColumnWide, isInSingleTransactionReport, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
     );
     const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     return (
