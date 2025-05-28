@@ -13,9 +13,11 @@ import {HandCard} from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,7 +25,6 @@ import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDescriptionForPolicyDomainCard, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -146,6 +147,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
 
+    const handleBackButtonPress = () => {
+        Navigation.popToSidebar();
+        return true;
+    };
+
+    useHandleBackButton(handleBackButtonPress);
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -159,7 +167,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldUseHeadlineHeader
                 title={translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
+                onBackButtonPress={handleBackButtonPress}
             >
                 {!shouldShowSelector && !shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
             </HeaderWithBackButton>
@@ -178,7 +186,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             {isEmptyObject(cardsList) ? (
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
-                <>
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                >
                     <View style={styles.appBG}>
                         <WorkspaceCardListLabels
                             policyID={policyID}
@@ -200,7 +211,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
                         contentContainerStyle={bottomSafeAreaPaddingStyle}
                     />
-                </>
+                </ScrollView>
             )}
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}

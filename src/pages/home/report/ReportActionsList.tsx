@@ -5,6 +5,7 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -28,6 +29,7 @@ import {
     getFirstVisibleReportActionID,
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
+    isCurrentActionUnread,
     isDeletedParentAction,
     isReportPreviewAction,
     isReversedTransaction,
@@ -62,6 +64,7 @@ import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
+import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -169,11 +172,11 @@ function ReportActionsList({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
     useEffect(() => {
-        const unsubscriber = Visibility.onVisibilityChange(() => {
+        const unsubscribe = Visibility.onVisibilityChange(() => {
             setIsVisible(Visibility.isVisible());
         });
 
-        return unsubscriber;
+        return unsubscribe;
     }, []);
 
     const scrollingVerticalOffset = useRef(0);
@@ -316,14 +319,25 @@ function ReportActionsList({
     const reportActionID = route?.params?.reportActionID;
     const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
     const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
-    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(!isLinkedActionCloseToNewest);
+
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
+        reportID: report.reportID,
+        currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
+        floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
+        readActionSkippedRef: readActionSkipped,
+        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
+        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+            onScroll?.(event);
+        },
+    });
 
     useEffect(() => {
         if (isLinkedActionCloseToNewest) {
             return;
         }
         setIsFloatingMessageCounterVisible(true);
-    }, [isLinkedActionCloseToNewest, route]);
+    }, [isLinkedActionCloseToNewest, route, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         if (
@@ -337,7 +351,7 @@ function ReportActionsList({
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID]);
+    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
@@ -349,7 +363,7 @@ function ReportActionsList({
             return;
         }
 
-        if (isUnread(report, transactionThreadReport)) {
+        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
@@ -414,12 +428,12 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager],
+        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
-        //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
+        //         meaning that the cleanup might not get called. When we then open a report we had open already previously, a new
         //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
         //         because the two subscriptions could conflict!
         //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
@@ -447,14 +461,12 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
-    const previousLastAction = usePrevious(lastAction);
+    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
+    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
+    const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
+
     useEffect(() => {
-        if (
-            lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER ||
-            lastAction?.reportActionID === previousLastAction?.reportActionID ||
-            !hasNewestReportAction ||
-            scrollingVerticalOffset.current >= AUTOSCROLL_TO_TOP_THRESHOLD
-        ) {
+        if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
         InteractionManager.runAfterInteractions(() => {
@@ -462,29 +474,6 @@ function ReportActionsList({
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastAction]);
-
-    /**
-     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
-     */
-    const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) {
-            setIsFloatingMessageCounterVisible(true);
-        }
-
-        if (scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
-            if (readActionSkipped.current) {
-                readActionSkipped.current = false;
-                readNewestAction(report.reportID);
-            }
-            setIsFloatingMessageCounterVisible(false);
-        }
-    };
-
-    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-        handleUnreadFloatingButton();
-        onScroll?.(event);
-    };
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
@@ -498,7 +487,7 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [report.reportID, reportScrollManager, hasNewestReportAction]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
@@ -691,8 +680,6 @@ function ReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
-    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
-
     return (
         <>
             <FloatingMessageCounter
@@ -712,6 +699,7 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
+                    renderScrollComponent={renderScrollComponent}
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}

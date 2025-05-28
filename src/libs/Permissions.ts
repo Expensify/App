@@ -27,6 +27,10 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
+function canUseMultiLevelTags(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.MULTI_LEVEL_TAGS) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -54,10 +58,6 @@ function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) || canUseAllBetas(betas);
 }
 
-function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
-}
-
 function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
 }
@@ -70,8 +70,20 @@ function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
 }
 
-function canUseCallScheduling() {
-    return false;
+function canUsePlaidCompanyCards(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PLAID_COMPANY_CARDS) || canUseAllBetas(betas);
+}
+
+function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
+}
+
+function canUseMultiScan(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_SCAN) || canUseAllBetas(betas);
+}
+
+function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
 }
 
 export default {
@@ -86,9 +98,12 @@ export default {
     canUseCustomRules,
     canUseTableReportView,
     canUseTalkToAISales,
-    canUseProhibitedExpenses,
     canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
     canUsePrivateDomainOnboarding,
-    canUseCallScheduling,
+    canUseRetractNewDot,
+    canUseMultiLevelTags,
+    canUseMultiFilesDragAndDrop,
+    canUseMultiScan,
+    canUsePlaidCompanyCards,
 };

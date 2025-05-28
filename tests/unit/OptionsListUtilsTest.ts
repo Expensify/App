@@ -298,23 +298,6 @@ describe('OptionsListUtils', () => {
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
-        18: {
-            lastReadTime: '2021-01-14 11:25:39.302',
-            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
-            isPinned: false,
-            reportID: '18',
-            participants: {
-                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-            },
-            reportName: '',
-            oldPolicyName: 'Justice League Room',
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-            isOwnPolicyExpenseChat: true,
-            type: CONST.REPORT.TYPE.CHAT,
-        },
     };
 
     const REPORTS_WITH_CHAT_ROOM: OnyxCollection<Report> = {
@@ -818,7 +801,7 @@ describe('OptionsListUtils', () => {
 
     describe('getValidOptions() for chat room', () => {
         it('should include all reports by default', () => {
-            // Given a set of reports and personalDetails that includes workspace rooms with no `excludeHiddenChatRoom` flag
+            // Given a set of reports and personalDetails that includes workspace rooms
             // When we call getValidOptions()
             const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, {
                 includeRecentReports: true,
@@ -830,24 +813,6 @@ describe('OptionsListUtils', () => {
             // Then the result should include all reports except the currently logged in user
             expect(results.recentReports.length).toBe(OPTIONS_WITH_WORKSPACE_ROOM.reports.length - 1);
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '14'})]));
-            expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '18'})]));
-        });
-
-        it('should exclude hidden chat room when excludeHiddenChatRoom flag is set', () => {
-            // Given a set of reports and personalDetails that includes workspace rooms with `excludeHiddenChatRoom` flag
-            // When we call getValidOptions()
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                includeP2P: true,
-                includeOwnedWorkspaceChats: true,
-                excludeHiddenChatRoom: true,
-            });
-
-            // Then the result should include all reports except the currently logged in user and hidden chat room
-            expect(results.recentReports.length).toBe(OPTIONS_WITH_WORKSPACE_ROOM.reports.length - 2);
-            expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '14'})]));
-            expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({reportID: '18'})]));
         });
     });
 
@@ -1594,8 +1559,8 @@ describe('OptionsListUtils', () => {
     });
 
     describe('filterWorkspaceChats()', () => {
-        it('should return an empty array if there are no workspace chats', () => {
-            // Given an empty array of workspace chats and no search terms
+        it('should return an empty array if there are no expense chats', () => {
+            // Given an empty array of expense chats and no search terms
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats([], []);
 
@@ -1603,8 +1568,8 @@ describe('OptionsListUtils', () => {
             expect(result.length).toEqual(0);
         });
 
-        it('should return all workspace chats if there are no search terms', () => {
-            // Given a list of workspace chats and no search terms
+        it('should return all expense chats if there are no search terms', () => {
+            // Given a list of expense chats and no search terms
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats(WORKSPACE_CHATS, []);
 
@@ -1614,26 +1579,26 @@ describe('OptionsListUtils', () => {
             expect(result.length).toEqual(WORKSPACE_CHATS.length);
         });
 
-        it('should filter multiple workspace chats by search term', () => {
-            // Given a list of workspace chats and one search term
+        it('should filter multiple expense chats by search term', () => {
+            // Given a list of expense chats and one search term
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats(WORKSPACE_CHATS, ['Google']);
 
-            // Then the returned value should should only include the matching workspace chats
+            // Then the returned value should should only include the matching expense chats
             expect(result.length).toEqual(2);
         });
 
-        it('should filter workspace chat by exact name', () => {
-            // Given a list of workspace chats and multiple search terms that reflect the exact name
+        it('should filter expense chat by exact name', () => {
+            // Given a list of expense chats and multiple search terms that reflect the exact name
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats(WORKSPACE_CHATS, ['Microsoft', 'Teams', 'Workspace']);
 
-            // Then the returned value should should only include the matching workspace chat
+            // Then the returned value should should only include the matching expense chat
             expect(result.length).toEqual(1);
         });
 
-        it('should return an empty array if there are no matching workspace chats', () => {
-            // Given a list of workspace chats and a search term that does not match any workspace chats
+        it('should return an empty array if there are no matching expense chats', () => {
+            // Given a list of expense chats and a search term that does not match any expense chats
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats(WORKSPACE_CHATS, ['XYZ']);
 
@@ -1644,7 +1609,7 @@ describe('OptionsListUtils', () => {
 
     describe('orderWorkspaceOptions()', () => {
         it('should put the default workspace on top of the list', () => {
-            // Given a list of workspace chats
+            // Given a list of expense chats
             // When we call orderWorkspaceOptions
             const result = orderWorkspaceOptions(WORKSPACE_CHATS);
 

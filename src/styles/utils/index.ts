@@ -117,6 +117,7 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
     [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
+    [CONST.AVATAR_SIZE.LARGE_NORMAL]: variables.avatarSizeLargeNormal,
 };
 
 const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -245,7 +246,7 @@ function getAvatarExtraFontSizeStyle(size: AvatarSizeName): TextStyle {
 }
 
 /**
- * Get Bordersize of Avatar based on avatar size
+ * Get border size of Avatar based on avatar size
  */
 function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
     return {
@@ -474,7 +475,7 @@ function getTextColorStyle(color: string): TextColorStyle {
 /**
  * Returns a style with the specified borderColor
  */
-function getBorderColorStyle(borderColor: string): ViewStyle {
+function getBorderColorStyle(borderColor: ColorValue): ViewStyle {
     return {
         borderColor,
     };
@@ -706,8 +707,8 @@ function getPaddingBottom(paddingBottom: number): ViewStyle {
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
-    const heightsIphonesWithNotches = [812, 896, 844, 926];
-    return heightsIphonesWithNotches.includes(windowHeight) || heightsIphonesWithNotches.includes(windowWidth);
+    const heightsIPhonesWithNotches = [812, 896, 844, 926];
+    return heightsIPhonesWithNotches.includes(windowHeight) || heightsIPhonesWithNotches.includes(windowWidth);
 }
 
 /**
@@ -1024,7 +1025,7 @@ function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
 }
 
 /**
- * Returns style object for the dropbutton height
+ * Returns style object for the drop button height
  */
 function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
     if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
@@ -1314,16 +1315,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...styles.overflowHidden,
             // maxHeight is not of the input only but the of the whole input container
             // which also includes the top padding and bottom border
-            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
+            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
         };
     },
 
     /*
      * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
      */
-    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number, marginSide?: 'left' | 'right'): ViewStyle => {
         if (!!width && !!extraSpace) {
-            return {marginRight: -extraSpace, width: width + extraSpace};
+            const marginKey = marginSide === 'left' ? 'marginLeft' : 'marginRight';
+            return {[marginKey]: -extraSpace, width: width + extraSpace};
         }
         return {width};
     },
@@ -1334,7 +1336,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
         // maxHeight is not of the input only but the of the whole input container
         // which also includes the top padding and bottom border
-        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2} : {};
     },
 
     /**
@@ -1517,7 +1519,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Return the height of magic code input container
      */
-    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth}),
+    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
 
     /**
      * Generate fill color of an icon based on its state.
@@ -1773,10 +1775,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
     getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
-        keys.reduce((styleobj: Nullable<K>, key) => {
+        keys.reduce((styleObj: Nullable<K>, key) => {
             // eslint-disable-next-line no-param-reassign
-            styleobj[key] = null;
-            return styleobj;
+            styleObj[key] = null;
+            return styleObj;
         }, {} as Nullable<K>) as K,
 });
 
