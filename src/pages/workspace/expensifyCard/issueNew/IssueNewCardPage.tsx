@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useInitial from '@hooks/useInitial';
 import {startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -23,11 +24,12 @@ type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStack
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
-
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
 
     useEffect(() => {
         startIssueNewCardFlow(policyID);
@@ -49,7 +51,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 return (
                     <ConfirmationStep
                         policyID={policyID}
-                        backTo={backTo}
+                        backTo={shouldUseBackToParam ? backTo : undefined}
                     />
                 );
             default:
