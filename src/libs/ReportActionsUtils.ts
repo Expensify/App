@@ -1192,6 +1192,32 @@ function isTagModificationAction(actionName: string): boolean {
 }
 
 /**
+ * Determines whether the given action is an IOU and, if a list of report transaction IDs is provided,
+ * whether it corresponds to one of those transactions.
+ *
+ * For compatibility and to avoid using isMoneyRequest next to this function as it is checked here already:
+ * - If the action is not a money request and `defaultToFalseForNonIOU` is false (default), the result is true.
+ * - If no `reportTransactionIDs` are provided, the function returns true if the action is an IOU.
+ * - If `reportTransactionIDs` are provided, the function checks if the IOU transaction ID from the action matches any of them.
+ */
+const isIOUActionMatchingTransactionList = (
+    action: ReportAction,
+    reportTransactionIDs?: string[],
+    defaultToFalseForNonIOU = false,
+): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+    if (!isMoneyRequestAction(action)) {
+        return !defaultToFalseForNonIOU;
+    }
+
+    if (reportTransactionIDs === undefined) {
+        return true;
+    }
+
+    const {IOUTransactionID} = getOriginalMessage(action) ?? {};
+    return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
+};
+
+/**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
@@ -1199,6 +1225,7 @@ function getOneTransactionThreadReportID(
     reportID: string | undefined,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
+    reportTransactionIDs?: string[],
 ): string | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1213,7 +1240,7 @@ function getOneTransactionThreadReportID(
 
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
-        if (!isMoneyRequestAction(action)) {
+        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true)) {
             // eslint-disable-next-line no-continue
             continue;
         }
@@ -1561,6 +1588,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
+        const message = getRetractedMessage();
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         const message = getReopenedMessage();
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
@@ -1827,25 +1859,14 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
-    if (reimbursableUrls.length || nonReimbursableUrls.length) {
-        result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionThree'),
-            url: '',
-        });
-    }
+
     if (reimbursableUrls.length === 1) {
-        const shouldAddPeriod = nonReimbursableUrls.length === 0;
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
+            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
             url: reimbursableUrls.at(0) ?? '',
         });
     }
-    if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
-        result.push({
-            text: translateLocal('common.and'),
-            url: '',
-        });
-    }
+
     if (nonReimbursableUrls.length) {
         const text = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
         let url = '';
@@ -1883,6 +1904,10 @@ function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     }
 
     return translateLocal('roomChangeLog.clearRoomDescription');
+}
+
+function getRetractedMessage(): string {
+    return translateLocal('iou.retracted');
 }
 
 function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE> {
@@ -2409,6 +2434,16 @@ function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
 
+function getReportActionFromExpensifyCard(cardID: number) {
+    return Object.values(allReportActions ?? {})
+        .map((reportActions) => Object.values(reportActions ?? {}))
+        .flat()
+        .find((reportAction) => {
+            const cardIssuedActionOriginalMessage = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ? getOriginalMessage(reportAction) : undefined;
+            return cardIssuedActionOriginalMessage?.cardID === cardID;
+        });
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -2512,6 +2547,7 @@ export {
     isForwardedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
+    isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
@@ -2555,6 +2591,8 @@ export {
     getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
+    getRetractedMessage,
+    getReportActionFromExpensifyCard,
 };
 
 export type {LastVisibleMessage};

@@ -85,14 +85,19 @@ import {
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
+    getIOUApprovedMessage,
     getIOUForwardedMessage,
     getIOUReportActionDisplayMessage,
+    getIOUSubmittedMessage,
+    getIOUUnapprovedMessage,
     getOriginalReportID,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
+    getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
+    getReportAutomaticallySubmittedMessage,
     getReportName,
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
@@ -171,6 +176,7 @@ type ContextMenuActionPayload = {
     draftMessage: string;
     selection: string;
     close: () => void;
+    transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
@@ -559,19 +565,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
                     if (harvesting) {
-                        setClipboardMessage(translateLocal('iou.automaticallySubmitted'));
+                        setClipboardMessage(getReportAutomaticallySubmittedMessage(reportAction));
                     } else {
-                        Clipboard.setString(translateLocal('iou.submitted'));
+                        Clipboard.setString(getIOUSubmittedMessage(reportAction));
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
-                        setClipboardMessage(translateLocal('iou.automaticallyApproved'));
+                        setClipboardMessage(getReportAutomaticallyApprovedMessage(reportAction));
                     } else {
-                        Clipboard.setString(translateLocal('iou.approvedMessage'));
+                        Clipboard.setString(getIOUApprovedMessage(reportAction));
                     }
                 } else if (isUnapprovedAction(reportAction)) {
-                    Clipboard.setString(translateLocal('iou.unapproved'));
+                    Clipboard.setString(getIOUUnapprovedMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
@@ -592,6 +598,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(translateLocal('iou.unheldExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
+                    Clipboard.setString(translateLocal('iou.retracted'));
                 } else if (isOldDotReportAction(reportAction)) {
                     const oldDotActionMessage = getMessageOfOldDotReportAction(reportAction);
                     Clipboard.setString(oldDotActionMessage);
