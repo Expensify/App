@@ -12,13 +12,18 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
+    isInstantSubmitEnabled,
     isPreferredExporter,
+    isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
+import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
     canEditFieldOfMoneyRequest,
     canEditReportPolicy,
+    canHoldUnholdReportAction,
+    hasOnlyHeldExpenses,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -287,16 +292,17 @@ function isHoldAction(report: Report, reportTransactions: Transaction[], reportA
         return false;
     }
 
-    const isTransactionOnHold = isHoldActionForTransaction(report, transaction);
-    return isTransactionOnHold;
+    return !!reportActions && isHoldActionForTransaction(report, transaction, reportActions);
 }
 
-function isHoldActionForTransaction(report: Report, reportTransaction: Transaction): boolean {
+function isHoldActionForTransaction(report: Report, reportTransaction: Transaction, reportActions: ReportAction[]): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
+    const action = getIOUActionForTransactionID(reportActions, reportTransaction.transactionID);
+    const {canHoldRequest} = canHoldUnholdReportAction(action);
 
-    if (!iouOrExpenseReport) {
+    if (!iouOrExpenseReport || !canHoldRequest) {
         return false;
     }
 
@@ -368,6 +374,30 @@ function isDeleteAction(report: Report): boolean {
     return isReportOpen || isProcessingReport;
 }
 
+function isRetractAction(report: Report, policy?: Policy): boolean {
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isSubmitAndClose = isSubmitAndCloseUtils(policy);
+
+    // This should be removed after we change how instant submit works
+    const isInstantSubmit = isInstantSubmitEnabled(policy);
+
+    if (!isExpenseReport || isSubmitAndClose || isInstantSubmit) {
+        return false;
+    }
+
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    if (!isReportSubmitter) {
+        return false;
+    }
+
+    const isProcessingReport = isProcessingReportUtils(report);
+    if (!isProcessingReport) {
+        return false;
+    }
+
+    return true;
+}
+
 function isReopenAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     if (!isExpenseReport) {
@@ -400,6 +430,10 @@ function getSecondaryReportActions(
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
+    }
+
     if (canUseTableReportView && isAddExpenseAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
@@ -426,6 +460,10 @@ function getSecondaryReportActions(
 
     if (isMarkAsExportedAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
+    }
+
+    if (canUseRetractNewDot && isRetractAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
 
     if (canUseRetractNewDot && isReopenAction(report, policy)) {
@@ -457,10 +495,14 @@ function getSecondaryReportActions(
     return options;
 }
 
-function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
+function getSecondaryTransactionThreadActions(
+    parentReport: Report,
+    reportTransaction: Transaction,
+    reportActions: ReportAction[],
+): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
-    if (isHoldActionForTransaction(parentReport, reportTransaction)) {
+    if (isHoldActionForTransaction(parentReport, reportTransaction, reportActions)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 

@@ -56,6 +56,10 @@ function DebugReportPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (attributes) => attributes?.reports?.[reportID],
+        canBeMissing: true,
+    });
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
     // We want the single transaction linked to the report either from transactionThread report or oneTransactionThreadReport.
@@ -74,7 +78,7 @@ function DebugReportPage({
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
-            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations, transaction, isReportArchived) ?? {};
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations, reportAttributes?.reportErrors ?? {}, transaction, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
@@ -122,7 +126,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, reportID, transactionViolations, translate, isReportArchived, transaction]);
+    }, [report, reportActions, reportID, transactionViolations, translate, isReportArchived, transaction, reportAttributes?.reportErrors]);
 
     const DebugDetailsTab = useCallback(
         () => (

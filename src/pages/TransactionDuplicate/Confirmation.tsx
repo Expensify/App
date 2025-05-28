@@ -29,6 +29,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -87,7 +88,7 @@ function Confirmation() {
         if (!reportAction?.childReportID) {
             return;
         }
-        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID), {compareParams: false});
     }, [reportAction?.childReportID, transactionsMergeParams, canUseTableReportView]);
 
     const resolveDuplicates = useCallback(() => {
@@ -100,7 +101,7 @@ function Confirmation() {
             Navigation.dismissModal();
             return;
         }
-        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID), {compareParams: false});
     }, [transactionsMergeParams, reportAction?.childReportID, canUseTableReportView]);
 
     const contextValue = useMemo(
@@ -109,6 +110,7 @@ function Confirmation() {
             action: reportAction,
             report,
             checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
             reportNameValuePairs: undefined,
             anchor: null,
             isDisabled: false,
