@@ -1385,7 +1385,6 @@ function getReasonAndReportActionForRBRInLHNRow(
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     reportErrors: Errors,
-
     transaction: OnyxEntry<Transaction>,
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
