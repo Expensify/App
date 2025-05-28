@@ -8,13 +8,13 @@ import ConfirmModal from '@components/ConfirmModal';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TopBar from '@components/Navigation/TopBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -464,7 +464,7 @@ function WorkspacesListPage() {
             text={translate('workspace.new.newWorkspace')}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
             icon={Expensicons.Plus}
-            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            style={[shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]]}
         />
     );
 
@@ -485,13 +485,7 @@ function WorkspacesListPage() {
                 bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
-                <HeaderWithBackButton
-                    title={translate('common.workspaces')}
-                    shouldShowBackButton={false}
-                    shouldDisplaySearchRouter
-                    icon={Illustrations.Buildings}
-                    shouldUseHeadlineHeader
-                />
+                <TopBar breadcrumbLabel={translate('common.workspaces')} />
                 {shouldShowLoadingIndicator ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
@@ -529,17 +523,8 @@ function WorkspacesListPage() {
             bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
             <View style={styles.flex1}>
-                <HeaderWithBackButton
-                    title={translate('common.workspaces')}
-                    shouldShowBackButton={false}
-                    shouldDisplaySearchRouter
-                    onBackButtonPress={onBackButtonPress}
-                    icon={Illustrations.Buildings}
-                    shouldUseHeadlineHeader
-                >
-                    {!shouldUseNarrowLayout && getHeaderButton()}
-                </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
+                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
+                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{getHeaderButton()}</View>}
                 <FlatList
                     data={workspaces}
                     renderItem={getMenuItem}
