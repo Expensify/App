@@ -771,6 +771,7 @@ function PureReportActionItem({
         resolveActionableReportMentionWhisper,
         resolveActionableMentionWhisper,
         originalReportID,
+        canUseTrackFlows,
     ]);
 
     /**
