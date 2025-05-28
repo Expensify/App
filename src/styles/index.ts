@@ -4872,6 +4872,7 @@ const styles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
+            maxWidth: 440,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
