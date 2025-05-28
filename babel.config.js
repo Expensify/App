@@ -115,7 +115,7 @@ const metro = {
             },
         ],
         // Uncomment this if you ever want to see what files are being transformed
-        function myTracer() {
+        function traceTransformer() {
             return {
                 visitor: {
                     Program(path, state) {

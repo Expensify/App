@@ -9,7 +9,7 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        '^.+\\.tsx?$': 'babel-jest',
+        '^.+\\.[jt]sx?$': 'babel-jest',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: ['<rootDir>/node_modules/(?!.*(react-native|expo|react-navigation|uuid).*/)'],
