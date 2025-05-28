@@ -1624,6 +1624,8 @@ export {
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
+    // This function will be removed as part of https://github.com/Expensify/App/issues/61910
+    // eslint-disable-next-line deprecation/deprecation
     getTransaction,
     compareDuplicateTransactionFields,
     getTransactionID,
