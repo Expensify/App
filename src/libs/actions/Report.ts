@@ -1612,7 +1612,7 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
 function markAllMessagesAsRead() {
     const lastReadTime = DateUtils.getDBTimeWithSkew();
 
-    const optimisticData: OnyxUpdate[] = [];
+    const optimisticUnreadReports: Record<string, Pick<Report, 'lastReadTime'>> = {};
     const reportIDs: string[] = [];
     Object.values(allReports ?? {}).forEach((report) => {
         if (!report) {
@@ -1628,19 +1628,19 @@ function markAllMessagesAsRead() {
             return;
         }
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {
-                lastReadTime,
-            },
-        });
+        optimisticUnreadReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {lastReadTime};
         reportIDs.push(report.reportID);
     });
 
     if (reportIDs.length === 0) {
         return;
     }
+
+    const optimisticData = [{
+        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+        key: ONYXKEYS.COLLECTION.REPORT,
+        value: optimisticUnreadReports,
+    }];
 
     const parameters: MarkAllMessagesAsReadParams = {
         reportIDs,
