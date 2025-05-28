@@ -85,8 +85,8 @@ function useFastSearchFromOptions(
             ]);
             setFastSearch(newFastSearch);
             setIsInitialized(true);
+            prevFastSearchRef.current = newFastSearch;
         });
-        prevFastSearchRef.current = newFastSearch?;
     }, [options]);
 
     useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
