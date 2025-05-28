@@ -1242,7 +1242,7 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
-            MARK_AS_RESOLVED: 'markAsResolved'
+            MARK_AS_RESOLVED: 'markAsResolved',
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
@@ -1423,7 +1423,7 @@ const CONST = {
                 REJECTED_TRANSACTION_REMOVEDFROMREPORT: 'REJECTEDTRANSACTIONREMOVEDFROMREPORT',
                 REJECT_TRANSACTION: 'REJECTTRANSACTION',
                 REJECTED_TRANSACTION_AUTOADDED: 'REJECTEDTRANSACTIONAUTOADDED',
-                REJECTED_TRANSACTION_MARKASRESOLVED: 'REJECTEDTRANSACTIONMARKASRESOLVED'
+                REJECTED_TRANSACTION_MARKASRESOLVED: 'REJECTEDTRANSACTIONMARKASRESOLVED',
             },
             THREAD_DISABLED: ['CREATED'],
             // Used when displaying reportActions list to handle unread messages icon/button

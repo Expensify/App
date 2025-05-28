@@ -14,7 +14,6 @@ import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/ca
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
 import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
 import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
-import ModalHoldOrDecline from '@assets/images/product-illustrations/modal-hold-or-decline.svg';
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
@@ -49,6 +48,7 @@ import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green
 import JewelBoxPink from '@assets/images/product-illustrations/jewel-box--pink.svg';
 import JewelBoxYellow from '@assets/images/product-illustrations/jewel-box--yellow.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
+import ModalHoldOrDecline from '@assets/images/product-illustrations/modal-hold-or-decline.svg';
 import MoneyEnvelopeBlue from '@assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '@assets/images/product-illustrations/money-mouse--pink.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
@@ -144,8 +144,8 @@ import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illus
 import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
-import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
+import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
@@ -317,5 +317,5 @@ export {
     ExpensifyMobileApp,
     ReportReceipt,
     ModalHoldOrDecline,
-    ThumbsDown
+    ThumbsDown,
 };

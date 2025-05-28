@@ -20,7 +20,7 @@ function DeclineReasonPage({route}: DeclineReasonPageProps) {
     const {translate} = useLocalize();
 
     const {transactionID, reportID, backTo} = route.params;
-    
+
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         IOU.declineMoneyRequest(transactionID, reportID, values.comment);
         Navigation.goBack(backTo);

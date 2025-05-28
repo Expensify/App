@@ -11139,23 +11139,24 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         for (const key in allTransactions ?? {}) {
             if (allTransactions?.[key]?.reportID === reportID) {
                 count++;
-                if (count > 1) {return true;}
+                if (count > 1) {
+                    return true;
+                }
             }
         }
         return false;
     })();
 
-    
     // Build optimistic data updates
     const optimisticData: OnyxUpdate[] = [];
-    
+
     // TODO: Define successData and failureData.
     // TOOD: Do we show RBR and pending actions - will the action be delete/update in this scenario.
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
     // Add all system messages to the expense report
-    
+
     if (isPolicyInstantSubmit) {
         if (hasMultipleExpenses) {
             // For reports with multiple expenses: Update report total
@@ -11171,7 +11172,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: null
+                value: null,
             });
         }
     } else if (hasMultipleExpenses) {
@@ -11203,7 +11204,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 value: {
                     reportID: movedToReportID,
                 },
-            }
+            },
         );
     } else {
         // For reports with single expense: Change report state to DRAFT
@@ -11211,7 +11212,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: null
+            value: null,
         });
 
         // Then add to report_draft collection
@@ -11238,9 +11239,9 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     name: CONST.VIOLATIONS.REJECTED_EXPENSE,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
                     data: {
-                        rejectReason: comment ?? ''
-                    }
-                }
+                        rejectReason: comment ?? '',
+                    },
+                },
             ],
         });
     }
@@ -11309,7 +11310,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             {
                 type: 'TEXT',
                 text: Localize.translateLocal('iou.decline.declinedExpense', {
-                    approver: approverName
+                    approver: approverName,
                 }),
             },
         ],
@@ -11370,7 +11371,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         });
     }
 
-
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(declineAction.created, 1);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -11393,8 +11393,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     };
 
     // Make API call
-    API.write(WRITE_COMMANDS.DECLINE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});    
-
+    API.write(WRITE_COMMANDS.DECLINE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
 function markDeclineViolationAsResolved(transactionID: string) {
@@ -11405,7 +11404,7 @@ function markDeclineViolationAsResolved(transactionID: string) {
 
     const markedAsResolvedReportActionID = rand64();
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    const updatedViolations = currentViolations?.filter(violation => violation.name !== CONST.VIOLATIONS.REJECTED_EXPENSE);
+    const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.REJECTED_EXPENSE);
     const currentUserAccountID = getCurrentUserAccountID();
     const currentUser = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldUseShortForm: true});
 
@@ -11425,12 +11424,14 @@ function markDeclineViolationAsResolved(transactionID: string) {
                     actorAccountID: currentUserAccountID,
                     avatar: currentUserPersonalDetails?.avatar,
                     created: DateUtils.getDBTime(),
-                    message: [{
-                        type: 'TEXT',
-                        text: Localize.translateLocal('iou.decline.markedAsResolved', {
-                            user: currentUser,
-                        })
-                    }],
+                    message: [
+                        {
+                            type: 'TEXT',
+                            text: Localize.translateLocal('iou.decline.markedAsResolved', {
+                                user: currentUser,
+                            }),
+                        },
+                    ],
                     person: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -11571,6 +11572,6 @@ export {
     calculateDiffAmount,
     dismissDeclineUseExplanation,
     declineMoneyRequest,
-    markDeclineViolationAsResolved
+    markDeclineViolationAsResolved,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

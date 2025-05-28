@@ -71,8 +71,8 @@ import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/o
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
-import {createDraftWorkspace} from './actions/Policy/Policy';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
+import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
@@ -99,7 +99,6 @@ import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
-import {getSession} from './SessionUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
 import {
@@ -209,6 +208,7 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {getNavatticURL} from './TourUtils';
 import {
@@ -4071,7 +4071,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, sea
     }
 };
 
-const declineMoneyRequestReason =  (reportAction: OnyxEntry<ReportAction>): void => {
+const declineMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -4083,11 +4083,11 @@ const declineMoneyRequestReason =  (reportAction: OnyxEntry<ReportAction>): void
     if (!transactionID || !moneyRequestReportID) {
         Log.warn('Missing transactionID and moneyRequestReportID during the change of the money request hold status');
         return;
-    }   
-    
+    }
+
     const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
     Navigation.navigate(ROUTES.DECLINE_MONEY_REQUEST_REASON.getRoute(transactionID, moneyRequestReportID, activeRoute));
-}
+};
 
 /**
  * Gets all transactions on an IOU report with a receipt
@@ -10835,7 +10835,6 @@ function canDeclineReportAction(report: Report, policy?: Policy): boolean {
     return false;
 }
 
-
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11216,7 +11215,7 @@ export {
     findReportIDForAction,
     isWorkspaceEligibleForReportChange,
     navigateOnDeleteExpense,
-    canDeclineReportAction
+    canDeclineReportAction,
 };
 
 export type {

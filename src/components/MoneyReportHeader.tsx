@@ -98,6 +98,7 @@ import DecisionModal from './DecisionModal';
 import DelegateNoAccessModal from './DelegateNoAccessModal';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
@@ -114,7 +115,6 @@ import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
-import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -433,7 +433,7 @@ function MoneyReportHeader({
             dismissDeclineUseExplanation();
             hasUseDeclineDismissedRef.current = true;
         }
-    }
+    };
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1157,8 +1157,8 @@ function MoneyReportHeader({
                 <HoldOrDeclineEducationalModal
                     onClose={dismissModalAndUpdateUseDecline}
                     onConfirm={dismissModalAndUpdateUseDecline}
-                />)
-            }
+                />
+            )}
             <Modal
                 onClose={() => setIsPDFModalVisible(false)}
                 isVisible={isPDFModalVisible}

@@ -34,7 +34,18 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
                 <TextPill textStyles={[styles.inlinePill, styles.redPillInline]}>{translate('iou.holdEducationalText')}</TextPill>
             </View>
         ),
-        [styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, styles.inlinePill, styles.redPillInline, onboardingIsMediumOrLargerScreenWidth, translate],
+        [
+            styles.flexRow,
+            styles.alignItemsCenter,
+            styles.mb1,
+            styles.mb2,
+            styles.textHeadline,
+            styles.mr2,
+            styles.inlinePill,
+            styles.redPillInline,
+            onboardingIsMediumOrLargerScreenWidth,
+            translate,
+        ],
     );
 
     return (

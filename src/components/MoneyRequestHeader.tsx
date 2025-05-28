@@ -180,7 +180,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 success
                 onPress={() => {
                     if (!transaction?.transactionID) {
-                        return;    
+                        return;
                     }
                     markDeclineViolationAsResolved(transaction?.transactionID);
                 }}

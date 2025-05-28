@@ -51,13 +51,9 @@ function DeclineReasonFormView({backTo, validate, onSubmit}: DeclineReasonFormVi
                 shouldHideFixErrorsAlert
                 isSubmitActionDangerous
             >
-              <View>
-                  <Text style={styles.mb6}>
-                    {translate('iou.decline.reasonPageDescription1')}
-                  </Text>
-                  <Text style={styles.mb6}>
-                    {translate('iou.decline.reasonPageDescription2')}
-                  </Text>
+                <View>
+                    <Text style={styles.mb6}>{translate('iou.decline.reasonPageDescription1')}</Text>
+                    <Text style={styles.mb6}>{translate('iou.decline.reasonPageDescription2')}</Text>
                 </View>
                 <View>
                     <InputWrapper

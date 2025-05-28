@@ -9,10 +9,10 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import FeatureTrainingModal from './FeatureTrainingModal';
+import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 import TextPill from './TextPill';
-import Icon from './Icon';
 
 type SectionMenuItem = {
     /** The icon supplied with the section */
@@ -27,7 +27,6 @@ type SectionMenuItem = {
     /** Translation key for the description */
     descriptionKey: TranslationPaths;
 };
-
 
 type HoldOrDeclineEducationalModalProps = {
     /** Method to trigger when pressing outside of the popover menu to close it */
@@ -69,7 +68,19 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
                 <Text style={styles.textHeadline}>{translate('iou.decline.questionMark')}</Text>
             </View>
         ),
-        [styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, styles.inlinePill, styles.yellowPillInline, styles.redPillInline, onboardingIsMediumOrLargerScreenWidth, translate],
+        [
+            styles.flexRow,
+            styles.alignItemsCenter,
+            styles.mb1,
+            styles.mb2,
+            styles.textHeadline,
+            styles.mr2,
+            styles.inlinePill,
+            styles.yellowPillInline,
+            styles.redPillInline,
+            onboardingIsMediumOrLargerScreenWidth,
+            translate,
+        ],
     );
 
     return (
@@ -104,9 +115,7 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
                                 <Text style={[styles.mb1, styles.textStrong, styles.mr1]}>{translate(section.titlePrefixTranslationKey)}</Text>
                                 {translate(section.titleTranslationKey)}
                             </Text>
-                            <Text style={styles.textLabelSupporting}>
-                                {translate(section.descriptionKey)}
-                            </Text>
+                            <Text style={styles.textLabelSupporting}>{translate(section.descriptionKey)}</Text>
                         </View>
                     </View>
                 ))}
