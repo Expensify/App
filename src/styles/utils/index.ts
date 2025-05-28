@@ -1339,6 +1339,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2} : {};
     },
 
+    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true) => {
+        const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
+        return {
+            ...paddingStyle,
+            marginTop: hasLabel ? 8 : 16,
+        };
+    },
+
     /**
      * Return the style from an avatar size constant
      */

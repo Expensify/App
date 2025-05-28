@@ -421,6 +421,7 @@ function BaseTextInput(
                             )}
                             {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
                                 <TextInputClearButton
+                                    containerStyles={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false)]}
                                     onPressButton={() => {
                                         setValue('');
                                         onClearInput?.();
@@ -431,12 +432,18 @@ function BaseTextInput(
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[styles.mt2, styles.ml1, styles.justifyContentStart, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false),
+                                        styles.ml1,
+                                        styles.justifyContentStart,
+                                        loadingSpinnerStyle,
+                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
+                                    ]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={[styles.flex1, styles.textInputIconContainer]}
+                                    style={[styles.flex1, StyleUtils.getTextInputIconContainerStyles(hasLabel)]}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {
                                         event.preventDefault();
@@ -450,7 +457,7 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
+                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel), !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}
