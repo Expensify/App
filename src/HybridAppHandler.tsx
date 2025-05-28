@@ -52,6 +52,6 @@ function HybridAppHandler({url, hybridAppSettings}: AppProps) {
     return null;
 }
 
-HybridAppHandler.displayName = 'HybridAppSignIn';
+HybridAppHandler.displayName = 'HybridAppHandler';
 
 export default HybridAppHandler;
