@@ -206,7 +206,7 @@ function getForReportAction({
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
-        const oldAmount = convertToDisplayString(Math.abs(oldAmountValue), oldCurrency);
+        const oldAmount = oldAmountValue === CONST.IOU.DEFAULT_AMOUNT ? '' : convertToDisplayString(Math.abs(oldAmountValue), oldCurrency);
 
         const currency = reportActionOriginalMessage?.currency;
         const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
