@@ -100,7 +100,7 @@ Onyx.connect({
 
 let preservedShouldUseStagingServer: boolean | undefined;
 Onyx.connect({
-    key: ONYXKEYS.USER,
+    key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         preservedShouldUseStagingServer = value?.shouldUseStagingServer;
     },
@@ -260,18 +260,19 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
                 value: true,
             },
         ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.HAS_LOADED_APP,
-                value: true,
-            },
-        ],
+        successData: [],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
+            },
+        ],
+        queueFlushedData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.HAS_LOADED_APP,
+                value: true,
             },
         ],
     };
@@ -386,7 +387,7 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0
 
     // It is SUPER BAD FORM to return promises from action methods.
     // DO NOT FOLLOW THIS PATTERN!!!!!
-    // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the udpates aren't applied in the proper order.
+    // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the updates aren't applied in the proper order.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, parameters, getOnyxDataForOpenOrReconnect());
 }
@@ -534,7 +535,7 @@ function redirectThirdPartyDesktopSignIn() {
 /**
  * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
-function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMagicLink?: boolean, initialRoute?: string) {
     // There's no support for anonymous users on desktop
     if (isAnonymousUser()) {
         return;
@@ -560,7 +561,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, init
             return;
         }
 
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, initialRoute);
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, isMagicLink ? '/r' : initialRoute);
     });
 }
 
@@ -617,7 +618,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }
 
             if (shouldUseStagingServer) {
-                Onyx.set(ONYXKEYS.USER, {shouldUseStagingServer});
+                Onyx.set(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
             }
         })
         .then(() => {

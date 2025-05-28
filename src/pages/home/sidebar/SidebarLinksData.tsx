@@ -1,14 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
-import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAssignedSupportData, openWorkspace} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
@@ -21,24 +18,11 @@ type SidebarLinksDataProps = {
 function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
 
-    const {orderedReportIDs, currentReportID, policyMemberAccountIDs} = useSidebarOrderedReportIDs();
-
-    const previousActiveWorkspaceID = usePrevious(activeWorkspaceID);
-
-    useEffect(() => {
-        if (!activeWorkspaceID || previousActiveWorkspaceID === activeWorkspaceID) {
-            return;
-        }
-
-        openWorkspace(activeWorkspaceID, policyMemberAccountIDs);
-        getAssignedSupportData(activeWorkspaceID);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [activeWorkspaceID]);
+    const {orderedReports, currentReportID} = useSidebarOrderedReports();
 
     const currentReportIDRef = useRef(currentReportID);
     // eslint-disable-next-line react-compiler/react-compiler
@@ -58,8 +42,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoadingApp ?? false}
-                activeWorkspaceID={activeWorkspaceID}
-                optionListItems={orderedReportIDs}
+                optionListItems={orderedReports}
             />
         </View>
     );

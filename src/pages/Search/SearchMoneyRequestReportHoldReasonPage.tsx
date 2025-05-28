@@ -20,12 +20,7 @@ function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProp
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        const firstTransactionID = selectedTransactionsID.at(0);
-        if (!firstTransactionID) {
-            return;
-        }
-
-        putOnHold(firstTransactionID, values.comment, reportID);
+        selectedTransactionsID.forEach((transactionID) => putOnHold(transactionID, values.comment, reportID));
 
         setSelectedTransactionsID([]);
         Navigation.goBack();

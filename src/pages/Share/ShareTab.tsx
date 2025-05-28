@@ -7,7 +7,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
@@ -35,7 +35,7 @@ function ShareTab() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const {options, areOptionsInitialized} = useOptionsList();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
@@ -57,7 +57,7 @@ function ShareTab() {
         const filteredOptions = filterOptions(textInputValue);
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, textInputValue, {
             sortByReportTypeInSearch: true,
-            preferChatroomsOverThreads: true,
+            preferChatRoomsOverThreads: true,
         });
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];

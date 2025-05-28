@@ -3,7 +3,7 @@ import type {ForwardedRef, MutableRefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
-import {useSharedValue, withSpring} from 'react-native-reanimated';
+import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -130,8 +130,18 @@ function BaseTextInput(
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
-            labelScale.set(withSpring(scale, {overshootClamping: false}));
-            labelTranslateY.set(withSpring(translateY, {overshootClamping: false}));
+            labelScale.set(
+                withTiming(scale, {
+                    duration: 200,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
+            labelTranslateY.set(
+                withTiming(translateY, {
+                    duration: 200,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
         },
         [labelScale, labelTranslateY],
     );
@@ -234,7 +244,7 @@ function BaseTextInput(
         }
         if (newValue && newValue.length > 0) {
             hasValueRef.current = true;
-            // When the componment is uncontrolled, we need to manually activate the label:
+            // When the component is uncontrolled, we need to manually activate the label:
             if (value === undefined) {
                 activateLabel();
             }
@@ -247,6 +257,7 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
 
+    const shouldAddPaddingBottom = autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge;
     const hasLabel = !!label?.length;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
@@ -256,11 +267,14 @@ function BaseTextInput(
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
-        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth),
+        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + styles.textInputContainer.padding * 2),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
         isAutoGrowHeightMarkdown && styles.pb2,
+        inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
+        !hasLabel && styles.pt0,
+        shouldAddPaddingBottom && styles.pb1,
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
@@ -282,13 +296,17 @@ function BaseTextInput(
                     onPress={onPress}
                     tabIndex={-1}
                     accessibilityLabel={label}
-                    // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
+                    // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
-                            styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
+                            styles.autoGrowHeightInputContainer(
+                                textInputHeight + (shouldAddPaddingBottom ? styles.textInputContainer.padding : 0),
+                                variables.componentSizeLarge,
+                                typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
+                            ),
                         isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
@@ -306,7 +324,15 @@ function BaseTextInput(
                             <>
                                 {/* Adding this background to the label only for multiline text input,
                 to prevent text overlapping with label when scrolling */}
-                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
+                                {isMultiline && (
+                                    <View
+                                        style={[
+                                            styles.textInputLabelBackground,
+                                            styles.pointerEventsNone,
+                                            inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
+                                        ]}
+                                    />
+                                )}
                                 <TextInputLabel
                                     label={label}
                                     labelTranslateY={labelTranslateY}
@@ -330,6 +356,9 @@ function BaseTextInput(
                                 <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         onLayout={(event) => {
+                                            if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
+                                                return;
+                                            }
                                             setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
                                             setIsPrefixCharacterPaddingCalculated(true);
                                         }}
@@ -431,7 +460,7 @@ function BaseTextInput(
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[styles.mt4, styles.ml1, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
+                                    style={[styles.mt2, styles.ml1, styles.justifyContentStart, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (

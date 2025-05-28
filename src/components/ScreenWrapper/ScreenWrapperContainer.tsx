@@ -17,7 +17,6 @@ import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
-import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
 
 type ScreenWrapperContainerProps = React.PropsWithChildren<{
     /** Additional styles for extra content */
@@ -90,7 +89,6 @@ function ScreenWrapperContainer({
     testID,
     extraContent,
     extraContentStyle: extraContentStyleProp,
-    didScreenTransitionEnd = true,
     keyboardAvoidingViewBehavior = 'padding',
     keyboardVerticalOffset,
     shouldEnableKeyboardAvoidingView = true,
@@ -119,11 +117,11 @@ function ScreenWrapperContainer({
     const {paddingTop, paddingBottom, unmodifiedPaddings} = useSafeAreaPaddings(isUsingEdgeToEdgeMode);
 
     const showExtraContent = isUsingEdgeToEdgeMode ? !!extraContent : true;
-    const edgeToEdgeExtraContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const edgeToEdgeExtraContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
-    const isSafeAreaTopPaddingApplied = includePaddingTop;
+
     const paddingTopStyle: StyleProp<ViewStyle> = useMemo(() => {
         if (!includePaddingTop) {
             return {};
@@ -154,11 +152,6 @@ function ScreenWrapperContainer({
     const extraContentStyle = useMemo(
         () => [isUsingEdgeToEdgeMode ? edgeToEdgeExtraContentStyle : legacyExtraContentStyle, extraContentStyleProp],
         [isUsingEdgeToEdgeMode, edgeToEdgeExtraContentStyle, legacyExtraContentStyle, extraContentStyleProp],
-    );
-
-    const contextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
-        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
     const panResponder = useRef(
@@ -228,7 +221,7 @@ function ScreenWrapperContainer({
                         style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
                         enabled={shouldEnablePickerAvoiding}
                     >
-                        <ScreenWrapperStatusContext.Provider value={contextValue}>{children}</ScreenWrapperStatusContext.Provider>
+                        {children}
                     </PickerAvoidingView>
                 </KeyboardAvoidingView>
             </View>

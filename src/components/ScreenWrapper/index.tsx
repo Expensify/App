@@ -1,9 +1,9 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {UNSTABLE_usePreventRemove, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef, useContext, useEffect, useState} from 'react';
-import {Keyboard} from 'react-native';
+import React, {forwardRef, useContext, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
+import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
@@ -24,8 +25,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ScreenWrapperContainerProps} from './ScreenWrapperContainer';
 import ScreenWrapperContainer from './ScreenWrapperContainer';
+import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
 import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
+import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -37,6 +40,14 @@ type ScreenWrapperChildrenProps = {
 
 type ScreenWrapperProps = ScreenWrapperContainerProps &
     Omit<ScreenWrapperOfflineIndicatorsProps, 'addBottomSafeAreaPadding' | 'addWideScreenBottomSafeAreaPadding'> & {
+        /**
+         * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
+         * when the screen transition ends.
+         *
+         * This is required because transitionEnd event doesn't trigger in the testing environment.
+         */
+        navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>;
+
         /** A unique ID to find the screen wrapper in tests */
         testID: string;
 
@@ -49,29 +60,25 @@ type ScreenWrapperProps = ScreenWrapperContainerProps &
         /** Additional styles for header gap */
         headerGapStyles?: StyleProp<ViewStyle>;
 
+        /** Whether to disable the safe area padding for (nested) offline indicators */
+        disableOfflineIndicatorSafeAreaPadding?: boolean;
+
         /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
         onEntryTransitionEnd?: () => void;
-
-        /**
-         * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
-         * when the screen transition ends.
-         *
-         * This is required because transitionEnd event doesn't trigger in the testing environment.
-         */
-        navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>;
     };
 
 function ScreenWrapper(
     {
+        navigation: navigationProp,
         children,
         style,
-        navigation: navigationProp,
         extraContent,
         headerGapStyles,
         offlineIndicatorStyle,
-        shouldShowOfflineIndicator,
-        shouldShowOfflineIndicatorInWideScreen,
-        shouldMobileOfflineIndicatorStickToBottom: shouldMobileOfflineIndicatorStickToBottomProp,
+        disableOfflineIndicatorSafeAreaPadding,
+        shouldShowOfflineIndicator: shouldShowSmallScreenOfflineIndicator,
+        shouldShowOfflineIndicatorInWideScreen: shouldShowWideScreenOfflineIndicator,
+        shouldSmallScreenOfflineIndicatorStickToBottom: shouldSmallScreenOfflineIndicatorStickToBottomProp,
         shouldDismissKeyboardBeforeClose,
         onEntryTransitionEnd,
         includePaddingTop = true,
@@ -92,14 +99,11 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {isOffline} = useNetwork();
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const {initialURL} = useContext(InitialURLContext);
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -109,24 +113,58 @@ function ScreenWrapper(
     const enableEdgeToEdgeBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPaddingProp ?? false;
     const {insets, safeAreaPaddingBottomStyle} = useSafeAreaPaddings(isUsingEdgeToEdgeMode);
 
-    // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
-    const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
-
     // We enable all of these flags by default, if we are using edge-to-edge mode.
-    const shouldMobileOfflineIndicatorStickToBottom = shouldMobileOfflineIndicatorStickToBottomProp ?? isUsingEdgeToEdgeMode;
+    const shouldSmallScreenOfflineIndicatorStickToBottom = shouldSmallScreenOfflineIndicatorStickToBottomProp ?? isUsingEdgeToEdgeMode;
     const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
 
-    /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
-    const addMobileOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
+    // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
+    const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
+    const isSafeAreaTopPaddingApplied = includePaddingTop;
+    const statusContextValue = useMemo(
+        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
+        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
+    );
+
+    // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
+    // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offsetting the offline indicator because we only show the offline indicator on small screens.
+    const {isInNarrowPane} = useContext(NarrowPaneContext);
+    const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
+    const offlineIndicatorContextValue = useMemo(() => {
+        const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
+
+        const newOriginalValues = originalValues ?? {
+            addSafeAreaPadding: newAddSafeAreaPadding,
+            showOnSmallScreens,
+            showOnWideScreens,
+        };
+
+        return {
+            // Allows for individual screens to disable the offline indicator safe area padding for the screen and all nested ScreenWrapper components.
+            addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? newAddSafeAreaPadding ?? true : !disableOfflineIndicatorSafeAreaPadding,
+            // Prevent any nested ScreenWrapper components from rendering another offline indicator.
+            showOnSmallScreens: false,
+            showOnWideScreens: false,
+            // Pass down the original values by the outermost ScreenWrapperOfflineIndicatorContext.Provider,
+            // to allow nested ScreenWrapperOfflineIndicatorContext.Provider to access these values. (e.g. in Modals)
+            originalValues: newOriginalValues,
+        };
+    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth, originalValues, showOnSmallScreens, showOnWideScreens]);
 
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
-    const displayStickyMobileOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !extraContent;
-    const displayMobileOfflineIndicator = isSmallScreenWidth && shouldShowOfflineIndicator;
-    const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen;
+    const displayStickyMobileOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !extraContent;
+    const displaySmallScreenOfflineIndicator = isSmallScreenWidth && (shouldShowSmallScreenOfflineIndicator ?? showOnSmallScreens ?? true);
+    const displayWideScreenOfflineIndicator = !shouldUseNarrowLayout && (shouldShowWideScreenOfflineIndicator ?? showOnWideScreens ?? false);
+
+    /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
+    const addSmallScrenOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
 
     /** If we currently show the offline indicator and it has bottom safe area padding, we need to offset the bottom safe area padding in the KeyboardAvoidingView. */
-    const shouldOffsetMobileOfflineIndicator = displayMobileOfflineIndicator && addMobileOfflineIndicatorBottomSafeAreaPadding && isOffline;
+    const {isOffline} = useNetwork();
+    const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScrenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const {initialURL} = useContext(InitialURLContext);
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
@@ -193,26 +231,30 @@ function ScreenWrapper(
         >
             <HeaderGap styles={headerGapStyles} />
             {isDevelopment && <CustomDevMenu />}
-            {
-                // If props.children is a function, call it to provide the insets to the children.
-                typeof children === 'function'
-                    ? children({
-                          insets,
-                          safeAreaPaddingBottomStyle,
-                          didScreenTransitionEnd,
-                      })
-                    : children
-            }
+            <ScreenWrapperStatusContext.Provider value={statusContextValue}>
+                <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+                    {
+                        // If props.children is a function, call it to provide the insets to the children.
+                        typeof children === 'function'
+                            ? children({
+                                  insets,
+                                  safeAreaPaddingBottomStyle,
+                                  didScreenTransitionEnd,
+                              })
+                            : children
+                    }
 
-            <ScreenWrapperOfflineIndicators
-                offlineIndicatorStyle={offlineIndicatorStyle}
-                shouldShowOfflineIndicator={displayMobileOfflineIndicator}
-                shouldShowOfflineIndicatorInWideScreen={displayWidescreenOfflineIndicator}
-                shouldMobileOfflineIndicatorStickToBottom={displayStickyMobileOfflineIndicator}
-                isOfflineIndicatorTranslucent={isOfflineIndicatorTranslucent}
-                extraContent={extraContent}
-                addBottomSafeAreaPadding={addMobileOfflineIndicatorBottomSafeAreaPadding}
-            />
+                    <ScreenWrapperOfflineIndicators
+                        offlineIndicatorStyle={offlineIndicatorStyle}
+                        shouldShowOfflineIndicator={displaySmallScreenOfflineIndicator}
+                        shouldShowOfflineIndicatorInWideScreen={displayWideScreenOfflineIndicator}
+                        shouldSmallScreenOfflineIndicatorStickToBottom={displayStickyMobileOfflineIndicator}
+                        isOfflineIndicatorTranslucent={isOfflineIndicatorTranslucent}
+                        extraContent={extraContent}
+                        addBottomSafeAreaPadding={addSmallScrenOfflineIndicatorBottomSafeAreaPadding}
+                    />
+                </ScreenWrapperOfflineIndicatorContext.Provider>
+            </ScreenWrapperStatusContext.Provider>
         </ScreenWrapperContainer>
     );
 }

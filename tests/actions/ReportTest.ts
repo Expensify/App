@@ -5,11 +5,9 @@ import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
-import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -24,7 +22,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -68,6 +65,7 @@ describe('actions/Report', () => {
     beforeEach(() => {
         HttpUtils.xhr = originalXHR;
         const promise = Onyx.clear().then(jest.useRealTimers);
+
         if (getIsUsingFakeTimers()) {
             // flushing pending timers
             // Onyx.clear() promise is resolved in batch which happens after the current microtasks cycle
@@ -1008,7 +1006,7 @@ describe('actions/Report', () => {
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.isRollbacked).toBeTruthy();
+        expect(PersistedRequests.getAll().at(0)?.isRollback).toBeTruthy();
         const newComment = PersistedRequests.getAll().at(1);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
@@ -1578,32 +1576,45 @@ describe('actions/Report', () => {
             });
         });
     });
-    describe('isConciergeChatReport', () => {
-        const accountID = 2;
-        const conciergeChatReport1 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
-        const conciergeChatReport2 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
 
-        beforeAll(async () => {
-            Onyx.init({keys: ONYXKEYS});
+    describe('completeOnboarding', () => {
+        const TEST_USER_LOGIN = 'test@gmail.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        it('should set "isOptimisticAction" to false/null for all actions in admins report after completing onboarding setup', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
-        });
 
-        beforeEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdates();
-        });
+            const adminsChatReportID = '7957055873634067';
+            const onboardingPolicyID = 'A70D00C752416807';
+            const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
 
-        it('should not return archived Concierge chat report', async () => {
-            initOnyxDerivedValues();
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport1.reportID}`, conciergeChatReport1);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport2.reportID}`, conciergeChatReport2);
-
-            // Set First conciergeChatReport1 to archived state
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${conciergeChatReport1.reportID}`, {
-                private_isArchived: new Date().toString(),
+            Report.completeOnboarding({
+                engagementChoice,
+                onboardingMessage: CONST.ONBOARDING_MESSAGES[engagementChoice],
+                adminsChatReportID,
+                onboardingPolicyID,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: null,
             });
-            const derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
-            expect(derivedConciergeChatReportID).toBe(conciergeChatReport2.reportID);
+
+            await waitForBatchedUpdates();
+
+            const reportActions: OnyxEntry<OnyxTypes.ReportActions> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                    callback: (id) => {
+                        Onyx.disconnect(connection);
+                        resolve(id);
+                    },
+                });
+            });
+            expect(reportActions).not.toBeNull();
+            expect(reportActions).not.toBeUndefined();
+            Object.values(reportActions ?? {}).forEach((action) => {
+                expect(action.isOptimisticAction).toBeFalsy();
+            });
         });
     });
 });

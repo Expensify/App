@@ -65,14 +65,13 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     };
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector)});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
-    const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => account?.guideCalendarLink,
-    });
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector), canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isDebugModeEnabled = !!account?.isDebugModeEnabled;
+    const guideCalendarLink = account?.guideCalendarLink ?? '';
 
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;
@@ -84,7 +83,7 @@ function ProfilePage({route}: ProfilePageProps) {
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
     }, [accountID, isCurrentUser, reports, session]);
-    const [report] = useOnyx(reportKey);
+    const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -111,7 +110,7 @@ function ProfilePage({route}: ProfilePageProps) {
         return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
     }, [personalDetails, accountID, loginParams, isValidAccountID]);
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser));
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -148,13 +147,15 @@ function ProfilePage({route}: ProfilePageProps) {
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
+    const isConcierge = isConciergeChatReport(report);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (isValidAccountRoute(accountID) && !loginParams) {
+        // Concierge's profile page information is already available in CONST.ts
+        if (isValidAccountRoute(accountID) && !loginParams && !isConcierge) {
             openPublicProfilePage(accountID);
         }
-    }, [accountID, loginParams]);
+    }, [accountID, loginParams, isConcierge]);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -168,8 +169,6 @@ function ProfilePage({route}: ProfilePageProps) {
         }
         return result;
     }, [accountID, isCurrentUser, loginParams, report]);
-
-    const isConcierge = isConciergeChatReport(report);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
@@ -195,7 +194,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         source={details?.avatar}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.XLARGE}
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>

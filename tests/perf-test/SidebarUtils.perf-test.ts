@@ -8,7 +8,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
-import type ReportAction from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -34,11 +33,6 @@ const allReports = createCollection<Report>(
     REPORTS_COUNT,
 );
 
-const reportActions = createCollection<ReportAction>(
-    (item) => `${item.reportActionID}`,
-    (index) => createRandomReportAction(index),
-);
-
 const personalDetails = createCollection<PersonalDetails>(
     (item) => item.accountID,
     (index) => createPersonalDetails(index),
@@ -59,7 +53,7 @@ describe('SidebarUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
 
         Onyx.multiSet({
@@ -83,13 +77,12 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getOptionData({
                 report,
+                reportAttributes: undefined,
                 reportNameValuePairs,
-                reportActions,
                 personalDetails,
                 preferredLocale,
                 policy,
                 parentReportAction,
-                hasViolations: false,
                 oneTransactionThreadReport: undefined,
             }),
         );

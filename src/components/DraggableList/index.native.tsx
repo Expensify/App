@@ -1,24 +1,20 @@
 import React from 'react';
-import {View} from 'react-native';
-import {NestableDraggableFlatList, NestableScrollContainer} from 'react-native-draggable-flatlist';
-import type {ScrollView} from 'react-native-gesture-handler';
+import DraggableFlatList from 'react-native-draggable-flatlist';
+import type {FlatList} from 'react-native-gesture-handler';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type DraggableListProps from './types';
 
-function DraggableList<T>({ListFooterComponent, ...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<ScrollView>) {
+function DraggableList<T>({...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<FlatList<T>>) {
     const styles = useThemeStyles();
     return (
-        <NestableScrollContainer
+        <DraggableFlatList
             ref={ref}
+            containerStyle={styles.flex1}
             contentContainerStyle={styles.flexGrow1}
-        >
-            <NestableDraggableFlatList
-                contentContainerStyle={styles.flex1}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...viewProps}
-            />
-            {React.isValidElement(ListFooterComponent) && <View style={styles.flexGrow1}>{ListFooterComponent}</View>}
-        </NestableScrollContainer>
+            ListFooterComponentStyle={styles.flex1}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...viewProps}
+        />
     );
 }
 

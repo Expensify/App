@@ -87,6 +87,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Whether the submit button should stick to the bottom of the screen. */
     shouldSubmitButtonStickToBottom?: boolean;
+
+    /** Fires at most once per frame during scrolling. */
+    onScroll?: () => void;
 };
 
 function FormProvider(
@@ -136,7 +139,7 @@ function FormProvider(
                         return;
                     }
                     const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                    const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
+                    const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
 
                     // Return early if there are no HTML characters
                     if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
@@ -344,9 +347,7 @@ function FormProvider(
                 defaultValue: inputProps.uncontrolled ? inputProps.defaultValue : undefined,
                 onTouched: (event) => {
                     if (!inputProps.shouldSetTouchedOnBlurOnly) {
-                        setTimeout(() => {
-                            setTouchedInput(inputID);
-                        }, VALIDATE_DELAY);
+                        setTouchedInput(inputID);
                     }
                     inputProps.onTouched?.(event);
                 },

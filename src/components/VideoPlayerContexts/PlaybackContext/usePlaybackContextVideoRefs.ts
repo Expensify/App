@@ -6,7 +6,7 @@ import type {PlaybackContextVideoRefs, PlayVideoPromiseRef, StopVideo, UnloadVid
 function usePlaybackContextVideoRefs(resetCallback: () => void) {
     const currentVideoPlayerRef: PlaybackContextVideoRefs['ref'] = useRef(null);
     const videoResumeTryNumberRef: PlaybackContextVideoRefs['resumeTryNumberRef'] = useRef(0);
-    const playVideoPromiseRef: PlayVideoPromiseRef = useRef();
+    const playVideoPromiseRef: PlayVideoPromiseRef = useRef(undefined);
     const isPlayPendingRef = useRef(false);
 
     const pauseVideo: PlaybackContextVideoRefs['pause'] = useCallback(() => {

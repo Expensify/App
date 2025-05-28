@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,12 +10,15 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
 import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WelcomeVideoModalNavigatorParamList} from '@libs/Navigation/types';
 import {tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
@@ -44,25 +48,28 @@ function OnboardingWelcomeVideo() {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
+    const route = useRoute<PlatformStackRouteProp<WelcomeVideoModalNavigatorParamList, typeof SCREENS.WELCOME_VIDEO.ROOT>>();
+    const isFromRoot = route?.params?.isFromRoot === 'true';
 
-    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
+        canBeMissing: true,
     });
-    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     useEffect(() => {
-        if (isLoadingOnyxValue(tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
+        if (isLoadingOnyxValue(tryNewDotMetadata, dismissedProductTrainingMetadata)) {
             return;
         }
         const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
-        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
+        if (!!(hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) || isFromRoot) {
             return;
         }
         setIsModalDisabled(false);
         const defaultCannedQuery = buildCannedSearchQuery();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
-    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotdMetadata, dismissedProductTrainingMetadata, tryNewDot]);
+    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, isFromRoot]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
