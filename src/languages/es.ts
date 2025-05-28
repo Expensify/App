@@ -1137,6 +1137,8 @@ const translations = {
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
             `Este informe ya ha sido exportado a ${connectionName}. Cambiarlo puede provocar discrepancias en los datos. ¿Estás seguro de que deseas reabrir este informe?`,
         reason: 'Razón',
+        undoSubmit: 'Deshacer envío',
+        retracted: 'retirado',
         holdReasonRequired: 'Se requiere una razón para retener.',
         expenseWasPutOnHold: 'Este gasto está retenido',
         expenseOnHold: 'Este gasto está retenido. Revisa los comentarios para saber como proceder.',
@@ -4332,11 +4334,6 @@ const translations = {
             },
             notFound: 'No se encontró ningún espacio de trabajo',
             description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para comenzar a colaborar, cree o únase a un espacio de trabajo',
-        },
-        switcher: {
-            headerTitle: 'Filtrar por espacio de trabajo',
-            everythingSection: 'Todo',
-            placeholder: 'Encuentra un espacio de trabajo',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
