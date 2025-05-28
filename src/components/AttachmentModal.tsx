@@ -155,6 +155,8 @@ type AttachmentModalProps = {
     shouldDisableSendButton?: boolean;
 
     attachmentLink?: string;
+
+    shouldHandleNavigationBack?: boolean;
 };
 
 function AttachmentModal({
@@ -189,6 +191,7 @@ function AttachmentModal({
     iouAction,
     iouType: iouTypeProp,
     attachmentLink = '',
+    shouldHandleNavigationBack,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
@@ -556,6 +559,7 @@ function AttachmentModal({
                     }
                     return submitRef.current;
                 }}
+                shouldHandleNavigationBack={shouldHandleNavigationBack}
             >
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
@@ -581,7 +585,7 @@ function AttachmentModal({
                         shouldDisplayHelpButton={false}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {isLoading && <FullScreenLoadingIndicator />}
+                        {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
                         {shouldShowNotFoundPage && !isLoading && (
                             <BlockingView
                                 icon={Illustrations.ToddBehindCloud}
@@ -595,6 +599,7 @@ function AttachmentModal({
                             />
                         )}
                         {!shouldShowNotFoundPage &&
+                            !isLoading &&
                             // We shouldn't show carousel arrow in search result attachment
                             (!isEmptyObject(report) && !isReceiptAttachment && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
                                 <AttachmentCarousel
@@ -611,8 +616,7 @@ function AttachmentModal({
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&
-                                shouldLoadAttachment &&
-                                !isLoading && (
+                                shouldLoadAttachment && (
                                     <AttachmentCarouselPagerContext.Provider value={context}>
                                         <AttachmentView
                                             containerStyles={[styles.mh5]}

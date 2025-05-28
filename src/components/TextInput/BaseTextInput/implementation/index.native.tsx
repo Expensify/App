@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
-import {useSharedValue, withSpring} from 'react-native-reanimated';
+import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -46,10 +46,12 @@ function BaseTextInput(
         touchableInputWrapperStyle,
         containerStyles,
         inputStyle,
+        shouldUseFullInputHeight = false,
         forceActiveLabel = false,
         disableKeyboard = false,
         autoGrow = false,
         autoGrowExtraSpace = 0,
+        autoGrowMarginSide,
         autoGrowHeight = false,
         maxAutoGrowHeight,
         hideFocusedState = false,
@@ -114,8 +116,18 @@ function BaseTextInput(
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
-            labelScale.set(withSpring(scale, {overshootClamping: false}));
-            labelTranslateY.set(withSpring(translateY, {overshootClamping: false}));
+            labelScale.set(
+                withTiming(scale, {
+                    duration: 200,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
+            labelTranslateY.set(
+                withTiming(translateY, {
+                    duration: 200,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
         },
         [labelScale, labelTranslateY],
     );
@@ -176,9 +188,11 @@ function BaseTextInput(
             const heightToFitEmojis = 1;
 
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) => (!multiline ? layout.height + heightToFitEmojis : prevHeight));
+            setHeight((prevHeight: number) =>
+                !multiline ? layout.height + heightToFitEmojis - (styles.textInputContainer.padding + styles.textInputContainer.borderWidth * 2) : prevHeight,
+            );
         },
-        [autoGrowHeight, multiline],
+        [autoGrowHeight, multiline, styles.textInputContainer],
     );
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
@@ -238,6 +252,7 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
     }, []);
 
+    const shouldAddPaddingBottom = autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge;
     const hasLabel = !!label?.length;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
@@ -247,19 +262,22 @@ function BaseTextInput(
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
-        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
-        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
+        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + styles.textInputContainer.padding * 2),
+        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
         isAutoGrowHeightMarkdown && styles.pb2,
+        inputProps.disabled && styles.textInputDisabledContainer,
+        !hasLabel && styles.pt0,
+        shouldAddPaddingBottom && styles.pb1,
     ]);
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
     // Height fix is needed only for Text single line inputs
-    const shouldApplyHeight = !isMultiline && !isMarkdownEnabled;
+    const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
 
     return (
         <>
@@ -275,7 +293,11 @@ function BaseTextInput(
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
-                            styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
+                            styles.autoGrowHeightInputContainer(
+                                textInputHeight + (shouldAddPaddingBottom ? styles.textInputContainer.padding : 0),
+                                variables.componentSizeLarge,
+                                typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
+                            ),
                         isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
@@ -293,7 +315,7 @@ function BaseTextInput(
                             <>
                                 {/* Adding this background to the label only for multiline text input,
                 to prevent text overlapping with label when scrolling */}
-                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
+                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone, inputProps.disabled && styles.textInputDisabledContainer]} />}
                                 <TextInputLabel
                                     label={label}
                                     labelTranslateY={labelTranslateY}
@@ -409,7 +431,7 @@ function BaseTextInput(
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[styles.mt4, styles.ml1, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
+                                    style={[styles.mt2, styles.ml1, styles.justifyContentStart, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
