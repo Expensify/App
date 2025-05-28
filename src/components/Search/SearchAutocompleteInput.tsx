@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
+import debounce from 'lodash/debounce';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -131,6 +132,34 @@ function SearchAutocompleteInput(
         return focusedSharedValue.get() ? wrapperFocusedStyle : wrapperStyle ?? {};
     });
 
+    const [internalValue, setInternalValue] = useState(value);
+
+    useEffect(() => {
+        setInternalValue(value);
+    }, [value]);
+
+    const debouncedSearchQueryChange = useMemo(
+        () =>
+            debounce((searchTerm: string) => {
+                onSearchQueryChange(searchTerm);
+            }, 300) as ReturnType<typeof debounce>,
+        [onSearchQueryChange],
+    );
+
+    const handleSearchQueryChange = useCallback(
+        (searchTerm: string) => {
+            setInternalValue(searchTerm);
+            debouncedSearchQueryChange(searchTerm);
+        },
+        [debouncedSearchQueryChange],
+    );
+
+    useEffect(() => {
+        return () => {
+            debouncedSearchQueryChange.cancel();
+        };
+    }, [debouncedSearchQueryChange]);
+
     useEffect(() => {
         runOnLiveMarkdownRuntime(() => {
             'worklet';
@@ -190,8 +219,8 @@ function SearchAutocompleteInput(
                 >
                     <TextInput
                         testID="search-autocomplete-text-input"
-                        value={value}
-                        onChangeText={onSearchQueryChange}
+                        value={internalValue}
+                        onChangeText={handleSearchQueryChange}
                         autoFocus={autoFocus}
                         caretHidden={caretHidden}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
