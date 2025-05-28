@@ -532,9 +532,11 @@ const ONYXKEYS = {
 
     /** Timestamp of the last login on iOS */
     NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',
+    NVP_LAST_IPHONE_LOGIN: 'nvp_lastiPhoneLogin',
 
     /** Timestamp of the last login on Android */
     NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
+    NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
 
     /** Collection Keys */
     COLLECTION: {
@@ -1174,6 +1176,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
     [ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN]: string;
+    [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
+    [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
 };
 
 type OnyxDerivedValuesMapping = {

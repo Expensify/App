@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import useHasInstalledApp from '@hooks/useHasInstalledApp';
+import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,9 +12,9 @@ import {ExpensifyMobileApp} from './Icon/Illustrations';
 function DownloadAppBanner() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {hasInstalledApp, isLastAppLoginLoaded} = useHasInstalledApp();
+    const {hasLoggedIntoMobileApp, isLastMobileAppLoginLoaded} = useHasLoggedIntoMobileApp();
 
-    if (!isLastAppLoginLoaded || hasInstalledApp) {
+    if (!isLastMobileAppLoginLoaded || hasLoggedIntoMobileApp) {
         return null;
     }
 
