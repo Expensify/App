@@ -76,7 +76,7 @@ function useFastSearchFromOptions(
                 toSearchableString: recentReportToSearchString,
                 uniqueId: getRecentReportUniqueId,
             },
-        ]);
+        ], {shouldStoreSearchableStrings: true});
         setFastSearch(newFastSearch);
 
         return () => newFastSearch.dispose();
@@ -95,7 +95,7 @@ function useFastSearchFromOptions(
                 return emptyResult;
             }
 
-            // The user might separated words with spaces to do a search such as: "jo d" -> "john julian doe"
+            // The user might have separated words with spaces to do a search such as: "jo d" -> "john doe"
             // With the suffix search tree you can only search for one word at a time. Its most efficient to search for the longest word,
             // (as this will limit the results the most) and then afterwards run a quick filter on the results to see if the other words are present.
             let [personalDetails, recentReports] = fastSearch.search(longestSearchWord);
@@ -109,7 +109,7 @@ function useFastSearchFromOptions(
                 recentReports = recentReports.filter((rr) => {
                     const id = getRecentReportUniqueId(rr);
                     const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(rr.text);
-                    return id && isSearchStringMatch(deburredInput, searchableString);
+                    return isSearchStringMatch(deburredInput, searchableString)
                 });
             }
 
