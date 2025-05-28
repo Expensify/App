@@ -67,7 +67,7 @@ function goBackFromSearchMoneyRequest() {
     Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 }
 
-function InitialLoadingSkeleton({styles, shouldAnimate}: {styles: ThemeStyles, shouldAnimate: boolean}) {
+function InitialLoadingSkeleton({styles, shouldAnimate}: {styles: ThemeStyles; shouldAnimate: boolean}) {
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.appContentHeader, styles.borderBottom]}>
@@ -179,7 +179,12 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     );
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForData) {
-        return <InitialLoadingSkeleton styles={styles} shouldAnimate={!isOffline}  />;
+        return (
+            <InitialLoadingSkeleton
+                styles={styles}
+                shouldAnimate={!isOffline}
+            />
+        );
     }
 
     if (reportActions.length === 0) {
