@@ -47,9 +47,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const {isBetaEnabled, canUsePrivateDomainOnboarding} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
-    const isPrivateDomainAndHasAccessiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList);
 
     useEffect(() => {

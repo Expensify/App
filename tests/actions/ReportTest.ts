@@ -51,7 +51,6 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
         didScreenTransitionEnd: true,
     }),
 }));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
