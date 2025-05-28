@@ -124,6 +124,7 @@ const ROUTES = {
         },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
+    MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
@@ -167,7 +168,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
         },
     },
-    WORKSPACE_SWITCHER: 'workspace-switcher',
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
@@ -236,11 +236,6 @@ const ROUTES = {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_VERIFY_ACCOUNT: {
-        route: 'settings/wallet/verify',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/wallet/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/wallet/verify', backTo),
-    },
     SETTINGS_WALLET_DOMAIN_CARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
@@ -314,6 +309,11 @@ const ROUTES = {
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
+    },
+    SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
+        route: 'settings/profile/contact-methods/verify',
+        getRoute: (backTo?: string, forwardTo?: string) =>
+            getUrlWithBackToParam(forwardTo ? `settings/profile/contact-methods/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/profile/contact-methods/verify', backTo),
     },
 
     SETTINGS_2FA_ROOT: {
@@ -1963,7 +1963,10 @@ const ROUTES = {
     },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
-    TEST_DRIVE_MODAL_ROOT: 'onboarding/test-drive',
+    TEST_DRIVE_MODAL_ROOT: {
+        route: 'onboarding/test-drive',
+        getRoute: (bossEmail?: string) => `onboarding/test-drive${bossEmail ? `?bossEmail=${encodeURIComponent(bossEmail)}` : ''}` as const,
+    },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     WORKSPACE_CONFIRMATION: {
         route: 'workspace/confirmation',
@@ -2432,8 +2435,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
     },
     ADD_UNREPORTED_EXPENSE: {
-        route: 'search/r/:reportID/add-unreported-expense',
-        getRoute: (reportID: string | undefined) => `search/r/${reportID}/add-unreported-expense` as const,
+        route: 'search/r/:reportID/add-unreported-expense/:backToReport?',
+        getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-unreported-expense/${backToReport ?? ''}` as const,
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',

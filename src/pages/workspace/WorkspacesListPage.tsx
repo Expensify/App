@@ -23,7 +23,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
@@ -33,21 +32,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {
-    calculateBillNewDot,
-    clearDeleteWorkspaceError,
-    clearErrors,
-    deleteWorkspace,
-    leaveWorkspace,
-    removeWorkspace,
-    updateDefaultPolicy,
-    updateLastAccessedWorkspaceSwitcher,
-} from '@libs/actions/Policy/Policy';
+import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
-import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceHubSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -128,7 +117,6 @@ function WorkspacesListPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -176,12 +164,6 @@ function WorkspacesListPage() {
 
         deleteWorkspace(policyIDToDelete, policyNameToDelete);
         setIsDeleteModalOpen(false);
-
-        if (policyIDToDelete === activeWorkspaceID) {
-            setActiveWorkspaceID(undefined);
-            resetPolicyIDInNavigationState();
-            updateLastAccessedWorkspaceSwitcher(undefined);
-        }
     };
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
@@ -402,7 +384,7 @@ function WorkspacesListPage() {
 
     const navigateToWorkspace = useCallback(
         (policyID: string) => {
-            // On the wide layout, we always want to open the Profile page when opening workpsace settings from the list
+            // On the wide layout, we always want to open the Profile page when opening workspace settings from the list
             if (shouldUseNarrowLayout) {
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
                 return;
