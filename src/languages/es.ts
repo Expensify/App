@@ -951,7 +951,7 @@ const translations = {
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto a <a href="${reportUrl}">${reportName}</a>`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto a ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : '[eliminado]'}`,
         unreportedTransaction: 'movió este gasto a tu espacio personal',
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
@@ -1099,6 +1099,7 @@ const translations = {
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
             receiptFailureMessage: 'Hubo un error al cargar tu recibo. Por favor, ',
+            receiptFailureMessageShort: 'Hubo un error al cargar tu recibo.',
             tryAgainMessage: 'inténtalo de nuevo ',
             saveFileMessage: ' guarda el recibo',
             uploadLaterMessage: ' para cargarlo más tarde.',
