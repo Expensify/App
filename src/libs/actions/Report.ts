@@ -1614,8 +1614,7 @@ function markAllMessagesAsRead() {
 
     const optimisticData: OnyxUpdate[] = [];
     const reportIDs: string[] = [];
-    Object.keys(allReports ?? {}).forEach((key: string) => {
-        const report = allReports?.[key];
+    Object.values(allReports ?? {}).forEach((report) => {
         const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(
             report?.reportID,
             allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
