@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {isFormattedAmountTooLong, isTaxAmountTooLong} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -43,9 +44,16 @@ function ReportListItem<TItem extends ListItem>({
     const isDisabledOrEmpty = isEmptyReport || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const dateColumnSize = useMemo(() => {
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
+        const isAmountColumnWide = reportItem.transactions.some((transaction) => isFormattedAmountTooLong(transaction));
+        const isTaxAmountColumnWide = reportItem.transactions.some((transaction) => isTaxAmountTooLong(transaction));
         const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
-        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+
+        return {
+            amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+        };
     }, [reportItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -154,6 +162,8 @@ function ReportListItem<TItem extends ListItem>({
                                     transactionItem={transaction}
                                     isSelected={!!transaction.isSelected}
                                     dateColumnSize={dateColumnSize}
+                                    amountColumnSize={amountColumnSize}
+                                    taxAmountColumnSize={taxAmountColumnSize}
                                     shouldShowTooltip={showTooltip}
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
