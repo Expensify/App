@@ -2520,6 +2520,10 @@ const ROUTES = {
         route: 'debug/transaction/:transactionID/violations/:index/json',
         getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
     },
+    DECLINE_MONEY_REQUEST_REASON: {
+        route: 'decline/reason/:transactionID',
+        getRoute: (transactionID: string, reportID: string, backTo?: string) => `decline/reason/${transactionID}?reportID=${reportID}&backTo=${backTo}`,
+    },
     SCHEDULE_CALL_BOOK: {
         route: 'r/:reportID/schedule-call/book',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/book` as const,

@@ -1223,6 +1223,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
+            DECLINE: 'decline',
             REOPEN: 'reopen',
             MOVE_EXPENSE: 'moveExpense',
             PAY: 'pay',
@@ -1241,6 +1242,7 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            MARK_AS_RESOLVED: 'markAsResolved',
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
@@ -1334,6 +1336,7 @@ const CONST = {
                 TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
+                DECLINED: 'DECLINED',
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
                 CONCIERGE_CATEGORY_OPTIONS: 'CONCIERGECATEGORYOPTIONS',
@@ -1417,6 +1420,10 @@ const CONST = {
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
+                REJECTED_TRANSACTION_REMOVEDFROMREPORT: 'REJECTEDTRANSACTIONREMOVEDFROMREPORT',
+                REJECT_TRANSACTION: 'REJECTTRANSACTION',
+                REJECTED_TRANSACTION_AUTOADDED: 'REJECTEDTRANSACTIONAUTOADDED',
+                REJECTED_TRANSACTION_MARKASRESOLVED: 'REJECTEDTRANSACTIONMARKASRESOLVED',
             },
             THREAD_DISABLED: ['CREATED'],
             // Used when displaying reportActions list to handle unread messages icon/button
@@ -5368,6 +5375,8 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
+        OVER_TRIP_LIMIT: 'overTripLimit',
+        REJECTED_EXPENSE: 'rterRejectedExpense',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',

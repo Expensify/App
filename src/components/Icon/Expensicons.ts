@@ -206,6 +206,7 @@ import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
+import ThumbsDown from '@assets/images/thumbs-down.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
@@ -458,4 +459,5 @@ export {
     EmptySquare,
     CheckSquare,
     Minus,
+    ThumbsDown,
 };
