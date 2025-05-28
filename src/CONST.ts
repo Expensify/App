@@ -891,8 +891,8 @@ const CONST = {
         },
     },
     KEYBOARD_SHORTCUTS: {
-        MARK_ALL_REPORTS_AS_READ: {
-            descriptionKey: 'markAllReportsAsRead',
+        MARK_ALL_MESSAGES_AS_READ: {
+            descriptionKey: 'markAllMessagesAsRead',
             shortcutKey: 'Escape',
             modifiers: ['SHIFT'],
             trigger: {
