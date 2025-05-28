@@ -1444,7 +1444,7 @@ function PureReportActionItem({
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
-                                shouldHideOnDelete={!isThreadReportParentAction}
+                                shouldHideOnDelete={!isDeletedParentAction}
                                 errors={linkedTransactionRouteError ?? !isOnSearch ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
