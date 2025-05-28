@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
@@ -25,12 +26,14 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const {translate, datetimeToCalendarTime} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(reportID);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report);
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
         selector: (allReportActions) => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true),
+        canBeMissing: true,
     });
 
     const getReportActionDebugText = useCallback(
@@ -47,7 +50,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             }
 
             if (isCreatedAction(reportAction)) {
-                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy).messageText ?? translate('report.noActivityYet'));
+                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy, isReportArchived).messageText ?? translate('report.noActivityYet'));
             }
 
             if (reportActionMessage.html) {
@@ -56,7 +59,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, policy, report],
+        [translate, policy, report, isReportArchived],
     );
 
     const searchedReportActions = useMemo(() => {
