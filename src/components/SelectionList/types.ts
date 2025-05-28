@@ -394,13 +394,7 @@ type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem>
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
-type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
-
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
-type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
-type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -462,6 +456,12 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
+
+    /** List of selected items */
+    selectedItems?: string[];
+
+    /** Whether the item is selected */
+    isSelected?: (item: TItem) => boolean;
 
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
@@ -624,9 +624,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
-    /** Whether we should clear the search input when an item is selected */
-    shouldClearInputOnSelect?: boolean;
-
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
 
@@ -773,7 +770,6 @@ type ItemLayout = {
 
 type FlattenedSectionsReturn<TItem extends ListItem> = {
     allOptions: TItem[];
-    selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
     disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
@@ -804,8 +800,6 @@ export type {
     ListItemProps,
     ListItemFocusEventHandler,
     RadioListItemProps,
-    SingleSelectListItemProps,
-    MultiSelectListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
@@ -819,7 +813,6 @@ export type {
     TransactionListItemType,
     TransactionSelectionListItem,
     UserListItemProps,
-    UserSelectionListItemProps,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
