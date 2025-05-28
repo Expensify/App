@@ -13,7 +13,7 @@ Follow the steps below to connect your business bank account and enable payment 
 
 # Step 1: Enable Make or Track Payments
 
-1.Click **Workspaces** in the left-hand menu
+1. Click **Workspaces** in the left-hand menu
 2. Navigate to **[Workspace Name] > More Features**.
 3. Click **Enable Workflows**.
 4. A **Workflows** setting will appear in the left-hand menu.
