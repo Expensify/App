@@ -25,7 +25,7 @@ import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 type WorkspaceEditTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>;
 
 function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const tagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);

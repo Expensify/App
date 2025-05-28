@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {updateAdvancedFilters} from '@userActions/Search';
+import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -17,7 +17,7 @@ function SearchFiltersTaxRatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const allTaxRates = getAllTaxRates();
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
     Object.entries(allTaxRates).forEach(([taxRateName, taxRateKeys]) => {
@@ -29,7 +29,7 @@ function SearchFiltersTaxRatePage() {
         });
     });
     const policyID = searchAdvancedFiltersForm?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const singlePolicyTaxRates = policy?.taxRates?.taxes;
 
     const taxItems = useMemo(() => {
@@ -39,7 +39,7 @@ function SearchFiltersTaxRatePage() {
         return Object.entries(singlePolicyTaxRates).map(([taxRateKey, taxRate]) => ({name: taxRate.name, value: [taxRateKey]}));
     }, [allTaxRates, singlePolicyTaxRates]);
 
-    const updateTaxRateFilters = useCallback((values: string[]) => updateAdvancedFilters({taxRate: values}), []);
+    const updateTaxRateFilters = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({taxRate: values}), []);
 
     return (
         <ScreenWrapper

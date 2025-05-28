@@ -25,7 +25,7 @@ function KnowATeacherPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
