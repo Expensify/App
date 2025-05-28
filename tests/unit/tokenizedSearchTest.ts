@@ -1,6 +1,6 @@
 import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
+import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import type {WorkspaceListItem} from '@pages/WorkspaceSwitcherPage';
 
 describe('tokenizedSearch', () => {
     it('WorkspaceMembersSelectionList & WorkspaceWorkflowsPayerPage & WorkspaceWorkflowsApprovalsApproverPage & WorkspaceWorkflowsApprovalsExpensesFromPage', () => {
@@ -74,49 +74,6 @@ describe('tokenizedSearch', () => {
         ];
 
         const tokenizeSearchResult = tokenizedSearch(items, tokenizeSearch, (option) => [option.text ?? '', option.login ?? '']);
-        expect(tokenizeSearchResult).toStrictEqual(searchResultList);
-    });
-
-    it('WorkspaceSwitcherPage', () => {
-        const tokenizeSearch = 'One Three';
-
-        const items: WorkspaceListItem[] = [
-            {
-                brickRoadIndicator: undefined,
-                icons: [],
-                isBold: false,
-                isPolicyAdmin: true,
-                isSelected: false,
-                keyForList: '390A7184965D8FAE',
-                policyID: '390A7184965D8FAE',
-                text: "One Two Three's Workspace",
-            },
-            {
-                brickRoadIndicator: undefined,
-                icons: [],
-                isBold: false,
-                isPolicyAdmin: true,
-                isSelected: false,
-                keyForList: '8AFC0DA9A57EF975',
-                policyID: '8AFC0DA9A57EF975',
-                text: "Test's Workspace",
-            },
-        ];
-
-        const searchResultList: WorkspaceListItem[] = [
-            {
-                brickRoadIndicator: undefined,
-                icons: [],
-                isBold: false,
-                isPolicyAdmin: true,
-                isSelected: false,
-                keyForList: '390A7184965D8FAE',
-                policyID: '390A7184965D8FAE',
-                text: "One Two Three's Workspace",
-            },
-        ];
-
-        const tokenizeSearchResult = tokenizedSearch(items, tokenizeSearch, (option) => [option.text ?? '']);
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
     });
 

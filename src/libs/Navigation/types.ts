@@ -104,6 +104,10 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: Routes;
     };
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
+        backTo?: Routes;
+        forwardTo?: Routes;
+    };
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
@@ -154,9 +158,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
-    [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
-        backTo?: Routes;
-    };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
@@ -1568,10 +1569,6 @@ type TransactionDuplicateNavigatorParamList = {
     };
 };
 
-type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: undefined;
-};
-
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
@@ -1643,8 +1640,8 @@ type TravelNavigatorParamList = {
 type ReportsSplitNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.REPORT]: {
-        reportActionID: string;
         reportID: string;
+        reportActionID?: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
         backTo?: Routes;
@@ -1813,7 +1810,9 @@ type OnboardingModalNavigatorParamList = {
 };
 
 type WelcomeVideoModalNavigatorParamList = {
-    [SCREENS.WELCOME_VIDEO.ROOT]: undefined;
+    [SCREENS.WELCOME_VIDEO.ROOT]: {
+        isFromRoot?: string;
+    };
 };
 
 type ExplanationModalNavigatorParamList = {
@@ -1825,7 +1824,9 @@ type MigratedUserModalNavigatorParamList = {
 };
 
 type TestDriveModalNavigatorParamList = {
-    [SCREENS.TEST_DRIVE_MODAL.ROOT]: undefined;
+    [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
+        bossEmail?: string;
+    };
 };
 
 type TestDriveDemoNavigatorParamList = {
@@ -1903,11 +1904,10 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
     [SCREENS.NOT_FOUND]: undefined;
     [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList> & {policyID?: string};
-    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList> & {policyID?: string};
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceHubSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
-    [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
     [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
@@ -1990,6 +1990,7 @@ type MissingPersonalDetailsParamList = {
 type AddUnreportedExpensesParamList = {
     [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
         reportID: string;
+        backToReport?: string;
     };
 };
 
@@ -2037,7 +2038,7 @@ type ScheduleCallParamList = {
     };
 };
 
-type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList & SearchFullscreenNavigatorParamList;
+type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
 
@@ -2047,7 +2048,8 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 
-type WorkspacesTabScreenName = typeof NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
+// There are two split navigators which can be displayed when the Workspaces tab is selected
+type WorkspacesTabNavigatorName = typeof NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
@@ -2072,7 +2074,6 @@ export type {
     FeatureTrainingNavigatorParamList,
     FlagCommentNavigatorParamList,
     FullScreenName,
-    LeftModalNavigatorParamList,
     MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
     NavigationPartialRoute,
@@ -2132,5 +2133,6 @@ export type {
     TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
     TestDriveDemoNavigatorParamList,
-    WorkspacesTabScreenName,
+    SetParamsAction,
+    WorkspacesTabNavigatorName,
 };

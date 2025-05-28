@@ -405,12 +405,19 @@ const styles = (theme: ThemeColors) =>
         verticalAlignTop: {
             verticalAlign: 'top',
         },
+
+        lineHeightUndefined: {
+            lineHeight: undefined,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
+
         lineHeightXLarge: {
             lineHeight: variables.lineHeightXLarge,
         },
+
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -1087,11 +1094,13 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.danger,
         },
 
-        textInputDisabled: {
+        textInputDisabledContainer: {
             // Adding disabled color theme to indicate user that the field is not editable.
             backgroundColor: theme.highlightBG,
-            borderBottomWidth: 2,
             borderColor: theme.borderLighter,
+        },
+
+        textInputDisabled: {
             // Adding browser specific style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
             ...(getBrowser()
@@ -1293,7 +1302,10 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: 'transparent',
             overflow: 'hidden',
-            borderBottomWidth: 2,
+            borderWidth: 1,
+            padding: 8,
+            paddingBottom: 0,
+            borderRadius: 8,
             borderColor: theme.border,
         },
 
@@ -1307,16 +1319,20 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
-        textInputLabel: {
+        textInputLabelContainer: {
             position: 'absolute',
-            left: 0,
+            left: 8,
+            paddingRight: 16,
             top: 0,
-            fontSize: variables.fontSizeNormal,
-            color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
             width: '100%',
             zIndex: 1,
             transformOrigin: 'left center',
+        },
+
+        textInputLabel: {
+            fontSize: variables.fontSizeNormal,
+            color: theme.textSupporting,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
         },
 
         textInputLabelBackground: {
@@ -1327,9 +1343,14 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
         },
 
-        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>) => {
+        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>, isForTextComponent?: boolean) => {
             'worklet';
 
+            if (isForTextComponent) {
+                return {
+                    fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
+                } satisfies TextStyle;
+            }
             return {
                 transform: [{translateY: translateY.get()}],
                 fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
@@ -1341,7 +1362,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 23,
+            paddingTop: 15,
             paddingBottom: 8,
             paddingLeft: 0,
             borderWidth: 0,
@@ -1353,7 +1374,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 23,
+            paddingTop: 15,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1371,7 +1392,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputIconContainer: {
             paddingHorizontal: 11,
-            justifyContent: 'center',
+            marginTop: 8,
         },
 
         textInputLeftIconContainer: {
@@ -1404,11 +1425,10 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             left: 0,
             top: 0,
-            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 23,
+            paddingTop: 15,
             paddingBottom: 8,
         },
 
@@ -1416,11 +1436,10 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: 0,
             top: 0,
-            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 23,
+            paddingTop: 15,
             paddingBottom: 8,
         },
 
@@ -1689,7 +1708,7 @@ const styles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.navigationTabBarSize,
+            marginLeft: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
         },
 
         searchSidebar: {
@@ -1698,6 +1717,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
+            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles
@@ -1854,12 +1874,6 @@ const styles = (theme: ThemeColors) =>
         breadcrumbLogo: {
             top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
         },
-
-        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
-            ({
-                ...modalNavigatorContainer(isSmallScreenWidth),
-                left: 0,
-            } satisfies ViewStyle),
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
@@ -3341,7 +3355,7 @@ const styles = (theme: ThemeColors) =>
         magicCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
-            minHeight: variables.inputHeight,
+            height: variables.inputHeight,
         },
 
         magicCodeInput: {
@@ -3824,7 +3838,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchAutocompleteInputResults: {
-            backgroundColor: theme.sidebarHover,
             borderWidth: 1,
             borderColor: theme.sidebarHover,
         },
@@ -3832,7 +3845,6 @@ const styles = (theme: ThemeColors) =>
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
-            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {
@@ -5183,6 +5195,15 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
             marginTop: 12,
         },
+        onboardingAccountingItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: '35%',
+        },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
@@ -5740,12 +5761,12 @@ const styles = (theme: ThemeColors) =>
             flexBasis: 'auto',
         },
 
-        testDriveModalContainer: {
+        testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
             // On small/medium screens, we need to remove the top padding
             paddingTop: 0,
-            // On medium screens, we need to prevent the modal from becoming too big
-            maxWidth: 500,
-        },
+            // On larger screens, we need to prevent the modal from becoming too big
+            maxWidth: shouldUseNarrowLayout ? undefined : 500,
+        }),
 
         backgroundWhite: {
             backgroundColor: colors.white,
@@ -5777,6 +5798,14 @@ const styles = (theme: ThemeColors) =>
             flexShrink: 1,
             // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
             flexBasis: '35%',
+        },
+
+        thumbnailImageContainerHover: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        thumbnailImageContainerHighlight: {
+            backgroundColor: theme.highlightBG,
         },
     } satisfies Styles);
 

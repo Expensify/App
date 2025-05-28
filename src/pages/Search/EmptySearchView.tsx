@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
+import {InteractionManager, Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
@@ -16,26 +16,23 @@ import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
-import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
-import {setSelfTourViewed} from '@libs/actions/Welcome';
+import {openOldDotLink} from '@libs/actions/Link';
+import {completeTestDriveTask} from '@libs/actions/Task';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
-import {getNavatticURL} from '@libs/TourUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -125,21 +122,23 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     }, [styles, translate]);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const onboardingPurpose = introSelected?.choice;
-    const {environment} = useEnvironment();
-    const navatticURL = getNavatticURL(environment, onboardingPurpose);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const viewTourTaskReportID = introSelected?.viewTour;
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: true});
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isReportArchived);
-    const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
+        const startTestDrive = () => {
+            InteractionManager.runAfterInteractions(() => {
+                if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+                    completeTestDriveTask();
+                    Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                } else {
+                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                }
+            });
+        };
+
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
@@ -161,13 +160,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: () => {
-                                              openExternalLink(navatticURL);
-                                              setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
-                                                  completeTask(viewTourTaskReport);
-                                              }
-                                          },
+                                          buttonAction: startTestDrive,
                                       },
                                   ]
                                 : []),
@@ -201,13 +194,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: () => {
-                                              openExternalLink(navatticURL);
-                                              setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
-                                                  completeTask(viewTourTaskReport);
-                                              }
-                                          },
+                                          buttonAction: startTestDrive,
                                       },
                                   ]
                                 : []),
@@ -250,12 +237,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         styles.tripEmptyStateLottieWebView,
         tripViewChildren,
         hasSeenTour,
-        navatticURL,
         shouldRedirectToExpensifyClassic,
+        introSelected?.choice,
         hasResults,
-        viewTourTaskReport,
-        canModifyTheTask,
-        canActionTheTask,
     ]);
 
     return (
