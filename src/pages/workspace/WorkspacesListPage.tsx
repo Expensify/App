@@ -322,7 +322,7 @@ function WorkspacesListPage() {
         }
 
         return (
-            <View style={[styles.flexRow, styles.gap5, styles.p3, styles.pr5, styles.pl10, styles.appBG]}>
+            <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
                 <View style={[styles.flexRow, styles.flex1]}>
                     <Text
                         numberOfLines={1}
