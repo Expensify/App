@@ -372,10 +372,14 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-        const isCardTransactionWithCorporateLiability = reportTransactions.length === 1 && isCardTransactionUtils(reportTransactions.at(0)) && reportTransactions.at(0)?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+        const isCardTransactionWithCorporateLiability = isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 
-        return isReportSubmitter && isReportOpenOrProcessing && !isCardTransactionWithCorporateLiability;
+        if (isCardTransactionWithCorporateLiability) {
+            return false;
+        }
+
+        const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+        return isReportSubmitter && isReportOpenOrProcessing;
     }
 
     return false;
