@@ -6323,14 +6323,10 @@ const translations = {
             full: 'Check what <strong>needs your attention</strong> \nand <strong>chat about expenses</strong>.',
         },
         workspaceChatTooltip: {
-            part1: 'Chat with ',
-            part2: 'approvers',
+            full: 'Chat with <strong>approvers</strong>',
         },
         globalCreateTooltip: {
-            part1: 'Create expenses',
-            part2: ', start chatting,',
-            part3: '\nand more.',
-            part4: ' Try it out!',
+            full: '<strong>Create expenses</strong>, start chatting,\nand more. Try it out!',
         },
         GBRRBRChat: {
             full: 'You’ll see 🟢 on <b>actions to take</b>,\nand 🔴 on <b>items to review</b>.',
