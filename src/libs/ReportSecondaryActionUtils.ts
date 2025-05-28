@@ -12,7 +12,9 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
+    isInstantSubmitEnabled,
     isPreferredExporter,
+    isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -372,6 +374,30 @@ function isDeleteAction(report: Report): boolean {
     return isReportOpen || isProcessingReport;
 }
 
+function isRetractAction(report: Report, policy?: Policy): boolean {
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isSubmitAndClose = isSubmitAndCloseUtils(policy);
+
+    // This should be removed after we change how instant submit works
+    const isInstantSubmit = isInstantSubmitEnabled(policy);
+
+    if (!isExpenseReport || isSubmitAndClose || isInstantSubmit) {
+        return false;
+    }
+
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    if (!isReportSubmitter) {
+        return false;
+    }
+
+    const isProcessingReport = isProcessingReportUtils(report);
+    if (!isProcessingReport) {
+        return false;
+    }
+
+    return true;
+}
+
 function isReopenAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     if (!isExpenseReport) {
@@ -426,6 +452,10 @@ function getSecondaryReportActions(
 
     if (isCancelPaymentAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
+    }
+
+    if (canUseRetractNewDot && isRetractAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
 
     if (canUseRetractNewDot && isReopenAction(report, policy)) {
