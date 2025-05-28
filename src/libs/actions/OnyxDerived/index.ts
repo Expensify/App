@@ -37,7 +37,6 @@ function init() {
                         sourceValues: undefined,
                         areAllConnectionsSet: false,
                     };
-                    // @ts-expect-error TypeScript can't confirm the shape of tupleGet's return value matches the compute function's parameters
                     derivedValue = compute(dependencyValues, initialContext);
                     dependencyValues = values;
                     Onyx.set(key, derivedValue ?? null);
@@ -78,7 +77,6 @@ function init() {
                         [sourceKey]: sourceValue,
                     };
                 }
-                // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                 const newDerivedValue = compute(dependencyValues, context);
                 Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                 derivedValue = newDerivedValue;
