@@ -63,6 +63,7 @@ import {
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
+    getRetractedMessage,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
@@ -828,6 +829,8 @@ function getLastMessageTextForReport(
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
+        lastMessageTextFromReport = getRetractedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         lastMessageTextFromReport = getReopenedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
@@ -847,6 +850,11 @@ function getLastMessageTextForReport(
     // so we reconstruct the last message text of the report from the last report action.
     if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
         lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
+    }
+
+    // If the last report action is a pending moderation action, get the last message text from the last visible report action
+    if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalReportAction)) {
+        lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');

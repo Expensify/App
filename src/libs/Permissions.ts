@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return true || !!betas?.includes(CONST.BETAS.ALL);
+    return !!betas?.includes(CONST.BETAS.ALL);
 }
 
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
@@ -58,10 +58,6 @@ function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) || canUseAllBetas(betas);
 }
 
-function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
-}
-
 function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
 }
@@ -102,7 +98,6 @@ export default {
     canUseCustomRules,
     canUseTableReportView,
     canUseTalkToAISales,
-    canUseProhibitedExpenses,
     canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
     canUsePrivateDomainOnboarding,
