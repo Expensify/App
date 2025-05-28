@@ -446,16 +446,16 @@ function ReportActionCompose({
 
     const saveFileAndInitMoneyRequest = (file: FileObject) => {
         const source = URL.createObjectURL(file as Blob);
-        const newReportID = generateReportID();
 
         if (isTransactionThreadView && transactionID) {
             replaceReceipt({transactionID, file: file as File, source});
         } else {
-            initMoneyRequest(newReportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
+            initMoneyRequest(reportID, undefined, false, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
-            setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report)
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID));
+            setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report).then(() => {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            });
         }
     };
 
@@ -618,7 +618,7 @@ function ReportActionCompose({
                                                 icon={Expensicons.MessageInABottle}
                                                 isDraggingOver
                                                 dropTitle={translate('dropzone.addAttachments')}
-                                                dropStyles={styles.attachmentDropOverlay}
+                                                dropStyles={styles.attachmentDropOverlay()}
                                                 dropTextStyles={styles.attachmentDropText}
                                                 dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
                                             />
