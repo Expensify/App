@@ -1,11 +1,13 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import Collapsible from '@components/CollapsibleSection/Collapsible';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
+import IconButton from '@components/VideoPlayer/IconButton';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -15,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,12 +39,14 @@ function ReportListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isExpanded, setIsExpanded] = useState(false);
     const {canUseTableReportView} = usePermissions();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmptyReport || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const src = isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
 
     const dateColumnSize = useMemo(() => {
         const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
@@ -127,48 +132,63 @@ function ReportListItem<TItem extends ListItem>({
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
-                    <ReportListItemHeader
-                        report={reportItem}
-                        policy={policy}
-                        item={item}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
-                        isDisabled={isDisabledOrEmpty}
-                        isHovered={hovered}
-                        isFocused={isFocused}
-                        canSelectMultiple={canSelectMultiple}
-                    />
-                    {isEmptyReport ? (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                            <Text
-                                style={[styles.textLabelSupporting]}
-                                numberOfLines={1}
-                            >
-                                {translate('search.moneyRequestReport.emptyStateTitle')}
-                            </Text>
-                        </View>
-                    ) : (
-                        reportItem.transactions.map((transaction) => (
-                            <View>
-                                <TransactionItemRow
-                                    transactionItem={transaction}
-                                    isSelected={!!transaction.isSelected}
-                                    dateColumnSize={dateColumnSize}
-                                    shouldShowTooltip={showTooltip}
-                                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                                    shouldShowCheckbox={!!canSelectMultiple}
-                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={columns}
-                                    onButtonPress={() => {
-                                        openReportInRHP(transaction);
-                                    }}
-                                    isParentHovered={hovered}
-                                    columnWrapperStyles={[styles.ph3, styles.pv1half]}
-                                    isInReportRow
-                                />
+                    <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
+                        <ReportListItemHeader
+                            report={reportItem}
+                            policy={policy}
+                            item={item}
+                            onSelectRow={onSelectRow}
+                            onCheckboxPress={onCheckboxPress}
+                            isDisabled={isDisabledOrEmpty}
+                            isHovered={hovered}
+                            isFocused={isFocused}
+                            canSelectMultiple={canSelectMultiple}
+                        />
+                        <IconButton
+                            fill={theme.icon}
+                            src={src}
+                            small
+                            onPress={() => setIsExpanded(!isExpanded)}
+                            style={[styles.p3]}
+                            hoverStyle={[styles.bgTransparent]}
+                        />
+                    </View>
+                    {isExpanded && <View style={[styles.threadDividerLine, styles.mv2, styles.mr2]} />}
+                    <Collapsible isOpened={isExpanded}>
+                        {isEmptyReport ? (
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                                <Text
+                                    style={[styles.textLabelSupporting]}
+                                    numberOfLines={1}
+                                >
+                                    {translate('search.moneyRequestReport.emptyStateTitle')}
+                                </Text>
                             </View>
-                        ))
-                    )}
+                        ) : (
+                            <>
+                                {reportItem.transactions.map((transaction) => (
+                                    <View>
+                                        <TransactionItemRow
+                                            transactionItem={transaction}
+                                            isSelected={!!transaction.isSelected}
+                                            dateColumnSize={dateColumnSize}
+                                            shouldShowTooltip={showTooltip}
+                                            shouldUseNarrowLayout={!isLargeScreenWidth}
+                                            shouldShowCheckbox={!!canSelectMultiple}
+                                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                            columns={columns}
+                                            onButtonPress={() => {
+                                                openReportInRHP(transaction);
+                                            }}
+                                            isParentHovered={hovered}
+                                            columnWrapperStyles={[styles.ph3, styles.pv1half]}
+                                            isInReportRow
+                                        />
+                                    </View>
+                                ))}
+                            </>
+                        )}
+                    </Collapsible>
                 </View>
             )}
         </BaseListItem>

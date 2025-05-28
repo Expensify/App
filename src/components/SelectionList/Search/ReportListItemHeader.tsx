@@ -118,7 +118,7 @@ function FirstHeaderRow<TItem extends ListItem>({
     const reportItem = item as unknown as ReportListItemType;
 
     return (
-        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3]}>
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
@@ -198,7 +198,7 @@ function ReportListItemHeader<TItem extends ListItem>({
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
     };
     return !isLargeScreenWidth ? (
-        <View>
+        <View style={styles.flex1}>
             <FirstHeaderRow
                 item={item}
                 report={moneyRequestReport}
@@ -245,7 +245,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             </View>
         </View>
     ) : (
-        <View>
+        <View style={styles.flex1}>
             <FirstHeaderRow
                 item={item}
                 report={moneyRequestReport}
@@ -257,9 +257,6 @@ function ReportListItemHeader<TItem extends ListItem>({
                 handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
             />
-            <View style={[styles.mr3, styles.ml3, styles.pv2]}>
-                <View style={[styles.borderBottom]} />
-            </View>
         </View>
     );
 }
