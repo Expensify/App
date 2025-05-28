@@ -27,7 +27,6 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => undefined,
     useFocusEffect: () => undefined,
 }));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 describe('Sidebar', () => {
     beforeAll(() => {
