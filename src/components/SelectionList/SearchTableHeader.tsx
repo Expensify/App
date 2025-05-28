@@ -32,6 +32,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
@@ -107,8 +108,8 @@ const taskHeaders: SearchColumnConfig[] = [
         translationKey: 'common.description',
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
-        translationKey: 'common.from',
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CREATED_BY,
+        translationKey: 'common.createdBy',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.IN,

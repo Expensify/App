@@ -998,22 +998,11 @@ function getWrappingStyle(isExtraSmallScreenWidth: boolean): ViewStyle {
 }
 
 /**
- * Returns the text container styles for menu items depending on if the menu item container is in compact mode or not
+ * Returns the text container styles for menu items depending on if the menu item container a small avatar
  */
-function getMenuItemTextContainerStyle(compactMode: boolean): ViewStyle {
+function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): ViewStyle {
     return {
-        minHeight: compactMode ? 20 : variables.componentSizeNormal,
-    };
-}
-
-/**
- * Returns the style for a menu item's icon based on of the container is in compact mode or not
- */
-function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
-    return {
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: compactMode ? 20 : variables.componentSizeNormal,
+        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
     };
 }
 
@@ -1241,7 +1230,6 @@ const staticStyleUtils = {
     getFontSizeStyle,
     getLineHeightStyle,
     getMenuItemTextContainerStyle,
-    getMenuItemIconStyle,
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
@@ -1327,7 +1315,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...styles.overflowHidden,
             // maxHeight is not of the input only but the of the whole input container
             // which also includes the top padding and bottom border
-            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
+            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
         };
     },
 
@@ -1348,7 +1336,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
         // maxHeight is not of the input only but the of the whole input container
         // which also includes the top padding and bottom border
-        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2} : {};
     },
 
     /**
@@ -1531,7 +1519,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Return the height of magic code input container
      */
-    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth}),
+    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
 
     /**
      * Generate fill color of an icon based on its state.
@@ -1646,6 +1634,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
+            case CONST.SEARCH.TABLE_COLUMNS.CREATED_BY:
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             case CONST.SEARCH.TABLE_COLUMNS.IN:
