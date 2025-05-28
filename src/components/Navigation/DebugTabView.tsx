@@ -29,7 +29,6 @@ import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 type DebugTabViewProps = {
     selectedTab?: ValueOf<typeof NAVIGATION_TABS>;
     chatTabBrickRoad: BrickRoad;
-    activeWorkspaceID?: string;
 };
 
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
@@ -99,7 +98,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     }
 }
 
-function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugTabViewProps) {
+function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -140,7 +139,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
 
     const navigateTo = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME && !!chatTabBrickRoad) {
-            const report = getChatTabBrickRoadReport(activeWorkspaceID, orderedReports);
+            const report = getChatTabBrickRoadReport(orderedReports);
 
             if (report) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
@@ -153,7 +152,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, orderedReports, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, orderedReports, status, reimbursementAccount, policyIDWithErrors]);
 
     if (!([NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
