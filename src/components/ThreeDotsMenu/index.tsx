@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type BaseModalProps from '@components/Modal/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -46,6 +47,7 @@ function ThreeDotsMenu({
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
@@ -140,15 +142,20 @@ function ThreeDotsMenu({
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
+                onModalHide={() => setRestoreFocusType(undefined)}
                 isVisible={isPopupMenuVisible && !isBehindModal}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
-                onItemSelected={hidePopoverMenu}
+                onItemSelected={(item) => {
+                    setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
+                    hidePopoverMenu(item);
+                }}
                 menuItems={menuItems}
                 withoutOverlay={!shouldOverlay}
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                restoreFocusType={restoreFocusType}
             />
         </>
     );
