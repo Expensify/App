@@ -1648,12 +1648,12 @@ describe('actions/Report', () => {
             // Then all report should be read
             const isUnreadCollection = await Promise.all(
                 Object.values(reportCollections).map((report) => {
-                    return new Promise<Boolean>((resolve) => {
+                    return new Promise<boolean>((resolve) => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                            callback: (report) => {
+                            callback: (reportVal) => {
                                 Onyx.disconnect(connection);
-                                resolve(ReportUtils.isUnread(report, undefined));
+                                resolve(ReportUtils.isUnread(reportVal, undefined));
                             },
                         });
                     });

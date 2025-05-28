@@ -1613,7 +1613,7 @@ function markAllMessagesAsRead() {
     const lastReadTime = DateUtils.getDBTimeWithSkew();
 
     const optimisticData: OnyxUpdate[] = [];
-    let reportIDs: string[] = [];
+    const reportIDs: string[] = [];
     Object.keys(allReports ?? {}).forEach((key: string) => {
         const report = allReports?.[key];
         const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(
