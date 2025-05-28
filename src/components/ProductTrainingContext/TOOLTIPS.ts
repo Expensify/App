@@ -31,8 +31,10 @@ type ShouldShowConditionProps = {
     hasBeenAddedToNudgeMigration: boolean;
 };
 
+type TooltipContent = {text: TranslationPaths; isBold: boolean} | {text: () => JSX.Element; isBold?: boolean};
+
 type TooltipData = {
-    content: Array<{text: TranslationPaths; isBold: boolean}>;
+    content: Array<TooltipContent>;
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
@@ -46,8 +48,14 @@ const {translate} = useLocalize();
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.conciergeLHNGBR.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCIERGE_LHN_GBR,
