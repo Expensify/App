@@ -162,8 +162,6 @@ export {
     handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
-    handleSwitchPolicyIDAction,
-    handleSwitchPolicyIDFromSearchAction,
     screensWithEnteringAnimation,
     workspaceSplitsWithoutEnteringAnimation,
 };
