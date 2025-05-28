@@ -1274,6 +1274,8 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
 /**
  * @deprecated Get the data straight from Onyx
  */
+// TODO: Will be handled in this PR https://github.com/Expensify/App/pull/62434
+// eslint-disable-next-line deprecation/deprecation
 function getTransaction(transactionID: string | number | undefined): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
@@ -1646,6 +1648,8 @@ export {
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
+    // TODO: Will be handled in this PR https://github.com/Expensify/App/pull/62434
+    // eslint-disable-next-line deprecation/deprecation
     getTransaction,
     compareDuplicateTransactionFields,
     getTransactionID,
