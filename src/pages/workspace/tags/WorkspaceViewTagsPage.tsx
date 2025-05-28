@@ -161,8 +161,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [filteredTagList],
     );
 
-    const sections = useMemo(() => [{data: filteredTagList, isDisabled: false}], [filteredTagList]);
-
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
@@ -184,6 +182,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const getCustomListHeader = () => {
+        if (filteredTagList.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -211,6 +212,16 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
+
+    const listHeaderContent =
+        tagList.length > CONST.SEARCH_ITEM_LIMIT ? (
+            <SearchBar
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+                label={translate('workspace.tags.findTag')}
+                shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
+            />
+        ) : undefined;
 
     const getHeaderButtons = () => {
         if ((!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !selectionMode?.isEnabled)) {
@@ -386,27 +397,22 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        label={translate('workspace.tags.findTag')}
-                        shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
-                    />
-                )}
-                {filteredTagList.length > 0 && !isLoading && (
+                {tagList.length > CONST.SEARCH_ITEM_LIMIT && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={sections}
+                        sections={[{data: filteredTagList, isDisabled: false}]}
+                        selectedItems={selectedTags}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
-                        onSelectAll={toggleAllTags}
+                        onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                         showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
+                        listHeaderContent={listHeaderContent}
+                        shouldShowListEmptyContent={false}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         addBottomSafeAreaPadding
