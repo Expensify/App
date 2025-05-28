@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
-import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -65,27 +64,15 @@ function SidebarOrderedReportsContextProvider({
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
-    const {activeWorkspaceID} = useActiveWorkspace();
 
-    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID), [policies, activeWorkspaceID, accountID]);
+    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
-            SidebarUtils.getOrderedReportIDs(
-                currentReportID,
-                chatReports,
-                betas,
-                policies,
-                priorityMode,
-                transactionViolations,
-                activeWorkspaceID,
-                policyMemberAccountIDs,
-                reportNameValuePairs,
-                reportAttributes,
-            ),
+            SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes),
         // we need reports draft in deps array to reload the list when a draft is added or removed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, draftAmount, reportNameValuePairs, reportAttributes],
+        [chatReports, betas, policies, priorityMode, transactionViolations, draftAmount, reportNameValuePairs, reportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
