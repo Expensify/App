@@ -82,7 +82,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const {q, name} = route.params;
 
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
@@ -584,7 +584,7 @@ function SearchPage({route}: SearchPageProps) {
                             offlineIndicatorStyle={styles.mtAuto}
                         >
                             {isLoadingReceipt && <FullScreenLoadingIndicator />}
-                            <DragAndDropProvider isDisabled={!canUseMultiFilesDragAndDrop}>
+                            <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
                                 {PDFThumbnailView}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}

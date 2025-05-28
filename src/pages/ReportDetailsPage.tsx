@@ -160,7 +160,7 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
@@ -522,7 +522,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             }
         }
 
-        if (!canUseTableReportView && shouldShowCancelPaymentButton) {
+        if (!isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && shouldShowCancelPaymentButton) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.CANCEL_PAYMENT,
                 icon: Expensicons.Trashcan,
@@ -563,7 +563,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (!canUseTableReportView && canUnapproveIOU(report, policy)) {
+        if (!isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && canUnapproveIOU(report, policy)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.UNAPPROVE,
                 icon: Expensicons.CircularArrowBackwards,
@@ -637,7 +637,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isInvoiceReport,
         isTaskReport,
         isCanceledTaskReport,
-        canUseTableReportView,
+        isBetaEnabled,
         shouldShowCancelPaymentButton,
         caseID,
         policy,
@@ -748,7 +748,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             result.push(PromotedActions.join(report));
         }
 
-        if (!canUseTableReportView && isExpenseReport && shouldShowHoldAction) {
+        if (!isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && isExpenseReport && shouldShowHoldAction) {
             result.push(
                 PromotedActions.hold({
                     isTextHold: canHoldUnholdReportAction.canHoldRequest,
@@ -770,7 +770,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         return result;
     }, [
         canJoin,
-        canUseTableReportView,
+        isBetaEnabled,
         isExpenseReport,
         shouldShowHoldAction,
         report,
@@ -1065,7 +1065,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     confirmText={translate('common.leave')}
                     cancelText={translate('common.cancel')}
                 />
-                {!canUseTableReportView && (
+                {!isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && (
                     <ConfirmModal
                         title={translate('iou.cancelPayment')}
                         isVisible={isConfirmModalVisible}
@@ -1093,7 +1093,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     shouldEnableNewFocusManagement
                     onModalHide={navigateToTargetUrl}
                 />
-                {!canUseTableReportView && (
+                {!isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && (
                     <DelegateNoAccessModal
                         isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                         onClose={() => setIsNoDelegateAccessMenuVisible(false)}

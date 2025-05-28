@@ -5,11 +5,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ManageTrips from './ManageTrips';
 
 function MyTripsPage() {
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     return (
         <ScreenWrapper
@@ -21,7 +22,7 @@ function MyTripsPage() {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={!canUseSpotnanaTravel && !CONFIG.IS_HYBRID_APP}
+                shouldShow={!isBetaEnabled(CONST.BETAS.SPOTNANA_TRAVEL) && !CONFIG.IS_HYBRID_APP}
             >
                 <HeaderWithBackButton
                     title={translate('travel.header')}

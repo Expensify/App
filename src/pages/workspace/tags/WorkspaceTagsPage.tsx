@@ -112,7 +112,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = !!backTo;
-    const {canUseMultiLevelTags} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -450,7 +450,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     close(() => {
-                        if (hasIndependentTags && canUseMultiLevelTags) {
+                        if (hasIndependentTags && isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS)) {
                             downloadMultiLevelIndependentTagsCSV(policyID, () => {
                                 setIsDownloadFailureModalVisible(true);
                             });
@@ -465,7 +465,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo, canUseMultiLevelTags, hasIndependentTags]);
+    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo, isBetaEnabled, hasIndependentTags]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -531,7 +531,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.popToSidebar();
                         }}
-                        shouldShowThreeDotsButton={canUseMultiLevelTags ? !hasDependentTags : !policy?.hasMultipleTagLists}
+                        shouldShowThreeDotsButton={isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) ? !hasDependentTags : !policy?.hasMultipleTagLists}
                         threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={threeDotsAnchorPosition}
                     >

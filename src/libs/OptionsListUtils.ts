@@ -1736,7 +1736,7 @@ function getValidOptions(
         [CONST.EMAIL.MANAGER_MCTEST]:
             !canShowManagerMcTest ||
             (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
-            !Permissions.canUseManagerMcTest(config.betas) ||
+            !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
             isUserInvitedToWorkspace(),
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty

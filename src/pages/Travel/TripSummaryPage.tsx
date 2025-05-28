@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -19,7 +20,7 @@ type TripSummaryPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 
 function TripSummaryPage({route}: TripSummaryPageProps) {
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
     const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(transaction ? [transaction] : []);
@@ -34,7 +35,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={reservationsData.length === 0 || (!canUseSpotnanaTravel && !CONFIG.IS_HYBRID_APP)}
+                shouldShow={reservationsData.length === 0 || (!isBetaEnabled(CONST.BETAS.SPOTNANA_TRAVEL) && !CONFIG.IS_HYBRID_APP)}
             >
                 <HeaderWithBackButton
                     title={translate(`travel.tripDetails`)}

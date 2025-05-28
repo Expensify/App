@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {canUseNetSuiteUSATax} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.netsuite?.options?.config;
@@ -98,7 +98,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     }
                 />
             </OfflineWithFeedback>
-            {canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country) && (
+            {canUseTaxNetSuite(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary?.country) && (
                 <ToggleSettingOptionRow
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     title={translate('common.tax')}
