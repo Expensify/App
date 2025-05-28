@@ -1,7 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, DeviceEventEmitter, Dimensions, InteractionManager, KeyboardAvoidingView, Modal, View} from 'react-native';
+import {BackHandler, Dimensions, InteractionManager, KeyboardAvoidingView, Modal, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
@@ -22,8 +22,6 @@ function BottomDockedModal({
     backdropColor = 'black',
     backdropOpacity = 0.72,
     customBackdrop = null,
-    deviceHeight: deviceHeightProp = null,
-    deviceWidth: deviceWidthProp = null,
     isVisible = false,
     onModalWillShow = noop,
     onModalShow = noop,
@@ -39,26 +37,10 @@ function BottomDockedModal({
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
-    const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
-    const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const handleRef = useRef<number | undefined>(undefined);
 
     const styles = useThemeStyles();
-
-    const handleDimensionsUpdate = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (deviceHeightProp || deviceWidthProp) {
-            return;
-        }
-
-        const deviceWidthTemp = Dimensions.get('window').width;
-        const deviceHeightTemp = Dimensions.get('window').height;
-        if (deviceWidthTemp !== deviceWidth || deviceHeightTemp !== deviceHeight) {
-            setDeviceWidth(deviceWidthTemp);
-            setDeviceHeight(deviceHeightTemp);
-        }
-    }, [deviceWidth, deviceWidthProp, deviceHeight, deviceHeightProp]);
 
     const onBackButtonPressHandler = useCallback(() => {
         if (isVisibleState) {
@@ -94,11 +76,6 @@ function BottomDockedModal({
         };
     }, [handleEscape, onBackButtonPressHandler]);
 
-    useEffect(() => {
-        const deviceEventListener = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
-        return () => deviceEventListener.remove();
-    }, [handleDimensionsUpdate]);
-
     useEffect(
         () => () => {
             if (handleRef.current) {
@@ -130,12 +107,9 @@ function BottomDockedModal({
     }, [isVisible, isContainerOpen, isTransitioning]);
 
     const backdropStyle: ViewStyle = useMemo(() => {
-        return {
-            width: deviceWidthProp ?? deviceWidth,
-            height: deviceHeightProp ?? deviceHeight,
-            backgroundColor: backdropColor,
-        };
-    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor]);
+        const {width, height} = Dimensions.get('screen');
+        return {width, height, backgroundColor: backdropColor};
+    }, [backdropColor]);
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);

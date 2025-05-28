@@ -406,6 +406,7 @@ describe('Sidebar', () => {
                 managerID: 4,
                 policyName: fakePolicy.name,
                 policyID: fakeReport.policyID,
+                reportName: 'Report Name',
                 total: -10000,
                 currency: 'USD',
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -458,7 +459,7 @@ describe('Sidebar', () => {
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
                         expect(displayNames.at(0)).toHaveTextContent(`Email One's expenses`);
-                        expect(displayNames.at(1)).toHaveTextContent('Workspace-Test-001 owes $100.00');
+                        expect(displayNames.at(1)).toHaveTextContent('Report Name');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
                         expect(displayNames.at(3)).toHaveTextContent('Email Two');
                     })
