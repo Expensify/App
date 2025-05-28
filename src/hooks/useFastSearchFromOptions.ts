@@ -65,18 +65,21 @@ function useFastSearchFromOptions(
     const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
 
     useEffect(() => {
-        const newFastSearch = FastSearch.createFastSearch([
-            {
-                data: options.personalDetails,
-                toSearchableString: personalDetailToSearchString,
-                uniqueId: getPersonalDetailUniqueId,
-            },
-            {
-                data: options.recentReports,
-                toSearchableString: recentReportToSearchString,
-                uniqueId: getRecentReportUniqueId,
-            },
-        ], {shouldStoreSearchableStrings: true});
+        const newFastSearch = FastSearch.createFastSearch(
+            [
+                {
+                    data: options.personalDetails,
+                    toSearchableString: personalDetailToSearchString,
+                    uniqueId: getPersonalDetailUniqueId,
+                },
+                {
+                    data: options.recentReports,
+                    toSearchableString: recentReportToSearchString,
+                    uniqueId: getRecentReportUniqueId,
+                },
+            ],
+            {shouldStoreSearchableStrings: true},
+        );
         setFastSearch(newFastSearch);
 
         return () => newFastSearch.dispose();
@@ -109,7 +112,7 @@ function useFastSearchFromOptions(
                 recentReports = recentReports.filter((rr) => {
                     const id = getRecentReportUniqueId(rr);
                     const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(rr.text);
-                    return isSearchStringMatch(deburredInput, searchableString)
+                    return isSearchStringMatch(deburredInput, searchableString);
                 });
             }
 
