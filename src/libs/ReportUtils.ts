@@ -5901,10 +5901,9 @@ function getPolicyChangeMessage(action: ReportAction) {
     });
     return message;
 }
-function getTravelUpdateMessage(action: ReportAction, formatDate: (datetime: string, includeTimezone: boolean, isLowercase?: boolean | undefined)=> string) {
+function getTravelUpdateMessage(action: ReportAction, formatDate: (datetime: string, includeTimezone: boolean, isLowercase?: boolean | undefined) => string) {
     const details = getOriginalMessage(action) as OriginalMessageTravelUpdate;
-    const formattedStartDate = formatDate(details.start.date, false)
-    
+    const formattedStartDate = formatDate(details.start.date, false);
 
     switch (details?.operation) {
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
