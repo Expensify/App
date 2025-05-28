@@ -126,12 +126,14 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     const content = useMemo(() => {
         const startTestDrive = () => {
             InteractionManager.runAfterInteractions(() => {
                 if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
-                    completeTestDriveTask();
+                    completeTestDriveTask(viewTourReport, viewTourReportID);
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                 } else {
                     Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
@@ -240,6 +242,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         shouldRedirectToExpensifyClassic,
         introSelected?.choice,
         hasResults,
+        viewTourReport,
+        viewTourReportID,
     ]);
 
     return (
