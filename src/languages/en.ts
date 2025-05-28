@@ -6338,24 +6338,15 @@ const translations = {
             full: "Welcome! Find all of your<strong>\ncompany's reports</strong> here.",
         },
         scanTestTooltip: {
-            part1: 'Want to see how Scan works?',
-            part2: ' Try a test receipt!',
-            part3: 'Choose our',
-            part4: ' test manager',
-            part5: ' to try it out!',
-            part6: 'Now,',
-            part7: ' submit your expense',
-            part8: ' and watch the\nmagic happen!',
+            full: 'Want to see how Scan works? <strong>Try a test receipt!</strong>Choose our <strong>test manager</strong> to try it out!Now, <strong>submit your expense</strong> and watch the\nmagic happen!',
             tryItOut: 'Try it out',
             noThanks: 'No thanks',
         },
         outstandingFilter: {
-            part1: 'Filter for expenses\nthat ',
-            part2: 'need approval',
+            full: 'Filter for expenses\nthat <strong>need approval</strong>',
         },
         scanTestDriveTooltip: {
-            part1: 'Send this receipt to\n',
-            part2: 'complete the test drive!',
+            full: 'Send this receipt to\n<strong>complete the test drive!</strong>',
         },
     },
     discardChangesConfirmation: {

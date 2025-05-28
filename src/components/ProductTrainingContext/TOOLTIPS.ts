@@ -177,8 +177,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part2', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.scanTestTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
         name: SCAN_TEST_TOOLTIP,
@@ -188,10 +194,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_TOOLTIP_MANAGER]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part4', isBold: true},
-            {text: 'productTrainingTooltip.scanTestTooltip.part5', isBold: false},
-        ],
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.scanTestTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER, isDismissedUsingCloseButton),
         name: SCAN_TEST_TOOLTIP_MANAGER,
         priority: 1000,
@@ -199,9 +209,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_CONFIRMATION]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part6', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part7', isBold: true},
-            {text: 'productTrainingTooltip.scanTestTooltip.part8', isBold: false},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.scanTestTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_CONFIRMATION,
@@ -210,8 +225,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [OUTSTANDING_FILTER]: {
         content: [
-            {text: 'productTrainingTooltip.outstandingFilter.part1', isBold: false},
-            {text: 'productTrainingTooltip.outstandingFilter.part2', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.outstandingFilter.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: () => dismissProductTraining(OUTSTANDING_FILTER),
         name: OUTSTANDING_FILTER,
@@ -220,8 +241,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_DRIVE_CONFIRMATION]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestDriveTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.scanTestDriveTooltip.part2', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.scanTestDriveTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_DRIVE_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_DRIVE_CONFIRMATION,
