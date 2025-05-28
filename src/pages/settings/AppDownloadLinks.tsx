@@ -1,8 +1,8 @@
 import React, {useRef} from 'react';
 import type {View} from 'react-native';
+import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import QRShare from '@components/QRShare';
@@ -66,7 +66,7 @@ function AppDownloadLinksPage() {
 
             <QRShare
                 url={CONST.EXPENSIFY_MOBILE_URL}
-                svgLogo={Illustrations.ExpensifyMobileApp}
+                logo={expensifyLogo}
                 logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
                 logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
                 shouldShowExpensifyLogo={false}

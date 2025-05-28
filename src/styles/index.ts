@@ -4495,7 +4495,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderColor: theme.borderFocus,
             borderWidth: 2,
-            backgroundColor: theme.highlightBG,
         },
 
         shareCodeContainerDownloadPadding: {
