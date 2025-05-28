@@ -1648,6 +1648,7 @@ const CONST = {
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         SKELETON_ANIMATION_SPEED: 3,
+        SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
