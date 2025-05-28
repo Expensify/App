@@ -67,6 +67,7 @@ function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
+    return true;
     return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
 }
 

@@ -19,6 +19,7 @@ import {
     isApprovedOrSubmittedReportAction as isApprovedOrSubmittedReportActionUtils,
     isMemberChangeAction,
     isMoneyRequestAction,
+    isReimbursementDirectionInformationRequiredAction,
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
 import {getIOUReportActionDisplayMessage, getReportName, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
@@ -52,8 +53,6 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`, {canBeMissing: true});
-    const {bankAccountLastFour, currency, policyID: originalMessagePolicyID} = action.originalMessage as {bankAccountLastFour: string; currency: string; policyID: string};
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${originalMessagePolicyID ?? ''}`, {canBeMissing: true});
 
     const fragments = getReportActionMessageFragments(action);
     const isIOUReport = isMoneyRequestAction(action);
@@ -90,26 +89,25 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     }
 
     const handleEnterSignerInfoPress = () => {
-        navigateToBankAccountRoute(policy?.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id));
+        const policyID = report?.policyID;
+
+        if (!policyID) {
+            return;
+        }
+
+        navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
     };
 
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED) {
-        let policyCurrency: string | undefined = currency;
-
-        if (!policyCurrency) {
-            policyCurrency = policy?.outputCurrency;
-        }
+    if (isReimbursementDirectionInformationRequiredAction(action)) {
+        const {bankAccountLastFour, currency} = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED>(action) ?? {};
 
         return (
             <View style={[styles.chatItemMessage, style]}>
-                <Text>
-                    is connecting a {policyCurrency} business bank account ending in {bankAccountLastFour} to Expensify to pay employees in {policyCurrency}. The next step requires signer
-                    info from a director or senior officer.
-                </Text>
+                <Text>{translate('signerInfoStep.isConnecting', {bankAccountLastFour, currency})}</Text>
                 <Button
                     style={[styles.mt2, styles.alignSelfStart]}
                     success
-                    text="Enter signer info"
+                    text={translate('signerInfoStep.enterSignerInfo')}
                     onPress={handleEnterSignerInfoPress}
                 />
             </View>

@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type EmailSubmitParams = {signerEmail: string, secondSignerEmail?: string};
+type EmailSubmitParams = {signerEmail: string; secondSignerEmail?: string};
 
 type EnterEmailProps = {
     /** Callback when the form is submitted */
