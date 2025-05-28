@@ -63,6 +63,9 @@ function TransactionItemRow({
     isParentHovered,
     columnWrapperStyles,
     scrollToNewTransaction,
+    isChildListItem = true,
+    isActionLoading,
+    usedInExpenses,
 }: {
     transactionItem: TransactionWithOptionalSearchFields;
     shouldUseNarrowLayout: boolean;
@@ -76,6 +79,9 @@ function TransactionItemRow({
     isParentHovered?: boolean;
     columnWrapperStyles?: ViewStyle[];
     scrollToNewTransaction?: ((offset: number) => void) | undefined;
+    isChildListItem?: boolean;
+    isActionLoading?: boolean;
+    usedInExpenses?: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -170,10 +176,10 @@ function TransactionItemRow({
                         <ActionCell
                             action={transactionItem.action}
                             isSelected={false}
-                            isChildListItem
+                            isChildListItem={isChildListItem}
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
-                            isLoading={false}
+                            isLoading={isActionLoading}
                         />
                     )}
                 </View>
@@ -232,9 +238,9 @@ function TransactionItemRow({
                 </View>
             ),
         }),
-        [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
+        [StyleUtils, createdAt, isActionLoading, isChildListItem, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
     );
-    const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
+    const safeColumnWrapperStyle = !usedInExpenses ? columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius] : [];
     return (
         <View
             style={[styles.flex1]}
@@ -244,7 +250,7 @@ function TransactionItemRow({
         >
             {shouldUseNarrowLayout ? (
                 <Animated.View style={[animatedHighlightStyle]}>
-                    <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
+                    <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, !usedInExpenses && styles.p3, bgActiveStyles]}>
                         <View style={[styles.flexRow]}>
                             {shouldShowCheckbox && (
                                 <View style={[styles.mr3, styles.justifyContentCenter]}>

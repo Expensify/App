@@ -1,14 +1,18 @@
-import React from 'react';
+import React, {useMemo} from 'react';
+import type {ValueOf} from 'type-fest';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
+import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
+import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
-import TransactionListItemRow from './TransactionListItemRow';
+import CONST from '@src/CONST';
+import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 function TransactionListItem<TItem extends ListItem>({
     item,
@@ -53,6 +57,27 @@ function TransactionListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
+    const dateColumnSize = useMemo(() => {
+        const shouldShowYearForSomeTransaction = shouldShowTransactionYear(transactionItem);
+        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    }, [transactionItem]);
+
+    const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
+
+    const columns = [
+        COLUMNS.RECEIPT,
+        COLUMNS.TYPE,
+        COLUMNS.DATE,
+        COLUMNS.MERCHANT,
+        COLUMNS.FROM,
+        COLUMNS.TO,
+        ...(transactionItem?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
+        ...(transactionItem?.shouldShowTag ? [COLUMNS.TAG] : []),
+        ...(transactionItem?.shouldShowTax ? [COLUMNS.TAX] : []),
+        COLUMNS.TOTAL_AMOUNT,
+        COLUMNS.ACTION,
+    ] as Array<ValueOf<typeof COLUMNS>>;
+
     return (
         <BaseListItem
             item={item}
@@ -72,19 +97,36 @@ function TransactionListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
-            <TransactionListItemRow
-                item={transactionItem}
-                showTooltip={showTooltip}
-                onButtonPress={() => {
-                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
-                }}
-                onCheckboxPress={() => onCheckboxPress?.(item)}
-                isDisabled={!!isDisabled}
-                canSelectMultiple={!!canSelectMultiple}
-                isButtonSelected={item.isSelected}
-                shouldShowTransactionCheckbox={false}
-                isLoading={isLoading ?? transactionItem.isActionLoading}
-            />
+            {(hovered) => (
+                <>
+                    {!isLargeScreenWidth && (
+                        <UserInfoAndActionButtonRow
+                            item={transactionItem}
+                            handleActionButtonPress={() => {
+                                handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
+                            }}
+                        />
+                    )}
+                    <TransactionItemRow
+                        transactionItem={transactionItem}
+                        shouldShowTooltip={showTooltip}
+                        onButtonPress={() => {
+                            handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
+                        }}
+                        onCheckboxPress={() => onCheckboxPress?.(item)}
+                        shouldUseNarrowLayout={!isLargeScreenWidth}
+                        columns={columns}
+                        isParentHovered={hovered}
+                        isActionLoading={isLoading ?? transactionItem.isActionLoading}
+                        isSelected={!!transactionItem.isSelected}
+                        dateColumnSize={dateColumnSize}
+                        shouldShowCheckbox={!!canSelectMultiple}
+                        columnWrapperStyles={[styles.ph3, styles.pv1half]}
+                        isChildListItem={false}
+                        usedInExpenses
+                    />
+                </>
+            )}
         </BaseListItem>
     );
 }
