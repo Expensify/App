@@ -670,6 +670,7 @@ function getOptionData({
         result.alternateText = prefix + result.alternateText;
     } else {
         if (!lastMessageText) {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy, !!result.private_isArchived).messageText || translateLocal('report.noActivityYet'));
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isArchivedReport(reportNameValuePairs)) {
