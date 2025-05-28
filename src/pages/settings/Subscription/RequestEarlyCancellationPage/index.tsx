@@ -54,9 +54,21 @@ function RequestEarlyCancellationPage() {
                 <View>
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.requestSubmitted.title')}</Text>
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>
-                        {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part1')}
-                        <TextLink onPress={() => navigateToConciergeChat()}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
-                        {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part2')}
+                        <RenderHtml
+                            contentWidth={width}
+                            source={{
+                                html: translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.full'),
+                            }}
+                            tagsStyles={{
+                                a: styles.link,
+                                p: styles.textNormalThemeText,
+                            }}
+                            renderersProps={{
+                                a: {
+                                    onPress: () => navigateToConciergeChat(),
+                                },
+                            }}
+                        />
                     </Text>
                 </View>
                 <FixedFooter style={styles.ph0}>
