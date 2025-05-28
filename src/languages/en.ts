@@ -6329,17 +6329,13 @@ const translations = {
             full: '<strong>Create expenses</strong>, start chatting,\nand more. Try it out!',
         },
         GBRRBRChat: {
-            full: 'You’ll see 🟢 on <b>actions to take</b>,\nand 🔴 on <b>items to review</b>.',
+            full: 'You’ll see 🟢 on <strong>actions to take</strong>,\nand 🔴 on <strong>items to review</strong>.',
         },
         accountSwitcher: {
-            part1: 'Access your ',
-            part2: 'Copilot accounts',
-            part3: ' here',
+            full: 'Access your <strong>Copilot accounts</strong> here',
         },
         expenseReportsFilter: {
-            part1: 'Welcome! Find all of your',
-            part2: "\ncompany's reports",
-            part3: ' here.',
+            full: "Welcome! Find all of your<strong>\ncompany's reports</strong> here.",
         },
         scanTestTooltip: {
             part1: 'Want to see how Scan works?',

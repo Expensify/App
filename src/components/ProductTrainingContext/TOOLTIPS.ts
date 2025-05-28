@@ -135,7 +135,6 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
                         source={{html: `<div>${translate('productTrainingTooltip.GBRRBRChat.full')}</div>`}}
                     />
                 ),
-                isBold: false,
             },
         ],
         onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
@@ -145,9 +144,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [ACCOUNT_SWITCHER]: {
         content: [
-            {text: 'productTrainingTooltip.accountSwitcher.part1', isBold: false},
-            {text: 'productTrainingTooltip.accountSwitcher.part2', isBold: true},
-            {text: 'productTrainingTooltip.accountSwitcher.part3', isBold: false},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.accountSwitcher.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: () => dismissProductTraining(ACCOUNT_SWITCHER),
         name: ACCOUNT_SWITCHER,
@@ -156,9 +160,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [EXPENSE_REPORTS_FILTER]: {
         content: [
-            {text: 'productTrainingTooltip.expenseReportsFilter.part1', isBold: false},
-            {text: 'productTrainingTooltip.expenseReportsFilter.part2', isBold: true},
-            {text: 'productTrainingTooltip.expenseReportsFilter.part3', isBold: false},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.expenseReportsFilter.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: () => dismissProductTraining(EXPENSE_REPORTS_FILTER),
         name: EXPENSE_REPORTS_FILTER,
