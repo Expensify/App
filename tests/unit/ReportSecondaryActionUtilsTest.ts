@@ -682,7 +682,9 @@ describe('getSecondaryAction', () => {
             },
         ] as unknown as ReportAction[];
 
-        const result = getSecondaryReportActions(report, [transaction], {}, {}, undefined, reportActions);
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, reportActions);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 

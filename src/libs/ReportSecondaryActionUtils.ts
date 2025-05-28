@@ -25,6 +25,7 @@ import {
     canHoldUnholdReportAction,
     hasOnlyHeldExpenses,
     isArchivedReport,
+    isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -361,8 +362,8 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isIOUReport = isIOUReportUtils(report);
     const isUnreported = isSelfDMReportUtils(report);
     const transaction = reportTransactions.at(0);
-    const transactionID = transaction?.transactionID ?? '0';
-    const action = getIOUActionForTransactionID(reportActions, transactionID);
+    const transactionID = transaction?.transactionID;
+    const action = getIOUActionForTransactionID(reportActions, transactionID ?? '');
     const isOwner = action?.actorAccountID === getCurrentUserAccountID();
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
@@ -386,7 +387,8 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         }
 
         const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-        return isReportSubmitter && isReportOpenOrProcessing;
+        const isForwarded = isProcessingReportUtils(report) && !isAwaitingFirstLevelApproval(report);
+        return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
     }
 
     return false;
