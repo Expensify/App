@@ -24,7 +24,6 @@ import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
-import markAllReportsAsRead from '@libs/markAllReportsAsRead';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -435,7 +434,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         const unsubscribeMarkAllReportsAsReadShortcut = KeyboardShortcut.subscribe(
             markAllReportsAsReadShortcutConfig.shortcutKey,
-            markAllReportsAsRead,
+            Report.markAllMessagesAsRead,
             markAllReportsAsReadShortcutConfig.descriptionKey,
             markAllReportsAsReadShortcutConfig.modifiers,
             true,

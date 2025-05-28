@@ -27,6 +27,7 @@ import type {
     InviteToGroupChatParams,
     InviteToRoomParams,
     LeaveRoomParams,
+    MarkAllMessagesAsReadParams,
     MarkAsExportedParams,
     MarkAsUnreadParams,
     MoveIOUReportToExistingPolicyParams,
@@ -144,6 +145,7 @@ import {
     isIOUReportUsingReport,
     isMoneyRequestReport,
     isSelfDM,
+    isUnread,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
@@ -1605,6 +1607,39 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
     if (shouldResetUnreadMarker) {
         DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
     }
+}
+
+function markAllMessagesAsRead() {
+    const lastReadTime = DateUtils.getDBTimeWithSkew();
+
+    const optimisticData: OnyxUpdate[] = [];
+    let reportIDs: string[] = [];
+    Object.keys(allReports ?? {}).forEach((key: string) => {
+        const report = allReports?.[key];
+        const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(
+            report?.reportID,
+            allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
+        );
+        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        if (!report || !isUnread(report, oneTransactionThreadReport)) {
+            return;
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                lastReadTime,
+            },
+        });
+        reportIDs.push(report.reportID);
+    });
+
+    const parameters: MarkAllMessagesAsReadParams = {
+        reportIDs,
+    };
+
+    API.write(WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ, parameters, {optimisticData});
 }
 
 /**
@@ -5574,6 +5609,7 @@ export {
     openReportFromDeepLink,
     openRoomMembersPage,
     readNewestAction,
+    markAllMessagesAsRead,
     removeFromGroupChat,
     removeFromRoom,
     resolveActionableMentionWhisper,

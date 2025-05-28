@@ -19,6 +19,7 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import createCollection from '../utils/collections/createCollection';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
@@ -1615,6 +1616,50 @@ describe('actions/Report', () => {
             Object.values(reportActions ?? {}).forEach((action) => {
                 expect(action.isOptimisticAction).toBeFalsy();
             });
+        });
+    });
+
+    describe('markAllMessagesAsRead', () => {
+        it('should mark all unread report', async () => {
+            // Given a collection of 10 unread and read reports, where even-index report is unread
+            const currentTime = DateUtils.getDBTime();
+            const reportCollections: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, OnyxTypes.Report> = createCollection<OnyxTypes.Report>(
+                (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+                (index) => {
+                    if (index % 2 === 0) {
+                        return {
+                            ...createRandomReport(index),
+                            lastMessageText: 'test',
+                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1),
+                            lastVisibleActionCreated: currentTime,
+                        };
+                    }
+                    return createRandomReport(index);
+                },
+                10,
+            );
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
+
+            // When mark all reports as read
+            Report.markAllMessagesAsRead();
+
+            await waitForBatchedUpdates();
+
+            // Then all report should be read
+            const isUnreadCollection = await Promise.all(
+                Object.values(reportCollections).map((report) => {
+                    return new Promise<Boolean>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                            callback: (report) => {
+                                Onyx.disconnect(connection);
+                                resolve(ReportUtils.isUnread(report, undefined));
+                            },
+                        });
+                    });
+                }),
+            );
+            expect(isUnreadCollection.some(Boolean)).toBe(false);
         });
     });
 });
