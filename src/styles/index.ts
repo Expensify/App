@@ -4042,11 +4042,11 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green400,
         },
 
-        submitButtonWithShadow: {
-            position: 'absolute',
-            right: 16,
-            top: 8,
-            backgroundColor: theme.appBG,
+        webButtonShadow: {
+            boxShadow: `0px 0px 24px 16px ${theme.appBG}`,
+        },
+
+        buttonShadow: {
             boxShadow: [
                 {
                     offsetX: 0,
@@ -4056,6 +4056,13 @@ const styles = (theme: ThemeColors) =>
                     color: theme.appBG,
                 },
             ],
+        },
+
+        receiptsSubmitButton: {
+            position: 'absolute',
+            right: 16,
+            top: 8,
+            backgroundColor: theme.appBG,
         },
 
         receiptPlaceholder: {
