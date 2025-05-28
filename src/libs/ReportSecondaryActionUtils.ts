@@ -354,20 +354,25 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const isUnreported = isSelfDMReportUtils(report);
+    const transaction = reportTransactions.at(0);
+    const transactionID = transaction?.transactionID ?? '0';
+    const action = getIOUActionForTransactionID(reportActions, transactionID);
+    const isOwner = action?.actorAccountID === getCurrentUserAccountID();
+    const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
+    const isSingleTransaction = reportTransactions.length === 1;
 
-    if (isUnreported ||isIOUReport) {
-        const transactionID = reportTransactions?.at(0)?.transactionID ?? '0';
-        const action = getIOUActionForTransactionID(reportActions, transactionID);
-        const isOwner = action?.actorAccountID === getCurrentUserAccountID();
-
-        // Users cannot delete a report in the unrepeorted or IOU cases, but they can delete individual transactions.
-        // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
-        return isOwner && reportTransactions.length === 1;
+    if (isUnreported) {
+        return isOwner;
+    }
+    
+    // Users cannot delete a report in the unrepeorted or IOU cases, but they can delete individual transactions.
+    // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
+    if (isIOUReport) {
+        return isSingleTransaction && isOwner && isReportOpenOrProcessing;
     }
 
     if (isExpenseReport) {
         const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-        const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
         const isCardTransactionWithCorporateLiability = reportTransactions.length === 1 && isCardTransactionUtils(reportTransactions.at(0)) && reportTransactions.at(0)?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 
         return isReportSubmitter && isReportOpenOrProcessing && !isCardTransactionWithCorporateLiability;
