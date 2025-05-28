@@ -16,7 +16,7 @@ import {
     isPreferredExporter,
     isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
-import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
+import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction, isReversedTransaction} from './ReportActionsUtils';
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
@@ -38,6 +38,7 @@ import {
     isReportManager as isReportManagerUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
+    isSelfDM as isSelfDMReportUtils,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -349,29 +350,29 @@ function isMoveTransactionAction(reportTransactions: Transaction[], reportAction
     return canMoveExpense;
 }
 
-function isDeleteAction(report: Report): boolean {
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
+    const isUnreported = isSelfDMReportUtils(report);
 
-    if (!isExpenseReport && !isIOUReport) {
-        return false;
+    if (isUnreported ||isIOUReport) {
+        const transactionID = reportTransactions?.at(0)?.transactionID ?? '0';
+        const action = getIOUActionForTransactionID(reportActions, transactionID);
+        const isOwner = action?.actorAccountID === getCurrentUserAccountID();
+
+        // Users cannot delete a report in the unrepeorted or IOU cases, but they can delete individual transactions.
+        // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
+        return isOwner && reportTransactions.length === 1;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-
-    if (!isReportSubmitter) {
-        return false;
+    if (isExpenseReport) {
+        const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+        const isReportOpen = isOpenReportUtils(report);
+        const isProcessingReport = isProcessingReportUtils(report);
+        return isReportSubmitter && (isReportOpen || isProcessingReport);
     }
 
-    const isReportOpen = isOpenReportUtils(report);
-    const isProcessingReport = isProcessingReportUtils(report);
-    const isReportApproved = isReportApprovedUtils({report});
-
-    if (isReportApproved) {
-        return false;
-    }
-
-    return isReportOpen || isProcessingReport;
+    return false;
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -488,7 +489,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report)) {
+    if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -508,7 +509,7 @@ function getSecondaryTransactionThreadActions(
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport)) {
+    if (isDeleteAction(parentReport, [reportTransaction], reportActions ?? [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
