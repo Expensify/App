@@ -825,7 +825,7 @@ function addComment(reportID: string, text: string, shouldPlaySound?: boolean) {
         playSound(SOUNDS.DONE);
     }
     // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
-    // This is because we need it to be associated with the transaction thread and not the expense report.
+    // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
     if (isExpenseReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])) {
         const reportActions = allReportActions?.[reportID];
         if (reportActions) {
@@ -835,7 +835,6 @@ function addComment(reportID: string, text: string, shouldPlaySound?: boolean) {
             if (moneyRequestPreviewActions.length === 1) {
                 const transactionThreadReportID = moneyRequestPreviewActions.at(0)?.childReportID;
                 if (transactionThreadReportID) {
-                    console.log('>>>> Adding action to transaction thread', transactionThreadReportID);
                     addActions(transactionThreadReportID, text);
                     return;
                 }
