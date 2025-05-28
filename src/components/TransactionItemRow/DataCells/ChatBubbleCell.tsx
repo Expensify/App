@@ -25,11 +25,11 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
         selector: (reportActions) => getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID),
-        canBeMissing: false,
+        canBeMissing: true,
     });
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`, {
-        canBeMissing: false,
+        canBeMissing: true,
     });
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`, {
