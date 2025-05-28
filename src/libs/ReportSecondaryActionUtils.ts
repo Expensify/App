@@ -41,7 +41,7 @@ import {
     isSelfDM as isSelfDMReportUtils,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {allHavePendingRTERViolation, isCardTransaction as isCardTransactionUtils, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -367,9 +367,10 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
 
     if (isExpenseReport) {
         const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-        const isReportOpen = isOpenReportUtils(report);
-        const isProcessingReport = isProcessingReportUtils(report);
-        return isReportSubmitter && (isReportOpen || isProcessingReport);
+        const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
+        const isCardTransactionWithCorporateLiability = reportTransactions.length === 1 && isCardTransactionUtils(reportTransactions.at(0)) && reportTransactions.at(0)?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+
+        return isReportSubmitter && isReportOpenOrProcessing && !isCardTransactionWithCorporateLiability;
     }
 
     return false;
