@@ -43,6 +43,7 @@ function BaseTextInput(
         iconLeft = null,
         icon = null,
         textInputContainerStyles,
+        shouldApplyPaddingToContainer,
         touchableInputWrapperStyle,
         containerStyles,
         inputStyle,
@@ -261,8 +262,9 @@ function BaseTextInput(
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
+        !shouldApplyPaddingToContainer && styles.p0,
         textInputContainerStyles,
-        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + styles.textInputContainer.padding * 2),
+        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
         autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
