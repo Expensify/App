@@ -114,6 +114,16 @@ const metro = {
                 },
             },
         ],
+        // Uncomment this if you ever want to see what files are being transformed
+        function myTracer() {
+            return {
+                visitor: {
+                    Program(path, state) {
+                        console.log('🔧 Transforming file:', state.filename);
+                    },
+                },
+            };
+        },
     ],
     env: {
         production: {

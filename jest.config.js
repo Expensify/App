@@ -1,4 +1,4 @@
-const testFileExtension = '[jt]s?(x)';
+const testFileExtension = 'ts?(x)';
 module.exports = {
     preset: 'jest-expo',
     testMatch: [
@@ -9,14 +9,10 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        '^.+\\.[jt]sx?$': 'babel-jest',
+        '^.+\\.tsx?$': 'babel-jest',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
-    transformIgnorePatterns: [
-        '<rootDir>/node_modules/(?!react-native)/',
-        // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
-        '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
-    ],
+    transformIgnorePatterns: ['<rootDir>/node_modules/(?!.*(react-native|expo|react-navigation|uuid).*/)'],
     testPathIgnorePatterns: ['<rootDir>/node_modules'],
     globals: {
         __DEV__: true,
