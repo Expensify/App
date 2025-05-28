@@ -48,11 +48,12 @@ type SearchPageHeaderInputProps = {
     searchRouterListVisible?: boolean;
     hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
+    searchName?: string;
     inputRightComponent: React.ReactNode;
     handleSearch: (value: string) => void;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, inputRightComponent, handleSearch}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent, handleSearch}: SearchPageHeaderInputProps) {
     const {translate} = useLocalize();
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
@@ -283,7 +284,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 exiting={isFocused && searchRouterListVisible ? FadeOutRight : undefined}
                                 style={[styles.pl3]}
                             >
-                                <SearchTypeMenuPopover queryJSON={queryJSON} />
+                                <SearchTypeMenuPopover
+                                    queryJSON={queryJSON}
+                                    searchName={searchName}
+                                />
                             </Animated.View>
                         )}
                     </View>
@@ -346,7 +350,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         autoFocus={false}
                         onFocus={showAutocompleteList}
                         onBlur={hideAutocompleteList}
-                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
+                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.border}}
                         wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                         outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
                         rightComponent={inputRightComponent}

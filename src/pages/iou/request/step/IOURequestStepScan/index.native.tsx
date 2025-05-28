@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/core';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, Image, InteractionManager, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -31,6 +31,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import setTestReceipt from '@libs/actions/setTestReceipt';
 import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -490,38 +491,14 @@ function IOURequestStepScan({
      * Sets a test receipt from CONST.TEST_RECEIPT_URL and navigates to the confirmation step
      */
     const setTestReceiptAndNavigate = useCallback(() => {
-        try {
-            const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
-            const path = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${filename}`;
-            const source = Image.resolveAssetSource(TestReceipt).uri;
+        setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
+            if (!file.uri) {
+                return;
+            }
 
-            ReactNativeBlobUtil.config({
-                fileCache: true,
-                appendExt: 'png',
-                path,
-            })
-                .fetch('GET', source)
-                .then(() => {
-                    const file: FileObject = {
-                        uri: `file://${path}`,
-                        name: filename,
-                        type: CONST.TEST_RECEIPT.FILE_TYPE,
-                        size: 0,
-                    };
-
-                    if (!file.uri) {
-                        return;
-                    }
-
-                    setMoneyRequestReceipt(initialTransactionID, file.uri, filename, !isEditing, file.type, true);
-                    navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
-                })
-                .catch((error) => {
-                    Log.warn('Error downloading test receipt:', {message: error});
-                });
-        } catch (error) {
-            Log.warn('Error in setTestReceiptAndNavigate:', {message: error});
-        }
+            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, file.type, true);
+            navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
+        });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
     /**

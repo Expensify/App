@@ -55,8 +55,6 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             hideModalContentWhileAnimating
             useNativeDriver
             shouldHandleNavigationBack
-            shouldUseCustomBackdrop
-            onBackdropPress={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
