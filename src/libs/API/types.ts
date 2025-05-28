@@ -1052,7 +1052,6 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
     CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
-    OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1125,7 +1124,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
     [READ_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
-    [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

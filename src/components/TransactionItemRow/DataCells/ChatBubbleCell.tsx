@@ -25,11 +25,11 @@ function ChatBubbleCell({transaction, containerStyles}: {transaction: Transactio
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
         selector: (reportActions) => getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID),
-        canBeMissing: true,
+        canBeMissing: false,
     });
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`, {
-        canBeMissing: true,
+        canBeMissing: false,
     });
 
     const threadMessages = useMemo(
