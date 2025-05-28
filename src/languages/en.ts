@@ -11,6 +11,7 @@ import type {
     AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
+    AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
@@ -82,6 +83,7 @@ import type {
     FileLimitParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
+    FlightParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
     GoBackMessageParams,
@@ -133,6 +135,7 @@ import type {
     PayerSettledParams,
     PaySomeoneParams,
     PolicyExpenseChatNameParams,
+    RailTicketParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -184,6 +187,7 @@ import type {
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
     TransferParams,
+    TravelTypeParams,
     TrialStartedTitleParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
@@ -2918,6 +2922,33 @@ const translations = {
         verifyCompany: {
             title: 'Get started with travel today!',
             message: `Please contact your Account manager or salesteam@expensify.com to get a demo of travel and have it enabled for your company.`,
+        },
+        updates: {
+            bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
+                `Your flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been booked. Confirmation code: ${confirmationID}`,
+            ticketVoided: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+                `Your ticket for flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been voided.`,
+            ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+                `Your ticket for flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been refunded or exchange.`,
+            flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+                `Your flight ${airlineCode} (${origin} → ${destination}) on ${startDate}} has been canceled by the airline`,
+            flightScheduleChangePending: ({airlineCode}: AirlineParams) => `The airline has proposed a schedule change for flight ${airlineCode}; we are awaiting confirmation.`,
+            flightScheduleChangeClosed: ({airlineCode, startDate}: AirlineParams) => `Schedule change confirmed: flight ${airlineCode} now departs at ${startDate}.`,
+            flightChanged: ({airlineCode, origin, destination, startDate}: FlightParams) => `Your flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been changed.`,
+            flightCabinChanged: ({airlineCode, cabinClass}: AirlineParams) => `Your cabin class has been updated to ${cabinClass} on flight ${airlineCode}.`,
+            flightSeatConfirmed: ({airlineCode}: AirlineParams) => `Your seat assignment on flight ${airlineCode} has been confirmed.`,
+            flightSeatChanged: ({airlineCode}: AirlineParams) => `Your seat assignment on flight ${airlineCode} has been changed.`,
+            flightSeatCancelled: ({airlineCode}: AirlineParams) => `Your seat assignment on flight ${airlineCode} was removed.`,
+            paymentDeclined: 'Payment for your air booking failed. Please try again.',
+            bookingCancelledByTraveller: ({type, id = ''}: TravelTypeParams) => `You cancelled your ${type} reservation ${id}.`,
+            bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `The vendor cancelled your  ${type} reservation ${id}.`,
+            bookingRebooked: ({type, id = ''}: TravelTypeParams) => `Your ${type} reservation was re-booked. New confirmation #:${id}.`,
+            bookingUpdated: ({type}: TravelTypeParams) => `Your ${type} booking was updated. Review the new details in the itinerary.`,
+            railTicketRefund: ({origin, destination, startDate}: RailTicketParams) =>
+                `Your rail ticket for ${origin} → ${destination} on ${startDate} has been refunded. A credit will be processed.`,
+            railTicketExchange: ({origin, destination, startDate}: RailTicketParams) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
+            railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
+            defaultUpdate: ({type}: TravelTypeParams) => `Your ${type} reservation was updated.`,
         },
     },
     workspace: {
