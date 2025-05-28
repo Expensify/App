@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactions, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -636,6 +636,42 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     return Object.values(reportIDToTransactions);
 }
 
+function getReportsFromSelectedTransactions(
+    data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[],
+    selectedTransactions: SelectedTransactions,
+) {
+    if (data.length === 0) {
+        return [];
+    }
+
+    if (isReportListItemType(data[0]) || isMoneyRequestReport(data[0])) {
+        return data
+            .filter(
+                (item): item is ReportListItemType =>
+                    isReportListItemType(item) && isMoneyRequestReport(item) && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected),
+            )
+            .map((item) => ({
+                reportID: item.reportID,
+                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                total: item.total ?? CONST.DEFAULT_NUMBER_ID,
+                policyID: item.policyID,
+            }));
+    }
+
+    if (isTransactionListItemType(data[0])) {
+        return data
+            .filter((transaction) => transaction.keyForList != null && selectedTransactions[transaction.keyForList]?.isSelected)
+            .map((transaction) => ({
+                reportID: transaction.reportID,
+                action: 'action' in transaction ? transaction.action ?? CONST.SEARCH.ACTION_TYPES.VIEW : CONST.SEARCH.ACTION_TYPES.VIEW,
+                total: 'amount' in transaction ? transaction.amount ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID,
+                policyID: transaction.policyID,
+            }));
+    }
+
+    return [];
+}
+
 /**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
@@ -979,5 +1015,6 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    getReportsFromSelectedTransactions,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};

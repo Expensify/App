@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import {getReportsFromSelectedTransactions} from '@libs/ReportUtils';
+import {getReportsFromSelectedTransactions} from '@libs/SearchUIUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext as SearchContextOld, SelectedTransactions, TMoneyRequestReportContext} from './types';
 

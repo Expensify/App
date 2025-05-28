@@ -24,8 +24,6 @@ import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} fr
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import type {SelectedTransactions} from '@components/Search/types';
-import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose, OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -210,7 +208,6 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import {isReportListItemType, isTransactionListItemType} from './SearchUIUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {getNavatticURL} from './TourUtils';
 import {
@@ -10829,42 +10826,6 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
 
-function getReportsFromSelectedTransactions(
-    data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[],
-    selectedTransactions: SelectedTransactions,
-) {
-    if (data.length === 0) {
-        return [];
-    }
-
-    if (isReportListItemType(data[0]) || isMoneyRequestReport(data[0])) {
-        return data
-            .filter(
-                (item): item is ReportListItemType =>
-                    isReportListItemType(item) && isMoneyRequestReport(item) && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected),
-            )
-            .map((item) => ({
-                reportID: item.reportID,
-                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: item.total ?? CONST.DEFAULT_NUMBER_ID,
-                policyID: item.policyID,
-            }));
-    }
-
-    if (isTransactionListItemType(data[0])) {
-        return data
-            .filter((transaction) => transaction.keyForList != null && selectedTransactions[transaction.keyForList]?.isSelected)
-            .map((transaction) => ({
-                reportID: transaction.reportID,
-                action: 'action' in transaction ? transaction.action ?? CONST.SEARCH.ACTION_TYPES.VIEW : CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: 'amount' in transaction ? transaction.amount ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID,
-                policyID: transaction.policyID,
-            }));
-    }
-
-    return [];
-}
-
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11004,7 +10965,6 @@ export {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
-    getReportsFromSelectedTransactions,
     getReportDescription,
     getReportFieldKey,
     getReportIDFromLink,
