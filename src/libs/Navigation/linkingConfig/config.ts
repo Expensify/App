@@ -6,8 +6,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import getHistoryParamParse from './helpers/getHistoryParamParse';
-import HISTORY_PARAM from './HISTORY_PARAM';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootNavigatorParamList>['config'] = {
@@ -323,7 +321,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
-                                ...getHistoryParamParse(HISTORY_PARAM.SHOW_VALIDATE_CODE_ACTION_MODAL),
                             },
                         },
                         [SCREENS.SETTINGS.PROFILE.STATUS]: {
