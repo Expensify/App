@@ -13,15 +13,19 @@ function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<R
         selector: (_transactions) => reportTransactionsSelector(_transactions, reportID),
         canBeMissing: true,
     });
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (allViolations) =>
-            Object.fromEntries(
-                Object.entries(allViolations ?? {}).filter(([key]) =>
-                    transactions?.some((transaction) => transaction.transactionID === key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')),
+    const [violations] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        {
+            selector: (allViolations) =>
+                Object.fromEntries(
+                    Object.entries(allViolations ?? {}).filter(([key]) =>
+                        transactions?.some((transaction) => transaction.transactionID === key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')),
+                    ),
                 ),
-            ),
-        canBeMissing: true,
-    }, [transactions]);
+            canBeMissing: true,
+        },
+        [transactions],
+    );
     return [report, transactions ?? DEFAULT_TRANSACTIONS, violations ?? DEFAULT_VIOLATIONS];
 }
 
