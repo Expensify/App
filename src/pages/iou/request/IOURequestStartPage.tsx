@@ -71,17 +71,6 @@ function IOURequestStartPage({
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
-    useFocusEffect(
-        useCallback(() => {
-            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-            if (transaction?.reportID === reportID || isLoadingSelectedTab || !transactionRequestType || prevTransactionReportID !== transaction?.reportID) {
-                return;
-            }
-            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
-        }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
-    );
-
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
     }, []);
@@ -98,6 +87,22 @@ function IOURequestStartPage({
             initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
         },
         [policy, reportID, isFromGlobalCreate, transaction],
+    );
+
+    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
+    useFocusEffect(
+        useCallback(() => {
+            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
+            if (
+                (transaction?.reportID === reportID && iouType !== CONST.IOU.TYPE.CREATE && iouType !== CONST.IOU.TYPE.SUBMIT) ||
+                isLoadingSelectedTab ||
+                !transactionRequestType ||
+                prevTransactionReportID !== transaction?.reportID
+            ) {
+                return;
+            }
+            resetIOUTypeIfChanged(transactionRequestType);
+        }, [transaction?.reportID, reportID, iouType, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
     );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
