@@ -953,7 +953,7 @@ const translations = {
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto a <a href="${reportUrl}">${reportName}</a>`,
-        movedFromReport: ({reportName, reportID}: MovedFromReportParams) => `movió un gasto desde ${reportName || `ID de informe ${reportID}`}`,
+        movedFromReport: ({reportName, reportID}: MovedFromReportParams) => `movió un gasto desde ${reportName || `el informe con ID ${reportID}`}`,
         unreportedTransaction: 'movió este gasto a tu espacio personal',
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
