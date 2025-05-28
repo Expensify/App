@@ -11308,22 +11308,25 @@ function updateSplitExpenseField(splitExpenseDraftTransaction: OnyxEntry<OnyxTyp
 }
 
 function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
-    const {transactionID, comment} = draftTransaction ?? {};
-    const splits = comment?.splitExpenses;
-    const originalTransactionID = comment?.originalTransactionID;
-    if (!transactionID || !currentItemTransactionID || !splits || !originalTransactionID) {
+    if (!draftTransaction?.transactionID || !currentItemTransactionID) {
         return;
     }
 
-    const index = splits.findIndex((item) => item.transactionID === currentItemTransactionID);
-    if (index === -1 || splits.at(index)?.amount === amount) {
-        return;
-    }
+    const updatedSplitExpenses = draftTransaction.comment?.splitExpenses?.map((splitExpense) => {
+        if (splitExpense.transactionID === currentItemTransactionID) {
+            return {
+                ...splitExpense,
+                amount,
+            };
+        }
+        return splitExpense;
+    });
 
-    const newSplits = splits.slice() ?? [];
-    newSplits[index] = {...newSplits.at(index), amount} as SplitExpense;
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {comment: {splitExpenses: newSplits}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${draftTransaction?.comment?.originalTransactionID}`, {
+        comment: {
+            splitExpenses: updatedSplitExpenses,
+        },
+    });
 }
 
 function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
