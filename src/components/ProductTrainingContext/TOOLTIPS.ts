@@ -1,10 +1,10 @@
+import {useWindowDimensions} from 'react-native';
+import RenderHtml from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
+import useLocalize from '@hooks/useLocalize';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import useLocalize from '@hooks/useLocalize';
-import { useWindowDimensions } from 'react-native';
-import RenderHtml from 'react-native-render-html';
 
 const {
     CONCIERGE_LHN_GBR,
@@ -40,7 +40,7 @@ type TooltipData = {
     shouldRenderActionButtons?: boolean;
 };
 
-const { width } = useWindowDimensions();
+const {width} = useWindowDimensions();
 const {translate} = useLocalize();
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {

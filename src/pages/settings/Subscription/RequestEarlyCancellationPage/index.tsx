@@ -1,6 +1,8 @@
 import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useWindowDimensions} from 'react-native';
+import RenderHtml from 'react-native-render-html';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -23,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
     const {translate} = useLocalize();
+    const {width} = useWindowDimensions();
     const styles = useThemeStyles();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -76,13 +79,22 @@ function RequestEarlyCancellationPage() {
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.title')}</Text>
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.subtitle')}</Text>
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
-                    <Text>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}>
-                            {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.link')}
-                        </TextLink>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part2')}
-                    </Text>
+
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{
+                            html: translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.full'),
+                        }}
+                        tagsStyles={{
+                            a: styles.link,
+                            p: styles.textNormalThemeText,
+                        }}
+                        renderersProps={{
+                            a: {
+                                onPress: () => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route),
+                            },
+                        }}
+                    />
                 </View>
                 <FixedFooter style={styles.ph0}>
                     <Button

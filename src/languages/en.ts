@@ -4756,7 +4756,7 @@ const translations = {
             addPaymentCardTitle: 'Enter your payment card to transfer ownership',
             addPaymentCardButtonText: 'Accept terms & add payment card',
             addPaymentCardReadAndAcceptText: {
-                full: 'Read and accept policy to add your card'
+                full: 'Read and accept policy to add your card',
             },
             addPaymentCardTerms: 'terms',
             addPaymentCardPrivacy: 'privacy',
@@ -6148,9 +6148,7 @@ const translations = {
                 subtitle: 'Your annual subscription has been canceled.',
                 info: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
                 preventFutureActivity: {
-                    part1: 'If you’d like to prevent future activity and charges, you must ',
-                    link: 'delete your workspace(s)',
-                    part2: '. Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
+                    full: 'If you’d like to prevent future activity and charges, you must <a> delete your workspace(s) <a/> . Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
                 },
             },
             requestSubmitted: {
