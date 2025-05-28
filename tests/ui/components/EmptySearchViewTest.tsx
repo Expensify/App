@@ -8,8 +8,6 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 // Wrapper component with OnyxProvider
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
@@ -39,7 +37,6 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -62,7 +59,6 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -89,7 +85,6 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -112,7 +107,6 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
