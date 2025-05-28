@@ -58,20 +58,12 @@ function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) || canUseAllBetas(betas);
 }
 
-function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
-}
-
 function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
 }
 
 function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
-}
-
-function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
 }
 
 function canUsePlaidCompanyCards(betas: OnyxEntry<Beta[]>): boolean {
@@ -102,10 +94,8 @@ export default {
     canUseCustomRules,
     canUseTableReportView,
     canUseTalkToAISales,
-    canUseProhibitedExpenses,
     canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
-    canUsePrivateDomainOnboarding,
     canUseRetractNewDot,
     canUseMultiLevelTags,
     canUseMultiFilesDragAndDrop,

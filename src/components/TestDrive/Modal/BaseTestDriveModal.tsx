@@ -1,21 +1,21 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import FastTrack from '@assets/images/fast-track-cover.png';
 import type {FeatureTrainingModalProps} from '@components/FeatureTrainingModal';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 type BaseTestDriveModalProps = Pick<
     FeatureTrainingModalProps,
-    'children' | 'description' | 'onConfirm' | 'shouldCloseOnConfirm' | 'shouldRenderHTMLDescription' | 'avoidKeyboard' | 'shouldShowConfirmationLoader' | 'canConfirmWhileOffline'
+    'children' | 'description' | 'onConfirm' | 'shouldCloseOnConfirm' | 'shouldRenderHTMLDescription' | 'avoidKeyboard' | 'shouldShowConfirmationLoader' | 'canConfirmWhileOffline' | 'onHelp'
 >;
 
 function BaseTestDriveModal({
     description,
     onConfirm,
+    onHelp,
     children,
     shouldCloseOnConfirm,
     shouldRenderHTMLDescription,
@@ -27,10 +27,6 @@ function BaseTestDriveModal({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const skipTestDrive = useCallback(() => {
-        Navigation.dismissModal();
-    }, []);
-
     return (
         <FeatureTrainingModal
             image={FastTrack}
@@ -40,7 +36,7 @@ function BaseTestDriveModal({
             description={description}
             helpText={translate('testDrive.modal.helpText')}
             confirmText={translate('testDrive.modal.confirmText')}
-            onHelp={skipTestDrive}
+            onHelp={onHelp}
             onConfirm={onConfirm}
             shouldRenderSVG={false}
             modalInnerContainerStyle={styles.testDriveModalContainer(shouldUseNarrowLayout)}
