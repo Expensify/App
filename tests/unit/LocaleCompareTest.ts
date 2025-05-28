@@ -33,7 +33,7 @@ describe('localeCompare', () => {
         expect(result).toBe(0);
     });
 
-    it('should discard sensitivity differences', () => {
+    it('should put uppercase letters first', () => {
         const result = localeCompare('apple', 'Apple');
 
         expect(result).toBe(1);
