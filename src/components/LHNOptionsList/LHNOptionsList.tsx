@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
+import useIsScreenFocused from '@hooks/useIsScreenFocus';
 import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -57,6 +58,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
+    const isScreenFocused = useIsScreenFocused();
+
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
@@ -224,7 +227,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     lastReportActionTransaction={lastReportActionTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
-                    isFocused={!shouldDisableFocusOptions}
+                    isOptionFocused={!shouldDisableFocusOptions}
                     lastMessageTextFromReport={lastMessageTextFromReport}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
@@ -232,6 +235,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
+                    isScreenFocused={isScreenFocused}
                 />
             );
         },
@@ -252,6 +256,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             onLayoutItem,
             isOffline,
             firstReportIDWithGBRorRBR,
+            isScreenFocused,
         ],
     );
 
