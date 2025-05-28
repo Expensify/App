@@ -43,7 +43,7 @@ function BaseTextInput(
         iconLeft = null,
         icon = null,
         textInputContainerStyles,
-        shouldApplyPaddingToContainer,
+        shouldApplyPaddingToContainer = true,
         touchableInputWrapperStyle,
         containerStyles,
         inputStyle,
@@ -112,6 +112,7 @@ function BaseTextInput(
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+    const hasLabel = !!label?.length;
 
     useHtmlPaste(input, undefined, isMarkdownEnabled);
 
@@ -190,10 +191,10 @@ function BaseTextInput(
 
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
             setHeight((prevHeight: number) =>
-                !multiline ? layout.height + heightToFitEmojis - (styles.textInputContainer.padding + styles.textInputContainer.borderWidth * 2) : prevHeight,
+                !multiline ? layout.height + heightToFitEmojis - ((hasLabel ? styles.textInputContainer.padding : 0) + styles.textInputContainer.borderWidth * 2) : prevHeight,
             );
         },
-        [autoGrowHeight, multiline, styles.textInputContainer],
+        [autoGrowHeight, multiline, styles.textInputContainer, hasLabel],
     );
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
@@ -254,7 +255,6 @@ function BaseTextInput(
     }, []);
 
     const shouldAddPaddingBottom = autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge;
-    const hasLabel = !!label?.length;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
