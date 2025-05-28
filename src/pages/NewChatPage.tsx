@@ -367,6 +367,7 @@ function NewChatPage() {
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
+                shouldScrollToSelectedItemToTop
             />
         </ScreenWrapper>
     );

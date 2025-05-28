@@ -167,47 +167,44 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return [];
         }
 
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            filterSelectedOptions = selectedOptions.filter((option) => {
-                const accountID = option.accountID;
-                const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
-            });
-        }
-
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptions,
-            shouldShow: true,
-        });
-
-        // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsWithoutSelected = Object.values(personalDetails).filter(({login}) => !selectedLogins.some((selectedLogin) => selectedLogin === login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => formatMemberForList(item));
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+
+        // Build one list of personal details (both selected + unselected) in original order
+        const combinedPersonalDetails = Object.values(personalDetails)
+            .filter((personalDetail) => {
+                if (!debouncedSearchTerm) {
+                    return true;
+                }
+
+                const matchesText = personalDetail.displayName?.toLowerCase().includes(searchValue);
+                const matchesLogin = personalDetail.login?.toLowerCase().includes(searchValue);
+                return matchesText ?? matchesLogin;
+            })
+            .map((item) => {
+                const isSelected = selectedLogins.includes(item?.login ?? '');
+                return {
+                    ...formatMemberForList(item),
+                    isSelected,
+                };
+            });
 
         sectionsArr.push({
             title: translate('common.contacts'),
-            data: personalDetailsFormatted,
-            shouldShow: !isEmptyObject(personalDetailsFormatted),
+            data: combinedPersonalDetails,
+            shouldShow: combinedPersonalDetails.length > 0,
         });
 
+        // Add users to invite (who are not already selected)
         Object.values(usersToInvite).forEach((userToInvite) => {
-            const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === userToInvite.login);
-
-            if (hasUnselectedUserToInvite) {
-                sectionsArr.push({
-                    title: undefined,
-                    data: [formatMemberForList(userToInvite)],
-                    shouldShow: true,
-                });
+            if (selectedLogins.includes(userToInvite.login ?? '')) {
+                return;
             }
+            sectionsArr.push({
+                title: undefined,
+                data: [formatMemberForList(userToInvite)],
+                shouldShow: true,
+            });
         });
 
         return sectionsArr;
