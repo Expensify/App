@@ -31,6 +31,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, (isIOUReport: boolean) 
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPAND]: () => false,
 };
 
 const columnConfig: ColumnConfig[] = [
