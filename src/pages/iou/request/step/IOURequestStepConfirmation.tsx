@@ -539,7 +539,7 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             backToReport,
             viewTourReport,
-            viewTourReportID
+            viewTourReportID,
         ],
     );
 
