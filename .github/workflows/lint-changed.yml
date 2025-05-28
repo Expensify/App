@@ -30,5 +30,8 @@ jobs:
       
       - name: Run ESLint to check for deprecation warnings
         run: |
+          # This will just fetch the latest commit from main
+          git fetch origin main --no-tags --depth=30000
+
           # shellcheck disable=SC2046
           npm run lint-changed
