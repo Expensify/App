@@ -1135,6 +1135,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',
         explainHold: "Explain why you're holding this expense.",
+        undoSubmit: 'Undo submit',
+        retracted: 'retracted',
         undoClose: 'Undo close',
         reopened: 'reopened',
         reopenReport: 'Reopen report',
@@ -4287,11 +4289,6 @@ const translations = {
             },
             notFound: 'No workspace found',
             description: 'Rooms are a great place to discuss and work with multiple people. To begin collaborating, create or join a workspace',
-        },
-        switcher: {
-            headerTitle: 'Filter by workspace',
-            everythingSection: 'Everything',
-            placeholder: 'Find a workspace',
         },
         new: {
             newWorkspace: 'New workspace',
