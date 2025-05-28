@@ -335,8 +335,8 @@ function TransactionItemRow({
             ) : (
                 <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
                     <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles, styles.mw100]}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            <View style={[styles.mr1]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <View>
                                 <Checkbox
                                     onPress={() => {
                                         onCheckboxPress(transactionItem.transactionID);
@@ -345,7 +345,11 @@ function TransactionItemRow({
                                     isChecked={isSelected}
                                 />
                             </View>
-                            {columns?.map((column) => columnComponent[column])}
+
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pl4]}>
+                                {columns?.map((column) => columnComponent[column])}
+                                <View style={{height: 18, width: 18}} />
+                            </View>
                         </View>
                         <TransactionItemRowRBR transaction={transactionItem} />
                     </View>
