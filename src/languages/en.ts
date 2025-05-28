@@ -6133,10 +6133,7 @@ const translations = {
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renews on ${date}.`,
             pricingConfiguration: 'Pricing depends on configuration. For the lowest price, choose an annual subscription and get the Expensify Card.',
             learnMore: {
-                part1: 'Learn more on our ',
-                pricingPage: 'pricing page',
-                part2: ' or chat with our team in your ',
-                adminsRoom: '#admins room.',
+                full: 'Learn more on our <a> pricing page <a/> or chat with our team in your <a> #admins room </a>',
             },
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',

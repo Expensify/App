@@ -38,6 +38,8 @@ import CONST from '@src/CONST';
 import type {SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import { useWindowDimensions } from 'react-native';
+import RenderHtml from 'react-native-render-html';
 
 const options: Array<OptionsPickerItem<SubscriptionType>> = [
     {
@@ -54,6 +56,7 @@ const options: Array<OptionsPickerItem<SubscriptionType>> = [
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();
+    const { width } = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -179,16 +182,36 @@ function SubscriptionSettings() {
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
-                <Text style={[styles.textSupporting, styles.mb5]}>
-                    {translate('subscription.subscriptionSettings.learnMore.part1')}
-                    <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
-                    {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    {adminsChatReportID ? (
-                        <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
-                    ) : (
-                        translate('subscription.subscriptionSettings.learnMore.adminsRoom')
-                    )}
-                </Text>
+                <RenderHtml
+                    contentWidth={width}
+                    source={{
+                        html: `
+                            ${translate('subscription.subscriptionSettings.learnMore.full')}
+                            <a href="${CONST.PRICING}">${translate('subscription.subscriptionSettings.learnMore.full')}</a>
+                            ${translate('subscription.subscriptionSettings.learnMore.full')}
+                            ${
+                                adminsChatReportID
+                                    ? `<a href="#" data-admins-room="true">${translate('subscription.subscriptionSettings.learnMore.full')}</a>`
+                                    : translate('subscription.subscriptionSettings.learnMore.full')
+                            }
+                        `,
+                    }}
+                    tagsStyles={{
+                        a: { color: theme.link, textDecorationLine: 'underline' },
+                        body: { ...styles.textSupporting, ...styles.mb5 },
+                    }}
+                    renderersProps={{
+                        a: {
+                            onPress: (event, href, htmlAttribs) => {
+                                if (htmlAttribs['data-admins-room']) {
+                                    openAdminsRoom();
+                                } else {
+                                    Navigation.openLink(href);
+                                }
+                            },
+                        },
+                    }}
+                />
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
                 <Text style={styles.mv1}>{priceDetails}</Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>
