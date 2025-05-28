@@ -319,9 +319,6 @@ const ONYXKEYS = {
     /** The policyID of the last workspace whose settings were accessed by the user */
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
-    /** The policyID of the last workspace whose were accessed by the user via workspace switcher */
-    LAST_ACCESSED_WORKSPACE_SWITCHER_ID: 'lastAccessedWorkspaceSwitcherID',
-
     /** Whether we should show the compose input or not */
     SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
 
@@ -528,6 +525,12 @@ const ONYXKEYS = {
 
     /** Set this gets redirected from global reimbursements flow */
     IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
+
+    /** Stores information for OpenUnreportedEpensesPage API call pagination */
+    HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS: 'hasMoreUnreportedTransactionsResults',
+
+    /** Is unreported trnsactions loading */
+    IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
     /** Collection Keys */
     COLLECTION: {
@@ -1088,7 +1091,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
-    [ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID]: string;
     [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
     [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
@@ -1165,6 +1167,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
     [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
+    [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
+    [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
 };
 
 type OnyxDerivedValuesMapping = {
