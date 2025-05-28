@@ -799,7 +799,6 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
     onyxData.successData?.push(getUpdatedTagsData(requiresTag));
 
-
     const parameters = {
         policyID,
         requiresTag,
