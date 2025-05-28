@@ -43,7 +43,7 @@ function ReviewTaxRate() {
         () =>
             compareResult.change.taxCode?.map((taxID) =>
                 !taxID
-                    ? {text: translate('violations.none'), value: getDefaultTaxCode(policy, transaction)}
+                    ? {text: translate('violations.none'), value: getDefaultTaxCode(policy, transaction) ?? ''}
                     : {
                           text: getTaxByID(policy, taxID)?.name ?? '',
                           value: taxID,
