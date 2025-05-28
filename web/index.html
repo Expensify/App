@@ -22,11 +22,26 @@
 
     <% if (htmlWebpackPlugin.options.isWeb && (htmlWebpackPlugin.options.isStaging || htmlWebpackPlugin.options.isProduction)) { %>
         <!-- begin Convert Experiences code-->
-        <script type="text/javascript" src="//cdn-4.convertexperiments.com/v1/js/10042537-100413459.js">
+        <script type="text/javascript" async src="//cdn-4.convertexperiments.com/v1/js/10042537-100413459.js"></script>
+        <!-- Hide the body of the page until the Convert Experiences script is loaded -->
+        <!-- Source:  https://support.convert.com/hc/en-us/articles/360028491292-loading-the-convert-tracking-code-async-while-preventing-flashing -->
+        <script>
+            (function () {
+              var style = document.createElement("style");
+              style.id = "convert-hide-body";
+              style.setAttribute('data-convert', '');
+              style.textContent =
+                'body{position:relative;overflow:hidden}body::after{position:absolute;top:0;bottom:0;left:0;right:0;content:"";background:#fff;z-index:2147483647}';
+              document.head.appendChild(style);
+              var hideTimeout = 500; //modify this to whatever you think it's suitable
+              setTimeout(function () {
+                if (document.getElementById("convert-hide-body"))
+                  document.getElementById("convert-hide-body").remove();
+              }, hideTimeout);
+            })();
         </script>
         <!-- end Convert Experiences code -->
     <% } %>
-
     <style>
         .signin-button {
             width: 100% !important;
