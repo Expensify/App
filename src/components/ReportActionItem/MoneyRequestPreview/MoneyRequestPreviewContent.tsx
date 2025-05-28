@@ -95,6 +95,7 @@ function MoneyRequestPreviewContent({
     onPreviewPressed,
     containerStyles,
     checkIfContextMenuActive = () => {},
+    onShowContextMenu = () => {},
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
@@ -225,7 +226,7 @@ function MoneyRequestPreviewContent({
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
+        onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive));
     };
 
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');

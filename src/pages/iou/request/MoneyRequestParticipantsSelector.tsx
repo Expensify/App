@@ -65,6 +65,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether the IOU is workspaces only */
     isWorkspacesOnly?: boolean;
+
+    /** Whether this is a per diem expense request */
+    isPerDiemRequest?: boolean;
 };
 
 function MoneyRequestParticipantsSelector({
@@ -75,6 +78,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isWorkspacesOnly = false,
+    isPerDiemRequest = false,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -137,7 +141,8 @@ function MoneyRequestParticipantsSelector({
                 // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
                 excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
 
-                includeP2P: !isCategorizeOrShareAction,
+                // Per diem expenses should only be submitted to workspaces, not individual users
+                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -153,7 +158,7 @@ function MoneyRequestParticipantsSelector({
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants, isPerDiemRequest]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -169,7 +174,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
-            canInviteUser: !isCategorizeOrShareAction,
+            canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -177,7 +182,7 @@ function MoneyRequestParticipantsSelector({
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -207,6 +212,33 @@ function MoneyRequestParticipantsSelector({
         });
 
         if (!isWorkspacesOnly) {
+        newSections.push({
+            title: translate('workspace.invoices.paymentMethods.personal'),
+            data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+            shouldShow: !!chatOptions.selfDMChat,
+        });
+
+        newSections.push({
+            title: translate('common.recents'),
+            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+        });
+
+        newSections.push({
+            title: translate('common.contacts'),
+            data: chatOptions.personalDetails,
+            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
+        });
+
+        if (
+            chatOptions.userToInvite &&
+            !isCurrentUser({
+                ...chatOptions.userToInvite,
+                accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                status: chatOptions.userToInvite?.status ?? undefined,
+            }) &&
+            !isPerDiemRequest
+        ) {
             newSections.push({
                 title: translate('workspace.invoices.paymentMethods.personal'),
                 data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
@@ -266,6 +298,7 @@ function MoneyRequestParticipantsSelector({
         translate,
         isWorkspacesOnly,
         cleanSearchTerm,
+        isPerDiemRequest,
     ]);
 
     /**

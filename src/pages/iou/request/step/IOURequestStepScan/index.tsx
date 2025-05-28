@@ -35,10 +35,11 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import setTestReceipt from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
@@ -48,7 +49,6 @@ import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, 
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
@@ -436,7 +436,6 @@ function IOURequestStepScan({
                         const splitReceipt: Receipt = firstReceiptFile.file;
                         splitReceipt.source = firstReceiptFile.source;
                         splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
-                        playSound(SOUNDS.DONE);
                         startSplitBill({
                             participants,
                             currentUserLogin: currentUserPersonalDetails?.login ?? '',
@@ -460,7 +459,6 @@ function IOURequestStepScan({
                     if (locationPermissionGranted) {
                         getCurrentPosition(
                             (successData) => {
-                                playSound(SOUNDS.DONE);
                                 const policyParams = {policy};
                                 const gpsPoints = {
                                     lat: successData.coords.latitude,
@@ -471,7 +469,6 @@ function IOURequestStepScan({
                             (errorData) => {
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                playSound(SOUNDS.DONE);
                                 createTransaction(files, participant);
                             },
                             {
@@ -481,7 +478,6 @@ function IOURequestStepScan({
                         );
                         return;
                     }
-                    playSound(SOUNDS.DONE);
                     createTransaction(files, participant);
                     return;
                 }
@@ -592,25 +588,10 @@ function IOURequestStepScan({
      * Sets a test receipt from CONST.TEST_RECEIPT_URL and navigates to the confirmation step
      */
     const setTestReceiptAndNavigate = useCallback(() => {
-        try {
-            const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
-
-            readFileAsync(
-                TestReceipt as string,
-                filename,
-                (file) => {
-                    const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
-                    navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
-                },
-                (error) => {
-                    console.error('Error reading test receipt:', error);
-                },
-                CONST.TEST_RECEIPT.FILE_TYPE,
-            );
-        } catch (error) {
-            console.error('Error in setTestReceiptAndNavigate:', error);
-        }
+        setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
+            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
+            navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
+        });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
