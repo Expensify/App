@@ -2,8 +2,9 @@ import type {ValueOf} from 'type-fest';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import RenderHtml from 'react-native-render-html';
+import useLocalize from '@hooks/useLocalize';
 import { useWindowDimensions } from 'react-native';
+import RenderHtml from 'react-native-render-html';
 
 const {
     CONCIERGE_LHN_GBR,
@@ -20,8 +21,6 @@ const {
     EXPENSE_REPORTS_FILTER,
     SCAN_TEST_DRIVE_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
-
-const { width } = useWindowDimensions();
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
 
@@ -41,6 +40,9 @@ type TooltipData = {
     shouldRenderActionButtons?: boolean;
 };
 
+const { width } = useWindowDimensions();
+const {translate} = useLocalize();
+
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
         content: [
@@ -50,8 +52,6 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCIERGE_LHN_GBR,
         priority: 1300,
-        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
-        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         shouldShow: () => false,
     },
     [RENAME_SAVED_SEARCH]: {
@@ -104,9 +104,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
                 text: () => (
                     <RenderHtml
                         contentWidth={width}
-                        source={{
-                            html: translate('productTrainingTooltip.GBRRBRChat.full'),
-                        }}
+                        source={{html: `<div>${translate('productTrainingTooltip.GBRRBRChat.full')}</div>`}}
                     />
                 ),
                 isBold: false,
