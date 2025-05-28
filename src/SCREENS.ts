@@ -70,11 +70,11 @@ const SCREENS = {
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
-        WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
@@ -95,6 +95,7 @@ const SCREENS = {
             CONTACT_METHODS: 'Settings_ContactMethods',
             CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
+            CONTACT_METHOD_VERIFY_ACCOUNT: 'Settings_ContactMethod_Verify_Account',
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
             STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
@@ -128,7 +129,6 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
-            VERIFY_ACCOUNT: 'Settings_Wallet_Verify_Account',
         },
 
         EXIT_SURVEY: {
@@ -137,16 +137,6 @@ const SCREENS = {
             CONFIRM: 'Settings_ExitSurvey_Confirm',
         },
 
-        SUBSCRIPTION: {
-            ROOT: 'Settings_Subscription',
-            SIZE: 'Settings_Subscription_Size',
-            SETTINGS_DETAILS: 'Settings_Subscription_Details',
-            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
-            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
-            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
-            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
-            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
-        },
         DELEGATE: {
             ADD_DELEGATE: 'Settings_Delegate_Add',
             DELEGATE_ROLE: 'Settings_Delegate_Role',
@@ -168,9 +158,6 @@ const SCREENS = {
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
-    },
-    LEFT_MODAL: {
-        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
@@ -266,6 +253,7 @@ const SCREENS = {
         STEP_TIME_EDIT: 'Money_Request_Time_Edit',
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
         STEP_REPORT: 'Money_Request_Report',
+        EDIT_REPORT: 'Money_Request_Edit_Report',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -364,7 +352,21 @@ const SCREENS = {
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
+    WORKSPACE_HUB: {
+        ROOT: 'Workspace_Hub_Root',
+        WORKSPACES: 'Workspace_List',
 
+        SUBSCRIPTION: {
+            ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
+            SETTINGS_DETAILS: 'Settings_Subscription_Details',
+            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
+            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
+            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
+            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
+            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
+        },
+    },
     WORKSPACE: {
         ACCOUNTING: {
             ROOT: 'Policy_Accounting',
@@ -671,10 +673,6 @@ const SCREENS = {
 
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
-    },
-
-    TEST_TOOLS_MODAL: {
-        ROOT: 'TestToolsModal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

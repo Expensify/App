@@ -97,7 +97,7 @@ function getRenderOptions({
     const isSAMLEnabled = !!account?.isSAMLEnabled;
     const isSAMLRequired = !!account?.isSAMLRequired;
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
-    const hasSMSDeliveryFailure = !isEmptyObject(account?.smsDeliveryFailureStatus);
+    const hasSMSDeliveryFailure = !!account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account
     const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
@@ -160,7 +160,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
       ActiveClientManager.isClientTheLeader function
-      everytime the leader client changes.
+      every time the leader client changes.
       We use that function to prevent repeating code that checks which client is the leader.
     */
     const [activeClients = []] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS, {canBeMissing: true});

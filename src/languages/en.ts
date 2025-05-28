@@ -73,6 +73,7 @@ import type {
     EditActionParams,
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
+    EmployeeInviteMessageParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -99,7 +100,6 @@ import type {
     InvalidPropertyParams,
     InvalidValueParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
@@ -187,7 +187,6 @@ import type {
     TrialStartedTitleParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
-    UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
     UpdatedCustomFieldParams,
@@ -557,6 +556,9 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        reschedule: 'Reschedule',
+        general: 'General',
+        workspacesTabTitle: 'Workspaces',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -950,7 +952,7 @@ const translations = {
         deleteReceipt: 'Delete receipt',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report, ${merchant} - ${amount}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense to <a href="${reportUrl}">${reportName}</a>`,
-        unreportedTransaction: ({reportUrl, reportName}: UnreportedTransactionParams) => `removed this expense from <a href="${reportUrl}">${reportName}</a>`,
+        unreportedTransaction: 'moved this expense to your personal space',
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
@@ -1014,6 +1016,8 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
+        deleteReport: 'Delete report',
+        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
@@ -1125,11 +1129,14 @@ const translations = {
         unheldExpense: 'unheld this expense',
         moveUnreportedExpense: 'Move unreported expense',
         addUnreportedExpense: 'Add unreported expense',
+        createNewExpense: 'Create new expense',
         selectUnreportedExpense: 'Select at least one expense to add to the report.',
         emptyStateUnreportedExpenseTitle: 'No unreported expenses',
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',
         explainHold: "Explain why you're holding this expense.",
+        undoSubmit: 'Undo submit',
+        retracted: 'retracted',
         undoClose: 'Undo close',
         reopened: 'reopened',
         reopenReport: 'Reopen report',
@@ -1214,6 +1221,7 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+        moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
     },
     share: {
         shareToExpensify: 'Share to Expensify',
@@ -1456,7 +1464,7 @@ const translations = {
             lossOfUnsubmittedData: `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for `,
             enterMagicCode: `To continue, please enter the magic code sent to `,
             errors: {
-                incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
+                incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
                 fallback: 'Something went wrong. Please try again later.',
             },
         },
@@ -1528,6 +1536,9 @@ const translations = {
         },
         mergeFailureUnvalidatedAccount: {
             description: "You can't merge into other accounts because it's not validated. Please validate the account and try again.",
+        },
+        mergeFailureSelfMerge: {
+            description: 'You cannot merge an account into itself.',
         },
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
@@ -1730,7 +1741,7 @@ const translations = {
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
-        cardAlreadyInWallet: 'Card is already in wallet',
+        cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Added to ${platform} Wallet`,
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
@@ -2052,7 +2063,7 @@ const translations = {
         },
         accounting: {
             title: 'Do you use any accounting software?',
-            noneOfAbove: 'None of the above',
+            none: 'None',
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
@@ -2267,7 +2278,11 @@ const translations = {
             phrase2: ' and try again. You can add your phone number as a secondary login.',
         },
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
-        hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again.',
+        hasCurrencyError: {
+            phrase1: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to ',
+            link: 'your workspace settings',
+            phrase2: ' to set it to USD and try again.',
+        },
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
             noBankAccountAvailable: "Sorry, there's no bank account available",
@@ -2720,9 +2735,7 @@ const translations = {
         letsDoubleCheck: 'Let’s double check that everything looks fine.',
         thisBankAccount: 'This bank account will be used for business payments on your workspace',
         accountNumber: 'Account number',
-        chooseFile: 'Choose file',
-        uploadYourLatest: 'Upload your latest statement',
-        pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Please upload the most recent monthly statement for your business bank account ending in ${lastFourDigits}.`,
+        accountHolderNameDescription: "Authorized signer's full name",
     },
     signerInfoStep: {
         signerInfo: 'Signer info',
@@ -2896,7 +2909,7 @@ const translations = {
         },
         publicDomainError: {
             title: 'Get started with Expensify Travel',
-            message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com)`,
+            message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
         },
         blockedFeatureModal: {
             title: 'Expensify Travel has been disabled',
@@ -3779,12 +3792,14 @@ const translations = {
                 },
                 yourCardProvider: `Who's your card provider?`,
                 whoIsYourBankAccount: 'Who’s your bank?',
+                whereIsYourBankLocated: 'Where’s your bank located?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
                 learnMoreAboutOptions: {
                     text: 'Learn more about these ',
                     linkText: 'options.',
                 },
                 commercialFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
+                commercialFeedPlaidDetails: `Requires setup with your bank, but we'll guide you. This is typically limited to larger companies.`,
                 directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
@@ -3824,6 +3839,7 @@ const translations = {
                     pleaseSelectProvider: 'Please select a card provider before continuing',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing',
                     pleaseSelectBank: 'Please select a bank before continuing',
+                    pleaseSelectCountry: 'Please select a country before continuing',
                     pleaseSelectFeedType: 'Please select a feed type before continuing',
                 },
             },
@@ -3964,6 +3980,10 @@ const translations = {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             importCategories: 'Import categories',
+            cannotDeleteOrDisableAllCategories: {
+                title: 'Cannot delete or disable all categories',
+                description: `At least one category must remain enabled because your workspace requires categories.`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
@@ -4209,6 +4229,14 @@ const translations = {
             importTags: 'Import tags',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
+            cannotDeleteOrDisableAllTags: {
+                title: 'Cannot delete or disable all tags',
+                description: `At least one tag must remain enabled because your workspace requires tags.`,
+            },
+            cannotMakeAllTagsOptional: {
+                title: 'Cannot make all tags optional',
+                description: `At least one tag must remain required because your workspace settings require tags.`,
+            },
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -4261,11 +4289,6 @@ const translations = {
             },
             notFound: 'No workspace found',
             description: 'Rooms are a great place to discuss and work with multiple people. To begin collaborating, create or join a workspace',
-        },
-        switcher: {
-            headerTitle: 'Filter by workspace',
-            everythingSection: 'Everything',
-            placeholder: 'Find a workspace',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -4353,6 +4376,9 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            sap: 'SAP',
+            oracle: 'Oracle',
+            microsoftDynamics: 'Microsoft Dynamics',
             talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
             talkYourAccountManager: 'Chat with your account manager.',
             talkToConcierge: 'Chat with Concierge.',
@@ -4381,7 +4407,7 @@ const translations = {
             import: 'Import',
             export: 'Export',
             advanced: 'Advanced',
-            other: 'Other integrations',
+            other: 'Other',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             reinstall: 'Reinstall connector',
@@ -4633,6 +4659,7 @@ const translations = {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
+            joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} requested to join ${workspaceName}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
@@ -4829,6 +4856,7 @@ const translations = {
             },
             pricing: {
                 perActiveMember: 'per active member per month.',
+                perMember: 'per member per month.',
             },
             note: {
                 upgradeWorkspace: 'Upgrade your workspace to access this feature, or',
@@ -4935,11 +4963,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                alcohol: 'Alcohol',
-                hotelIncidentals: 'Hotel incidentals',
-                gambling: 'Gambling',
-                tobacco: 'Tobacco',
-                adultEntertainment: 'Adult entertainment',
+                alcohol: 'alcohol',
+                hotelIncidentals: 'hotel incidentals',
+                gambling: 'gambling',
+                tobacco: 'tobacco',
+                adultEntertainment: 'adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
@@ -5255,7 +5283,7 @@ const translations = {
             pay: 'Pay',
             delete: 'Delete',
             hold: 'Hold',
-            unhold: 'Unhold',
+            unhold: 'Remove hold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -5288,11 +5316,11 @@ const translations = {
             },
             current: 'Current',
             past: 'Past',
-            submitted: 'Submitted',
-            approved: 'Approved',
-            paid: 'Paid',
-            exported: 'Exported',
-            posted: 'Posted',
+            submitted: 'Submitted date',
+            approved: 'Approved date',
+            paid: 'Paid date',
+            exported: 'Exported date',
+            posted: 'Posted date',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
         },
@@ -5721,7 +5749,8 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
-        receiptNotSmartScanned: 'Receipt scan incomplete. Please verify details manually.',
+        receiptNotSmartScanned:
+            'Expense details and receipt added manually. Please verify the details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more</a> about automatic auditing for all receipts.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Receipt required';
             if (formattedLimit ?? category) {
@@ -5739,15 +5768,15 @@ const translations = {
             const preMessage = 'Prohibited expense:';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
-                    return `${preMessage} Alcohol`;
+                    return `${preMessage} alcohol`;
                 case 'gambling':
-                    return `${preMessage} Gambling`;
+                    return `${preMessage} gambling`;
                 case 'tobacco':
-                    return `${preMessage} Tobacco`;
+                    return `${preMessage} tobacco`;
                 case 'adultEntertainment':
-                    return `${preMessage} Adult entertainment`;
+                    return `${preMessage} adult entertainment`;
                 case 'hotelIncidentals':
-                    return `${preMessage} Hotel incidentals`;
+                    return `${preMessage} hotel incidentals`;
                 default:
                     return `${preMessage}${prohibitedExpenseType}`;
             }
@@ -6288,7 +6317,7 @@ const translations = {
             part1: 'You’ll see 🟢 on ',
             part2: 'actions to take',
             part3: ',\nand 🔴 on ',
-            part4: 'errors to review.',
+            part4: 'items to review.',
         },
         accountSwitcher: {
             part1: 'Access your ',
@@ -6316,13 +6345,9 @@ const translations = {
             part1: 'Filter for expenses\nthat ',
             part2: 'need approval',
         },
-        settingsTab: {
-            part1: 'Explore your ',
-            part2: 'workspace\nand account settings',
-        },
-        workspacesSettings: {
-            part1: 'View your ',
-            part2: 'workspaces',
+        scanTestDriveTooltip: {
+            part1: 'Send this receipt to\n',
+            part2: 'complete the test drive!',
         },
     },
     discardChangesConfirmation: {
@@ -6350,23 +6375,31 @@ const translations = {
             dateTime: 'Date & time',
             minutes: '30 minutes',
         },
+        callScheduled: 'Call scheduled',
     },
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Take a 2-minute test drive',
-            exploreExpensify: 'Explore everything Expensify has to offer',
         },
         modal: {
             title: 'Take us for a test drive',
             description: 'Take a quick product tour to get up to speed fast. No pit stops required!',
             confirmText: 'Start test drive',
             helpText: 'Skip',
+            employee: {
+                description:
+                    '<muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and we’ll walk you through sending them a scanned test expense — no more manual entry.</muted-text>',
+                email: "Enter your boss's email",
+                error: 'That member owns a workspace, please input a new member to test.',
+            },
         },
         banner: {
             currentlyTestDrivingExpensify: "You're currently test driving Expensify",
             readyForTheRealThing: 'Ready for the real thing?',
             getStarted: 'Get started',
         },
+        employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
+            `# ${name} invited you to test drive Expensify\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
     },
 };
 

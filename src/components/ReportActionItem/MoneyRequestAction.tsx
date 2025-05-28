@@ -48,6 +48,9 @@ type MoneyRequestActionProps = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
+    /** Callback for measuring child and running a defined callback/action later */
+    onShowContextMenu?: (callback: () => void) => void;
+
     /** Whether the IOU is hovered so we can modify its style */
     isHovered?: boolean;
 
@@ -68,6 +71,7 @@ function MoneyRequestAction({
     reportID,
     isMostRecentIOUReportAction,
     contextMenuAnchor,
+    onShowContextMenu = () => {},
     checkIfContextMenuActive = () => {},
     isHovered = false,
     style,
@@ -98,7 +102,7 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         if (!action?.childReportID && transactionID && action.reportActionID) {
             const optimisticReportID = generateReportID();
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute(), requestReportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute()));
             return;
         }
 
@@ -141,6 +145,7 @@ function MoneyRequestAction({
             isTrackExpense={isTrackExpenseAction}
             action={action}
             contextMenuAnchor={contextMenuAnchor}
+            onShowContextMenu={onShowContextMenu}
             checkIfContextMenuActive={checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onMoneyRequestPreviewPressed}
