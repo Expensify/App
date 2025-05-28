@@ -79,6 +79,8 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
             return [];
         }
 
+        const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
+
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
@@ -89,7 +91,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                     ...matchingOption,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
-                    isSelected: report.reportID === transactionsReports.at(0)?.reportID,
+                    isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
     }, [allReports, transactionsReports, expenseReports, debouncedSearchValue, options.reports]);

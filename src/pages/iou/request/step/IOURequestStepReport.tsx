@@ -34,11 +34,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             setTransactionReport(transaction.transactionID, item.value, !isEditing);
             if (isEditing) {
                 changeTransactionsReport([transaction.transactionID], item.value);
-                Navigation.dismissModalWithReport({reportID: item.value});
-                return;
             }
         }
-        Navigation.goBack(backTo);
+        if (isEditing) {
+            Navigation.dismissModalWithReport({reportID: item.value});
+        } else {
+            Navigation.goBack(backTo);
+        }
     };
 
     const removeFromReport = () => {
