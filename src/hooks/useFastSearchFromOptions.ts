@@ -22,10 +22,6 @@ const personalDetailToSearchString = (option: OptionData) => {
     return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
 };
 
-const getPersonalDetailUniqueId = (option: OptionData) => {
-    return option.login;
-};
-
 const recentReportToSearchString = (option: OptionData) => {
     const searchStringForTree = [option.text ?? '', option.login ?? ''];
 
@@ -40,8 +36,12 @@ const recentReportToSearchString = (option: OptionData) => {
     return deburr(searchStringForTree.join());
 };
 
+const getPersonalDetailUniqueId = (option: OptionData) => {
+    return option.login ? `personalDetail-${option.login}` : undefined;
+};
+
 const getRecentReportUniqueId = (option: OptionData) => {
-    return option.reportID;
+    return option.reportID ? `recentReport-${option.reportID}` : undefined;
 };
 
 // You can either use this to search within report and personal details options
@@ -103,11 +103,13 @@ function useFastSearchFromOptions(
             if (searchWords.length > 1) {
                 personalDetails = personalDetails.filter((pd) => {
                     const id = getPersonalDetailUniqueId(pd);
-                    return id && isSearchStringMatch(deburredInput, fastSearch.searchableStringsMap.get(id));
+                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(pd.text);
+                    return isSearchStringMatch(deburredInput, searchableString);
                 });
                 recentReports = recentReports.filter((rr) => {
                     const id = getRecentReportUniqueId(rr);
-                    return id && isSearchStringMatch(deburredInput, fastSearch.searchableStringsMap.get(id));
+                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(rr.text);
+                    return id && isSearchStringMatch(deburredInput, searchableString);
                 });
             }
 
