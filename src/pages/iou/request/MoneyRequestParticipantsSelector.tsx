@@ -275,6 +275,7 @@ function MoneyRequestParticipantsSelector({
                 });
             }
         }
+        }
 
         const headerMessage = getHeaderMessage(
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 || !isEmptyObject(chatOptions.selfDMChat),
