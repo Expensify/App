@@ -135,9 +135,9 @@ function SplitListItem<TItem extends ListItem>({
                             submitBehavior="blurAndSubmit"
                             formatAmountOnBlur
                             onAmountChange={onSplitExpenseAmountChange}
-                            prefixContainerStyle={[styles.pv0]}
-                            inputStyle={[styles.optionRowAmountInput]}
-                            containerStyle={[styles.textInputContainer]}
+                            prefixContainerStyle={[styles.pv0, styles.h100]}
+                            inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                            containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                             touchableInputWrapperStyle={[styles.ml3]}
                             maxLength={formattedOriginalAmount.length}
                             contentWidth={formattedOriginalAmount.length * 8}
