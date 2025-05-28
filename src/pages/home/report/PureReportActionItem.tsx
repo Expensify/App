@@ -405,7 +405,7 @@ function PureReportActionItem({
     policies,
     shouldShowBorder,
 }: PureReportActionItemProps) {
-    const {translate} = useLocalize();
+    const {translate, datetimeToCalendarTime} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
@@ -1015,7 +1015,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(action)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(action, datetimeToCalendarTime)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
