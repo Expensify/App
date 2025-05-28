@@ -63,6 +63,7 @@ import {
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
+    getRetractedMessage,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
@@ -828,6 +829,8 @@ function getLastMessageTextForReport(
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
+        lastMessageTextFromReport = getRetractedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         lastMessageTextFromReport = getReopenedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {

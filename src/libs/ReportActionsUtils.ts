@@ -1588,6 +1588,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
+        const message = getRetractedMessage();
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         const message = getReopenedMessage();
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
@@ -1899,6 +1904,10 @@ function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     }
 
     return translateLocal('roomChangeLog.clearRoomDescription');
+}
+
+function getRetractedMessage(): string {
+    return translateLocal('iou.retracted');
 }
 
 function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE> {
@@ -2582,6 +2591,7 @@ export {
     getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
+    getRetractedMessage,
     getReportActionFromExpensifyCard,
 };
 
