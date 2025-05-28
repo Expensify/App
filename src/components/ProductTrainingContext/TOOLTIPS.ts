@@ -64,8 +64,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [RENAME_SAVED_SEARCH]: {
         content: [
-            {text: 'productTrainingTooltip.saveSearchTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.saveSearchTooltip.part2', isBold: false},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.saveSearchTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(RENAME_SAVED_SEARCH, isDismissedUsingCloseButton),
         name: RENAME_SAVED_SEARCH,
@@ -86,10 +92,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: true},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part4', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.bottomNavInboxTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP, isDismissedUsingCloseButton),
         name: BOTTOM_NAV_INBOX_TOOLTIP,

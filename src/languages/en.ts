@@ -6317,14 +6317,10 @@ const translations = {
             full: 'Get started <strong>here!</strong>',
         },
         saveSearchTooltip: {
-            part1: 'Rename your saved searches',
-            part2: ' here!',
+            full: '<strong>Rename your saved searches</strong> here!',
         },
         bottomNavInboxTooltip: {
-            part1: 'Check what ',
-            part2: 'needs your attention',
-            part3: '\nand ',
-            part4: 'chat about expenses.',
+            full: 'Check what <strong>needs your attention</strong> \nand <strong>chat about expenses</strong>.',
         },
         workspaceChatTooltip: {
             part1: 'Chat with ',
