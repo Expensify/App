@@ -475,7 +475,7 @@ function BaseTextInput(
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={[styles.flex1, StyleUtils.getTextInputIconContainerStyles(hasLabel)]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel)]}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(e) => {
                                         e.preventDefault();

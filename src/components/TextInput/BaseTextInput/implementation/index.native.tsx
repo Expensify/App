@@ -190,9 +190,9 @@ function BaseTextInput(
             const heightToFitEmojis = 1;
 
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) =>
-                !multiline ? layout.height + heightToFitEmojis - ((hasLabel ? styles.textInputContainer.padding : 0) + styles.textInputContainer.borderWidth * 2) : prevHeight,
-            );
+            const borderWidth = styles.textInputContainer.borderWidth * 2;
+            const labelPadding = hasLabel ? styles.textInputContainer.padding : 0;
+            setHeight((prevHeight: number) => (!multiline ? layout.height + heightToFitEmojis - (labelPadding + borderWidth) : prevHeight));
         },
         [autoGrowHeight, multiline, styles.textInputContainer, hasLabel],
     );
@@ -445,7 +445,7 @@ function BaseTextInput(
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={[styles.flex1, StyleUtils.getTextInputIconContainerStyles(hasLabel)]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel)]}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {
                                         event.preventDefault();

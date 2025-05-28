@@ -65,7 +65,7 @@ function AmountTextInput(
             shouldInterceptSwipe
             disableKeyboard={disableKeyboard}
             inputStyle={style}
-            textInputContainerStyles={[containerStyle]}
+            textInputContainerStyles={containerStyle}
             shouldApplyPaddingToContainer={false}
             onChangeText={onChangeAmount}
             ref={ref}

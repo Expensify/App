@@ -1339,6 +1339,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2} : {};
     },
 
+    /**
+     * Computes styles for the text input icon container.
+     * Applies horizontal padding if requested, and sets the top margin based on the presence of a label.
+     */
     getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true) => {
         const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
         return {

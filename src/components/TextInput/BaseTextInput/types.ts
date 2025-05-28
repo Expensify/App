@@ -33,7 +33,7 @@ type CustomBaseTextInputProps = {
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 
-    /** Whether to apply padding to the input */
+    /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input */
     shouldApplyPaddingToContainer?: boolean;
 
     /** Customizes the touchable wrapper of the TextInput component */
