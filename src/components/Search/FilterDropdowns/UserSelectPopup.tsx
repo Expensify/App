@@ -11,6 +11,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -38,6 +39,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const personalDetails = usePersonalDetails();
+    const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Since accountIDs are passed as value, we need to "populate" them into OptionData
@@ -153,7 +155,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const dataLength = sections.flatMap((section) => section.data).length;
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, shouldUseNarrowLayout)]}>
+        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
                 canSelectMultiple
                 textInputAutoFocus={false}
