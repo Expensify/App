@@ -22,7 +22,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`, {canBeMissing: true});
     const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(transaction ? [transaction] : []);
 
     return (

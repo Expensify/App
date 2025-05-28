@@ -6,15 +6,14 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {areSettingsInErrorFields, canUseTaxNetSuite, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, canUseTaxNetSuite, getCustomersOrJobsLabelNetSuite, getNetSuiteImportCustomFieldLabel, settingsPendingAction} from '@libs/PolicyUtils';
 import {getImportCustomFieldsSettings} from '@pages/workspace/accounting/netsuite/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -78,7 +77,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
             >
                 <MenuItemWithTopDescription
                     description={translate(`workspace.netsuite.import.customersOrJobs.title`)}
-                    title={PolicyUtils.getCustomersOrJobsLabelNetSuite(policy, translate)}
+                    title={getCustomersOrJobsLabelNetSuite(policy, translate)}
                     shouldShowRightIcon
                     numberOfLinesTitle={2}
                     onPress={() => {
@@ -110,8 +109,8 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
                     }}
                     pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX], config?.pendingFields)}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
-                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
+                    errors={getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
+                    onCloseError={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
                 />
             )}
             {Object.values(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS).map((importField) => {
@@ -123,7 +122,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         shouldDisableStrikeThrough
                     >
                         <MenuItemWithTopDescription
-                            title={PolicyUtils.getNetSuiteImportCustomFieldLabel(policy, importField, translate)}
+                            title={getNetSuiteImportCustomFieldLabel(policy, importField, translate)}
                             description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importField))}
