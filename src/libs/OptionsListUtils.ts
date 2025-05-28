@@ -1841,13 +1841,12 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         shouldBoldTitleByDefault: !isUsedInChatFinder,
         excludeHiddenThreads: true,
     });
-    const orderedOptions = orderOptions(optionList);
+    
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
     return {
         ...optionList,
-        ...orderedOptions,
     };
 }
 

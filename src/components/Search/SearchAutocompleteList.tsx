@@ -19,7 +19,7 @@ import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions, orderReportOptions} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -499,7 +499,8 @@ function SearchAutocompleteList(
 
     const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
-            return searchOptions.recentReports.slice(0, 20);
+            const orderedReportOptions = orderReportOptions(searchOptions.recentReports);
+            return orderedReportOptions.slice(0, 20);
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
