@@ -357,7 +357,7 @@ function isMoveTransactionAction(reportTransactions: Transaction[], reportAction
     return canMoveExpense;
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const isUnreported = isSelfDMReportUtils(report);
@@ -387,7 +387,9 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         }
 
         const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-        const isForwarded = isProcessingReportUtils(report) && !isAwaitingFirstLevelApproval(report);
+        const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+        const isForwarded = isProcessingReportUtils(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
+
         return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
     }
 
@@ -508,7 +510,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
+    if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
