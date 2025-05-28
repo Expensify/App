@@ -658,6 +658,7 @@ export default {
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
+    goUp,
 };
 
 export {navigationRef};
