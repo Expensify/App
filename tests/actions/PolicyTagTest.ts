@@ -3,7 +3,7 @@ import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTags} from '@src/types/onyx';
+import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
@@ -152,6 +152,28 @@ describe('actions/Policy', () => {
                         }),
                 );
         });
+
+        it('should update required field in policy tag list', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = "Tag";
+            fakePolicy.requiresTag = false;
+
+            const fakePolicyTags = createRandomPolicyTags(tagListName);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags)
+
+            Tag.setPolicyRequiresTag(fakePolicy.id, true);
+            await waitForBatchedUpdates();
+
+            let updatePolicyTags: PolicyTagLists | undefined;
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatePolicyTags = val),
+            });
+
+            expect(updatePolicyTags?.[tagListName]?.required).toBeTruthy();
+        })
     });
 
     describe('renamePolicyTagList', () => {
