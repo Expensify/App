@@ -43,7 +43,6 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {
     calculateAmount as calculateIOUAmount,
@@ -11625,15 +11624,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
         Navigation.dismissModal();
-        return;
-    }
-
-    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(transactionReport?.parentReportID);
-    if (getIsNarrowLayout()) {
-        Navigation.dismissModal();
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goUp(reportRoute);
-        });
         return;
     }
     Navigation.dismissModalWithReport({reportID: transactionReport?.parentReportID});
