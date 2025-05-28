@@ -30,7 +30,8 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {canSendInvoice, getAllTaxRates} from '@libs/PolicyUtils';
+import {hasInvoiceReports} from '@libs/ReportUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -120,8 +121,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
@@ -164,17 +167,23 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 Navigation.setParams({q: query});
             };
 
+            // Remove the invoice option if the user is not allowed to send invoices
+            let visibleOptions = typeOptions;
+            if (!canSendInvoice(allPolicies, session?.email) && !hasInvoiceReports()) {
+                visibleOptions = visibleOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE);
+            }
+
             return (
                 <SingleSelectPopup
                     label={translate('common.type')}
                     value={value}
-                    items={typeOptions}
+                    items={visibleOptions}
                     closeOverlay={closeOverlay}
                     onChange={onChange}
                 />
             );
         },
-        [groupBy, queryJSON, status, translate, type],
+        [allPolicies, groupBy, queryJSON, session?.email, status, translate, type],
     );
 
     const statusComponent = useCallback(
