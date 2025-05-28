@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -62,6 +62,8 @@ function TransactionItemRow({
     onButtonPress = () => {},
     isParentHovered,
     columnWrapperStyles,
+    scrollToNewTransaction,
+    isInReportRow = false,
 }: {
     transactionItem: TransactionWithOptionalSearchFields;
     shouldUseNarrowLayout: boolean;
@@ -74,10 +76,13 @@ function TransactionItemRow({
     onButtonPress?: () => void;
     isParentHovered?: boolean;
     columnWrapperStyles?: ViewStyle[];
+    scrollToNewTransaction?: ((offset: number) => void) | undefined;
+    isInReportRow?: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const viewRef = useRef<View>(null);
 
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
@@ -104,6 +109,16 @@ function TransactionItemRow({
 
     const merchantName = getMerchant(transactionItem);
     const isMerchantEmpty = isPartialMerchant(merchantName);
+
+    useEffect(() => {
+        if (!transactionItem.shouldBeHighlighted || !scrollToNewTransaction) {
+            return;
+        }
+        viewRef?.current?.measure((x, y, width, height, pageX, pageY) => {
+            scrollToNewTransaction?.(pageY);
+        });
+    }, [scrollToNewTransaction, transactionItem.shouldBeHighlighted]);
+
     const columnComponent: ColumnComponents = useMemo(
         () => ({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: (
@@ -227,9 +242,10 @@ function TransactionItemRow({
             style={[styles.flex1]}
             onMouseLeave={bindHover.onMouseLeave}
             onMouseEnter={bindHover.onMouseEnter}
+            ref={viewRef}
         >
             {shouldUseNarrowLayout ? (
-                <Animated.View style={[animatedHighlightStyle]}>
+                <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
                     <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
                         <View style={[styles.flexRow]}>
                             {shouldShowCheckbox && (
@@ -317,7 +333,7 @@ function TransactionItemRow({
                     </View>
                 </Animated.View>
             ) : (
-                <Animated.View style={[animatedHighlightStyle]}>
+                <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
                     <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles, styles.mw100]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <View style={[styles.mr1]}>
