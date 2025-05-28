@@ -554,7 +554,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
         Object.values(reportActions).forEach((action) => {
             if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                return
+                return;
             }
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
