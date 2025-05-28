@@ -16,7 +16,7 @@ import {
     isPreferredExporter,
     isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
-import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction, isReversedTransaction} from './ReportActionsUtils';
+import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
@@ -36,12 +36,18 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isReportManager as isReportManagerUtils,
+    isSelfDM as isSelfDMReportUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
-    isSelfDM as isSelfDMReportUtils,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isCardTransaction as isCardTransactionUtils, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {
+    allHavePendingRTERViolation,
+    isCardTransaction as isCardTransactionUtils,
+    isDuplicate,
+    isOnHold as isOnHoldTransactionUtils,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+} from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -364,7 +370,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     if (isUnreported) {
         return isOwner;
     }
-    
+
     // Users cannot delete a report in the unrepeorted or IOU cases, but they can delete individual transactions.
     // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
     if (isIOUReport) {
@@ -372,7 +378,8 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        const isCardTransactionWithCorporateLiability = isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+        const isCardTransactionWithCorporateLiability =
+            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 
         if (isCardTransactionWithCorporateLiability) {
             return false;
