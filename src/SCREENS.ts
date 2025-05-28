@@ -159,9 +159,6 @@ const SCREENS = {
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
-    LEFT_MODAL: {
-        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
-    },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         TWO_FACTOR_AUTH: 'TwoFactorAuth',
