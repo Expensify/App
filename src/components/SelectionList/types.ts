@@ -463,6 +463,12 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
+    /** List of selected items */
+    selectedItems?: string[];
+
+    /** Whether the item is selected */
+    isSelected?: (item: TItem) => boolean;
+
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
 
@@ -773,7 +779,6 @@ type ItemLayout = {
 
 type FlattenedSectionsReturn<TItem extends ListItem> = {
     allOptions: TItem[];
-    selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
     disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];

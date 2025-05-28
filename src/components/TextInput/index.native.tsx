@@ -35,6 +35,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             ref={ref}
             autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
             inputStyle={[styles.baseTextInput, props.inputStyle]}
+            textInputContainerStyles={[props.textInputContainerStyles]}
         />
     );
 }

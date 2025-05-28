@@ -23,6 +23,7 @@ import type {
     ReplaceReceiptParams,
     RequestMoneyParams,
     ResolveDuplicatesParams,
+    RetractReportParams,
     SendInvoiceParams,
     SendMoneyParams,
     SetNameValuePairParams,
@@ -64,6 +65,7 @@ import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getCorrectedAutoReportingFrequency,
+    getDistanceRateCustomUnit,
     getMemberAccountIDsForWorkspace,
     getPerDiemCustomUnit,
     getPersonalPolicy,
@@ -113,6 +115,7 @@ import {
     buildOptimisticReopenedReportAction,
     buildOptimisticReportPreview,
     buildOptimisticResolvedDuplicatesReportAction,
+    buildOptimisticRetractedReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticUnHoldReportAction,
@@ -4810,6 +4813,7 @@ type ConvertTrackedWorkspaceParams = {
     policyID: string;
     receipt: Receipt | undefined;
     waypoints?: string;
+    customUnitID?: string;
     customUnitRateID?: string;
 };
 
@@ -4982,6 +4986,8 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         description: transactionParams.comment,
+        customUnitID: createdWorkspaceParams?.customUnitID,
+        customUnitRateID: createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID,
         attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
     };
 
@@ -5085,6 +5091,8 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         policyName: createdWorkspaceParams?.policyName,
         description: transactionParams.comment,
+        customUnitID: createdWorkspaceParams?.customUnitID,
+        customUnitRateID: createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID,
         attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
         accountantEmail,
     };
@@ -5208,6 +5216,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                           billable,
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
+                          customUnitID: getDistanceRateCustomUnit(policyParams?.policy)?.customUnitID,
                           customUnitRateID,
                       }
                     : undefined;
@@ -9469,6 +9478,128 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.REOPEN_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
+function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
+    if (!expenseReport) {
+        return;
+    }
+
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
+    const optimisticRetractReportAction = buildOptimisticRetractedReportAction();
+    const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
+    const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
+
+    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
+    const optimisticReportActionsData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        value: {
+            [optimisticRetractReportAction.reportActionID]: {
+                ...(optimisticRetractReportAction as OnyxTypes.ReportAction),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        },
+    };
+    const optimisticIOUReportData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+        value: {
+            ...expenseReport,
+            lastMessageText: getReportActionText(optimisticRetractReportAction),
+            lastMessageHtml: getReportActionHtml(optimisticRetractReportAction),
+            stateNum: predictedNextState,
+            statusNum: predictedNextStatus,
+            pendingFields: {
+                partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    };
+
+    const optimisticNextStepData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+        value: optimisticNextStep,
+    };
+
+    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticRetractReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    partial: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticRetractReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                stateNum: expenseReport.stateNum,
+                statusNum: expenseReport.stateNum,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
+        },
+    ];
+
+    if (expenseReport.parentReportID && expenseReport.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
+            value: {
+                [expenseReport.parentReportActionID]: {
+                    childStateNum: predictedNextState,
+                    childStatusNum: predictedNextStatus,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
+            value: {
+                [expenseReport.parentReportActionID]: {
+                    childStateNum: expenseReport.stateNum,
+                    childStatusNum: expenseReport.statusNum,
+                },
+            },
+        });
+    }
+
+    const parameters: RetractReportParams = {
+        reportID: expenseReport.reportID,
+        reportActionID: optimisticRetractReportAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.RETRACT_REPORT, parameters, {optimisticData, successData, failureData});
+}
+
 function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -11092,7 +11223,6 @@ export {
     adjustRemainingSplitShares,
     getNextApproverAccountID,
     approveMoneyRequest,
-    reopenReport,
     canApproveIOU,
     canUnapproveIOU,
     cancelPayment,
@@ -11182,5 +11312,7 @@ export {
     canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
+    reopenReport,
+    retractReport,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
