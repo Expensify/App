@@ -17,10 +17,10 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
-import {getTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 import DuplicateTransactionsList from './DuplicateTransactionsList';
 
 function TransactionDuplicateReview() {
@@ -38,7 +38,21 @@ function TransactionDuplicateReview() {
     );
     const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs;
 
-    const transactions = transactionIDs.map((item) => getTransaction(item)).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
+    const [transactions = []] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: (allTransactions) => {
+                if (!transactionIDs.length) {
+                    return [];
+                }
+
+                return Object.values(allTransactions ?? {})
+                    .filter((transaction): transaction is Transaction => !!transaction && transactionIDs.includes(transaction.transactionID))
+                    .sort((a, b) => new Date(a.created ?? '').getTime() - new Date(b.created ?? '').getTime());
+            },
+        },
+        [transactionIDs],
+    );
 
     const keepAll = () => {
         dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails);

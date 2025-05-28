@@ -47,6 +47,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -78,9 +79,9 @@ function TransactionPreview(props: TransactionPreviewProps) {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
-    const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction);
+    const {originalTransaction: resolvedOriginalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction, originalTransaction);
 
-    const iouAction = isBillSplit && originalTransaction ? getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action : action;
+    const iouAction = isBillSplit && resolvedOriginalTransaction ? getIOUActionForReportID(chatReportID, resolvedOriginalTransaction.transactionID) ?? action : action;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
@@ -104,7 +105,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
-                    transaction={originalTransaction}
+                    transaction={resolvedOriginalTransaction}
                     iouReport={iouReport}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
@@ -126,7 +127,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}
-            transaction={originalTransaction}
+            transaction={resolvedOriginalTransaction}
             iouReport={iouReport}
             violations={violations}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}

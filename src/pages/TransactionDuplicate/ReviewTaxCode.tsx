@@ -32,7 +32,7 @@ function ReviewTaxRate() {
         route.params.threadReportID ?? '',
         route.params.backTo,
     );
-    const transaction = TransactionUtils.getTransaction(transactionID);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const options = useMemo(
         () =>
             compareResult.change.taxCode?.map((taxID) =>
