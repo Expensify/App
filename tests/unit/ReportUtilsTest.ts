@@ -229,10 +229,10 @@ const rules = {
 };
 
 const employeeAccountID = 2;
-const categoryapprover1Email = 'categoryapprover1@test.com';
-const categoryapprover2Email = 'categoryapprover2@test.com';
-const tagapprover1Email = 'tagapprover1@test.com';
-const tagapprover2Email = 'tagapprover2@test.com';
+const categoryApprover1Email = 'categoryapprover1@test.com';
+const categoryApprover2Email = 'categoryapprover2@test.com';
+const tagApprover1Email = 'tagapprover1@test.com';
+const tagApprover2Email = 'tagapprover2@test.com';
 
 const policy: Policy = {
     id: '1',
@@ -716,7 +716,7 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
         });
 
-        it('returns false when the linked iou report has an oustanding IOU', () => {
+        it('returns false when the linked iou report has an outstanding IOU', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
@@ -1293,10 +1293,10 @@ describe('ReportUtils', () => {
         ];
 
         const reportActions: ReportAction[] = [
-            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: 'MARKEDREIMBURSED'},
-            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: 'MARKEDREIMBURSED'},
-            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: 'MARKEDREIMBURSED'},
-            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: 'MARKEDREIMBURSED'},
+            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
+            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
+            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
+            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
         ];
 
         beforeAll(() => {
@@ -2476,7 +2476,7 @@ describe('ReportUtils', () => {
                             transactions_3: transaction3,
                             transactions_4: transaction4,
                         }).then(() => {
-                            const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
+                            const result = [categoryApprover2Email, categoryApprover1Email, tagApprover2Email, tagApprover1Email, 'admin@test.com'];
                             expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                         });
                     });
