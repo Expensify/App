@@ -20,7 +20,7 @@ function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<R
                     transactions?.some((transaction) => transaction.transactionID === key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')),
                 ),
             ),
-    });
+    }, [transactions]);
     return [report, transactions ?? DEFAULT_TRANSACTIONS, violations ?? DEFAULT_VIOLATIONS];
 }
 
