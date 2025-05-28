@@ -560,21 +560,8 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
-        explore: 'Explore',
-        todo: 'To-do',
-        invoice: 'Invoice',
-        expense: 'Expense',
-        chat: 'Chat',
-        task: 'Task',
-        trip: 'Trip',
-        apply: 'Apply',
-        status: 'Status',
-        on: 'On',
-        before: 'Before',
-        after: 'After',
         reschedule: 'Reschedule',
         general: 'General',
-        never: 'Never',
         workspacesTabTitle: 'Workspaces',
     },
     supportalNoAccess: {
@@ -677,7 +664,6 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
-        searchForSomeone: 'Search for someone',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1153,6 +1139,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',
         explainHold: "Explain why you're holding this expense.",
+        undoSubmit: 'Undo submit',
+        retracted: 'retracted',
         undoClose: 'Undo close',
         reopened: 'reopened',
         reopenReport: 'Reopen report',
@@ -1552,6 +1540,9 @@ const translations = {
         },
         mergeFailureUnvalidatedAccount: {
             description: "You can't merge into other accounts because it's not validated. Please validate the account and try again.",
+        },
+        mergeFailureSelfMerge: {
+            description: 'You cannot merge an account into itself.',
         },
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
@@ -4330,11 +4321,6 @@ const translations = {
             notFound: 'No workspace found',
             description: 'Rooms are a great place to discuss and work with multiple people. To begin collaborating, create or join a workspace',
         },
-        switcher: {
-            headerTitle: 'Filter by workspace',
-            everythingSection: 'Everything',
-            placeholder: 'Find a workspace',
-        },
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
@@ -5316,23 +5302,6 @@ const translations = {
                 subtitle: 'Get started by booking your first trip below.',
                 buttonText: 'Book a trip',
             },
-            emptySubmitResults: {
-                title: 'No expenses to submit',
-                subtitle: "You're all clear. Take a victory lap!",
-                buttonText: 'Create report',
-            },
-            emptyApproveResults: {
-                title: 'No expenses to approve',
-                subtitle: 'Zero expenses. Maximum chill. Well done!',
-            },
-            emptyPayResults: {
-                title: 'No expenses to pay',
-                subtitle: 'Congrats! You crossed the finish line.',
-            },
-            emptyExportResults: {
-                title: 'No expenses to export',
-                subtitle: 'Time to take it easy, nice work.',
-            },
         },
         saveSearch: 'Save search',
         deleteSavedSearch: 'Delete saved search',
@@ -5345,7 +5314,7 @@ const translations = {
             pay: 'Pay',
             delete: 'Delete',
             hold: 'Hold',
-            unhold: 'Unhold',
+            unhold: 'Remove hold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -5353,7 +5322,6 @@ const translations = {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
-                on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
             },
             status: 'Status',
             keyword: 'Keyword',
