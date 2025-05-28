@@ -1615,12 +1615,16 @@ function markAllMessagesAsRead() {
     const optimisticData: OnyxUpdate[] = [];
     const reportIDs: string[] = [];
     Object.values(allReports ?? {}).forEach((report) => {
+        if (!report) {
+            return;
+        }
+
         const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(
-            report?.reportID,
-            allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
+            report.reportID,
+            allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`],
         );
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        if (!report || !isUnread(report, oneTransactionThreadReport)) {
+        if (!isUnread(report, oneTransactionThreadReport)) {
             return;
         }
 
