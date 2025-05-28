@@ -6158,9 +6158,7 @@ const translations = {
                 },
             },
             acknowledgement: {
-                part1: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify ',
-                link: 'Terms of Service',
-                part2: ' or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
+                full: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify <a>Terms of Service</a>  or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
             },
         },
     },

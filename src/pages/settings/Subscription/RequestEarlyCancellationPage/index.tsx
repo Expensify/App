@@ -39,11 +39,21 @@ function RequestEarlyCancellationPage() {
 
     const acknowledgementText = useMemo(
         () => (
-            <Text>
-                {translate('subscription.requestEarlyCancellation.acknowledgement.part1')}
-                <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{translate('subscription.requestEarlyCancellation.acknowledgement.link')}</TextLink>
-                {translate('subscription.requestEarlyCancellation.acknowledgement.part2')}
-            </Text>
+            <RenderHtml
+                contentWidth={width}
+                source={{
+                    html: translate('subscription.requestEarlyCancellation.acknowledgement.full'),
+                }}
+                tagsStyles={{
+                    a: styles.link,
+                    p: styles.textNormalThemeText,
+                }}
+                renderersProps={{
+                    a: {
+                        onPress: () => Navigation.navigate(CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL),
+                    },
+                }}
+            />
         ),
         [translate],
     );
