@@ -457,7 +457,7 @@ function BaseTextInput(
                                     />
                                 </View>
                             )}
-                            {inputProps.isLoading === undefined && (
+                            {inputProps.isLoading !== undefined && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
@@ -466,7 +466,7 @@ function BaseTextInput(
                                         styles.ml1,
                                         styles.justifyContentStart,
                                         loadingSpinnerStyle,
-                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 1),
+                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
                                     ]}
                                 />
                             )}
