@@ -1638,6 +1638,10 @@ function markAllMessagesAsRead() {
         reportIDs.push(report.reportID);
     });
 
+    if (reportIDs.length === 0) {
+        return;
+    }
+
     const parameters: MarkAllMessagesAsReadParams = {
         reportIDs,
     };
