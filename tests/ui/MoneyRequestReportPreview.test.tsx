@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -95,6 +95,12 @@ const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     return {transactionHeaderText, transactionDisplayAmount};
 };
 
+const setCurrentWidth = () => {
+    fireEvent(screen.getByTestId('carouselWidthSetter'), 'layout', {
+        nativeEvent: {layout: {width: 500}},
+    });
+};
+
 const mockSecondTransaction: Transaction = {
     ...mockTransaction,
     amount: mockTransaction.amount * 2,
@@ -135,6 +141,7 @@ describe('MoneyRequestReportPreview', () => {
     it('renders transaction details and associated report name correctly', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
         const {childReportName: moneyRequestReportPreviewName = ''} = mockAction;
         for (const transaction of arrayOfTransactions) {
@@ -150,6 +157,7 @@ describe('MoneyRequestReportPreview', () => {
     it('renders RBR for every transaction with violations', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
         await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
         expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
     });
@@ -157,6 +165,7 @@ describe('MoneyRequestReportPreview', () => {
     it('renders a skeleton if the transaction is empty', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
         expect(screen.getAllByTestId(TransactionPreviewSkeletonView.displayName)).toHaveLength(2);
     });
 });

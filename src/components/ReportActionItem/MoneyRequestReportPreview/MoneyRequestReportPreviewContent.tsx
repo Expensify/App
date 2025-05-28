@@ -603,6 +603,7 @@ function MoneyRequestReportPreviewContent({
                 <View
                     style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}
                     onLayout={onCarouselLayout}
+                    testID="carouselWidthSetter"
                 >
                     <PressableWithoutFeedback
                         onPress={onPress}
