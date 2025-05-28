@@ -45,6 +45,7 @@ type Props = {
 function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}: Props) {
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -56,18 +57,21 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 if (!policyID) {
                     return [];
                 }
-                const reports = getOutstandingReportsForUser(policyID, transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
+                const reports = getOutstandingReportsForUser(
+                    policyID,
+                    transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
+                    allReports ?? {},
+                    reportNameValuePairs,
+                );
                 return reports;
             }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID],
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
     );
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
         }
-
-        const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
 
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
@@ -77,7 +81,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 text: report.reportName,
                 value: report.reportID,
                 keyForList: report.reportID,
-                isSelected: onlyReport && report.reportID === onlyReport?.reportID,
+                isSelected: report.reportID === transactionsReports.at(0)?.reportID,
             }));
     }, [allReports, debouncedSearchValue, expenseReports, transactionsReports]);
 
