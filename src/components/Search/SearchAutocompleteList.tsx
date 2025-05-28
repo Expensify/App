@@ -495,10 +495,10 @@ function SearchAutocompleteList(
     /**
      * Builds a suffix tree and returns a function to search in it.
      */
-    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+    const {search: filterOptions, isInitialized: isFastSearchInitialized} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
     const recentReportsOptions = useMemo(() => {
-        if (autocompleteQueryValue.trim() === '') {
+        if (autocompleteQueryValue.trim() === '' || !isFastSearchInitialized) {
             const orderedReportOptions = orderReportOptions(searchOptions.recentReports);
             return orderedReportOptions.slice(0, 20);
         }
@@ -516,7 +516,7 @@ function SearchAutocompleteList(
             reportOptions.push(filteredOptions.userToInvite);
         }
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, filterOptions, searchOptions]);
+    }, [autocompleteQueryValue, filterOptions, searchOptions, isFastSearchInitialized]);
 
     useEffect(() => {
         if (!handleSearch) {

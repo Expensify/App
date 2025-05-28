@@ -1,12 +1,13 @@
 import deburr from 'lodash/deburr';
 import {useCallback, useEffect, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import FastSearch from '@libs/FastSearch';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 
-type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
+type AllOrSelectiveOptions = OptionsListType;
 
 type Options = {
     includeUserToInvite: boolean;
@@ -15,12 +16,17 @@ type Options = {
 const emptyResult = {
     personalDetails: [],
     recentReports: [],
+    userToInvite: null,
+    currentUserOption: undefined,
 };
 
 // You can either use this to search within report and personal details options
-function useFastSearchFromOptions(options: ReportAndPersonalDetailOptions, config?: {includeUserToInvite: false}): (searchInput: string) => ReportAndPersonalDetailOptions;
+function useFastSearchFromOptions(
+    options: ReportAndPersonalDetailOptions,
+    config?: {includeUserToInvite: false},
+): {search: (searchInput: string) => AllOrSelectiveOptions; isInitialized: boolean};
 // Or you can use this to include the user invite option. This will require passing all options
-function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): (searchInput: string) => OptionsListType;
+function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): {search: (searchInput: string) => AllOrSelectiveOptions; isInitialized: boolean};
 
 /**
  * Hook for making options from OptionsListUtils searchable with FastSearch.
@@ -34,41 +40,45 @@ function useFastSearchFromOptions(options: OptionsListType, config?: {includeUse
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
-): (searchInput: string) => AllOrSelectiveOptions {
+): {search: (searchInput: string) => AllOrSelectiveOptions; isInitialized: boolean} {
     const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
-
+    const [isInitialized, setIsInitialized] = useState(false);
     useEffect(() => {
-        const newFastSearch = FastSearch.createFastSearch([
-            {
-                data: options.personalDetails,
-                toSearchableString: (option) => {
-                    const displayName = option.participantsList?.[0]?.displayName ?? '';
-                    return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
+        let newFastSearch: ReturnType<typeof FastSearch.createFastSearch<OptionData>>;
+        InteractionManager.runAfterInteractions(() => {
+            newFastSearch = FastSearch.createFastSearch([
+                {
+                    data: options.personalDetails,
+                    toSearchableString: (option) => {
+                        const displayName = option.participantsList?.[0]?.displayName ?? '';
+                        return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
+                    },
+                    uniqueId: (option) => option.login,
                 },
-                uniqueId: (option) => option.login,
-            },
-            {
-                data: options.recentReports,
-                toSearchableString: (option) => {
-                    const searchStringForTree = [option.text ?? '', option.login ?? ''];
+                {
+                    data: options.recentReports,
+                    toSearchableString: (option) => {
+                        const searchStringForTree = [option.text ?? '', option.login ?? ''];
 
-                    if (option.isThread) {
-                        if (option.alternateText) {
-                            searchStringForTree.push(option.alternateText);
+                        if (option.isThread) {
+                            if (option.alternateText) {
+                                searchStringForTree.push(option.alternateText);
+                            }
+                        } else if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
+                            if (option.subtitle) {
+                                searchStringForTree.push(option.subtitle);
+                            }
                         }
-                    } else if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
-                        if (option.subtitle) {
-                            searchStringForTree.push(option.subtitle);
-                        }
-                    }
 
-                    return deburr(searchStringForTree.join());
+                        return deburr(searchStringForTree.join());
+                    },
                 },
-            },
-        ]);
-        setFastSearch(newFastSearch);
+            ]);
+            setFastSearch(newFastSearch);
+            setIsInitialized(true);
+        });
 
-        return () => newFastSearch.dispose();
+        return () => newFastSearch?.dispose();
     }, [options]);
 
     const findInSearchTree = useCallback(
@@ -114,12 +124,14 @@ function useFastSearchFromOptions(
             return {
                 personalDetails,
                 recentReports,
+                userToInvite: null,
+                currentUserOption: undefined,
             };
         },
         [includeUserToInvite, options, fastSearch],
     );
 
-    return findInSearchTree;
+    return {search: findInSearchTree, isInitialized};
 }
 
 export default useFastSearchFromOptions;
