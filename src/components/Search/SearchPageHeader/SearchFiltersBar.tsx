@@ -165,9 +165,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
 
-            // If the type is no longer expense, then we need to remove the 'payer' field so we don't get an error
+            // If the type is no longer expense, then we need to remove the 'payer' field so we don't get an error, we
+            // also should remove grouping by report when the type is no longer expense
             if (updatedFilterFormValues.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 updatedFilterFormValues.payer = undefined;
+                updatedFilterFormValues.groupBy = undefined;
             }
 
             const filterString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
