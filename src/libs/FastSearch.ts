@@ -24,6 +24,8 @@ type SearchableData<T> = {
     uniqueId?: (data: T) => string | undefined;
 };
 
+type SearchableStringsMap = Map<string, string>;
+
 // There are certain characters appear very often in our search data (email addresses), which we don't need to search for.
 const charSetToSkip = new Set(['@', '.', '#', '$', '%', '&', '*', '+', '-', '/', ':', ';', '<', '=', '>', '?', '_', '~', '!', ' ', ',', '(', ')']);
 // For an account with 12k+ personal details the average search value length was ~60 characters.
@@ -51,9 +53,11 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     // The tree is 1-indexed, so we need to add a 0 at the beginning:
     concatenatedNumericList.push(0);
 
-    for (const {data, toSearchableString} of dataSets) {
+    const searchableStringsMap: SearchableStringsMap = new Map();
+
+    for (const dataSet of dataSets) {
         // Performance critical: the array parameters are passed by reference, so we don't have to create new arrays every time:
-        dataToNumericRepresentation(concatenatedNumericList, occurrenceToIndex, {data, toSearchableString});
+        dataToNumericRepresentation(concatenatedNumericList, occurrenceToIndex, searchableStringsMap, dataSet);
         listOffsets.push(concatenatedNumericList.length);
     }
     concatenatedNumericList.push(SuffixUkkonenTree.END_CHAR_CODE);
@@ -133,6 +137,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     return {
         search,
         dispose,
+        searchableStringsMap,
     };
 }
 
@@ -144,10 +149,17 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
 function dataToNumericRepresentation<T>(
     concatenatedNumericList: DynamicArrayBuffer<Uint8Array>,
     occurrenceToIndex: DynamicArrayBuffer<Uint32Array>,
-    {data, toSearchableString}: SearchableData<T>,
+    searchableStringsMap: SearchableStringsMap,
+    {data, toSearchableString, uniqueId}: SearchableData<T>,
 ): void {
     data.forEach((option, index) => {
         const searchStringForTree = toSearchableString(option);
+
+        const id = uniqueId?.(option);
+        if (id) {
+            searchableStringsMap.set(id, searchStringForTree);
+        }
+
         const cleanedSearchStringForTree = cleanString(searchStringForTree);
 
         if (cleanedSearchStringForTree.length === 0) {
