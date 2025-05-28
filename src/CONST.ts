@@ -826,7 +826,6 @@ const CONST = {
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
-        RECEIPT_LINE_ITEMS: 'receiptLineItems',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         RETRACT_NEWDOT: 'retractNewDot',
@@ -1223,6 +1222,7 @@ const CONST = {
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            RETRACT: 'retract',
             ADD_EXPENSE: 'addExpense',
             REOPEN: 'reopen',
             MOVE_EXPENSE: 'moveExpense',
@@ -1320,6 +1320,7 @@ const CONST = {
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
+                RETRACTED: 'RETRACTED',
                 REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -1566,6 +1567,7 @@ const CONST = {
             STOPWATCH: 'stopwatch',
         },
     },
+    UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
@@ -5169,10 +5171,12 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            SET_PARAMS: 'SET_PARAMS',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
+            SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
         },
     },
     TIME_PERIOD: {
