@@ -234,6 +234,7 @@ function MoneyRequestReportTransactionList({
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                 {sortedTransactions.map((transaction) => {
+                    const isPendingDelete = getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                     return (
                         <PressableWithFeedback
                             key={transaction.transactionID}
@@ -271,6 +272,7 @@ function MoneyRequestReportTransactionList({
                                 setSelectedTransactionID(transaction.transactionID);
                                 setIsModalVisible(true);
                             }}
+                            disabled={isPendingDelete}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
