@@ -363,8 +363,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isUnreported = isSelfDMReportUtils(report);
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
-    const action = getIOUActionForTransactionID(reportActions, transactionID ?? '');
-    const isOwner = action?.actorAccountID === getCurrentUserAccountID();
+    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
 
