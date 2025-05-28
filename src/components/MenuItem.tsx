@@ -4,9 +4,11 @@ import React, {forwardRef, useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Image from '@components/Image';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
@@ -50,7 +52,7 @@ type IconProps = {
 };
 
 type AvatarProps = {
-    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE | typeof CONST.ICON_TYPE_PLAID;
 
     icon: AvatarSource | IconType[];
 };
@@ -372,6 +374,9 @@ type MenuItemBaseProps = {
 
     /** The value to copy on secondary interaction */
     copyValue?: string;
+
+    /** Plaid image for the bank */
+    plaidUrl?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -491,6 +496,7 @@ function MenuItem(
         pressableTestID,
         shouldTeleportPortalToModalLayer,
         copyValue,
+        plaidUrl,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -499,6 +505,7 @@ function MenuItem(
     const StyleUtils = useStyleUtils();
     const combinedStyle = [styles.popoverMenuItem, style];
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const illustrations = useThemeIllustrations();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
 
@@ -776,6 +783,21 @@ function MenuItem(
                                                                     size={avatarSize}
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
+                                                            )}
+                                                            {iconType === CONST.ICON_TYPE_PLAID && (
+                                                                <View>
+                                                                    <Image
+                                                                        source={{uri: plaidUrl}}
+                                                                        style={styles.plaidIconSmall}
+                                                                        cachePolicy="memory-disk"
+                                                                    />
+                                                                    <Icon
+                                                                        src={illustrations.GenericPlaidCardLarge}
+                                                                        height={variables.cardIconHeight}
+                                                                        width={variables.cardIconWidth}
+                                                                        additionalStyles={styles.cardIcon}
+                                                                    />
+                                                                </View>
                                                             )}
                                                         </View>
                                                     )}

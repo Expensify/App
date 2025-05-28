@@ -5124,6 +5124,15 @@ const styles = (theme: ThemeColors) =>
             top: 20,
         },
 
+        plaidIconSmall: {
+            height: variables.cardMiniatureHeight,
+            width: variables.cardMiniatureHeight,
+            position: 'absolute',
+            right: 6,
+            zIndex: 1,
+            top: 6,
+        },
+
         walletCardNumber: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,

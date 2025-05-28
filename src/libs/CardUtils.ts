@@ -76,9 +76,11 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     if (!card) {
         return '';
     }
+    const isPlaid = getPlaidInstitutionId(card.bank);
+    const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
-    const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : getBankName(card.bank as CompanyCardFeed);
-    return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+    const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
+    return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**

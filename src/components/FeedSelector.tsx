@@ -1,11 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ImageStyle, StyleProp} from 'react-native';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
@@ -40,8 +38,7 @@ type Props = {
 function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
-    const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)];
+    const illustrations = useThemeIllustrations();
 
     return (
         <PressableWithFeedback
@@ -50,11 +47,19 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
             accessibilityLabel={feedName ?? ''}
         >
             {plaidUrl ? (
-                <Image
-                    source={{uri: plaidUrl}}
-                    style={imageStyle}
-                    cachePolicy="memory-disk"
-                />
+                <View>
+                    <Image
+                        source={{uri: plaidUrl}}
+                        style={styles.plaidIconSmall}
+                        cachePolicy="memory-disk"
+                    />
+                    <Icon
+                        src={illustrations.GenericPlaidCardLarge}
+                        height={variables.cardIconHeight}
+                        width={variables.cardIconWidth}
+                        additionalStyles={styles.cardIcon}
+                    />
+                </View>
             ) : (
                 <Icon
                     src={cardIcon}
