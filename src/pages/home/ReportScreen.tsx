@@ -348,7 +348,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.popToSidebar();
             return;
         }
-        Navigation.goBack(backTo as Route);
+        if (backTo) {
+            Navigation.goBack(backTo as Route);
+            return;
+        }
+        Navigation.goBack();
     }, [isInNarrowPaneModal, backTo]);
 
     let headerView = (
