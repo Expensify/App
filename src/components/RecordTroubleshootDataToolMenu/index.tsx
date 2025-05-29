@@ -1,38 +1,57 @@
-import React, {useState} from 'react';
-import localFileDownload from '@libs/localFileDownload';
+import JSZip from 'jszip';
+import React, {useRef, useState} from 'react';
+import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import type {Log} from '@src/types/onyx';
 import BaseRecordTroubleshootDataToolMenu from './BaseRecordTroubleshootDataToolMenu';
 import type {File} from './BaseRecordTroubleshootDataToolMenu';
 
 function RecordTroubleshootDataToolMenu() {
-    const [localLogs, setLocalLogs] = useState<Log[]>([]);
     const [file, setFile] = useState<File | undefined>(undefined);
-    const downloadFile = (logs: Log[]) => {
+
+    const zipRef = useRef(new JSZip());
+
+    const onDisableLogging = (logs: Log[]) => {
         const data = JSON.stringify(logs, null, 2);
         setFile({
             path: './logs',
             newFileName: 'logs',
             size: data.length,
         });
-        setLocalLogs(logs);
-        localFileDownload('logs', data);
+        const newFileName = appendTimeToFileName('logs.txt');
+        zipRef.current.file(newFileName, data);
     };
     const hideShareButton = () => {
         setFile(undefined);
     };
-    const shareLogs = () => {
-        downloadFile(localLogs);
+
+    const onDownloadZip = () => {
+        if (!zipRef.current?.files) {
+            return;
+        }
+
+        zipRef.current.generateAsync({type: 'blob'}).then((zipBlob) => {
+            const zipUrl = URL.createObjectURL(zipBlob);
+            const link = document.createElement('a');
+            link.href = zipUrl;
+            const zipArchiveName = appendTimeToFileName('troubleshoot.zip');
+            // link.download = 'troubleshoot.zip';
+            link.download = zipArchiveName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
     };
 
     return (
         <BaseRecordTroubleshootDataToolMenu
+            zipRef={zipRef}
             file={file}
-            onDisableLogging={downloadFile}
+            onDisableLogging={onDisableLogging}
             onEnableLogging={hideShareButton}
-            onShareLogs={shareLogs}
             displayPath={file?.path}
             pathToBeUsed=""
             displayPath2=""
+            onDownloadZip={onDownloadZip}
         />
     );
 }
