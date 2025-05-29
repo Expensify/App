@@ -201,9 +201,9 @@ function TransactionItemRow({
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     {!!transactionItem.to && (
                         <UserInfoCell
-                            accountID={transactionItem.to.accountID}
-                            avatar={transactionItem.to.avatar}
-                            displayName={transactionItem.to.displayName ?? ''}
+                            accountID={transactionItem?.to.accountID}
+                            avatar={transactionItem?.to.avatar}
+                            displayName={transactionItem?.to.displayName ?? ''}
                         />
                     )}
                 </View>
@@ -212,9 +212,9 @@ function TransactionItemRow({
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     {!!transactionItem.from && (
                         <UserInfoCell
-                            accountID={transactionItem.from.accountID}
-                            avatar={transactionItem.from.avatar}
-                            displayName={transactionItem.from.displayName ?? ''}
+                            accountID={transactionItem?.from.accountID}
+                            avatar={transactionItem?.from.avatar}
+                            displayName={transactionItem?.from.displayName ?? ''}
                         />
                     )}
                 </View>
