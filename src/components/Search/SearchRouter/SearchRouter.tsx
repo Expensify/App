@@ -191,6 +191,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
+            setTextInputValue(userQuery);
             const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
@@ -206,7 +207,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
-        [autocompleteSubstitutions, textInputValue],
+        [autocompleteSubstitutions, textInputValue, setTextInputValue],
     );
 
     const submitSearch = useCallback(
