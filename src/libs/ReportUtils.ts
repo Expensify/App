@@ -2328,8 +2328,8 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isArchivedReport = false): boolean {
-    if (!isMoneyRequestReport(moneyRequestReport) || isArchivedReport) {
+function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
         return false;
     }
 
@@ -2356,7 +2356,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isArc
  * - report is a non-settled IOU
  * - report is a draft
  */
-function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
+function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
@@ -2366,10 +2366,11 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(moneyRequestReport?.reportID);
-    return canAddOrDeleteTransactions(moneyRequestReport, isArchivedReport(reportNameValuePairs));
+    // // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // // eslint-disable-next-line deprecation/deprecation
+    // const reportNameValuePairs = getReportNameValuePairs(moneyRequestReport?.reportID);
+    // isArchivedReport(reportNameValuePairs)
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
 }
 
 /**
@@ -2378,11 +2379,8 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
  * - report is a non-settled IOU
  * - report is a non-approved IOU
  */
-function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(moneyRequestReport?.reportID);
-    return canAddOrDeleteTransactions(moneyRequestReport, isArchivedReport(reportNameValuePairs));
+function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
 }
 
 /**
@@ -10859,9 +10857,6 @@ export {
     isReportNotFound,
     canAddTransaction,
     canDeleteTransaction,
-
-    // Exported for testing purposes
-    canAddOrDeleteTransactions,
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
