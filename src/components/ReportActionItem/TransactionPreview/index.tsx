@@ -11,8 +11,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getOriginalTransactionIfBillIsSplit, getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
+import {getOriginalTransactionWithSplitInfo, isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
@@ -78,7 +78,13 @@ function TransactionPreview(props: TransactionPreviewProps) {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
-    const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction);
+    let transactionPreview = transaction;
+
+    const {originalTransaction, isBillSplit} = getOriginalTransactionWithSplitInfo(transaction);
+
+    if (isBillSplit) {
+        transactionPreview = originalTransaction;
+    }
 
     const iouAction = isBillSplit && originalTransaction ? getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action : action;
 
@@ -105,7 +111,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
-                    transaction={originalTransaction}
+                    transaction={transactionPreview}
                     iouReport={iouReport}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}

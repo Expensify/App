@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Errors} from './OnyxCommon';
 
 /**
  * The attributes of a report.
@@ -21,6 +22,10 @@ type ReportAttributes = {
      * Whether the report requires attention from current user.
      */
     requiresAttention: boolean;
+    /**
+     * The errors of the report.
+     */
+    reportErrors: Errors;
 
     /**
      * Archive reason for the report, if any.

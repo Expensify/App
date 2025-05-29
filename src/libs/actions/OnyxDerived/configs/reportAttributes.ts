@@ -45,12 +45,12 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.COLLECTION.TRANSACTION,
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions], {currentValue, sourceValues, areAllConnectionsSet}) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
@@ -121,7 +121,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const {hasAnyViolations, requiresAttention, isReportArchived, archiveReason} = generateReportAttributes({
+            const {hasAnyViolations, requiresAttention, isReportArchived, reportErrors, archiveReason} = generateReportAttributes({
                 report,
                 reportActions,
                 transactionViolations,
@@ -131,7 +131,7 @@ export default createOnyxDerivedValueConfig({
 
             let brickRoadStatus;
             // if report has errors or violations, show red dot
-            if (SidebarUtils.shouldShowRedBrickRoad(report, reportActionsList, hasAnyViolations, transactionViolations, !!isReportArchived)) {
+            if (SidebarUtils.shouldShowRedBrickRoad(report, reportActionsList, hasAnyViolations, reportErrors, transactions, transactionViolations, !!isReportArchived)) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
             // if report does not have error, check if it should show green dot
@@ -144,6 +144,7 @@ export default createOnyxDerivedValueConfig({
                 isEmpty: generateIsEmptyReport(report),
                 brickRoadStatus,
                 requiresAttention,
+                reportErrors,
                 archiveReason,
             };
 
