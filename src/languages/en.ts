@@ -2278,9 +2278,7 @@ const translations = {
         },
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: {
-            phrase1: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to ',
-            link: 'your workspace settings',
-            phrase2: ' to set it to USD and try again.',
+            full: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a>your workspace settings</a> to set it to USD and try again.',
         },
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',

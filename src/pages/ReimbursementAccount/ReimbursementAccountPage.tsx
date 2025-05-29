@@ -407,21 +407,26 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
         errorText = (
-            <Text style={styles.flexRow}>
-                {translate('bankAccount.hasCurrencyError.phrase1')}
-                <TextLink
-                    style={styles.link}
-                    onPress={() => {
-                        const routeToNavigate = isSmallScreenWidth
-                            ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
-                            : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
-                        Navigation.goBack(routeToNavigate);
-                    }}
-                >
-                    {translate('bankAccount.hasCurrencyError.link')}
-                </TextLink>
-                {translate('bankAccount.hasCurrencyError.phrase2')}
-            </Text>
+            <RenderHtml
+                contentWidth={width}
+                source={{
+                    html: translate('bankAccount.hasCurrencyError.full'),
+                }}
+                tagsStyles={{
+                    a: styles.link,
+                    p: styles.flexRow,
+                }}
+                renderersProps={{
+                    a: {
+                        onPress: () => {
+                            const routeToNavigate = isSmallScreenWidth
+                                ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
+                                : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
+                            Navigation.goBack(routeToNavigate);
+                        },
+                    },
+                }}
+            />
         );
     }
 
