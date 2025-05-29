@@ -33,6 +33,7 @@ function useOnboardingFlowRouter() {
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
+
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         InteractionManager.runAfterInteractions(() => {
@@ -51,7 +52,7 @@ function useOnboardingFlowRouter() {
                 const defaultCannedQuery = buildCannedSearchQuery();
                 const query = defaultCannedQuery;
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
-                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
+                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
                 return;
             }
 
@@ -76,14 +77,22 @@ function useOnboardingFlowRouter() {
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                     startedOnboardingFlowRef.current = true;
-                    startOnboardingFlow(undefined, onboardingValues, account?.isFromPublicDomain);
+                    startOnboardingFlow({
+                        onboardingValuesParam: onboardingValues,
+                        isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                        hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                    });
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                 startedOnboardingFlowRef.current = true;
-                startOnboardingFlow(undefined, onboardingValues, account?.isFromPublicDomain);
+                startOnboardingFlow({
+                    onboardingValuesParam: onboardingValues,
+                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                });
             }
         });
     }, [
@@ -99,6 +108,7 @@ function useOnboardingFlowRouter() {
         onboardingValues,
         dismissedProductTraining,
         account?.isFromPublicDomain,
+        account?.hasAccessibleDomainPolicies,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};

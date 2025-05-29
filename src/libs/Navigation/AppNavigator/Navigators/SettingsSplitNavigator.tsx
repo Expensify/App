@@ -12,7 +12,6 @@ const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../..
 type Screens = Partial<Record<keyof SettingsSplitNavigatorParamList, () => React.ComponentType>>;
 
 const CENTRAL_PANE_SETTINGS_SCREENS = {
-    [SCREENS.SETTINGS.WORKSPACES]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspacesListPage').default,
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PreferencesPage').default,
     [SCREENS.SETTINGS.SECURITY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/SecuritySettingsPage').default,
     [SCREENS.SETTINGS.PROFILE.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/ProfilePage').default,

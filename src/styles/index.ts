@@ -1689,7 +1689,7 @@ const styles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.navigationTabBarSize,
+            marginLeft: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
         },
 
         searchSidebar: {
@@ -1698,6 +1698,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
+            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles
@@ -1854,12 +1855,6 @@ const styles = (theme: ThemeColors) =>
         breadcrumbLogo: {
             top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
         },
-
-        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
-            ({
-                ...modalNavigatorContainer(isSmallScreenWidth),
-                left: 0,
-            } satisfies ViewStyle),
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
@@ -3066,12 +3061,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
-        },
-
-        workspaceSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
-            ...spacing.pt4,
         },
 
         centralPaneAnimation: {
@@ -5383,6 +5372,14 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green700,
         },
 
+        splitItemBottomContent: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 12,
+            justifyContent: 'space-between',
+            minHeight: 16,
+        },
+
         volumeSliderOverlay: {
             width: 4,
             height: 60,
@@ -5616,6 +5613,11 @@ const styles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        tripEmptyStateLottieWebView: {
+            width: 335,
+            height: 220,
+        },
+
         workflowApprovalVerticalLine: {
             height: 16,
             width: 1,
@@ -5750,12 +5752,12 @@ const styles = (theme: ThemeColors) =>
             flexBasis: 'auto',
         },
 
-        testDriveModalContainer: {
+        testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
             // On small/medium screens, we need to remove the top padding
             paddingTop: 0,
-            // On medium screens, we need to prevent the modal from becoming too big
-            maxWidth: 500,
-        },
+            // On larger screens, we need to prevent the modal from becoming too big
+            maxWidth: shouldUseNarrowLayout ? undefined : 500,
+        }),
 
         backgroundWhite: {
             backgroundColor: colors.white,
@@ -5787,6 +5789,14 @@ const styles = (theme: ThemeColors) =>
             flexShrink: 1,
             // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
             flexBasis: '35%',
+        },
+
+        thumbnailImageContainerHover: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        thumbnailImageContainerHighlight: {
+            backgroundColor: theme.highlightBG,
         },
     } satisfies Styles);
 

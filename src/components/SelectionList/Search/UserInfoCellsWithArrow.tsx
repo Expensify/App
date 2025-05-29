@@ -12,7 +12,7 @@ import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import UserInfoCell from './UserInfoCell';
 
 function UserInfoCellsWithArrow({
-    shouldDisplayArrowIcon,
+    shouldShowToRecipient,
     participantFrom,
     participantFromDisplayName,
     participantTo,
@@ -20,8 +20,9 @@ function UserInfoCellsWithArrow({
     avatarSize,
     infoCellsTextStyle,
     infoCellsAvatarStyle,
+    fromRecipientStyle,
 }: {
-    shouldDisplayArrowIcon: boolean;
+    shouldShowToRecipient: boolean;
     participantFrom: SearchPersonalDetails | PersonalDetails;
     participantFromDisplayName: string;
     participantTo: SearchPersonalDetails | PersonalDetails;
@@ -29,13 +30,18 @@ function UserInfoCellsWithArrow({
     avatarSize?: AvatarSizeName;
     infoCellsTextStyle?: TextStyle;
     infoCellsAvatarStyle?: ViewStyle;
+    fromRecipientStyle?: ViewStyle;
 }) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
+    if (!participantFrom) {
+        return null;
+    }
+
     return (
         <>
-            <View style={[styles.mw50]}>
+            <View style={[styles.mw50, fromRecipientStyle]}>
                 <UserInfoCell
                     accountID={participantFrom.accountID}
                     avatar={participantFrom.avatar}
@@ -45,24 +51,27 @@ function UserInfoCellsWithArrow({
                     avatarStyle={infoCellsAvatarStyle}
                 />
             </View>
-            {shouldDisplayArrowIcon && (
-                <Icon
-                    src={Expensicons.ArrowRightLong}
-                    width={variables.iconSizeXXSmall}
-                    height={variables.iconSizeXXSmall}
-                    fill={theme.icon}
-                />
+            {shouldShowToRecipient && (
+                <>
+                    <Icon
+                        src={Expensicons.ArrowRightLong}
+                        width={variables.iconSizeXXSmall}
+                        height={variables.iconSizeXXSmall}
+                        fill={theme.icon}
+                        testID="ArrowRightLong Icon"
+                    />
+                    <View style={[styles.flex1, styles.mw50]}>
+                        <UserInfoCell
+                            accountID={participantTo.accountID}
+                            avatar={participantTo.avatar}
+                            displayName={participantToDisplayName}
+                            avatarSize={avatarSize}
+                            textStyle={infoCellsTextStyle}
+                            avatarStyle={infoCellsAvatarStyle}
+                        />
+                    </View>
+                </>
             )}
-            <View style={[styles.flex1, styles.mw50]}>
-                <UserInfoCell
-                    accountID={participantTo.accountID}
-                    avatar={participantTo.avatar}
-                    displayName={participantToDisplayName}
-                    avatarSize={avatarSize}
-                    textStyle={infoCellsTextStyle}
-                    avatarStyle={infoCellsAvatarStyle}
-                />
-            </View>
         </>
     );
 }

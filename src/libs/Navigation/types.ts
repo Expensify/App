@@ -103,6 +103,10 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: Routes;
     };
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
+        backTo?: Routes;
+        forwardTo?: Routes;
+    };
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
@@ -153,9 +157,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
-    [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
-        backTo?: Routes;
-    };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
@@ -325,8 +326,6 @@ type SettingsNavigatorParamList = {
         tagName: string;
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS.PROFILE.ROOT]: {backTo?: Routes};
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
     };
@@ -1157,6 +1156,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
     };
+    [SCREENS.MONEY_REQUEST.EDIT_REPORT]: {
+        action: IOUAction;
+        iouType: IOUType;
+        reportID: string;
+        backTo: Routes;
+    };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
         iouType: IOUType;
@@ -1562,10 +1567,6 @@ type TransactionDuplicateNavigatorParamList = {
     };
 };
 
-type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: undefined;
-};
-
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
@@ -1606,6 +1607,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
 };
@@ -1631,36 +1634,44 @@ type TravelNavigatorParamList = {
     };
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         domain: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
+        backTo?: Routes;
+    };
+    [SCREENS.TRAVEL.UPGRADE]: {
+        backTo?: Routes;
+    };
+    [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
+        backTo?: Routes;
     };
 };
 
 type ReportsSplitNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.REPORT]: {
-        reportActionID: string;
         reportID: string;
+        reportActionID?: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
-        iouReportID?: string;
     };
 };
 
 type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
-    [SCREENS.SETTINGS.WORKSPACES]: {
-        backTo?: Routes;
-    };
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ROOT]: {
+        backTo?: Routes;
+    };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
 };
 
 type WorkspaceSplitNavigatorParamList = {
@@ -1802,7 +1813,9 @@ type OnboardingModalNavigatorParamList = {
 };
 
 type WelcomeVideoModalNavigatorParamList = {
-    [SCREENS.WELCOME_VIDEO.ROOT]: undefined;
+    [SCREENS.WELCOME_VIDEO.ROOT]: {
+        isFromRoot?: string;
+    };
 };
 
 type ExplanationModalNavigatorParamList = {
@@ -1814,7 +1827,9 @@ type MigratedUserModalNavigatorParamList = {
 };
 
 type TestDriveModalNavigatorParamList = {
-    [SCREENS.TEST_DRIVE_MODAL.ROOT]: undefined;
+    [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
+        bossEmail?: string;
+    };
 };
 
 type TestDriveDemoNavigatorParamList = {
@@ -1890,12 +1905,14 @@ type AuthScreensParamList = SharedScreensParamList & {
         reportID: string;
         policyID?: string;
     };
+    [SCREENS.WORKSPACES_LIST]: {
+        backTo?: Routes;
+    };
     [SCREENS.NOT_FOUND]: undefined;
     [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList> & {policyID?: string};
-    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList> & {policyID?: string};
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
-    [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
     [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
@@ -1975,9 +1992,25 @@ type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: undefined;
 };
 
+type SplitExpenseParamList = {
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
+        reportID: string;
+        transactionID: string;
+        splitExpenseTransactionID?: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
+        reportID: string;
+        transactionID: string;
+        splitExpenseTransactionID: string;
+        backTo?: Routes;
+    };
+};
+
 type AddUnreportedExpensesParamList = {
     [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
         reportID: string;
+        backToReport?: string;
     };
 };
 
@@ -2025,7 +2058,7 @@ type ScheduleCallParamList = {
     };
 };
 
-type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList & SearchFullscreenNavigatorParamList;
+type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
 
@@ -2033,9 +2066,10 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
+type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST;
 
-type SettingsTabScreenName = typeof NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
+// There are two screens/navigators which can be displayed when the Workspaces tab is selected
+type WorkspacesTabNavigatorName = typeof SCREENS.WORKSPACES_LIST | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
@@ -2060,7 +2094,6 @@ export type {
     FeatureTrainingNavigatorParamList,
     FlagCommentNavigatorParamList,
     FullScreenName,
-    LeftModalNavigatorParamList,
     MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
     NavigationPartialRoute,
@@ -2118,6 +2151,8 @@ export type {
     ScheduleCallParamList,
     TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
-    SettingsTabScreenName,
     TestDriveDemoNavigatorParamList,
+    SplitExpenseParamList,
+    SetParamsAction,
+    WorkspacesTabNavigatorName,
 };

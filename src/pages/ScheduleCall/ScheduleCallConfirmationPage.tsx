@@ -21,18 +21,20 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
+import {getDefaultAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Timezone} from '@src/types/onyx/PersonalDetails';
+import type {PersonalDetails} from '@src/types/onyx';
 
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
+    const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
+
     const personalDetails = usePersonalDetails();
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.CONFIRMATION>>();
 
@@ -48,12 +50,21 @@ function ScheduleCallConfirmationPage() {
                 reportID: scheduleCallDraft.reportID,
             },
             currentUserPersonalDetails,
+            userTimezone,
         );
-    }, [currentUserPersonalDetails, scheduleCallDraft]);
+    }, [currentUserPersonalDetails, scheduleCallDraft, userTimezone]);
 
-    const guideDetails = useMemo(
-        () => (scheduleCallDraft?.guide?.accountID ? personalDetails?.[scheduleCallDraft?.guide?.accountID] : null),
-        [personalDetails, scheduleCallDraft?.guide?.accountID],
+    const guideDetails: PersonalDetails | null = useMemo(
+        () =>
+            scheduleCallDraft?.guide?.accountID
+                ? personalDetails?.[scheduleCallDraft.guide.accountID] ?? {
+                      accountID: scheduleCallDraft.guide.accountID,
+                      login: scheduleCallDraft.guide.email,
+                      displayName: scheduleCallDraft.guide.email,
+                      avatar: getDefaultAvatarURL(scheduleCallDraft.guide.accountID),
+                  }
+                : null,
+        [personalDetails, scheduleCallDraft?.guide?.accountID, scheduleCallDraft?.guide?.email],
     );
 
     const dateTimeString = useMemo(() => {
@@ -61,12 +72,16 @@ function ScheduleCallConfirmationPage() {
             return '';
         }
         const dateString = format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-        const timeString = `${DateUtils.formatToLocalTime(scheduleCallDraft?.timeSlot)} - ${DateUtils.formatToLocalTime(addMinutes(scheduleCallDraft?.timeSlot, 30))}`;
+        const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
+            addMinutes(scheduleCallDraft?.timeSlot, 30),
+            userTimezone,
+            CONST.DATE.LOCAL_TIME_FORMAT,
+        )}`;
 
-        const timeZoneStirng = timezone.selected ? DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), timezone.selected) : '';
+        const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
 
-        return `${dateString} from ${timeString} ${timeZoneStirng}`;
-    }, [scheduleCallDraft?.date, scheduleCallDraft?.timeSlot, timezone.selected]);
+        return `${dateString} from ${timeString} ${timezoneString}`;
+    }, [scheduleCallDraft?.date, scheduleCallDraft?.timeSlot, userTimezone]);
 
     return (
         <ScreenWrapper

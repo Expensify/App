@@ -24,6 +24,7 @@ const policyID = 'A1B2C3';
 const reportID = '123456789';
 const reportID2 = '11111';
 const reportID3 = '99999';
+const reportID4 = '6155022250251839';
 const transactionID = '1';
 const transactionID2 = '2';
 const transactionID3 = '3';
@@ -60,7 +61,10 @@ const searchResults: OnyxTypes.SearchResults = {
             },
             autoReimbursementLimit: 0,
             autoReporting: true,
-            autoReportingFrequency: 'instant',
+            autoReportingFrequency: 'immediate',
+            harvesting: {
+                enabled: false,
+            },
             preventSelfApproval: false,
             owner: adminEmail,
             reimbursementChoice: 'reimburseManual',
@@ -196,6 +200,14 @@ const searchResults: OnyxTypes.SearchResults = {
             total: 4400,
             type: 'iou',
             unheldTotal: 4400,
+        },
+        [`report_${reportID4}`]: {
+            accountID: adminAccountID,
+            reportID: reportID4,
+            chatReportID: '',
+            chatType: 'policyExpenseChat',
+            created: '2025-03-05 16:34:27',
+            type: 'chat',
         },
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
@@ -372,14 +384,14 @@ const reportActionListItems = [
         ],
         reportActionID: 'Admin',
         reportID: '123456789',
-        reportName: 'Unavailable workspace owes $50.00',
+        reportName: 'Expense Report #123',
     },
 ] as ReportActionListItemType[];
 
 const transactionsListItems = [
     {
         accountID: 18439984,
-        action: 'pay',
+        action: 'submit',
         amount: -5000,
         canDelete: true,
         canHold: true,
@@ -590,7 +602,7 @@ const transactionsListItems = [
 const reportsListItems = [
     {
         accountID: 18439984,
-        action: 'pay',
+        action: 'submit',
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -622,7 +634,7 @@ const reportsListItems = [
         transactions: [
             {
                 accountID: 18439984,
-                action: 'pay',
+                action: 'submit',
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
@@ -809,15 +821,15 @@ const reportsListItems = [
 
 describe('SearchUIUtils', () => {
     describe('Test getAction', () => {
-        test('Should return `Pay` action for transaction on policy with no approvals and no violations', () => {
+        test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
             let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID}`);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
             action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID}`);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
-        test('Should return `Review` action for transaction on policy with no approvals and with violations', () => {
+        test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
             let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID2}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
 
@@ -901,7 +913,7 @@ describe('SearchUIUtils', () => {
                     ],
                     reportActionID: 'Admin',
                     reportID: '123456789',
-                    reportName: 'Unavailable workspace owes $50.00',
+                    reportName: 'Expense Report #123',
                 },
             ]);
         });
@@ -990,7 +1002,7 @@ describe('SearchUIUtils', () => {
     test('Should return true if the search result has valid type', () => {
         expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults.search.type)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
-        const inValidSearchType: SearchDataTypes = 'expensse' as SearchDataTypes;
+        const inValidSearchType: SearchDataTypes = 'expensify' as SearchDataTypes;
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchType)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults.search.type)).toBe(false);
     });

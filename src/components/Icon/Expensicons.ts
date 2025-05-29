@@ -6,6 +6,7 @@ import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
+import ArrowSplit from '@assets/images/arrow-split.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
@@ -69,6 +70,7 @@ import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
@@ -237,6 +239,7 @@ export {
     AnnounceRoomAvatar,
     Apple,
     AppleLogo,
+    ArrowSplit,
     ArrowCollapse,
     ArrowRight,
     ArrowRightLong,
@@ -285,6 +288,7 @@ export {
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
+    DocumentMerge,
     DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,

@@ -39,6 +39,7 @@ export default {
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,
     avatarSizeSmallNormal: 32,
+    avatarSizeLargeNormal: 48,
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
@@ -278,12 +279,9 @@ export default {
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
     navigationTabBarInboxTooltipShiftHorizontal: 36,
-    navigationTabBarSettingsTooltipShiftHorizontal: -36,
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
-    workspacesSettingsTooltipShiftHorizontal: 8,
-    workspacesSettingsTooltipShiftVertical: -8,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -294,6 +292,8 @@ export default {
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
+
+    scrollToNewTransactionOffset: 300,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,

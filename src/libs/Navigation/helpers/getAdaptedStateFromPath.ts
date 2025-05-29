@@ -1,19 +1,16 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
-import {isAnonymousUser} from '@libs/actions/Session';
+import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
 import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
-import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
-import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
@@ -42,7 +39,7 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
-function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: string) {
+function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
         const stateForBackTo = getStateFromPath(route.params.backTo, config);
@@ -66,7 +63,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
             return undefined;
         }
         // If not, get the matching full screen route for the back to state.
-        return getMatchingFullScreenRoute(focusedStateForBackToRoute, policyID);
+        return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
 
     if (RHP_TO_SEARCH[route.name]) {
@@ -82,13 +79,9 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
     }
 
     if (RHP_TO_SIDEBAR[route.name]) {
-        return getInitialSplitNavigatorState(
-            {
-                name: RHP_TO_SIDEBAR[route.name],
-            },
-            undefined,
-            policyID ? {policyID} : undefined,
-        );
+        return getInitialSplitNavigatorState({
+            name: RHP_TO_SIDEBAR[route.name],
+        });
     }
 
     if (RHP_TO_WORKSPACE[route.name]) {
@@ -127,11 +120,10 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
 // It is the reports split navigator with report. If the reportID is defined in the focused route, we want to use it for the default report.
 // This is separated from getMatchingFullScreenRoute because we want to use it only for the initial state.
 // We don't want to make this route mandatory e.g. after deep linking or opening a specific flow.
-function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: string) {
+function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
     // We will use it if the reportID is not defined. Router of this navigator has logic to fill it with a report.
     const fallbackRoute = {
         name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-        params: policyID ? {policyID} : undefined,
     };
 
     if (route && isRouteWithReportID(route)) {
@@ -149,7 +141,6 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: st
                 name: SCREENS.REPORT,
                 params: {reportID},
             },
-            policyID ? {policyID} : undefined,
         );
     }
 
@@ -172,25 +163,14 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
     return getRoutesWithIndex(routes);
 }
 
-function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>, policyID?: string): GetAdaptedStateReturnType {
+function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
     const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
-    const isReportSplitNavigator = fullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
     const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
-    // If policyID is defined, it should be passed to the reportNavigator params.
-    if (isReportSplitNavigator && policyID) {
-        const routes = [];
-        const reportNavigatorWithPolicyID = {...fullScreenRoute};
-        reportNavigatorWithPolicyID.params = {...reportNavigatorWithPolicyID.params, policyID};
-        routes.push(reportNavigatorWithPolicyID);
-
-        return getRoutesWithIndex(routes);
-    }
-
     if (isWorkspaceSplitNavigator) {
-        const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.WORKSPACES});
-        return getRoutesWithIndex([settingsSplitRoute, ...state.routes]);
+        const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
+        return getRoutesWithIndex([workspacesListRoute, ...state.routes]);
     }
 
     // If there is no full screen route in the root, we want to add it.
@@ -198,20 +178,20 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         const focusedRoute = findFocusedRoute(state);
 
         if (focusedRoute) {
-            const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute, policyID);
+            const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);
 
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
                 const routes = [matchingRootRoute, ...state.routes];
                 if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.WORKSPACES});
-                    routes.unshift(settingsSplitRoute);
+                    const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
+                    routes.unshift(workspacesListRoute);
                 }
                 return getRoutesWithIndex(routes);
             }
         }
 
-        const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute, policyID);
+        const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);
 
         // The onboarding flow consists of several screens. If we open any of the screens, the previous screens from that flow should be in the state.
         if (onboardingNavigator?.state) {
@@ -232,13 +212,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-    const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath);
-    const isAnonymous = isAnonymousUser();
 
-    // Anonymous users don't have access to workspaces
-    const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
-
-    const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const state = getStateFromPath(normalizedPath, options) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
     }
@@ -247,10 +222,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         throw new Error(`[getAdaptedStateFromPath] Unable to get state from path: ${path}`);
     }
 
-    // On SCREENS.SEARCH.ROOT policyID is stored differently inside search query ("q" param), so we're handling this case
-    const focusedRoute = findFocusedRoute(state);
-    const policyIDFromQuery = extractPolicyIDFromQuery(focusedRoute);
-    return getAdaptedState(state, policyID ?? policyIDFromQuery);
+    return getAdaptedState(state);
 };
 
 export default getAdaptedStateFromPath;
