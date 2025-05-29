@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
-import {SearchQueryJSON} from '@components/Search/types';
+import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 const personalDetailsFakeData = {
@@ -175,33 +176,12 @@ describe('SearchQueryUtils', () => {
 
     describe('buildFilterFormValuesFromQuery', () => {
         test('category filter includes empty values', () => {
-            const queryJSON: SearchQueryJSON = {
-                filters: {
-                    left: 'category',
-                    operator: 'eq',
-                    right: ['none', 'Uncategorized', 'Maintenance'],
-                },
-                flatFilters: [
-                    {
-                        filters: [
-                            {operator: 'eq', value: 'none'},
-                            {operator: 'eq', value: 'Uncategorized'},
-                            {operator: 'eq', value: 'Maintenance'},
-                        ],
-                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    },
-                ],
-                hash: 123456789,
-                inputQuery: 'sortBy:date sortOrder:desc type:expense status:all category:none,Uncategorized,Maintenance',
-                recentSearchHash: 987654321,
-                sortBy: 'date',
-                sortOrder: 'desc',
-                status: 'all',
-                type: 'expense',
-            };
+            const policyID = generatePolicyID();
+            const queryString = 'sortBy:date sortOrder:desc type:expense status:all category:none,Uncategorized,Maintenance';
+            const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {
-                ['policyCategories_testPolicy']: {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
                     Maintenance: {
                         enabled: true,
                         name: 'Maintenance',
@@ -216,13 +196,16 @@ describe('SearchQueryUtils', () => {
                     },
                 },
             };
-
             const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
             const reports = {};
             const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
 
             const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
 
