@@ -24,12 +24,22 @@ if [[ -z "$MERGE_BASE_SHA_HASH" ]] || ! [[ "$MERGE_BASE_SHA_HASH" =~ ^[a-fA-F0-9
     exit 1
 fi
 
-DIFF_OUTPUT="$(git diff --diff-filter=AMR --name-only "$MERGE_BASE_SHA_HASH" HEAD -- '*.ts' '*.tsx')"
-# Check if there were any changes
-# shellcheck disable=SC2181 # Long command
+# Get the diff output and check status
+GIT_DIFF_OUTPUT="$(git diff --diff-filter=AMR --name-only "$MERGE_BASE_SHA_HASH" HEAD -- '*.ts' '*.tsx')"
+# shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
-    error "git diff failed"
-    exit 1
+  error "git diff failed"
+  exit 1
 fi
 
-eslint --max-warnings=0 --config ./.eslintrc.changed.js "$DIFF_OUTPUT"
+# Populate an array with changed files to handle large number of changes.
+DIFF_FILES=()
+# Use a here-string to pass the output into the function
+read_lines_into_array DIFF_FILES <<< "$GIT_DIFF_OUTPUT"
+
+# Run eslint on the changed files
+if [ "${#DIFF_FILES[@]}" -gt 0 ]; then
+  eslint --max-warnings=0 --config ./.eslintrc.changed.js "${DIFF_FILES[@]}"
+else
+  info "No TypeScript files changed"
+fi
