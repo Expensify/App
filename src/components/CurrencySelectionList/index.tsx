@@ -21,7 +21,7 @@ function CurrencySelectionList({
     excludedCurrencies = [],
     ...restProps
 }: CurrencySelectionListProps) {
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const getUnselectedOptions = useCallback((options: CurrencyListItem[]) => options.filter((option) => !option.isSelected), []);
