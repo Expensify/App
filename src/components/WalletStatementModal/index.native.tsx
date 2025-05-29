@@ -18,21 +18,7 @@ type WebViewMessageType = ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>;
 type WebViewNavigationEvent = WebViewNavigation & {type?: WebViewMessageType};
 
 const renderLoading = () => <FullScreenLoadingIndicator />;
-const INJECTED_JAVASCRIPT = `(function() {
-            $('.footer a').on('click', function(e) {
-                e.preventDefault();
-                window.ReactNativeWebView.postMessage(JSON.stringify({
-                    type: 'CONCIERGE_NAVIGATE'
-                }));
-            });
-            $('.action-container a').on('click', function(e) {
-                e.preventDefault();
-                window.ReactNativeWebView.postMessage(JSON.stringify({
-                    type: 'STATEMENT_NAVIGATE',
-                    url: $(this).attr('href')
-                }));
-            });
-})();`;
+
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const webViewRef = useRef<WebView>(null);
@@ -99,7 +85,6 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
             incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
             startInLoadingState
             renderLoading={renderLoading}
-            injectedJavaScript={INJECTED_JAVASCRIPT}
             onMessage={onMessage}
         />
     );
