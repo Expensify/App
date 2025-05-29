@@ -51,6 +51,24 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 };
 
+type TransactionItemRowProps = {
+    transactionItem: TransactionWithOptionalSearchFields;
+    shouldUseNarrowLayout: boolean;
+    isSelected: boolean;
+    shouldShowTooltip: boolean;
+    dateColumnSize: TableColumnSize;
+    onCheckboxPress: (transactionID: string) => void;
+    shouldShowCheckbox: boolean;
+    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
+    onButtonPress?: () => void;
+    isParentHovered?: boolean;
+    columnWrapperStyles?: ViewStyle[];
+    scrollToNewTransaction?: ((offset: number) => void) | undefined;
+    isChildListItem?: boolean;
+    isActionLoading?: boolean;
+    isInReportRow?: boolean;
+};
+
 function TransactionItemRow({
     transactionItem,
     shouldUseNarrowLayout,
@@ -66,26 +84,8 @@ function TransactionItemRow({
     scrollToNewTransaction,
     isChildListItem = true,
     isActionLoading,
-    usedInExpenses,
     isInReportRow = false,
-}: {
-    transactionItem: TransactionWithOptionalSearchFields;
-    shouldUseNarrowLayout: boolean;
-    isSelected: boolean;
-    shouldShowTooltip: boolean;
-    dateColumnSize: TableColumnSize;
-    onCheckboxPress: (transactionID: string) => void;
-    shouldShowCheckbox: boolean;
-    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
-    onButtonPress?: () => void;
-    isParentHovered?: boolean;
-    columnWrapperStyles?: ViewStyle[];
-    scrollToNewTransaction?: ((offset: number) => void) | undefined;
-    isChildListItem?: boolean;
-    isActionLoading?: boolean;
-    usedInExpenses?: boolean;
-    isInReportRow?: boolean;
-}) {
+}: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -244,7 +244,7 @@ function TransactionItemRow({
         }),
         [StyleUtils, createdAt, isActionLoading, isChildListItem, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
     );
-    const safeColumnWrapperStyle = !usedInExpenses ? columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius] : [];
+    const safeColumnWrapperStyle = isInReportRow ? columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius] : [];
     return (
         <View
             style={[styles.flex1]}
@@ -258,7 +258,7 @@ function TransactionItemRow({
             >
                 {shouldUseNarrowLayout ? (
                     <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
-                        <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, !usedInExpenses && styles.p3, bgActiveStyles]}>
+                        <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, isInReportRow && styles.p3, bgActiveStyles]}>
                             <View style={[styles.flexRow]}>
                                 {shouldShowCheckbox && (
                                     <View style={[styles.mr3, styles.justifyContentCenter]}>

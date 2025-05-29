@@ -127,7 +127,6 @@ function TransactionListItem<TItem extends ListItem>({
                         shouldShowCheckbox={!!canSelectMultiple}
                         columnWrapperStyles={[styles.ph3, styles.pv1half]}
                         isChildListItem={false}
-                        usedInExpenses
                     />
                 </>
             )}
