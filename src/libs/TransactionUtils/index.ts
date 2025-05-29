@@ -43,7 +43,7 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -70,8 +70,6 @@ type TransactionParams = {
     source?: string;
     filename?: string;
     customUnit?: TransactionCustomUnit;
-    splitExpenses?: SplitExpense[];
-    participants?: Participant[];
 };
 
 type BuildOptimisticTransactionParams = {
@@ -263,8 +261,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         source = '',
         filename = '',
         customUnit,
-        splitExpenses,
-        participants,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -276,10 +272,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     }
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
-    }
-
-    if (splitExpenses) {
-        commentJSON.splitExpenses = splitExpenses;
     }
 
     const isDistanceTransaction = !!pendingFields?.waypoints;
@@ -313,7 +305,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         billable,
         reimbursable,
         inserted: DateUtils.getDBTime(),
-        participants,
     };
 }
 
@@ -1275,8 +1266,6 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
 /**
  * @deprecated Get the data straight from Onyx
  */
-// TODO: Will be handled in this PR https://github.com/Expensify/App/pull/62434
-// eslint-disable-next-line deprecation/deprecation
 function getTransaction(transactionID: string | number | undefined): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
@@ -1557,23 +1546,6 @@ function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
     return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0)?.transactionID, allTransactionViolations));
 }
 
-const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>) => {
-    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
-    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-
-    if (splits && splits.length > 0) {
-        return {isBillSplit: true, isExpenseSplit: false, originalTransaction: originalTransaction ?? transaction};
-    }
-
-    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
-        return {isBillSplit: false, isExpenseSplit: false, originalTransaction: transaction};
-    }
-
-    // To determine if it’s a split bill or a split expense, we check for the presence of `comment.splits` on the original transaction.
-    // Since both splits use `comment.originalTransaction`, but split expenses won’t have `comment.splits`.
-    return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: !originalTransaction?.comment?.splits, originalTransaction: originalTransaction ?? transaction};
-};
-
 /**
  * Return transactions pending action.
  */
@@ -1660,8 +1632,6 @@ export {
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
-    // TODO: Will be handled in this PR https://github.com/Expensify/App/pull/62434
-    // eslint-disable-next-line deprecation/deprecation
     getTransaction,
     compareDuplicateTransactionFields,
     getTransactionID,
@@ -1684,7 +1654,6 @@ export {
     isPendingCardOrScanningTransaction,
     getTransactionOrDraftTransaction,
     checkIfShouldShowMarkAsCashButton,
-    getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
 };
 
