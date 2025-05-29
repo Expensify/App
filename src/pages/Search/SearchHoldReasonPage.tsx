@@ -6,6 +6,7 @@ import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
@@ -26,7 +27,10 @@ function SearchHoldReasonPage({route}: Props) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (isOnSearchHoldReason) {
                 const {selectedTransactionsID, setSelectedTransactions} = contextValue;
-                selectedTransactionsID.forEach((transactionID) => putOnHold(transactionID, values.comment, route.params.reportID));
+                selectedTransactionsID.forEach((transactionID) => {
+                    const {childReportID} = getIOUActionForReportID(route.params.reportID, transactionID) ?? {};
+                    return childReportID && putOnHold(transactionID, values.comment, childReportID);
+                });
                 setSelectedTransactions([]);
             } else {
                 const {currentSearchHash, selectedTransactions, clearSelectedTransactions} = contextValue;

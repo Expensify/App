@@ -30,6 +30,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
+import {getTransactionPendingAction} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -122,6 +123,11 @@ function MoneyRequestReportTransactionList({
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
+
+    const pendingActionsOpacity = useMemo(() => {
+        const pendingAction = transactions.some(getTransactionPendingAction);
+        return pendingAction && styles.opacitySemiTransparent;
+    }, [styles.opacitySemiTransparent, transactions]);
 
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
@@ -237,6 +243,7 @@ function MoneyRequestReportTransactionList({
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                 {sortedTransactions.map((transaction) => {
+                    const isPendingDelete = getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                     return (
                         <PressableWithFeedback
                             key={transaction.transactionID}
@@ -259,7 +266,8 @@ function MoneyRequestReportTransactionList({
                             hoverDimmingValue={1}
                             onMouseDown={(e) => e.preventDefault()}
                             id={transaction.transactionID}
-                            style={[pressableStyle]}
+                            style={[pressableStyle, styles.userSelectNone]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             onMouseLeave={handleMouseLeave}
                             onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
@@ -274,6 +282,7 @@ function MoneyRequestReportTransactionList({
                                 setSelectedTransactionID(transaction.transactionID);
                                 setIsModalVisible(true);
                             }}
+                            disabled={isPendingDelete}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
@@ -323,7 +332,7 @@ function MoneyRequestReportTransactionList({
                 </Animated.Text>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
-                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold]}>
+                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, pendingActionsOpacity]}>
                         {convertToDisplayString(totalDisplaySpend, report?.currency)}
                     </Text>
                 </View>

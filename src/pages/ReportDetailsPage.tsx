@@ -33,6 +33,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
@@ -121,7 +122,7 @@ import {
     updateGroupChatAvatar,
 } from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask as canActionTaskAction, canModifyTask as canModifyTaskAction, deleteTask, reopenTask} from '@userActions/Task';
+import {canActionTask, canModifyTask, deleteTask, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -225,9 +226,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isSelfDM = useMemo(() => isSelfDMUtil(report), [report]);
     const isTrackExpenseReport = useMemo(() => isTrackExpenseReportUtil(report), [report]);
     const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
-    const canModifyTask = canModifyTaskAction(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskModifiable = canModifyTask(report, session?.accountID, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, session?.accountID, parentReport, isParentReportArchived);
     const canEditReportDescription = useMemo(() => canEditReportDescriptionUtil(report, policy), [report, policy]);
-    const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '') && (isTaskReport ? canModifyTask : true);
+    const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '') && (isTaskReport ? isTaskModifiable : true);
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
@@ -310,9 +313,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
-    const canActionTask = canActionTaskAction(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const shouldShowTaskDeleteButton =
-        isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
+        isTaskReport &&
+        !isCanceledTaskReport &&
+        canWriteInReport(report) &&
+        report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
+        !isClosedReport(report) &&
+        isTaskModifiable &&
+        isTaskActionable;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
@@ -512,7 +520,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         // Show actions related to Task Reports
         if (isTaskReport && !isCanceledTaskReport) {
-            if (isCompletedTaskReport(report) && canActionTask) {
+            if (isCompletedTaskReport(report) && isTaskActionable) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.MARK_AS_INCOMPLETE,
                     icon: Expensicons.Checkmark,
@@ -659,7 +667,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         iouTransactionID,
         moneyRequestReport?.reportID,
         session,
-        canActionTask,
+        isTaskActionable,
         isOffline,
         transactionIDList,
         unapproveExpenseReportOrShowModal,
