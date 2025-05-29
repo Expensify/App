@@ -1,8 +1,6 @@
 import type {Section} from '@libs/OptionsListUtils';
-import {getTagListSections, sortTags} from '@libs/TagsOptionsListUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
-
-jest.mock('@components/ConfirmedRoute.tsx');
+import {getTagListSections, sortTags} from '@libs/TagsOptionsListUtils';
 
 describe('TagsOptionsListUtils', () => {
     it('getTagListSections()', () => {

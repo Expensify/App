@@ -333,7 +333,6 @@ function WorkspaceTaxesPage({
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
             shouldAlwaysShowDropdownMenu
-            pressOnEnter
             isSplitButton={false}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
             isDisabled={!selectedTaxesIDs.length}
