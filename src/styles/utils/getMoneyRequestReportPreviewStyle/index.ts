@@ -12,7 +12,7 @@ const componentsSpacing = {
 };
 
 const NEXT_TRANSACTION_PEEK = 32;
-const TRANSACTION_WIDTH_WIDE = CONST.REPORT.TRANSACTION_PREVIEW_WIDTH_WIDE;
+const TRANSACTION_WIDTH_WIDE = CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDTH_WIDE;
 
 const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
     const peek = isSingleTransaction ? spacing.p4.padding : NEXT_TRANSACTION_PEEK;

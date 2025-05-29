@@ -24,6 +24,7 @@ import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -50,7 +51,6 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
         didScreenTransitionEnd: true,
     }),
 }));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
@@ -704,7 +704,7 @@ describe('actions/Report', () => {
                 reportAction = Object.values(reportActions).at(0);
 
                 if (reportAction) {
-                    // Add the same reaction to the same report action with a different skintone
+                    // Add the same reaction to the same report action with a different skin tone
                     Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 }
                 return waitForBatchedUpdates()
@@ -731,7 +731,7 @@ describe('actions/Report', () => {
                         const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
                         expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
-                        // Expect two different skintone reactions
+                        // Expect two different skin tone reactions
                         const reportActionReactionEmojiUserSkinTones = reportActionReactionEmoji?.users[TEST_USER_ACCOUNT_ID].skinTones;
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('-1');
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('2');
@@ -989,7 +989,7 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
-    it('should send DeleteComment request after AddComment is rollbacked', async () => {
+    it('should send DeleteComment request after AddComment is rollback', async () => {
         global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
         const mockedXhr = jest.fn();
@@ -1615,6 +1615,39 @@ describe('actions/Report', () => {
             Object.values(reportActions ?? {}).forEach((action) => {
                 expect(action.isOptimisticAction).toBeFalsy();
             });
+        });
+    });
+
+    describe('updateDescription', () => {
+        it('should not call UpdateRoomDescription API if the description is not changed', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            Report.updateDescription('1', '<h1>test</h1>', '# test');
+
+            await waitForBatchedUpdates();
+
+            expect(global.fetch).toHaveBeenCalledTimes(0);
+        });
+
+        it('should revert to correct previous description if UpdateRoomDescription API fails', async () => {
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                description: '<h1>test</h1>',
+            };
+            const mockFetch = fetch as MockFetch;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            mockFetch?.fail?.();
+            Report.updateDescription('1', '<h1>test</h1>', '# test1');
+
+            await waitForBatchedUpdates();
+            let updateReport: OnyxEntry<OnyxTypes.Report>;
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                callback: (val) => (updateReport = val),
+            });
+            expect(updateReport?.description).toBe('<h1>test</h1>');
         });
     });
 });

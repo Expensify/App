@@ -542,7 +542,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
+    Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
 
 /** Get a tax with given ID from policy */

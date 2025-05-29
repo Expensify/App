@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -61,7 +62,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const policyName = getPolicyName({report});
 

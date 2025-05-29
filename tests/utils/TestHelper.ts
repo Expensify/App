@@ -86,6 +86,7 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
  * Simulate signing in and make sure all API calls in this flow succeed. Every time we add
  * a mockImplementationOnce() we are altering what Network.post() will return.
  */
+// cspell:disable-next-line
 function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty', firstName = 'Test') {
     const originalXhr = HttpUtils.xhr;
 

@@ -38,6 +38,8 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
+    WORKSPACES_LIST: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
+
     SEARCH_ROOT: {
         route: 'search',
         getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => {
@@ -202,7 +204,6 @@ const ROUTES = {
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
-    SETTINGS_WORKSPACES: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_MERGE_ACCOUNTS: {
@@ -964,7 +965,6 @@ const ROUTES = {
             return `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const;
         },
     },
-    WORKSPACE_HUB_INITIAL: 'settings/workspace-menu',
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite`, backTo)}` as const,
@@ -1895,7 +1895,10 @@ const ROUTES = {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
     },
-    TRAVEL_UPGRADE: 'travel/upgrade',
+    TRAVEL_UPGRADE: {
+        route: 'travel/upgrade',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('travel/upgrade', backTo),
+    },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
@@ -1915,12 +1918,18 @@ const ROUTES = {
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo);
         },
     },
-    TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
+    TRAVEL_DOMAIN_SELECTOR: {
+        route: 'travel/domain-selector',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/domain-selector`, backTo),
+    },
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         route: 'travel/domain-permission/:domain/info',
         getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
     },
-    TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
+    TRAVEL_PUBLIC_DOMAIN_ERROR: {
+        route: 'travel/public-domain-error',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error`, backTo),
+    },
     TRAVEL_WORKSPACE_ADDRESS: {
         route: 'travel/:domain/workspace-address',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address`, backTo),

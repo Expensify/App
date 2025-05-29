@@ -4,7 +4,6 @@ import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -107,8 +106,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const previousAuthenticated = usePrevious(authenticated);
 
-    const {canUsePrivateDomainOnboarding} = usePermissions();
-
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && lastVisitedPath && isOnboardingCompleted && authenticated) {
@@ -135,7 +132,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
             return getAdaptedStateFromPath(
                 getOnboardingInitialPath({
-                    canUsePrivateDomainOnboarding,
                     isUserFromPublicDomain: !!account.isFromPublicDomain,
                     hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
                 }),
