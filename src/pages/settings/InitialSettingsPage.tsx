@@ -241,7 +241,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.Exit,
                     action: () => {
                         signOut(false);
-                        HybridAppActions.resetSignInFlow();
                     },
                 },
             ],
