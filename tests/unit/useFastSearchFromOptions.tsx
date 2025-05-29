@@ -3,19 +3,19 @@ import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import type {Options} from '@libs/OptionsListUtils';
 
 const ahmedPersonalDetail = {
-        login: 'ahmed@example.com',
-        text: 'Ahmed Gaber',
-        participantsList: [
-            {
-                displayName: 'Ahmed Gaber',
-            },
-        ],
-    }
+    login: 'ahmed@example.com',
+    text: 'Ahmed Gaber',
+    participantsList: [
+        {
+            displayName: 'Ahmed Gaber',
+        },
+    ],
+};
 
-const ahmedReport =  {
+const ahmedReport = {
     reportID: '1',
     text: 'Ahmed Gaber (Report)',
-}
+};
 
 const fabioPersonalDetail = {
     login: 'fabio.john@example.com',
@@ -25,12 +25,12 @@ const fabioPersonalDetail = {
             displayName: 'Fábio John',
         },
     ],
-}
+};
 
 const fabioReport = {
     reportID: '4',
     text: 'Fábio, John (Report)',
-}
+};
 
 const options = {
     currentUserOption: null,
@@ -48,7 +48,7 @@ const options = {
         },
     ],
     recentReports: [
-       ahmedReport,
+        ahmedReport,
         {
             reportID: '2',
             text: 'Something else',
@@ -64,12 +64,8 @@ const options = {
 const nonLatinOptions = {
     currentUserOption: null,
     userToInvite: null,
-    personalDetails: [
-        fabioPersonalDetail,
-    ],
-    recentReports: [
-        fabioReport,
-    ],
+    personalDetails: [fabioPersonalDetail],
+    recentReports: [fabioReport],
 } as Options;
 
 describe('useFastSearchFromOptions', () => {
