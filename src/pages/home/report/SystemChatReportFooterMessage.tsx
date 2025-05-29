@@ -1,5 +1,7 @@
 import React, {useMemo} from 'react';
+import {useWindowDimensions} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import RenderHtml from 'react-native-render-html';
 import Banner from '@components/Banner';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
@@ -15,6 +17,7 @@ import ROUTES from '@src/ROUTES';
 
 function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();
+    const {width} = useWindowDimensions();
     const styles = useThemeStyles();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -37,21 +40,52 @@ function SystemChatReportFooterMessage() {
         switch (choice) {
             case CONST.ONBOARDING_CHOICES.MANAGE_TEAM:
                 return (
-                    <>
-                        {translate('systemChatFooterMessage.newDotManageTeam.phrase1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? '-1'))}>
-                            {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
-                        </TextLink>
-                        {translate('systemChatFooterMessage.newDotManageTeam.phrase2')}
-                    </>
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{
+                            html: translate('systemChatFooterMessage.newDotManageTeam.full').replace(
+                                '{}',
+                                `<a href="#" data-reportid="${adminChatReport?.reportID ?? '-1'}">${adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a>`,
+                            ),
+                        }}
+                        tagsStyles={{
+                            a: {color: styles.link.color, textDecorationLine: 'underline'},
+                            p: {...styles.textNormal},
+                        }}
+                        renderers={{
+                            a: ({TDefaultRenderer, ...props}) => (
+                                <TextLink
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? '-1'))}
+                                    style={styles.link}
+                                >
+                                    {props?.tnode?.data}
+                                </TextLink>
+                            ),
+                        }}
+                    />
                 );
             default:
                 return (
-                    <>
-                        {translate('systemChatFooterMessage.default.phrase1')}
-                        <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
-                        {translate('systemChatFooterMessage.default.phrase2')}
-                    </>
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{
+                            html: translate('systemChatFooterMessage.default.full').replace('{}', `<a href="#" data-reportid="concierge">${CONST.CONCIERGE_CHAT_NAME}</a>`),
+                        }}
+                        tagsStyles={{
+                            a: {color: styles.link.color, textDecorationLine: 'underline'},
+                            p: {...styles.textNormal},
+                        }}
+                        renderers={{
+                            a: ({TDefaultRenderer, ...props}) => (
+                                <TextLink
+                                    onPress={() => ReportInstance.navigateToConciergeChat()}
+                                    style={styles.link}
+                                >
+                                    {props?.tnode?.data}
+                                </TextLink>
+                            ),
+                        }}
+                    />
                 );
         }
     }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, translate]);

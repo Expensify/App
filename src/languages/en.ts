@@ -5724,14 +5724,13 @@ const translations = {
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chat with your setup specialist in ',
-            phrase2: ' for help',
+            full: 'Chat with your setup specialist in  for help',
         },
         default: {
-            phrase1: 'Message ',
-            phrase2: ' for help with setup',
+            full: 'Message  for help with setup',
         },
     },
+
     violations: {
         allTagLevelsRequired: 'All tags required',
         autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,
