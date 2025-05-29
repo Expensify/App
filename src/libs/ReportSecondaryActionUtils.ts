@@ -42,7 +42,12 @@ import {
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isCardTransaction as isCardTransactionUtils, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions
+import {
+    allHavePendingRTERViolation,
+    isCardTransaction as isCardTransactionUtils,
+    isDuplicate,
+    isOnHold as isOnHoldTransactionUtils,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
