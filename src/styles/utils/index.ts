@@ -1340,6 +1340,18 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     /**
+     * Computes styles for the text input icon container.
+     * Applies horizontal padding if requested, and sets the top margin based on the presence of a label.
+     */
+    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true) => {
+        const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
+        return {
+            ...paddingStyle,
+            marginTop: hasLabel ? 8 : 16,
+        };
+    },
+
+    /**
      * Return the style from an avatar size constant
      */
     getAvatarStyle: (size: AvatarSizeName): AvatarStyle => {

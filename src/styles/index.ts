@@ -1391,11 +1391,6 @@ const styles = (theme: ThemeColors) =>
 
         textInputDesktop: addOutlineWidth(theme, {}, 0),
 
-        textInputIconContainer: {
-            paddingHorizontal: 11,
-            marginTop: 8,
-        },
-
         textInputLeftIconContainer: {
             justifyContent: 'center',
             paddingRight: 8,
