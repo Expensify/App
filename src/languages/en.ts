@@ -2274,9 +2274,7 @@ const translations = {
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         hasPhoneLoginError: {
-            phrase1: 'To connect a bank account, please',
-            link: 'add an email as your primary login',
-            phrase2: ' and try again. You can add your phone number as a secondary login.',
+            full: 'To connect a bank account, please <a>add an email as your primary login</a> and try again. You can add your phone number as a secondary login.',
         },
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: {

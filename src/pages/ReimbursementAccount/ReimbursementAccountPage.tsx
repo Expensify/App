@@ -2,7 +2,9 @@ import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {useWindowDimensions} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import RenderHtml from 'react-native-render-html';
 import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -73,6 +75,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {width} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const requestorStepRef = useRef(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
@@ -384,16 +387,21 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     if (userHasPhonePrimaryEmail) {
         errorText = (
-            <Text style={styles.flexRow}>
-                <Text>{translate('bankAccount.hasPhoneLoginError.phrase1')}</Text>{' '}
-                <TextLink
-                    style={styles.link}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
-                >
-                    {translate('bankAccount.hasPhoneLoginError.link')}
-                </TextLink>
-                {translate('bankAccount.hasPhoneLoginError.phrase2')}
-            </Text>
+            <RenderHtml
+                contentWidth={width}
+                source={{
+                    html: translate('bankAccount.hasPhoneLoginError.full'),
+                }}
+                tagsStyles={{
+                    a: styles.link,
+                    p: styles.flexRow,
+                }}
+                renderersProps={{
+                    a: {
+                        onPress: () => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)),
+                    },
+                }}
+            />
         );
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
