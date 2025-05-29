@@ -145,9 +145,11 @@ function IOURequestStepScan({
     }));
 
     const showBlink = useCallback(() => {
-        blinkOpacity.value = withTiming(0.4, {duration: 10}, () => {
-            blinkOpacity.value = withTiming(0, {duration: 50});
-        });
+        blinkOpacity.set(
+            withTiming(0.4, {duration: 10}, () => {
+                blinkOpacity.set(withTiming(0, {duration: 50}));
+            }),
+        );
         HapticFeedback.press();
     }, [blinkOpacity]);
 

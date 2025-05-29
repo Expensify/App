@@ -167,9 +167,11 @@ function IOURequestStepScan({
     }));
 
     const showBlink = useCallback(() => {
-        blinkOpacity.value = withTiming(0.4, {duration: 10}, () => {
-            blinkOpacity.value = withTiming(0, {duration: 50});
-        });
+        blinkOpacity.set(
+            withTiming(0.4, {duration: 10}, () => {
+                blinkOpacity.set(withTiming(0, {duration: 50}));
+            }),
+        );
     }, [blinkOpacity]);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
