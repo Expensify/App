@@ -78,8 +78,6 @@ jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
     useReducedMotion: jest.fn,
-    useScrollViewOffset: jest.fn(() => 0),
-    useAnimatedRef: jest.fn(() => jest.fn()),
     LayoutAnimationConfig: jest.fn,
 }));
 
@@ -165,13 +163,4 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
 
         return Promise.resolve(formData);
     }),
-}));
-
-// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
-jest.mock('@components/ConfirmedRoute.tsx');
-
-jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: jest.fn(() => jest.fn()), // Return a function that returns a function
 }));

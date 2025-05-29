@@ -1,12 +1,11 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
@@ -53,7 +52,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         horizontal: 0,
         vertical: 0,
     });
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
 
     const instanceIDRef = useRef('');
 
@@ -268,10 +266,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             onPopoverHideActionCallback.current = onHideActionCallback;
         }
 
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: Actions.CLOSE_POPOVER,
-        });
-        selectionRef.current = '';
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
     };
