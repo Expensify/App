@@ -329,9 +329,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         }
         setMenuPosition();
 
-        // This effect is intended to update menu position on window dimension change.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // This effect is intended to update menu position only on window dimension change.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [windowWidth, windowHeight]);
 
     useEffect(() => {
