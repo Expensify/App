@@ -39,13 +39,11 @@ import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Performance from '@libs/Performance';
 import {
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
     chatIncludesConcierge,
-    generateReportID,
     getReportRecipientAccountIDs,
     isAdminRoom,
     isAnnounceRoom,
@@ -55,16 +53,18 @@ import {
 } from '@libs/ReportUtils';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import Navigation from '@navigation/Navigation';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
-import {initMoneyRequest, replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU';
+import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -444,15 +444,16 @@ function ReportActionCompose({
 
     const saveFileAndInitMoneyRequest = (file: FileObject) => {
         const source = URL.createObjectURL(file as Blob);
-        const newReportID = generateReportID();
 
         if (isTransactionThreadView && transactionID) {
             replaceReceipt({transactionID, file: file as File, source});
         } else {
-            initMoneyRequest(newReportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
+            initMoneyRequest(reportID, undefined, false, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
-            navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+            setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report).then(() => {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            });
         }
     };
 
@@ -615,7 +616,7 @@ function ReportActionCompose({
                                                 icon={Expensicons.MessageInABottle}
                                                 isDraggingOver
                                                 dropTitle={translate('dropzone.addAttachments')}
-                                                dropStyles={styles.attachmentDropOverlay}
+                                                dropStyles={styles.attachmentDropOverlay()}
                                                 dropTextStyles={styles.attachmentDropText}
                                                 dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
                                             />
