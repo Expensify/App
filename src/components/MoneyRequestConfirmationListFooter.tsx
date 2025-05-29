@@ -286,19 +286,14 @@ function MoneyRequestConfirmationListFooter({
     const policyID = selectedParticipants?.at(0)?.policyID;
     const reportOwnerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
-    const outstandingReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {});
-    const firstOutstandingReport = outstandingReports.at(0);
-    let reportName: string | undefined;
-    if (shouldUseTransactionReport) {
-        reportName = transactionReport.reportName;
-    } else {
-        reportName = firstOutstandingReport?.reportName;
-    }
 
+    let reportName = shouldUseTransactionReport ? transactionReport?.reportName : Object.values(allReports ?? {}).find((report) => report?.reportID === transactionReport?.iouReportID)?.reportName;
     if (!reportName) {
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
     }
+
+    const outstandingReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {});
     const shouldReportBeEditable = outstandingReports.length > 1 || (outstandingReports.length === 1 && transactionReport?.reportID !== transaction?.reportID);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
