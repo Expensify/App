@@ -2,7 +2,9 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useContext, useState} from 'react';
+import {useWindowDimensions} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import RenderHtml from 'react-native-render-html';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -49,6 +51,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {width} = useWindowDimensions();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated ?? false;
@@ -85,16 +88,18 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(
-                <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase1')}</Text>{' '}
-                    <TextLink
-                        style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
-                    >
-                        {translate('travel.phoneError.link')}
-                    </TextLink>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase2')}</Text>
-                </Text>,
+                <RenderHtml
+                    contentWidth={width}
+                    source={{html: translate('travel.phoneError.full')}}
+                    tagsStyles={{
+                        a: {...StyleUtils.getDotIndicatorTextStyles(true), ...styles.link},
+                        p: {...styles.flexRow, ...StyleUtils.getDotIndicatorTextStyles(true)},
+                        body: {...styles.flexRow, ...StyleUtils.getDotIndicatorTextStyles(true)},
+                    }}
+                    enableExperimentalMarginCollapsing={true}
+                    defaultTextProps={{style: [StyleUtils.getDotIndicatorTextStyles(true)]}}
+                    onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
+                />,
             );
             return;
         }

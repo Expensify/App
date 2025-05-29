@@ -2887,9 +2887,7 @@ const translations = {
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: {
-            phrase1: 'Please',
-            link: 'add a work email as your primary login',
-            phrase2: ' to book travel.',
+            full: 'Please <a>add a work email as your primary login</a> to book travel.',
         },
         domainSelector: {
             title: 'Domain',
