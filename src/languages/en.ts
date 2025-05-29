@@ -561,6 +561,8 @@ const translations = {
         reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
+        getTheApp: 'Get the app',
+        scanReceiptsOnTheGo: 'Scan receipts from your phone',
     },
     supportalNoAccess: {
         title: 'Not so fast',
