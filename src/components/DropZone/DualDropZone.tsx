@@ -24,9 +24,11 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop}: DropZoneProp
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
+    const shouldStackVertically = shouldUseNarrowLayout || isMediumScreenWidth;
+
     return (
         <DragAndDropConsumer>
-            <View style={[shouldUseNarrowLayout || isMediumScreenWidth ? styles.flexColumn : styles.flexRow, styles.w100, styles.h100]}>
+            <View style={[shouldStackVertically ? styles.flexColumn : styles.flexRow, styles.w100, styles.h100]}>
                 <DropZoneWrapper onDrop={onAttachmentDrop}>
                     {({isDraggingOver}) => (
                         <DropZoneUI
@@ -36,6 +38,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop}: DropZoneProp
                             dropStyles={styles.attachmentDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.attachmentDropText}
                             dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
+                            dropWrapperStyles={shouldStackVertically ? styles.pb0 : styles.pr0}
                         />
                     )}
                 </DropZoneWrapper>

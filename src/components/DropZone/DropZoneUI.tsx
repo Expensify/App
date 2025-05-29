@@ -22,15 +22,18 @@ type DropZoneUIProps = {
     /** Custom styles for the inner wrapper of the drop zone */
     dropInnerWrapperStyles?: StyleProp<ViewStyle>;
 
+    /** Custom styles for the drop wrapper */
+    dropWrapperStyles?: StyleProp<ViewStyle>;
+
     /** Whether the drop zone is currently being dragged over */
     isDraggingOver: boolean;
 };
 
-function DropZoneUI({isDraggingOver, icon, dropTitle, dropStyles, dropTextStyles, dropInnerWrapperStyles}: DropZoneUIProps) {
+function DropZoneUI({isDraggingOver, icon, dropTitle, dropStyles, dropTextStyles, dropWrapperStyles, dropInnerWrapperStyles}: DropZoneUIProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flex1, styles.dropWrapper, styles.p2]}>
+        <View style={[styles.flex1, styles.dropWrapper, styles.p2, dropWrapperStyles]}>
             <View style={[styles.borderRadiusComponentLarge, styles.p2, styles.flex1, dropStyles]}>
                 <View
                     style={[
