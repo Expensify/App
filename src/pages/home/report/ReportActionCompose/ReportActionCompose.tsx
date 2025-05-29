@@ -616,7 +616,7 @@ function ReportActionCompose({
                                                 icon={Expensicons.MessageInABottle}
                                                 isDraggingOver
                                                 dropTitle={translate('dropzone.addAttachments')}
-                                                dropStyles={styles.attachmentDropOverlay()}
+                                                dropStyles={styles.attachmentDropOverlay(true)}
                                                 dropTextStyles={styles.attachmentDropText}
                                                 dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
                                             />
