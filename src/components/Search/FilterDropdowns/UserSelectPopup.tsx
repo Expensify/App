@@ -90,20 +90,21 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
-        const personalDetailList = filteredOptionsList.map((participant) => ({
-            ...participant,
-            isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
-        })).sort((a, b) =>{
-            // Put the current user at the top of the list
-            if (a.accountID === session?.accountID) {
-                return -1
-            }
-            if (b.accountID === session?.accountID) {
-                return 1;
-            }
-            return 0;
-        });
-
+        const personalDetailList = filteredOptionsList
+            .map((participant) => ({
+                ...participant,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+            }))
+            .sort((a, b) => {
+                // Put the current user at the top of the list
+                if (a.accountID === session?.accountID) {
+                    return -1;
+                }
+                if (b.accountID === session?.accountID) {
+                    return 1;
+                }
+                return 0;
+            });
 
         return [...(personalDetailList ?? []), ...(recentReports ?? [])];
     }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, session?.accountID]);
