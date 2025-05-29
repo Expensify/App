@@ -40,6 +40,7 @@ function DatePicker({
     const textInputRef = useRef<HTMLFormElement | null>(null);
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
+    const isAutoFocused = useRef(false);
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
@@ -88,13 +89,16 @@ function DatePicker({
     };
 
     useEffect(() => {
-        calculatePopoverPosition();
+        InteractionManager.runAfterInteractions(() => {
+            calculatePopoverPosition();
+        });
     }, [calculatePopoverPosition, windowWidth]);
 
     useEffect(() => {
-        if (!autoFocus) {
+        if (!autoFocus || isAutoFocused.current) {
             return;
         }
+        isAutoFocused.current = true;
         InteractionManager.runAfterInteractions(() => {
             handlePress();
         });
