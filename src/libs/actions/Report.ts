@@ -1614,7 +1614,7 @@ function markAllMessagesAsRead() {
 
     const optimisticUnreadReports: Record<string, Pick<Report, 'lastReadTime'>> = {};
     const failureUnreadReports: Record<string, Pick<Report, 'lastReadTime'>> = {};
-    const reportIDs: string[] = [];
+    const reportIDList: string[] = [];
     Object.values(allReports ?? {}).forEach((report) => {
         if (!report) {
             return;
@@ -1632,10 +1632,10 @@ function markAllMessagesAsRead() {
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
         optimisticUnreadReports[reportKey] = {lastReadTime};
         failureUnreadReports[reportKey] = {lastReadTime: report.lastReadTime};
-        reportIDs.push(report.reportID);
+        reportIDList.push(report.reportID);
     });
 
-    if (reportIDs.length === 0) {
+    if (reportIDList.length === 0) {
         return;
     }
 
@@ -1656,7 +1656,7 @@ function markAllMessagesAsRead() {
     ];
 
     const parameters: MarkAllMessagesAsReadParams = {
-        reportIDs,
+        reportIDList,
     };
 
     API.write(WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ, parameters, {optimisticData, failureData});

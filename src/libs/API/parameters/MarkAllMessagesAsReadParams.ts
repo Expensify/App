@@ -1,5 +1,5 @@
 type MarkAllMessagesAsReadParams = {
-    reportIDs: string[];
+    reportIDList: string[];
 };
 
 export default MarkAllMessagesAsReadParams;
