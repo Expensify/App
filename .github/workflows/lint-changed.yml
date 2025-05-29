@@ -17,17 +17,44 @@ jobs:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Fetch merge base SHA from API
+        id: merge_base
+        run: |
+          MERGE_BASE_SHA="$(gh api repos/$REPO/compare/$PR_BASE_SHA...$PR_HEAD_SHA \
+          | jq -r '.merge_base_commit.sha')"
+          echo "MERGE_BASE_SHA=$MERGE_BASE_SHA" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository	}}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+      - name: Count commits  between merge base and HEAD
+        id: count
+        run: |
+          echo "Comparing $BASE...$HEAD"
+
+          COMMIT_COUNT=$(gh api repos/${{ github.repository }}/compare/$BASE...main \
+            --jq '.total_commits')
+
+          echo "Number of commits between $BASE and $HEAD: $COMMIT_COUNT"
+          echo "count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE: ${{ steps.merge_base.outputs.MERGE_BASE_SHA }}
+          
       - name: Checkout
+        if: steps.count.outputs.count != '0'
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          fetch-depth: 30000
+          fetch-depth: ${{ steps.count.outputs.count }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
         with:
           IS_DESKTOP_BUILD: true
-      
+ 
       - name: Run ESLint to check for deprecation warnings
         run: |
           # shellcheck disable=SC2046

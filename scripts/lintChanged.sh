@@ -15,13 +15,7 @@ if [[ -z "${npm_lifecycle_event:-}" ]]; then
 fi
 
 # Fetch the commit history to include the merge-base commit
-if [[ -z "${CI:-}" ]]; then
-    info "Running lintChanged locally."
-    git fetch origin main --no-tags
-else
-    info "Running lintChanged on CI."
-    git fetch origin main --no-tags --depth=30000
-fi
+git fetch origin main --no-tags
 
 MERGE_BASE_SHA_HASH="$(git merge-base origin/main HEAD)"
 # Check if output is empty or malformed
