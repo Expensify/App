@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
-    return {...option, selected: true};
+    return {...option, reportID: `${option.reportID}`, selected: true};
 }
 
 type UserSelectPopupProps = {
@@ -43,30 +43,23 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
-    // Since accountIDs are passed as value, we need to "populate" them into OptionData
-    const initialSelectedData: OptionData[] = useMemo(() => {
-        const initialOptions = value
-            .map((accountID) => {
-                const participant = personalDetails?.[accountID];
-
-                if (!participant) {
-                    return;
-                }
-
-                return getSelectedOptionData(participant);
-            })
-            .filter(Boolean) as OptionData[];
-
-        return initialOptions;
-
-        // The initial value of a useState only gets calculated once, so we dont need to keep calculating this initial state
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedData);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
+        return value.reduce<OptionData[]>((acc, accountID) => {
+            const participant = personalDetails?.[accountID];
+            if (!participant) {
+                return acc;
+            }
+
+            const optionData = getSelectedOptionData(participant);
+            if (optionData) {
+                acc.push(optionData);
+            }
+
+            return acc;
+        }, []);
+    });
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 

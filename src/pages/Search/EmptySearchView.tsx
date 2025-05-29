@@ -344,27 +344,29 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                 };
         }
     }, [
+        groupBy,
         type,
         typeMenuItems,
         hash,
         translate,
         StyleUtils,
         theme.todoBG,
-        theme.travelBG,
         theme.emptyFolderBG,
+        theme.travelBG,
         styles.emptyStateFireworksWebStyles,
         styles.emptyStateFolderWebStyles,
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
         introSelected?.choice,
-        tripViewChildren,
-        hasResults,
-        groupBy,
         hasSeenTour,
-        shouldRedirectToExpensifyClassic,
+        canUseTableReportView,
+        allPolicies,
         activePolicy,
         activePolicyID,
         currentUserPersonalDetails,
+        tripViewChildren,
+        hasResults,
+        shouldRedirectToExpensifyClassic,
     ]);
 
     return (

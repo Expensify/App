@@ -143,15 +143,18 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
-    const openAdvancedFilters = useCallback(() => {
-        updateAdvancedFilters(filterFormValues);
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [filterFormValues]);
-
     // We need to create a stable key for filterFormValues so that we don't infinitely
     // re-render components that access all of the filterFormValues. This is due to the way
     // that react calculates diffs (it doesn't know how to compare objects).
     const filterFormValuesKey = JSON.stringify(filterFormValues);
+
+    const openAdvancedFilters = useCallback(() => {
+        updateAdvancedFilters(filterFormValues);
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterFormValuesKey]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
