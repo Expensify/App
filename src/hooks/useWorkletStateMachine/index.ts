@@ -1,4 +1,3 @@
-import fastMerge from 'expensify-common/dist/fastMerge';
 import {useCallback} from 'react';
 import {runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
 import Log from '@libs/Log';
@@ -126,8 +125,18 @@ function useWorkletStateMachine<SM extends StateMachine<string, string>, P>(stat
                 return;
             }
 
-            // save previous payload or merge the new payload with the previous payload
-            const nextPayload = typeof action.payload === 'undefined' ? state.current.payload : fastMerge(state.current.payload, action.payload);
+            let nextPayload;
+
+            if (typeof action.payload === 'undefined') {
+                // we save previous payload
+                nextPayload = state.current.payload;
+            } else {
+                // we merge previous payload with the new payload
+                nextPayload = {
+                    ...state.current.payload,
+                    ...action.payload,
+                };
+            }
 
             log(`Next STATE: ${nextState}`, nextPayload);
 
