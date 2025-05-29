@@ -123,7 +123,7 @@ export default {
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
-    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
+    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(17, 22),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
     checkboxLabelActiveOpacity: 0.7,
@@ -218,7 +218,8 @@ export default {
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
-    onboardingModalWidth: 500,
+    featureTrainingModalWidth: 500,
+    onboardingModalWidth: 640,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
@@ -291,6 +292,8 @@ export default {
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
+
+    scrollToNewTransactionOffset: 300,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,

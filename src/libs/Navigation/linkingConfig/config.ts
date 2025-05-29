@@ -6,6 +6,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import getHistoryParamParse from './helpers/getHistoryParamParse';
+import HISTORY_PARAM from './HISTORY_PARAM';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootNavigatorParamList>['config'] = {
@@ -32,13 +34,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: ROUTES.REQUIRE_TWO_FACTOR_AUTH,
 
         [SCREENS.NOT_FOUND]: '*',
-        [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
-                    path: ROUTES.WORKSPACE_SWITCHER,
-                },
-            },
-        },
         [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
@@ -86,7 +81,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
-                    path: ROUTES.TEST_DRIVE_MODAL_ROOT,
+                    path: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
                     exact: true,
                 },
             },
@@ -328,6 +323,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
+                                ...getHistoryParamParse(HISTORY_PARAM.SHOW_VALIDATE_CODE_ACTION_MODAL),
                             },
                         },
                         [SCREENS.SETTINGS.PROFILE.STATUS]: {
@@ -1458,6 +1454,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
+                        [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
