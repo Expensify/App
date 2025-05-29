@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -25,7 +26,11 @@ function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const INITIAL_RECEIPTS_AMOUNT = 10;
+    const {windowWidth} = useWindowDimensions();
+    const initialReceiptsAmount = useMemo(
+        () => (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / (styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight),
+        [windowWidth, styles],
+    );
     const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
             Object.values(items ?? {})
@@ -34,15 +39,16 @@ function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
         canBeMissing: true,
     });
     const receipts = useMemo(() => {
-        if (optimisticTransactionsReceipts && optimisticTransactionsReceipts.length >= INITIAL_RECEIPTS_AMOUNT) {
+        if (optimisticTransactionsReceipts && optimisticTransactionsReceipts.length >= initialReceiptsAmount) {
             return optimisticTransactionsReceipts;
         }
         const receiptsWithPlaceholders: Array<ReceiptWithTransactionID | undefined> = [...(optimisticTransactionsReceipts ?? [])];
-        while (receiptsWithPlaceholders.length < 10) {
+        while (receiptsWithPlaceholders.length < initialReceiptsAmount) {
             receiptsWithPlaceholders.push(undefined);
         }
         return receiptsWithPlaceholders;
-    }, [optimisticTransactionsReceipts]);
+    }, [initialReceiptsAmount, optimisticTransactionsReceipts]);
+    const isScrollEnabled = optimisticTransactionsReceipts ? optimisticTransactionsReceipts.length >= receipts.length : false;
 
     const renderItem = ({item}: {item: ReceiptWithTransactionID | undefined}) => {
         if (!item) {
@@ -77,6 +83,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
                 onTouchStart={() => setTabSwipeDisabled?.(true)}
                 onTouchEnd={() => setTabSwipeDisabled?.(false)}
                 style={styles.pv2}
+                scrollEnabled={isScrollEnabled}
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{paddingRight: styles.singleAvatarMedium.width}}
             />
