@@ -6399,8 +6399,7 @@ const translations = {
             confirmText: 'Start test drive',
             helpText: 'Skip',
             employee: {
-                description:
-                    '<muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and send them a test expense.</muted-text>',
+                description: '<muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and send them a test expense.</muted-text>',
                 email: "Enter your boss's email",
                 error: 'That member owns a workspace, please input a new member to test.',
             },
