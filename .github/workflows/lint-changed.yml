@@ -27,7 +27,13 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           IS_DESKTOP_BUILD: true
-      
+
+      - name: Fetch merge base SHA from API
+        run: |
+          MERGE_BASE_SHA="$(gh api repos/github/github/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} | jq -r '.merge_base_commit.sha')"
+          echo "MERGE_BASE_SHA=$MERGE_BASE_SHA" >> "$GITHUB_ENV"
+          echo "$MERGE_BASE_SHA"
+ 
       - name: Run ESLint to check for deprecation warnings
         run: |
           # shellcheck disable=SC2046
