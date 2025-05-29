@@ -94,7 +94,7 @@ type MoneyRequestAmountInputProps = {
 
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
-} & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace' | 'submitBehavior'>;
+} & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
 type Selection = {
     start: number;
@@ -132,7 +132,6 @@ function MoneyRequestAmountInput(
         autoGrowExtraSpace,
         contentWidth,
         testID,
-        submitBehavior,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -344,7 +343,6 @@ function MoneyRequestAmountInput(
             onMouseUp={handleMouseUp}
             contentWidth={contentWidth}
             testID={testID}
-            submitBehavior={submitBehavior}
         />
     );
 }

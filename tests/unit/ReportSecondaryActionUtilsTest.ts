@@ -898,10 +898,9 @@ describe('getSecondaryTransactionThreadActions', () => {
 
     it('should always return VIEW_DETAILS', () => {
         const report = {} as unknown as Report;
-        const policy = {} as unknown as Policy;
 
         const result = [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS];
-        expect(getSecondaryTransactionThreadActions(report, {} as Transaction, [], policy)).toEqual(result);
+        expect(getSecondaryTransactionThreadActions(report, {} as Transaction, [])).toEqual(result);
     });
 
     it('include HOLD option ', () => {
@@ -917,10 +916,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             comment: {},
         } as unknown as Transaction;
 
-        const policy = {} as unknown as Policy;
-
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
-        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
+        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932]);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
@@ -933,11 +930,9 @@ describe('getSecondaryTransactionThreadActions', () => {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
         } as unknown as Report;
 
-        const policy = {} as unknown as Policy;
-
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(report, {} as Transaction, [], policy);
+        const result = getSecondaryTransactionThreadActions(report, {} as Transaction, []);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 });
