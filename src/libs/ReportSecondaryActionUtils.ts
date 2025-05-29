@@ -61,43 +61,6 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     return canAddTransaction(report);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
-    if (Number(reportTransactions?.length) !== 1) {
-        return false;
-    }
-
-    const reportTransaction = reportTransactions.at(0);
-
-    const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
-    if (isPending(reportTransaction) || isScanning || !!reportTransaction?.errors) {
-        return false;
-    }
-
-    const {amount} = getTransactionDetails(reportTransaction) ?? {};
-    if (!amount) {
-        return false;
-    }
-
-    const {isExpenseSplit, isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
-    if (isExpenseSplit || isBillSplit) {
-        return false;
-    }
-
-    if (!isExpenseReportUtils(report)) {
-        return false;
-    }
-
-    if (report.stateNum && report.stateNum >= CONST.REPORT.STATE_NUM.APPROVED) {
-        return false;
-    }
-
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
-
-    return isSubmitter || isAdmin || isManager;
-}
-
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]): boolean {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
