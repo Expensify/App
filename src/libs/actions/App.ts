@@ -162,6 +162,7 @@ const isReadyToOpenApp = new Promise<void>((resolve) => {
 });
 
 function confirmReadyToOpenApp() {
+    Timing.end(CONST.TIMING.OPEN_APP);
     resolveIsReadyPromise();
 }
 

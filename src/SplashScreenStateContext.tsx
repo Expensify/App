@@ -1,5 +1,6 @@
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
+import Timing from './libs/actions/Timing';
 import CONST from './CONST';
 import type ChildrenProps from './types/utils/ChildrenProps';
 
@@ -22,6 +23,14 @@ function SplashScreenStateContextProvider({children}: ChildrenProps) {
         }),
         [splashScreenState],
     );
+
+  useEffect(() => {
+      if (splashScreenState !== "hidden") {
+        return;
+      }
+
+      Timing.end(CONST.TIMING.SPLASH_SCREEN);
+  }, [splashScreenState]);
 
     return <SplashScreenStateContext.Provider value={splashScreenStateContext}>{children}</SplashScreenStateContext.Provider>;
 }

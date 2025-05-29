@@ -54,6 +54,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
+import { confirmReadyToOpenApp } from '@libs/actions/App';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -89,6 +90,10 @@ function SearchPage({route}: SearchPageProps) {
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+
+    useEffect(() => {
+      confirmReadyToOpenApp();
+    }, []);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
