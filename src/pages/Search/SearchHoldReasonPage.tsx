@@ -6,40 +6,31 @@ import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
-import {putOnHold} from '@userActions/IOU';
+import {putTransactionsOnHold} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
-type Props = PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP | typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS>;
-
-function SearchHoldReasonPage({route}: Props) {
+function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>) {
     const {translate} = useLocalize();
-    const {backTo = ''} = route.params ?? {};
-    const isOnSearchHoldReason = route.name !== SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP;
-    const contextValue = useSearchContext();
+    const {backTo = '', reportID} = route.params;
+    const context = useSearchContext();
 
     const onSubmit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-            if (isOnSearchHoldReason) {
-                const {selectedTransactionsID, setSelectedTransactions} = contextValue;
-                selectedTransactionsID.forEach((transactionID) => {
-                    const {childReportID} = getIOUActionForReportID(route.params.reportID, transactionID) ?? {};
-                    return childReportID && putOnHold(transactionID, values.comment, childReportID);
-                });
-                setSelectedTransactions([]);
+        ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
+            if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
+                putTransactionsOnHold(context.selectedTransactionsID, comment, reportID);
+                context.setSelectedTransactions([]);
             } else {
-                const {currentSearchHash, selectedTransactions, clearSelectedTransactions} = contextValue;
-                holdMoneyRequestOnSearch(currentSearchHash, Object.keys(selectedTransactions), values.comment);
-                clearSelectedTransactions();
+                holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment);
+                context.clearSelectedTransactions();
             }
             Navigation.goBack();
         },
-        [contextValue, route.params?.reportID, isOnSearchHoldReason],
+        [route.name, context, reportID],
     );
 
     const validate = useCallback(

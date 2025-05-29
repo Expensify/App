@@ -1,5 +1,7 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
-import {getReportsFromSelectedTransactions} from '@libs/SearchUIUtils';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext} from './types';
 
@@ -61,7 +63,19 @@ function SearchContextProvider({children}: ChildrenProps) {
             }
 
             // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-            const selectedReports = getReportsFromSelectedTransactions(data, selectedTransactions);
+            let selectedReports: SearchContext['selectedReports'] = [];
+
+            if (data.length && data.every(isReportListItemType)) {
+                selectedReports = data
+                    .filter((item) => isMoneyRequestReport(item) && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
+                    .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+            }
+
+            if (data.length && data.every(isTransactionListItemType)) {
+                selectedReports = data
+                    .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
+                    .map(({reportID, action, amount: total, policyID}) => ({reportID, action, total, policyID}));
+            }
 
             setSearchContextData((prevState) => ({
                 ...prevState,
