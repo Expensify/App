@@ -2802,7 +2802,7 @@ describe('ReportUtils', () => {
         it('should return true for a non-archived report', async () => {
             // Given a non-archived expense report
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(10000),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -2819,7 +2819,7 @@ describe('ReportUtils', () => {
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(10001),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -2838,7 +2838,7 @@ describe('ReportUtils', () => {
         it('should return true for a non-archived report', async () => {
             // Given a non-archived expense report
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(20000),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -2855,7 +2855,7 @@ describe('ReportUtils', () => {
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(20001),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
