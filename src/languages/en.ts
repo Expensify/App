@@ -6400,7 +6400,7 @@ const translations = {
             helpText: 'Skip',
             employee: {
                 description:
-                    '<muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and we’ll walk you through sending them a scanned test expense — no more manual entry.</muted-text>',
+                    '<muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and send them a test expense.</muted-text>',
                 email: "Enter your boss's email",
                 error: 'That member owns a workspace, please input a new member to test.',
             },
