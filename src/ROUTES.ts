@@ -124,6 +124,7 @@ const ROUTES = {
         },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
+    MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
@@ -167,7 +168,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
         },
     },
-    WORKSPACE_SWITCHER: 'workspace-switcher',
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
@@ -236,11 +236,6 @@ const ROUTES = {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_VERIFY_ACCOUNT: {
-        route: 'settings/wallet/verify',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/wallet/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/wallet/verify', backTo),
-    },
     SETTINGS_WALLET_DOMAIN_CARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
@@ -314,6 +309,11 @@ const ROUTES = {
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
+    },
+    SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
+        route: 'settings/profile/contact-methods/verify',
+        getRoute: (backTo?: string, forwardTo?: string) =>
+            getUrlWithBackToParam(forwardTo ? `settings/profile/contact-methods/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/profile/contact-methods/verify', backTo),
     },
 
     SETTINGS_2FA_ROOT: {
@@ -696,6 +696,15 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_EDIT_REPORT: {
+        route: ':action/:iouType/report/:reportID/edit',
+        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, backTo = '') => {
+            if (!reportID) {
+                Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
+            }
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit`, backTo);
+        },
+    },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
         getRoute: (policyID: string | undefined, backTo = '') => {
@@ -955,6 +964,7 @@ const ROUTES = {
             return `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const;
         },
     },
+    WORKSPACE_HUB_INITIAL: 'settings/workspace-menu',
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite`, backTo)}` as const,
@@ -1885,7 +1895,10 @@ const ROUTES = {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
     },
-    TRAVEL_UPGRADE: 'travel/upgrade',
+    TRAVEL_UPGRADE: {
+        route: 'travel/upgrade',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('travel/upgrade', backTo),
+    },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
@@ -1905,12 +1918,18 @@ const ROUTES = {
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo);
         },
     },
-    TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
+    TRAVEL_DOMAIN_SELECTOR: {
+        route: 'travel/domain-selector',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/domain-selector`, backTo),
+    },
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         route: 'travel/domain-permission/:domain/info',
         getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
     },
-    TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
+    TRAVEL_PUBLIC_DOMAIN_ERROR: {
+        route: 'travel/public-domain-error',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error`, backTo),
+    },
     TRAVEL_WORKSPACE_ADDRESS: {
         route: 'travel/:domain/workspace-address',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address`, backTo),
@@ -1953,13 +1972,19 @@ const ROUTES = {
     },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
-    TEST_DRIVE_MODAL_ROOT: 'onboarding/test-drive',
+    TEST_DRIVE_MODAL_ROOT: {
+        route: 'onboarding/test-drive',
+        getRoute: (bossEmail?: string) => `onboarding/test-drive${bossEmail ? `?bossEmail=${encodeURIComponent(bossEmail)}` : ''}` as const,
+    },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     WORKSPACE_CONFIRMATION: {
         route: 'workspace/confirmation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
     },
-    MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
+    MIGRATED_USER_WELCOME_MODAL: {
+        route: 'onboarding/migrated-user-welcome',
+        getRoute: (isFromRoot?: boolean) => getUrlWithBackToParam(`onboarding/migrated-user-welcome?${isFromRoot ? 'isFromRoot=true' : ''}`, undefined, false),
+    },
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
@@ -2419,8 +2444,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
     },
     ADD_UNREPORTED_EXPENSE: {
-        route: 'search/r/:reportID/add-unreported-expense',
-        getRoute: (reportID: string | undefined) => `search/r/${reportID}/add-unreported-expense` as const,
+        route: 'search/r/:reportID/add-unreported-expense/:backToReport?',
+        getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-unreported-expense/${backToReport ?? ''}` as const,
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',

@@ -10,13 +10,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import BankAccount from '@libs/models/BankAccount';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -175,16 +175,19 @@ function WorkspacePageWithSections({
     const handleOnBackButtonPress = () => {
         if (onBackButtonPress) {
             onBackButtonPress();
-            return;
+            return true;
         }
 
         if (backButtonRoute) {
             Navigation.goBack(backButtonRoute);
-            return;
+            return true;
         }
 
-        goBackFromWorkspaceCentralScreen(policyID);
+        Navigation.popToSidebar();
+        return true;
     };
+
+    useHandleBackButton(handleOnBackButtonPress);
 
     return (
         <ScreenWrapper

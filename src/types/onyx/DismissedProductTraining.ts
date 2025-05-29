@@ -10,11 +10,10 @@ const {
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
     OUTSTANDING_FILTER,
-    SETTINGS_TAB,
-    WORKSPACES_SETTINGS,
     ACCOUNT_SWITCHER,
     GBR_RBR_CHAT,
     EXPENSE_REPORTS_FILTER,
+    SCAN_TEST_DRIVE_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
@@ -84,16 +83,6 @@ type DismissedProductTraining = {
     [OUTSTANDING_FILTER]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the settings tab product training tooltip, we store the timestamp here.
-     */
-    [SETTINGS_TAB]: DismissedProductTrainingElement;
-
-    /**
-     * When user dismisses the workspaces settings product training tooltip, we store the timestamp here.
-     */
-    [WORKSPACES_SETTINGS]: DismissedProductTrainingElement;
-
-    /**
      * When user dismisses the accountSwitcher product training tooltip, we store the timestamp here.
      */
     [ACCOUNT_SWITCHER]: DismissedProductTrainingElement;
@@ -107,6 +96,11 @@ type DismissedProductTraining = {
      * When user dismisses the expenseReportsFilter product training tooltip, we store the timestamp here.
      */
     [EXPENSE_REPORTS_FILTER]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the test drive on confirmantion page product training tooltip, we store the timestamp here.
+     */
+    [SCAN_TEST_DRIVE_CONFIRMATION]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.

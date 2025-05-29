@@ -8,12 +8,11 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useLocalize from '@hooks/useLocalize';
 import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getBankAccountRoute, getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -139,21 +138,6 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, pageIndex, currency, Navigation.getActiveRoute()));
     };
 
-    const navigateToParticipantPage = () => {
-        Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
-
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-        }
-    };
-
     const navigateToConfirmationPage = () => {
         switch (iouType) {
             case CONST.IOU.TYPE.REQUEST:
@@ -203,12 +187,10 @@ function IOURequestStepAmount({
                         sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                         return;
                     }
-
                     sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
-                    playSound(SOUNDS.DONE);
                     requestMoney({
                         report,
                         participantParams: {
@@ -228,7 +210,6 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
-                    playSound(SOUNDS.DONE);
                     trackExpense({
                         report,
                         isDraftPolicy: false,
@@ -272,7 +253,7 @@ function IOURequestStepAmount({
                 );
             });
         } else {
-            navigateToParticipantPage();
+            navigateToParticipantPage(iouType, transactionID, reportID);
         }
     };
 
@@ -309,7 +290,16 @@ function IOURequestStepAmount({
             return;
         }
 
-        updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode, policyCategories});
+        updateMoneyRequestAmountAndCurrency({
+            transactionID,
+            transactionThreadReportID: reportID,
+            currency,
+            amount: newAmount,
+            taxAmount,
+            policy,
+            taxCode,
+            policyCategories,
+        });
         navigateBack();
     };
 

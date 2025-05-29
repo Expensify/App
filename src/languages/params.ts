@@ -129,11 +129,6 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
-type UnreportedTransactionParams = {
-    reportUrl: string;
-    reportName?: string;
-};
-
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -176,9 +171,9 @@ type AdminCanceledRequestParams = {manager: string; amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
-type PaidElsewhereWithAmountParams = {payer?: string; amount: string};
+type PaidElsewhereParams = {payer?: string} | undefined;
 
-type PaidWithExpensifyWithAmountParams = {payer?: string; amount: string};
+type PaidWithExpensifyParams = {payer?: string} | undefined;
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
@@ -369,8 +364,6 @@ type ShareParams = {to: string};
 type UnshareParams = {to: string};
 
 type StripePaidParams = {amount: string; currency: string};
-
-type UnapprovedParams = {amount: string};
 
 type RemoveMembersWarningPrompt = {
     memberName: string;
@@ -640,10 +633,6 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
-type LastFourDigitsParams = {
-    lastFourDigits: string;
-};
-
 type CompanyCardBankName = {
     bankName: string;
 };
@@ -695,6 +684,10 @@ type ReviewParams = {
 
 type CurrencyInputDisabledTextParams = {
     currency: string;
+};
+
+type EmployeeInviteMessageParams = {
+    name: string;
 };
 
 export type {
@@ -791,7 +784,6 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -805,8 +797,8 @@ export type {
     OOOEventSummaryFullDayParams,
     OOOEventSummaryPartialDayParams,
     OurEmailProviderParams,
-    PaidElsewhereWithAmountParams,
-    PaidWithExpensifyWithAmountParams,
+    PaidElsewhereParams,
+    PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
@@ -827,7 +819,6 @@ export type {
     RequestCountParams,
     DeleteTransactionParams,
     MovedTransactionParams,
-    UnreportedTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -886,7 +877,6 @@ export type {
     ShareParams,
     UnshareParams,
     StripePaidParams,
-    UnapprovedParams,
     RemoveMembersWarningPrompt,
     ApprovalWorkflowErrorParams,
     ConnectionNameParams,
@@ -944,4 +934,5 @@ export type {
     SubscriptionSettingsSummaryParams,
     ReviewParams,
     CurrencyInputDisabledTextParams,
+    EmployeeInviteMessageParams,
 };

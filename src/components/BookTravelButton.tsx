@@ -42,7 +42,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
         return;
     }
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
 };
 
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: BookTravelButtonProps) {
@@ -101,12 +101,12 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
 
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
         if (groupPaidPolicies.length < 1) {
-            Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
+            Navigation.navigate(ROUTES.TRAVEL_UPGRADE.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
@@ -146,12 +146,12 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
             const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
+                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
             } else {
                 navigateToAcceptTerms(domain, !!isUserValidated);
             }
         } else {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(Navigation.getActiveRoute()));
         }
     }, [
         isBlockedFromSpotnanaTravel,

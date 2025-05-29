@@ -134,6 +134,7 @@ function getTransactionItemCommonFormattedProperties(
     transactionItem: SearchTransaction,
     from: SearchPersonalDetails,
     to: SearchPersonalDetails,
+    policy: SearchPolicy,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
@@ -143,7 +144,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(to, '', false) || getDisplayNameOrDefault(getPersonalDetailsForAccountID(to?.accountID)));
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-    const merchant = getTransactionMerchant(transactionItem);
+    const merchant = getTransactionMerchant(transactionItem, policy as OnyxTypes.Policy);
     const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
 
     return {
@@ -323,10 +324,11 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             const transactionItem = data[key];
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
             const shouldShowBlankTo = isOpenExpenseReport(report);
+            const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails : emptyPersonalDetails;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
             return {
                 ...transactionItem,
@@ -598,12 +600,13 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const transactionItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+            const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = isOpenExpenseReport(report);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails : emptyPersonalDetails;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
             const transaction = {
                 ...transactionItem,
@@ -736,14 +739,6 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     });
 }
 
-/**
- * @private
- * Determines the date of the newest transaction within a report for sorting purposes.
- */
-function getReportNewestTransactionDate(report: ReportListItemType) {
-    return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > (max?.created ?? '') ? curr : max), report.transactions.at(0))?.created;
-}
-
 function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
@@ -768,9 +763,12 @@ function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, 
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedReportData(data: ReportListItemType[]) {
+    for (const report of data) {
+        report.transactions = getSortedTransactionData(report.transactions, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
+    }
     return data.sort((a, b) => {
-        const aNewestTransaction = getReportNewestTransactionDate(a);
-        const bNewestTransaction = getReportNewestTransactionDate(b);
+        const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated ? a.transactions?.at(0)?.modifiedCreated : a.transactions?.at(0)?.created;
+        const bNewestTransaction = b.transactions?.at(0)?.modifiedCreated ? b.transactions?.at(0)?.modifiedCreated : b.transactions?.at(0)?.created;
 
         if (!aNewestTransaction || !bNewestTransaction) {
             return 0;
@@ -816,6 +814,8 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
             return 'common.card';
         case CONST.SEARCH.TRANSACTION_TYPE.CASH:
             return 'iou.cash';
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+            return 'common.perDiem';
     }
 }
 

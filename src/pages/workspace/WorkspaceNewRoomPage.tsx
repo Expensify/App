@@ -13,7 +13,6 @@ import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -64,6 +63,7 @@ function WorkspaceNewRoomPage() {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
+    const [shouldEnableValidation, setShouldEnableValidation] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -73,9 +73,6 @@ function WorkspaceNewRoomPage() {
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
-    const {activeWorkspaceID} = useActiveWorkspace();
-
-    const activeWorkspaceOrDefaultID = activeWorkspaceID ?? activePolicyID;
 
     const workspaceOptions = useMemo(
         () =>
@@ -89,8 +86,8 @@ function WorkspaceNewRoomPage() {
         [policies, session?.email],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
-        if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((option) => option.value === activeWorkspaceOrDefaultID)) {
-            return activeWorkspaceOrDefaultID;
+        if (!!activePolicyID && workspaceOptions.some((option) => option.value === activePolicyID)) {
+            return activePolicyID;
         }
         return '';
     });
@@ -129,8 +126,13 @@ function WorkspaceNewRoomPage() {
     };
 
     useEffect(() => {
-        clearNewRoomFormError();
-    }, []);
+        if (!isFocused) {
+            return;
+        }
+
+        setShouldEnableValidation(false);
+        clearNewRoomFormError().then(() => setShouldEnableValidation(true));
+    }, [isFocused]);
 
     useEffect(() => {
         if (policyID) {
@@ -139,12 +141,12 @@ function WorkspaceNewRoomPage() {
             }
             return;
         }
-        if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((opt) => opt.value === activeWorkspaceOrDefaultID)) {
-            setPolicyID(activeWorkspaceOrDefaultID);
+        if (!!activePolicyID && workspaceOptions.some((opt) => opt.value === activePolicyID)) {
+            setPolicyID(activePolicyID);
         } else {
             setPolicyID('');
         }
-    }, [activeWorkspaceOrDefaultID, policyID, workspaceOptions]);
+    }, [activePolicyID, policyID, workspaceOptions]);
 
     useEffect(() => {
         if (isAdminPolicy) {
@@ -160,6 +162,10 @@ function WorkspaceNewRoomPage() {
      */
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>): OnyxCommon.Errors => {
+            if (!shouldEnableValidation) {
+                return {};
+            }
+
             const errors: {policyID?: string; roomName?: string} = {};
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
@@ -189,7 +195,7 @@ function WorkspaceNewRoomPage() {
 
             return errors;
         },
-        [reports, policyID, translate],
+        [reports, policyID, translate, shouldEnableValidation],
     );
 
     const writeCapabilityOptions = useMemo(

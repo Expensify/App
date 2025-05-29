@@ -247,13 +247,6 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 }
 
 /**
- * Stores in Onyx the policy ID of the last workspace that was accessed by the user via workspace switcher
- */
-function updateLastAccessedWorkspaceSwitcher(policyID: OnyxEntry<string>) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID, policyID ?? null);
-}
-
-/**
  * Checks if the currency is supported for direct reimbursement
  * USD currency is the only one supported in NewDot for now
  */
@@ -1094,6 +1087,27 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                     private_isArchived: false,
                 },
             });
+            const currentTime = DateUtils.getDBTime();
+            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
+            Object.values(reportActions).forEach((action) => {
+                if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                    return;
+                }
+                workspaceMembersChats.onyxOptimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                    value: {
+                        private_isArchived: null,
+                    },
+                });
+                workspaceMembersChats.onyxFailureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                    value: {
+                        private_isArchived: currentTime,
+                    },
+                });
+            });
             return;
         }
         const optimisticReport = ReportUtils.buildOptimisticChatReport({
@@ -1814,9 +1828,13 @@ function buildPolicyData(
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
     const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+        !introSelected?.choice ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
+    // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1865,6 +1883,7 @@ function buildPolicyData(
                     address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
                 disabledFields: {defaultBillable: true},
@@ -1872,6 +1891,17 @@ function buildPolicyData(
                 originalFileName: file?.name,
                 ...optimisticMccGroupData.optimisticData,
                 requiresCategory: true,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN,
+                        pendingFields: {defaultValue: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, deletable: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        type: CONST.POLICY.DEFAULT_FIELD_LIST_TYPE,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        name: CONST.POLICY.DEFAULT_FIELD_LIST_NAME,
+                        fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
+                        deletable: true,
+                    },
+                },
             },
         },
         {
@@ -1951,8 +1981,17 @@ function buildPolicyData(
                     address: null,
                     description: null,
                     type: null,
+                    areReportFieldsEnabled: null,
                 },
                 ...optimisticMccGroupData.successData,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        pendingFields: {
+                            defaultValue: null,
+                            deletable: null,
+                        },
+                    },
+                },
             },
         },
         {
@@ -2079,7 +2118,12 @@ function buildPolicyData(
         companySize,
     };
 
-    if (introSelected !== undefined && !introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
+    if (
+        introSelected !== undefined &&
+        (introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !introSelected?.createWorkspace) &&
+        engagementChoice &&
+        shouldAddOnboardingTasks
+    ) {
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -5249,7 +5293,6 @@ export {
     payAndDowngrade,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
-    updateLastAccessedWorkspaceSwitcher,
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
 };

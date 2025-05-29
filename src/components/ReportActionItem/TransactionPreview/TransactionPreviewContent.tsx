@@ -2,6 +2,7 @@ import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -11,6 +12,7 @@ import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCel
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -29,6 +31,7 @@ import {hasReceipt as hasReceiptTransactionUtils, isReceiptBeingScanned} from '@
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -50,12 +53,15 @@ function TransactionPreviewContent({
     reportPreviewAction,
     shouldHideOnDelete = true,
     shouldShowIOUData,
+    navigateToReviewFields,
+    isReviewDuplicateTransactionPage = false,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {canBeMissing: true});
+    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
     const managerID = iouReport?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
@@ -189,7 +195,7 @@ function TransactionPreviewContent({
                                 {shouldShowIOUHeader && (
                                     <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
                                         <UserInfoCellsWithArrow
-                                            shouldDisplayArrowIcon
+                                            shouldShowToRecipient
                                             participantFrom={from}
                                             participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
                                             participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
@@ -326,6 +332,14 @@ function TransactionPreviewContent({
                                 )}
                             </View>
                         </View>
+                    )}
+                    {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && areThereDuplicates && (
+                        <Button
+                            text={translate('violations.keepThisOne')}
+                            success
+                            style={[styles.ph4, styles.pb4]}
+                            onPress={navigateToReviewFields}
+                        />
                     )}
                 </View>
             </OfflineWithFeedback>
