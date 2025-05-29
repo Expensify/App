@@ -1,4 +1,4 @@
-import resetSigningOutContentShown from '@libs/actions/SigningOut';
+import resetSigningOutContentShown from '@libs/actions/resetSigningOutContentShown';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
