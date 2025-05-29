@@ -1320,6 +1320,11 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         backToReport?: string;
     };
+    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: {
+        transactionID?: string;
+        reportID?: string;
+        backTo?: Routes;
+    };
     [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
         action: IOUAction;
         iouType: IOUType;
