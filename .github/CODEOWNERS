@@ -4,3 +4,7 @@
 # Assign the Design team to review changes to our styles & assets
 src/styles/ @Expensify/design @Expensify/pullerbear
 assets/ @Expensify/design @Expensify/pullerbear
+
+# BlameGPT needs to update its parsing logic if issue or PR templates change substantially
+.github/PULL_REQUEST_TEMPLATE.md @rushatgabhane
+.github/ISSUE_TEMPLATE/Standard.md @rushatgabhane
