@@ -42,7 +42,6 @@ function ScheduleCallPage() {
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
