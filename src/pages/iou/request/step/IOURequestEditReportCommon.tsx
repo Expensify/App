@@ -123,7 +123,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                 initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
                 ListItem={InviteMemberListItem}
                 listFooterContent={
-                    isEditing && !isOwner ? (
+                    isEditing && isOwner ? (
                         <MenuItem
                             onPress={removeFromReport}
                             title={translate('iou.removeFromReport')}
