@@ -4293,7 +4293,7 @@ function disableWorkspaceBillableExpenses(policyID: string) {
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
-function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
+function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
 
     const originalEReceipts = policy?.eReceipts;
@@ -4304,7 +4304,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    eReceipts,
+                    eReceipts: enabled,
                     pendingFields: {
                         eReceipts: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -4338,7 +4338,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
 
     const parameters = {
         policyID,
-        eReceipts,
+        enabled,
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);
