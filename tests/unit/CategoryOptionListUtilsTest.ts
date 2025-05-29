@@ -936,12 +936,12 @@ describe('CategoryOptionListUtils', () => {
                 name: 'Taxi',
                 enabled: false,
             },
-            'Test1: Subtest2': {
-                name: 'Test1: Subtest2',
+            'Test1: Sub-test2': {
+                name: 'Test1: Sub-test2',
                 enabled: true,
             },
-            'Test: Test1: Subtest4': {
-                name: 'Test: Test1: Subtest4',
+            'Test: Test1: Sub-test4': {
+                name: 'Test: Test1: Sub-test4',
                 enabled: true,
             },
             Taxes: {
@@ -961,24 +961,24 @@ describe('CategoryOptionListUtils', () => {
                 name: 'Travel: Nested-Travel',
                 enabled: true,
             },
-            'Test1: Subtest1': {
-                name: 'Test1: Subtest1',
+            'Test1: Sub-test1': {
+                name: 'Test1: Sub-test1',
                 enabled: true,
             },
             'Test: Test1': {
                 name: 'Test: Test1',
                 enabled: true,
             },
-            'Test: Test1: Subtest1': {
-                name: 'Test: Test1: Subtest1',
+            'Test: Test1: Sub-test1': {
+                name: 'Test: Test1: Sub-test1',
                 enabled: true,
             },
-            'Test: Test1: Subtest3': {
-                name: 'Test: Test1: Subtest3',
+            'Test: Test1: Sub-test3': {
+                name: 'Test: Test1: Sub-test3',
                 enabled: false,
             },
-            'Test: Test1: Subtest2': {
-                name: 'Test: Test1: Subtest2',
+            'Test: Test1: Sub-test2': {
+                name: 'Test: Test1: Sub-test2',
                 enabled: true,
             },
             'Test: Test2': {
@@ -993,12 +993,12 @@ describe('CategoryOptionListUtils', () => {
                 name: 'Utilities',
                 enabled: true,
             },
-            'Test: Test3: Subtest1': {
-                name: 'Test: Test3: Subtest1',
+            'Test: Test3: Sub-test1': {
+                name: 'Test: Test3: Sub-test1',
                 enabled: true,
             },
-            'Test1: Subtest3': {
-                name: 'Test1: Subtest3',
+            'Test1: Sub-test3': {
+                name: 'Test1: Sub-test3',
                 enabled: true,
             },
         };
@@ -1024,22 +1024,22 @@ describe('CategoryOptionListUtils', () => {
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test1: Subtest1',
+                name: 'Test: Test1: Sub-test1',
                 enabled: true,
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test1: Subtest2',
+                name: 'Test: Test1: Sub-test2',
                 enabled: true,
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test1: Subtest3',
+                name: 'Test: Test1: Sub-test3',
                 enabled: false,
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test1: Subtest4',
+                name: 'Test: Test1: Sub-test4',
                 enabled: true,
                 pendingAction: undefined,
             },
@@ -1049,7 +1049,7 @@ describe('CategoryOptionListUtils', () => {
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test3: Subtest1',
+                name: 'Test: Test3: Sub-test1',
                 enabled: true,
                 pendingAction: undefined,
             },
@@ -1059,17 +1059,17 @@ describe('CategoryOptionListUtils', () => {
                 pendingAction: undefined,
             },
             {
-                name: 'Test1: Subtest1',
+                name: 'Test1: Sub-test1',
                 enabled: true,
                 pendingAction: undefined,
             },
             {
-                name: 'Test1: Subtest2',
+                name: 'Test1: Sub-test2',
                 enabled: true,
                 pendingAction: undefined,
             },
             {
-                name: 'Test1: Subtest3',
+                name: 'Test1: Sub-test3',
                 enabled: true,
                 pendingAction: undefined,
             },
