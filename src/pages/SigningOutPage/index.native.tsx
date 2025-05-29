@@ -1,17 +1,17 @@
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-function LoggingOutPage() {
+function SigningOutPage() {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={LoggingOutPage.displayName}
+            testID={SigningOutPage.displayName}
         >
             {null}
         </ScreenWrapper>
     );
 }
 
-LoggingOutPage.displayName = 'LoggingOutPage';
+SigningOutPage.displayName = 'SigningOutPage';
 
-export default LoggingOutPage;
+export default SigningOutPage;

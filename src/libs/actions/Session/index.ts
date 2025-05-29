@@ -62,7 +62,7 @@ import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import afterSignOutRedirect from './afterSignOutRedirect';
 import clearCache from './clearCache';
-import showLoggingOutPage from './showLoggingOutPage';
+import showSigningOutPage from './showSigningOutPage';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
 const INVALID_TOKEN = 'pizza';
@@ -167,7 +167,7 @@ function getShortLivedLoginParams() {
         },
     ];
 
-    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
+    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is signed out on refresh
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -245,7 +245,7 @@ function isExpiredSession(sessionCreationDate: number): boolean {
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldKillHybridApp = true, shouldForceUseStashedSession?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
-    showLoggingOutPage();
+    showSigningOutPage();
 
     if (isAnonymousUser()) {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -302,7 +302,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // If we should restore the stashed session, and we do not want to stash the current session, and we have a
-    // stashed session, then switch the account instead of completely logging out.
+    // stashed session, then switch the account instead of completely signing out.
     if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession()) {
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.switchAccount({
@@ -1355,7 +1355,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         }
 
         // When the action is successful, we need to update the new authToken and encryptedAuthToken
-        // This action needs to be synchronous as the user will be logged out due to middleware if old authToken is used
+        // This action needs to be synchronous as the user will be signed out due to middleware if old authToken is used
         // For more information see the slack discussion: https://expensify.slack.com/archives/C08CZDJFJ77/p1742838796040369
         return SequentialQueue.waitForIdle().then(() => {
             if (!response?.authToken || !response?.encryptedAuthToken) {

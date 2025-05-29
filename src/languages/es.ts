@@ -6934,7 +6934,7 @@ const translations = {
         },
         callScheduled: 'Llamada programada',
     },
-    loggingOutPage: {
+    signingOutPage: {
         title: 'Cerrando sesión...',
         subtitle: 'Un momento, por favor.',
     },

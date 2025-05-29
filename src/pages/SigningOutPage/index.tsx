@@ -6,14 +6,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
-function LoggingOutPage() {
+function SigningOutPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     // Load for half a second to avoid flashing the content if the sign out process is fast.
     // The half second loading delay is shown only once per sign out by using sessionStorage. It has to be tracked outside of the component because the component hierarchy will be completely
     // remounted when the user is signed out and the AuthScreens are replaced by the public screens.
-    const [isLoading, setIsLoading] = useState(() => !sessionStorage.getItem('loggingOutContentShown'));
+    const [isLoading, setIsLoading] = useState(() => !sessionStorage.getItem('signingOutContentShown'));
 
     useEffect(() => {
         if (!isLoading) {
@@ -22,7 +22,7 @@ function LoggingOutPage() {
 
         const timer = setTimeout(() => {
             setIsLoading(false);
-            sessionStorage.setItem('loggingOutContentShown', 'true');
+            sessionStorage.setItem('signingOutContentShown', 'true');
         }, 500);
 
         return () => clearTimeout(timer);
@@ -32,7 +32,7 @@ function LoggingOutPage() {
         return (
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={LoggingOutPage.displayName}
+                testID={SigningOutPage.displayName}
             >
                 {null}
             </ScreenWrapper>
@@ -42,14 +42,14 @@ function LoggingOutPage() {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={LoggingOutPage.displayName}
+            testID={SigningOutPage.displayName}
         >
             <BlockingView
                 icon={Illustrations.FishingRod}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}
-                title={translate('loggingOutPage.title')}
-                subtitle={translate('loggingOutPage.subtitle')}
+                title={translate('signingOutPage.title')}
+                subtitle={translate('signingOutPage.subtitle')}
                 subtitleStyle={[styles.textSupporting]}
                 shouldShowLink={false}
             />
@@ -57,6 +57,6 @@ function LoggingOutPage() {
     );
 }
 
-LoggingOutPage.displayName = 'LoggingOutPage';
+SigningOutPage.displayName = 'SigningOutPage';
 
-export default LoggingOutPage;
+export default SigningOutPage;
