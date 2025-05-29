@@ -21,6 +21,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,6 +82,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
+    const {canUseTableReportView} = usePermissions();
     const [modalVisible, setModalVisible] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -211,39 +213,43 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                               },
                           ]
                         : []),
-                    {
-                        buttonText: translate('quickAction.createReport'),
-                        buttonAction: () => {
-                            interceptAnonymousUser(() => {
-                                const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
-                                let workspaceIDForReportCreation: string | undefined;
+                    ...(canUseTableReportView && !!Object.keys(allPolicies ?? {})?.length
+                        ? [
+                              {
+                                  buttonText: translate('quickAction.createReport'),
+                                  buttonAction: () => {
+                                      interceptAnonymousUser(() => {
+                                          const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+                                          let workspaceIDForReportCreation: string | undefined;
 
-                                if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                    // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                    workspaceIDForReportCreation = activePolicyID;
-                                } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                    // If the user has only one paid group workspace with chat enabled, we create a report with it
-                                    workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                }
+                                          if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                              workspaceIDForReportCreation = activePolicyID;
+                                          } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                              // If the user has only one paid group workspace with chat enabled, we create a report with it
+                                              workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                          }
 
-                                if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
-                                    // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
-                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
-                                    return;
-                                }
+                                          if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                                              // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
+                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                              return;
+                                          }
 
-                                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                    const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
-                                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                    });
-                                } else {
-                                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                                }
-                            });
-                        },
-                        success: true,
-                    },
+                                          if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                                              const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
+                                              Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                              });
+                                          } else {
+                                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                                          }
+                                      });
+                                  },
+                                  success: true,
+                              },
+                          ]
+                        : []),
                 ],
             };
         }
