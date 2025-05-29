@@ -238,7 +238,10 @@ function SearchAutocompleteInput(
                         style={styles.pr3}
                         layout={SearchFiltersButtonTransition}
                     >
-                        <TextInputClearButton onPressButton={clearFilters} />
+                        <TextInputClearButton
+                            onPressButton={clearFilters}
+                            style={styles.mt0}
+                        />
                     </Animated.View>
                 )}
             </Animated.View>
