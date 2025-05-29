@@ -22,7 +22,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const config = policy?.connections?.netsuite?.options?.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
@@ -59,6 +59,9 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         title={translate(`workspace.accounting.importTypes.${config?.syncOptions?.mapping?.[importField] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}`)}
                         shouldShowRightIcon
                         onPress={() => {
+                            if (!policyID) {
+                                return;
+                            }
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING.getRoute(policyID, importField));
                         }}
                         brickRoadIndicator={areSettingsInErrorFields([importField], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -81,6 +84,9 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     shouldShowRightIcon
                     numberOfLinesTitle={2}
                     onPress={() => {
+                        if (!policyID) {
+                            return;
+                        }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
                     }}
                     brickRoadIndicator={
@@ -106,6 +112,9 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     isActive={config?.syncOptions?.syncTax ?? false}
                     switchAccessibilityLabel={translate('common.tax')}
                     onToggle={(isEnabled: boolean) => {
+                        if (!policyID) {
+                            return;
+                        }
                         updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
                     }}
                     pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX], config?.pendingFields)}
@@ -125,7 +134,12 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                             title={getNetSuiteImportCustomFieldLabel(policy, importField, translate)}
                             description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importField))}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importField));
+                            }}
                             brickRoadIndicator={areSettingsInErrorFields(settings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
