@@ -1536,11 +1536,11 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         TRANSACTION_PREVIEW: {
             CAROUSEL: {
-                WIDTH_WIDE: 303,
-                HEIGHT_WIDE: 269,
+                WIDE_WIDTH: 303,
+                WIDE_HEIGHT: 269,
             },
             DUPLICATE: {
-                HEIGHT_WIDE: 347,
+                WIDE_HEIGHT: 347,
             },
         },
         CAROUSEL_MAX_WIDTH_WIDE: 680,
