@@ -1,7 +1,9 @@
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
+import {useWindowDimensions} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import RenderHtml from 'react-native-render-html';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -38,8 +40,6 @@ import CONST from '@src/CONST';
 import type {SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import { useWindowDimensions } from 'react-native';
-import RenderHtml from 'react-native-render-html';
 
 const options: Array<OptionsPickerItem<SubscriptionType>> = [
     {
@@ -56,7 +56,7 @@ const options: Array<OptionsPickerItem<SubscriptionType>> = [
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();
-    const { width } = useWindowDimensions();
+    const {width} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -197,8 +197,8 @@ function SubscriptionSettings() {
                         `,
                     }}
                     tagsStyles={{
-                        a: { color: theme.link, textDecorationLine: 'underline' },
-                        body: { ...styles.textSupporting, ...styles.mb5 },
+                        a: {color: theme.link, textDecorationLine: 'underline'},
+                        body: {...styles.textSupporting, ...styles.mb5},
                     }}
                     renderersProps={{
                         a: {

@@ -2,7 +2,9 @@ import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {useWindowDimensions} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import RenderHtml from 'react-native-render-html';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -50,6 +52,7 @@ type MenuItem = {
 
 function AboutPage() {
     const {translate} = useLocalize();
+    const {width} = useWindowDimensions();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
@@ -166,26 +169,18 @@ function AboutPage() {
                     </Section>
                 </View>
                 <View style={[styles.sidebarFooter, styles.mb5]}>
-                    <Text
-                        style={[styles.chatItemMessageHeaderTimestamp]}
-                        numberOfLines={1}
-                    >
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
-                        </TextLink>{' '}
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
-                        </TextLink>
-                        .
-                    </Text>
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{
+                            html: translate('initialSettingsPage.readTheTermsAndPrivacy.full')
+                                .replace('<a>Terms of Service</a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">${translate('initialSettingsPage.readTheTermsAndPrivacy.terms')}</a>`)
+                                .replace('<a>Privacy</a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">${translate('initialSettingsPage.readTheTermsAndPrivacy.privacy')}</a>`),
+                        }}
+                        baseStyle={styles.chatItemMessageHeaderTimestamp}
+                        tagsStyles={{
+                            a: {...styles.textMicroSupporting, ...styles.link},
+                        }}
+                    />
                 </View>
             </ScrollView>
         </ScreenWrapper>

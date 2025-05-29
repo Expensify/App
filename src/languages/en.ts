@@ -1444,10 +1444,7 @@ const translations = {
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
-            phrase1: 'Read the',
-            phrase2: 'Terms of Service',
-            phrase3: 'and',
-            phrase4: 'Privacy',
+            full: 'Read the <a>Terms of Service</a> and <a>Privacy</a>',
         },
         help: 'Help',
         accountSettings: 'Account settings',
