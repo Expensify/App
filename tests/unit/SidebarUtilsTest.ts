@@ -89,7 +89,7 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             });
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
 
             const {reason} =
@@ -143,7 +143,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
@@ -184,7 +184,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
             const {reason} =
@@ -214,7 +214,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
@@ -256,7 +256,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reportAction} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
@@ -280,7 +280,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                 MOCK_REPORT,
@@ -365,7 +365,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                 MOCK_REPORT,
@@ -437,7 +437,7 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             });
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.shouldShowRedBrickRoad(
                 MOCK_REPORT,
@@ -657,7 +657,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
@@ -736,8 +736,8 @@ describe('SidebarUtils', () => {
     });
 
     describe('getOptionsData', () => {
-        it('returns the last action message as an alternate text if the action is POLICYCHANGELOG_LEAVEROOM type', async () => {
-            // When a report has last action of POLICYCHANGELOG_LEAVEROOM type
+        it('returns the last action message as an alternate text if the action is POLICY_CHANGE_LOG.LEAVE_ROOM type', async () => {
+            // When a report has last action of POLICY_CHANGE_LOG.LEAVE_ROOM type
             const report: Report = {
                 ...createRandomReport(4),
                 chatType: 'policyAdmins',
@@ -992,8 +992,8 @@ describe('SidebarUtils', () => {
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
             });
-            it('returns the last action message as an alternate text if the action is INVITETOROOM type', async () => {
-                // When a report has last action of INVITETOROOM type
+            it('returns the last action message as an alternate text if the action is INVITE_TO_ROOM type', async () => {
+                // When a report has last action of INVITE_TO_ROOM type
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
