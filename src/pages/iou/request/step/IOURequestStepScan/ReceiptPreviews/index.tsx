@@ -1,15 +1,18 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import FlatList from '@components/FlatList';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import SubmitButton from './SubmitButton';
+import SubmitButtonShadow from './SubmitButtonShadow';
 
 type ReceiptWithTransactionID = Receipt & {transactionID: string};
 
@@ -20,6 +23,7 @@ type ReceiptPreviewsProps = {
 
 function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const INITIAL_RECEIPTS_AMOUNT = 10;
     const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -76,10 +80,16 @@ function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{paddingRight: styles.singleAvatarMedium.width}}
             />
-            <SubmitButton
-                isDisabled={!optimisticTransactionsReceipts?.length}
-                submit={submit}
-            />
+            <SubmitButtonShadow>
+                <Button
+                    large
+                    isDisabled={!optimisticTransactionsReceipts?.length}
+                    innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
+                    icon={Expensicons.ArrowRight}
+                    iconFill={theme.white}
+                    onPress={submit}
+                />
+            </SubmitButtonShadow>
         </View>
     );
 }
