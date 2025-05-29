@@ -79,46 +79,18 @@ function ScheduleCallPage() {
         }
         const guides = Object.keys(calendlySchedule.data);
 
-        const uniqueSlotTimeSet = new Set<string>();
-        const primaryGuideAccountID = guides.find((guideAccountID) => {
+        const allTimeSlots = guides.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
-            return guideSchedule?.guideEmail === account?.guideDetails?.email;
-        });
-
-        // Separately process the primary Guide Time slots to always keep them
-        const primaryGuideSchedule = primaryGuideAccountID ? calendlySchedule?.data[primaryGuideAccountID] : null;
-        const primaryGuideSlots: TimeSlot[] = !primaryGuideSchedule
-            ? []
-            : primaryGuideSchedule.timeSlots.map((timeSlot) => ({
-                  guideAccountID: Number(primaryGuideAccountID),
-                  guideEmail: primaryGuideSchedule.guideEmail,
-                  startTime: timeSlot.startTime,
-                  scheduleURL: timeSlot.schedulingURL,
-              }));
-
-        primaryGuideSlots.forEach((slot) => uniqueSlotTimeSet.add(slot.startTime));
-
-        const otherGuidesTimeSlots = guides
-            .filter((guideAccountID) => guideAccountID !== primaryGuideAccountID)
-            .reduce((allSlots, guideAccountID) => {
-                const guideSchedule = calendlySchedule?.data?.[guideAccountID];
-                guideSchedule?.timeSlots.forEach((timeSlot) => {
-                    // Only add if this startTime hasn't been added by the primary guide or another guide yet
-                    if (uniqueSlotTimeSet.has(timeSlot.startTime)) {
-                        return;
-                    }
-                    allSlots.push({
-                        guideAccountID: Number(guideAccountID),
-                        guideEmail: guideSchedule.guideEmail,
-                        startTime: timeSlot.startTime,
-                        scheduleURL: timeSlot.schedulingURL,
-                    });
-                    uniqueSlotTimeSet.add(timeSlot.startTime);
+            guideSchedule?.timeSlots.forEach((timeSlot) => {
+                allSlots.push({
+                    guideAccountID: Number(guideAccountID),
+                    guideEmail: guideSchedule.guideEmail,
+                    startTime: timeSlot.startTime,
+                    scheduleURL: timeSlot.schedulingURL,
                 });
-                return allSlots;
-            }, [] as TimeSlot[]);
-
-        const allTimeSlots = [...primaryGuideSlots, ...otherGuidesTimeSlots];
+            });
+            return allSlots;
+        }, [] as TimeSlot[]);
 
         // Group timeslots by date to render per day slots on calender
         const timeSlotMap: Record<string, TimeSlot[]> = {};
@@ -136,7 +108,7 @@ function ScheduleCallPage() {
         });
 
         return timeSlotMap;
-    }, [account?.guideDetails?.email, calendlySchedule?.data, userTimezone]);
+    }, [calendlySchedule?.data, userTimezone]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
