@@ -3769,7 +3769,7 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
 }
 
 function isWorkspacePayer(memberLogin: string, policy: OnyxEntry<Policy>): boolean {
-    const isAdmin = isPolicyAdminPolicyUtils(policy, memberLogin);
+    const isAdmin = policy?.employeeList?.[memberLogin]?.role === CONST.POLICY.ROLE.ADMIN;
     if (isPaidGroupPolicyPolicyUtils(policy)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             // If we get here without a reimburser only show the pay button if we are the admin.
@@ -10592,6 +10592,7 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
 function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
+    console.log(managerLogin, isWorkspacePayer(managerLogin?.toString() ?? '', newPolicy), newPolicy);
     return (
         isPaidGroupPolicyPolicyUtils(newPolicy) &&
         (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies)) &&
