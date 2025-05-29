@@ -5117,20 +5117,20 @@ const styles = (theme: ThemeColors) =>
         },
 
         plaidIcon: {
-            height: variables.iconSizeUltraLarge,
-            width: variables.iconSizeUltraLarge,
+            height: variables.iconSizeMegaLarge,
+            width: variables.iconSizeMegaLarge,
             position: 'absolute',
-            right: 20,
-            top: 20,
+            right: 24,
+            top: 24,
         },
 
         plaidIconSmall: {
-            height: variables.cardMiniatureHeight,
-            width: variables.cardMiniatureHeight,
+            height: variables.iconSizeMedium,
+            width: variables.iconSizeMedium,
             position: 'absolute',
-            right: 6,
+            right: 4,
             zIndex: 1,
-            top: 6,
+            top: 4,
         },
 
         walletCardNumber: {
