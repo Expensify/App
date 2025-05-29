@@ -174,7 +174,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`, {canBeMissing: true});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
-    const {currentSearchHash, removeTransaction} = useSearchContext();
+    const {currentSearchHash, setSelectedTransactions, selectedTransactionsID} = useSearchContext();
+
+    const removeTransaction = useCallback(
+        (transactionID?: string) => {
+            setSelectedTransactions(selectedTransactionsID.filter((t) => t !== transactionID));
+        },
+        [setSelectedTransactions, selectedTransactionsID],
+    );
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

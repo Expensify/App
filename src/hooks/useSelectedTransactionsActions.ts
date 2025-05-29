@@ -42,7 +42,7 @@ function useSelectedTransactionsActions({
     session?: Session;
     onExportFailed?: () => void;
 }) {
-    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext();
+    const {selectedTransactionsID, setSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const selectedTransactions = useMemo(
         () =>
@@ -81,12 +81,12 @@ function useSelectedTransactionsActions({
         }));
 
         transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
-        setSelectedTransactionsID([]);
+        setSelectedTransactions([]);
         if (allTransactionsLength - transactionsWithActions.length <= 1) {
             turnOffMobileSelectionMode();
         }
         setIsDeleteModalVisible(false);
-    }, [allTransactionsLength, reportActions, selectedTransactionsID, setSelectedTransactionsID]);
+    }, [allTransactionsLength, reportActions, selectedTransactionsID, setSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
@@ -150,7 +150,7 @@ function useSelectedTransactionsActions({
                         }
                         unholdRequest(transactionID, action?.childReportID);
                     });
-                    setSelectedTransactionsID([]);
+                    setSelectedTransactions([]);
                 },
             });
         }
@@ -166,7 +166,7 @@ function useSelectedTransactionsActions({
                 exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionsID}, () => {
                     onExportFailed?.();
                 });
-                setSelectedTransactionsID([]);
+                setSelectedTransactions([]);
             },
         });
 
@@ -213,7 +213,7 @@ function useSelectedTransactionsActions({
             });
         }
         return options;
-    }, [selectedTransactionsID, report, selectedTransactions, translate, reportActions, setSelectedTransactionsID, onExportFailed, iouType, session?.accountID, showDeleteModal]);
+    }, [selectedTransactionsID, report, selectedTransactions, translate, reportActions, setSelectedTransactions, onExportFailed, iouType, session?.accountID, showDeleteModal]);
 
     return {
         options: computedOptions,

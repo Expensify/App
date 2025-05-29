@@ -147,7 +147,7 @@ function MoneyRequestReportActionsList({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useSearchContext();
+    const {selectedTransactionsID, setSelectedTransactions} = useSearchContext();
 
     const {selectionMode} = useMobileSelectionMode();
     const {
@@ -548,9 +548,9 @@ function MoneyRequestReportActionsList({
                             isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
                             onPress={() => {
                                 if (selectedTransactionsID.length !== 0) {
-                                    setSelectedTransactionsID([]);
+                                    setSelectedTransactions([]);
                                 } else {
-                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                    setSelectedTransactions(transactions.map((t) => t.transactionID));
                                 }
                             }}
                         />
@@ -558,9 +558,9 @@ function MoneyRequestReportActionsList({
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
                                 if (selectedTransactionsID.length === transactions.length) {
-                                    setSelectedTransactionsID([]);
+                                    setSelectedTransactions([]);
                                 } else {
-                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                    setSelectedTransactions(transactions.map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={translate('workspace.people.selectAll')}

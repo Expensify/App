@@ -25,9 +25,9 @@ function SearchHoldReasonPage({route}: Props) {
     const onSubmit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (isOnSearchHoldReason) {
-                const {selectedTransactionsID, setSelectedTransactionsID} = contextValue;
+                const {selectedTransactionsID, setSelectedTransactions} = contextValue;
                 selectedTransactionsID.forEach((transactionID) => putOnHold(transactionID, values.comment, route.params.reportID));
-                setSelectedTransactionsID([]);
+                setSelectedTransactions([]);
             } else {
                 const {currentSearchHash, selectedTransactions, clearSelectedTransactions} = contextValue;
                 holdMoneyRequestOnSearch(currentSearchHash, Object.keys(selectedTransactions), values.comment);

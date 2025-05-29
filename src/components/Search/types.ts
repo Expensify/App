@@ -74,9 +74,13 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchContext = {
     currentSearchHash: number;
     selectedTransactions: SelectedTransactions;
+    selectedTransactionsID: string[];
     selectedReports: SelectedReports[];
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]) => void;
+    setSelectedTransactions: {
+        (selectedTransactions: string[], data?: []): void;
+        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+    };
     clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
     shouldTurnOffSelectionMode: boolean;
     shouldShowStatusBarLoading: boolean;
@@ -88,14 +92,6 @@ type SearchContext = {
     isExportMode: boolean;
     setExportMode: (on: boolean) => void;
     isOnSearch: boolean;
-};
-
-type TMoneyRequestReportContext = {
-    selectedTransactionsID: string[];
-    setSelectedTransactionsID: (transactionsID: string[]) => void;
-    toggleTransaction: (transactionID: string) => void;
-    removeTransaction: (transactionID?: string) => void;
-    isTransactionSelected: (transactionID: string) => boolean;
 };
 
 type ASTNode = {
@@ -181,7 +177,6 @@ export type {
     SearchQueryString,
     SortOrder,
     SearchContext,
-    TMoneyRequestReportContext,
     ASTNode,
     QueryFilter,
     QueryFilters,

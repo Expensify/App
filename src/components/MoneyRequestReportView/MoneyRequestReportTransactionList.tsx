@@ -126,8 +126,16 @@ function MoneyRequestReportTransactionList({
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
-    const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useSearchContext();
+    const {selectedTransactionsID, setSelectedTransactions} = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
+
+    const toggleTransaction = useCallback(
+        (transactionID: string) =>
+            setSelectedTransactions(selectedTransactionsID.includes(transactionID) ? selectedTransactionsID.filter((t) => t !== transactionID) : [...selectedTransactionsID, transactionID]),
+        [setSelectedTransactions, selectedTransactionsID],
+    );
+
+    const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionsID.includes(transactionID), [selectedTransactionsID]);
 
     useFocusEffect(
         useCallback(() => {
@@ -135,9 +143,9 @@ function MoneyRequestReportTransactionList({
                 if (navigationRef?.getRootState()?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
                     return;
                 }
-                setSelectedTransactionsID([]);
+                setSelectedTransactions([]);
             };
-        }, [setSelectedTransactionsID]),
+        }, [setSelectedTransactions]),
     );
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -198,9 +206,9 @@ function MoneyRequestReportTransactionList({
                         <Checkbox
                             onPress={() => {
                                 if (selectedTransactionsID.length !== 0) {
-                                    setSelectedTransactionsID([]);
+                                    setSelectedTransactions([]);
                                 } else {
-                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                    setSelectedTransactions(transactions.map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
