@@ -12,7 +12,6 @@ import {Building} from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -29,13 +28,11 @@ import {
     deleteWorkspace,
     deleteWorkspaceAvatar,
     openPolicyProfilePage,
-    updateLastAccessedWorkspaceSwitcher,
+    setIsComingFromGlobalReimbursementsFlow,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
-import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -61,7 +58,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     const {canUseSpotnanaTravel} = usePermissions();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const backTo = route.params.backTo;
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -69,6 +65,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         selector: (session) => session?.accountID,
         canBeMissing: true,
     });
+    const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, {canBeMissing: true});
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -184,16 +181,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         deleteWorkspace(policy.id, policyName);
         setIsDeleteModalOpen(false);
 
-        // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
-        if (activeWorkspaceID === policy.id) {
-            setActiveWorkspaceID(undefined);
-            resetPolicyIDInNavigationState();
-            updateLastAccessedWorkspaceSwitcher(undefined);
-        }
         if (!shouldUseNarrowLayout) {
             goBackFromInvalidPolicy();
         }
-    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID, shouldUseNarrowLayout]);
+    }, [policy?.id, policyName, shouldUseNarrowLayout]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot()) {
@@ -204,6 +195,20 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         setIsDeleteModalOpen(true);
     }, [setIsDeletingPaidWorkspace]);
+
+    const handleBackButtonPress = () => {
+        if (isComingFromGlobalReimbursementsFlow) {
+            setIsComingFromGlobalReimbursementsFlow(false);
+            Navigation.goBack();
+        }
+
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        Navigation.popToSidebar();
+    };
 
     return (
         <WorkspacePageWithSections
@@ -216,14 +221,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNonAdmin
             icon={Building}
             shouldShowNotFoundPage={policy === undefined}
-            onBackButtonPress={() => {
-                if (backTo) {
-                    Navigation.goBack(backTo);
-                    return;
-                }
-
-                goBackFromWorkspaceCentralScreen(policy?.id);
-            }}
+            onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
         >
             {(hasVBA?: boolean) => (

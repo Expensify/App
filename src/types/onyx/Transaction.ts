@@ -18,7 +18,7 @@ type Waypoint = {
     /** The full address of the waypoint */
     address?: string;
 
-    /** The lattitude of the waypoint */
+    /** The latitude of the waypoint */
     lat?: number;
 
     /** The longitude of the waypoint */
@@ -182,6 +182,9 @@ type Receipt = {
 
     /** Receipt is manager_mctest@expensify.com testing receipt */
     isTestReceipt?: true;
+
+    /** Receipt is Test Drive testing receipt */
+    isTestDriveReceipt?: true;
 };
 
 /** Model of route */

@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -36,12 +36,12 @@ import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {openExternalLink} from '@userActions/Link';
 import {turnOffMobileSelectionMode} from '@userActions/MobileSelectionMode';
@@ -134,12 +134,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const {selectionMode} = useMobileSelectionMode();
 
-    const customUnit = getPerDiemCustomUnit(policy);
-    const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
-
-    const allRatesArray = Object.values(customUnitRates);
-
-    const allSubRates = getSubRatesData(allRatesArray);
+    const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
+        const customUnits = getPerDiemCustomUnit(policy);
+        const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
+        const allRates = Object.values(customUnitRates);
+        const allSubRatesMemo = getSubRatesData(allRates);
+        return [customUnits, allRates, allSubRatesMemo];
+    }, [policy]);
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
@@ -167,7 +168,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     subRateID: value.subRateID,
                     rateID: value.rateID,
                     keyForList: value.subRateID,
-                    isSelected: selectedPerDiem.find((rate) => rate.subRateID === value.subRateID) !== undefined && canSelectMultiple,
                     isDisabled,
                     pendingAction: value.pendingAction,
                     rightElement: (
@@ -192,10 +192,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     ),
                 };
             }),
-        [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
+        [allSubRates, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
     );
 
-    const filterRate = useCallback((rate: PolicyOption, searchInput: string) => !!rate.text?.toLowerCase().includes(searchInput), []);
+    const filterRate = useCallback((rate: PolicyOption, searchInput: string) => {
+        const rateText = StringUtils.normalize(rate.text?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
+        return rateText.includes(normalizedSearchInput);
+    }, []);
     const sortRates = useCallback((rates: PolicyOption[]) => lodashSortBy(rates, 'text', localeCompare) as PolicyOption[], []);
     const [inputValue, setInputValue, filteredSubRatesList] = useSearchResults(subRatesList, filterRate, sortRates);
 
@@ -223,19 +227,28 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }
     };
 
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, !canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]]}>
-            <View style={styles.flex3}>
-                <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.destination')}</Text>
+    const getCustomListHeader = () => {
+        if (filteredSubRatesList.length === 0) {
+            return null;
+        }
+        const header = (
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
+                <View style={styles.flex3}>
+                    <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.destination')}</Text>
+                </View>
+                <View style={styles.flex2}>
+                    <Text style={[styles.textMicroSupporting, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
+                </View>
+                <View style={styles.flex2}>
+                    <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
+                </View>
             </View>
-            <View style={styles.flex2}>
-                <Text style={[styles.textMicroSupporting, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
-            </View>
-            <View style={styles.flex2}>
-                <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
-            </View>
-        </View>
-    );
+        );
+        if (canSelectMultiple) {
+            return header;
+        }
+        return <View style={!canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+    };
 
     const openSettings = () => {
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
@@ -251,8 +264,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const handleDeletePerDiemRates = () => {
         deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
-        setSelectedPerDiem([]);
         setDeletePerDiemConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedPerDiem([]);
+        });
     };
 
     const getHeaderButtons = () => {
@@ -316,20 +332,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            <Text>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
-                <TextLink
-                    style={[styles.textNormal, styles.link]}
-                    onPress={() => openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
-                >
-                    {translate('workspace.common.learnMore')}
-                </TextLink>
-            </Text>
-        </View>
-    );
-
     const threeDotsMenuItems = useMemo(() => {
         const menuItems = [
             {
@@ -366,6 +368,30 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
+    const headerContent = (
+        <>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
+                    <TextLink
+                        style={[styles.textNormal, styles.link]}
+                        onPress={() => openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
+                    >
+                        {translate('workspace.common.learnMore')}
+                    </TextLink>
+                </Text>
+            </View>
+            {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.perDiem.findPerDiemRate')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={hasVisibleSubRates && !isLoading && filteredSubRatesList.length === 0}
+                />
+            )}
+        </>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -396,7 +422,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             return;
                         }
 
-                        goBackFromWorkspaceCentralScreen(policyID);
+                        Navigation.popToSidebar();
                     }}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
@@ -415,15 +441,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!hasVisibleSubRates || isLoading) && getHeaderText()}
-                {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.perDiem.findPerDiemRate')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={hasVisibleSubRates && !isLoading && filteredSubRatesList.length === 0}
-                    />
-                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -431,7 +448,28 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         color={theme.spinner}
                     />
                 )}
-
+                {hasVisibleSubRates && !isLoading && (
+                    <SelectionListWithModal
+                        addBottomSafeAreaPadding
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
+                        sections={[{data: filteredSubRatesList, isDisabled: false}]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        selectedItems={selectedPerDiem.map((item) => item.subRateID)}
+                        onCheckboxPress={toggleSubRate}
+                        onSelectRow={openSubRateDetails}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        onSelectAll={filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}
+                        ListItem={TableListItem}
+                        listHeaderContent={headerContent}
+                        shouldShowListEmptyContent={false}
+                        customListHeader={getCustomListHeader()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listItemTitleContainerStyles={styles.flex3}
+                        showScrollIndicator={false}
+                    />
+                )}
                 {!hasVisibleSubRates && !isLoading && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
@@ -459,25 +497,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         />
                     </ScrollView>
                 )}
-                {hasVisibleSubRates && !isLoading && (
-                    <SelectionListWithModal
-                        addBottomSafeAreaPadding
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
-                        sections={[{data: filteredSubRatesList, isDisabled: false}]}
-                        onCheckboxPress={toggleSubRate}
-                        onSelectRow={openSubRateDetails}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onSelectAll={toggleAllSubRates}
-                        ListItem={TableListItem}
-                        customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listItemTitleContainerStyles={styles.flex3}
-                        showScrollIndicator={false}
-                    />
-                )}
-
                 <ConfirmModal
                     isVisible={isOfflineModalVisible}
                     onConfirm={() => setIsOfflineModalVisible(false)}

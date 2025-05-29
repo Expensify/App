@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -39,7 +39,9 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
 import {getCleanedTagName, getTagListName, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -72,7 +74,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = !!backTo;
-
+    const [isCannotMakeAllTagsOptionalModalVisible, setIsCannotMakeAllTagsOptionalModalVisible] = useState(false);
+    const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -124,14 +127,26 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         isOn={tag.enabled}
                         disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                         accessibilityLabel={translate('workspace.tags.enableTag')}
-                        onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
+                        onToggle={(newValue: boolean) => {
+                            if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
+                                setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                                return;
+                            }
+                            updateWorkspaceTagEnabled(newValue, tag.name);
+                        }}
+                        showLockIcon={isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])}
                     />
                 ),
             })),
-        [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
+        [selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, currentPolicyTag],
     );
 
-    const filterTag = useCallback((tag: TagListItem, searchInput: string) => !!tag.text?.toLowerCase().includes(searchInput) || !!tag.value?.toLowerCase().includes(searchInput), []);
+    const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
+        const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
+        const tagValue = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
+        return tagText.includes(normalizedSearchInput) || tagValue.includes(normalizedSearchInput);
+    }, []);
     const sortTags = useCallback((tags: TagListItem[]) => tags.sort((tagA, tagB) => localeCompare(tagA.value, tagB.value)), []);
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
@@ -167,6 +182,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const getCustomListHeader = () => {
+        if (filteredTagList.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -185,12 +203,25 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        setSelectedTags([]);
         deletePolicyTags(policyID, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTags([]);
+        });
     };
 
     const isLoading = !isOffline && policyTags === undefined;
+
+    const listHeaderContent =
+        tagList.length > CONST.SEARCH_ITEM_LIMIT ? (
+            <SearchBar
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+                label={translate('workspace.tags.findTag')}
+                shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
+            />
+        ) : undefined;
 
     const getHeaderButtons = () => {
         if ((!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !selectionMode?.isEnabled)) {
@@ -231,11 +262,16 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         }
 
         if (enabledTagCount > 0) {
+            const selectedTagsObject = selectedTags.map((key) => currentPolicyTag?.tags[key]);
             options.push({
                 icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
+                    if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject)) {
+                        setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                        return;
+                    }
                     setSelectedTags([]);
                     setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
                 },
@@ -325,11 +361,19 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             title={translate('common.required')}
                             switchAccessibilityLabel={translate('common.required')}
                             isActive={!!currentPolicyTag?.required}
-                            onToggle={(on) => setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
+                            onToggle={(on) => {
+                                if (isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])) {
+                                    setIsCannotMakeAllTagsOptionalModalVisible(true);
+                                    return;
+                                }
+
+                                setPolicyTagsRequired(policyID, on, route.params.orderWeight);
+                            }}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
                             onCloseError={() => clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
+                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
                         />
                     </View>
                 )}
@@ -353,26 +397,22 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        label={translate('workspace.tags.findTag')}
-                        shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
-                    />
-                )}
-                {filteredTagList.length > 0 && !isLoading && (
+                {tagList.length > CONST.SEARCH_ITEM_LIMIT && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={[{data: filteredTagList, isDisabled: false}]}
+                        selectedItems={selectedTags}
+                        shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
-                        onSelectAll={toggleAllTags}
+                        onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                         showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
+                        listHeaderContent={listHeaderContent}
+                        shouldShowListEmptyContent={false}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         addBottomSafeAreaPadding
@@ -381,6 +421,24 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         }}
                     />
                 )}
+                <ConfirmModal
+                    isVisible={isCannotDeleteOrDisableLastTagModalVisible}
+                    onConfirm={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
+                    title={translate('workspace.tags.cannotDeleteOrDisableAllTags.title')}
+                    prompt={translate('workspace.tags.cannotDeleteOrDisableAllTags.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+                <ConfirmModal
+                    isVisible={isCannotMakeAllTagsOptionalModalVisible}
+                    onConfirm={() => setIsCannotMakeAllTagsOptionalModalVisible(false)}
+                    onCancel={() => setIsCannotMakeAllTagsOptionalModalVisible(false)}
+                    title={translate('workspace.tags.cannotMakeAllTagsOptional.title')}
+                    prompt={translate('workspace.tags.cannotMakeAllTagsOptional.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

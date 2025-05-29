@@ -20,7 +20,16 @@ type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TI
 };
 
 function SelectionListWithModal<TItem extends ListItem>(
-    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, isScreenFocused = false, sections, isSelected, ...rest}: SelectionListWithModalProps<TItem>,
+    {
+        turnOnSelectionModeOnLongPress,
+        onTurnOnSelectionMode,
+        onLongPressRow,
+        isScreenFocused = false,
+        sections,
+        isSelected,
+        selectedItems: selectedItemsProp,
+        ...rest
+    }: SelectionListWithModalProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -40,12 +49,14 @@ function SelectionListWithModal<TItem extends ListItem>(
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
-        const selectedItems = sections[0].data.filter((item) => {
-            if (isSelected) {
-                return isSelected(item);
-            }
-            return !!item.isSelected;
-        });
+        const selectedItems =
+            selectedItemsProp ??
+            sections[0].data.filter((item) => {
+                if (isSelected) {
+                    return isSelected(item);
+                }
+                return !!item.isSelected;
+            });
         selectionRef.current = selectedItems.length;
 
         if (!isSmallScreenWidth) {
@@ -65,7 +76,8 @@ function SelectionListWithModal<TItem extends ListItem>(
         } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
-    }, [sections, selectionMode, isSmallScreenWidth, isSelected, isFocused]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [sections, selectedItemsProp, selectionMode, isSmallScreenWidth, isSelected, isFocused]);
 
     useEffect(
         () => () => {
@@ -109,8 +121,10 @@ function SelectionListWithModal<TItem extends ListItem>(
             <SelectionList
                 ref={ref}
                 sections={sections}
+                selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
                 isScreenFocused={isScreenFocused}
+                isSmallScreenWidth={isSmallScreenWidth}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
@@ -119,7 +133,6 @@ function SelectionListWithModal<TItem extends ListItem>(
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
                 shouldPreventScrollOnFocus
-                shouldUseNewModal
             >
                 <MenuItem
                     title={translate('common.select')}
@@ -132,4 +145,5 @@ function SelectionListWithModal<TItem extends ListItem>(
     );
 }
 
+export type {SelectionListWithModalProps};
 export default forwardRef(SelectionListWithModal);
