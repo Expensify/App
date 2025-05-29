@@ -20,9 +20,9 @@ jobs:
       - name: Fetch merge base SHA from API
         id: merge_base
         run: |
-          MERGE_BASE_SHA="$(gh api repos/$REPO/compare/$PR_BASE_SHA...$PR_HEAD_SHA \
-          | jq -r '.merge_base_commit.sha')"
-          echo "MERGE_BASE_SHA=$MERGE_BASE_SHA" >> "$GITHUB_OUTPUT"
+          API_CALL="repos/${REPO}/compare/${PR_BASE_SHA}...${PR_HEAD_SHA}"
+          MERGE_BASE_SHA="$(gh api "$API_CALL"| jq -r '.merge_base_commit.sha')"
+          echo "MERGE_BASE_SHA={$MERGE_BASE_SHA}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository	}}
@@ -32,12 +32,11 @@ jobs:
       - name: Count commits  between merge base and HEAD
         id: count
         run: |
-          echo "Comparing $BASE...$HEAD"
+          # echo "Comparing ${BASE}...${HEAD}"
+          API_CALL="repos/${{ github.repository }}/compare/${BASE}...main"
+          COMMIT_COUNT=$(gh api "$API_CALL" --jq '.total_commits')
 
-          COMMIT_COUNT=$(gh api repos/${{ github.repository }}/compare/$BASE...main \
-            --jq '.total_commits')
-
-          echo "Number of commits between $BASE and $HEAD: $COMMIT_COUNT"
+          # echo "Number of commits between ${BASE} and ${HEAD}: ${COMMIT_COUNT}"
           echo "count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
