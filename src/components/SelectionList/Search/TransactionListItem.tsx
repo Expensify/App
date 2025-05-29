@@ -36,8 +36,9 @@ function TransactionListItem<TItem extends ListItem>({
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
-        styles.pv3,
-        styles.ph3,
+        styles.pv0,
+        !isLargeScreenWidth && styles.pt3,
+        styles.ph0,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
@@ -125,7 +126,6 @@ function TransactionListItem<TItem extends ListItem>({
                         isSelected={!!transactionItem.isSelected}
                         dateColumnSize={dateColumnSize}
                         shouldShowCheckbox={!!canSelectMultiple}
-                        columnWrapperStyles={[styles.ph3, styles.pv1half]}
                         isChildListItem={false}
                     />
                 </>

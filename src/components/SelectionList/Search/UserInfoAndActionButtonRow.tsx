@@ -25,7 +25,7 @@ function UserInfoAndActionButtonRow({
         hasFromSender && hasToRecipent && !!item?.to?.accountID && item?.from?.accountID !== item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
 
     return (
-        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.pb3, styles.gap2]}>
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, styles.ph3]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                 {shouldShowUserInfo && (
                     <UserInfoCellsWithArrow

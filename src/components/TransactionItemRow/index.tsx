@@ -66,7 +66,7 @@ type TransactionItemRowProps = {
     scrollToNewTransaction?: ((offset: number) => void) | undefined;
     isChildListItem?: boolean;
     isActionLoading?: boolean;
-    isInReportRow?: boolean;
+    shouldUseAnimatedHighlight?: boolean;
 };
 
 function TransactionItemRow({
@@ -84,7 +84,7 @@ function TransactionItemRow({
     scrollToNewTransaction,
     isChildListItem = true,
     isActionLoading,
-    isInReportRow = false,
+    shouldUseAnimatedHighlight = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -244,7 +244,7 @@ function TransactionItemRow({
         }),
         [StyleUtils, createdAt, isActionLoading, isChildListItem, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
     );
-    const safeColumnWrapperStyle = isInReportRow ? columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius] : [];
+    const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     return (
         <View
             style={[styles.flex1]}
@@ -257,8 +257,8 @@ function TransactionItemRow({
                 shouldForceOpacity={!!pendingAction}
             >
                 {shouldUseNarrowLayout ? (
-                    <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
-                        <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, isInReportRow && styles.p3, bgActiveStyles]}>
+                    <Animated.View style={[shouldUseAnimatedHighlight ? animatedHighlightStyle : {}]}>
+                        <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
                             <View style={[styles.flexRow]}>
                                 {shouldShowCheckbox && (
                                     <View style={[styles.mr3, styles.justifyContentCenter]}>
@@ -345,7 +345,7 @@ function TransactionItemRow({
                         </View>
                     </Animated.View>
                 ) : (
-                    <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
+                    <Animated.View style={[shouldUseAnimatedHighlight ? animatedHighlightStyle : {}]}>
                         <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles, styles.mw100]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                                 <View style={[styles.mr1]}>
