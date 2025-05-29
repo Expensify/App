@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- if the first value is '' nullish coalescing will return '' so leaving || for safty
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- if the first value is '' nullish coalescing will return '' so leaving || for safety
 const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 
 // add your test name here …

@@ -1,12 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useParentReport from '@hooks/useParentReport';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
 import {useSession} from './OnyxProvider';
@@ -20,6 +21,9 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const session = useSession();
+    const parentReport = useParentReport(report.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskActionable = canActionTask(report, session?.accountID, parentReport, isParentReportArchived);
 
     if (!canWriteInReport(report)) {
         return null;
@@ -29,7 +33,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
                 success
-                isDisabled={!canActionTask(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
+                isDisabled={!isTaskActionable}
                 text={translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={callFunctionIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
