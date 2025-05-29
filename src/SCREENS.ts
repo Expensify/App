@@ -223,6 +223,7 @@ const SCREENS = {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
+    SIGN_OUT: 'SignOut',
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
     REQUIRE_TWO_FACTOR_AUTH: 'RequireTwoFactorAuth',
 

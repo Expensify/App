@@ -1881,6 +1881,9 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.TRACK_EXPENSE]: undefined;
     [SCREENS.SUBMIT_EXPENSE]: undefined;
+    [SCREENS.SIGN_OUT]: {
+        redirectToClassic?: boolean;
+    };
     [SCREENS.ATTACHMENTS]: {
         reportID: string;
         attachmentID?: string;
