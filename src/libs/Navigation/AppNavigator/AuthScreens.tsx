@@ -40,6 +40,7 @@ import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
+import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -98,7 +99,6 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
-const loadWorkspaceHubSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceHubSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
@@ -556,11 +556,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     getComponent={loadSearchNavigator}
                 />
                 <RootStack.Screen
-                    name={NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR}
-                    options={getFullscreenNavigatorOptions}
-                    getComponent={loadWorkspaceHubSplitNavigator}
-                />
-                <RootStack.Screen
                     name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
                     options={getWorkspaceSplitNavigatorOptions}
                     getComponent={loadWorkspaceSplitNavigator}
@@ -574,6 +569,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     }}
                     listeners={fullScreenListeners}
                     getComponent={loadValidateLoginPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACES_LIST}
+                    options={rootNavigatorScreenOptions.workspacesListPage}
+                    component={WorkspacesListPage}
                 />
                 <RootStack.Screen
                     name={SCREENS.TRANSITION_BETWEEN_APPS}

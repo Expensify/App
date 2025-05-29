@@ -69,9 +69,11 @@ import {
     deleteMoneyRequest,
     getNavigationUrlOnMoneyRequestDelete,
     getNextApproverAccountID,
+    initSplitExpense,
     payInvoice,
     payMoneyRequest,
     reopenReport,
+    retractReport,
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
@@ -754,6 +756,19 @@ function MoneyReportHeader({
                 changeMoneyRequestHoldStatus(requestParentReportAction);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
+            text: translate('iou.split'),
+            icon: Expensicons.ArrowSplit,
+            value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
+            onSelected: () => {
+                if (Number(transactions?.length) !== 1) {
+                    return;
+                }
+
+                const currentTransaction = transactions.at(0);
+                initSplitExpense(currentTransaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
             icon: Expensicons.Buildings,
@@ -791,6 +806,14 @@ function MoneyReportHeader({
                 }
             },
             shouldShow: canUseTableReportView,
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
+            text: translate('iou.undoSubmit'),
+            icon: Expensicons.CircularArrowBackwards,
+            value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
+            onSelected: () => {
+                retractReport(moneyRequestReport);
+            },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
             text: translate('iou.undoClose'),
