@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 /**
  * @jest-environment node
  */
+
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
@@ -43,7 +43,7 @@ beforeAll(() => {
     asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 create: jest.fn().mockImplementation((arg: Parameters<OctokitCreateIssue>[0]) =>
@@ -60,7 +60,7 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     } as unknown as InternalOctokit;
 
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 });
 
 afterEach(() => {
@@ -76,6 +76,7 @@ describe('GithubUtils', () => {
             labels: [
                 {
                     id: 2783847782,
+                    // cspell:disable-next-line
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                     name: 'StagingDeployCash',
@@ -116,6 +117,7 @@ describe('GithubUtils', () => {
                     description: '',
                     id: 2783847782,
                     name: 'StagingDeployCash',
+                    // cspell:disable-next-line
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                 },
@@ -623,95 +625,6 @@ describe('GithubUtils', () => {
                 );
                 expect(issue.issueAssignees).toEqual(['octocat']);
             });
-        });
-    });
-
-    const commitHistoryData = {
-        emptyResponse: {
-            data: {
-                commits: [],
-            },
-        },
-        singleCommit: {
-            data: {
-                commits: [
-                    {
-                        sha: 'abc123',
-                        commit: {
-                            message: 'Test commit message',
-                            author: {
-                                name: 'Test Author',
-                            },
-                        },
-                        author: {
-                            login: 'testuser',
-                        },
-                    },
-                ],
-            },
-        },
-        expectedFormattedCommit: [
-            {
-                commit: 'abc123',
-                subject: 'Test commit message',
-                authorName: 'Test Author',
-            },
-        ],
-    };
-
-    describe('getCommitHistoryBetweenTags', () => {
-        let mockCompareCommits: jest.Mock;
-
-        beforeEach(() => {
-            jest.spyOn(core, 'getInput').mockImplementation((name) => {
-                if (name === 'GITHUB_TOKEN') {
-                    return 'mock-token';
-                }
-                return '';
-            });
-
-            // Prepare the mocked GitHub API
-            mockCompareCommits = jest.fn();
-
-            // Explicitly mock GithubUtils.internalOctokit for this test suite
-            const mockOctokitInstance = {
-                rest: {
-                    repos: {
-                        compareCommits: mockCompareCommits, // Use the mock function here
-                    },
-                },
-                paginate: jest.fn(),
-            } as unknown as InternalOctokit;
-
-            // Prevent the real initOctokit from running and overwriting our mock
-            jest.spyOn(GithubUtils, 'initOctokit').mockImplementation(() => {});
-
-            // Set the internalOctokit directly
-            GithubUtils.internalOctokit = mockOctokitInstance;
-        });
-
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        test('should return empty array when no commits found', async () => {
-            mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
-
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
-            expect(result).toEqual([]);
-        });
-
-        test('should return formatted commit history when commits exist', async () => {
-            mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
-
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
-            expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
-        });
-
-        test('should handle API errors gracefully', async () => {
-            mockCompareCommits.mockRejectedValue(new Error('API Error'));
-
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow('API Error');
         });
     });
 

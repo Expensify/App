@@ -1,30 +1,18 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {useNavigation} from '@react-navigation/native';
-import type * as NativeNavigation from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 import {search} from '@libs/actions/Search';
+import CONST from '@src/CONST';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@src/components/ConfirmedRoute.tsx');
-jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
-    useNavigation: jest.fn(),
-}));
+
+afterEach(() => {
+    jest.clearAllMocks();
+});
 
 describe('useSearchHighlightAndScroll', () => {
-    beforeEach(() => {
-        // Default mock implementation
-        (useNavigation as jest.Mock).mockReturnValue({
-            isFocused: () => true,
-        });
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should trigger Search when transactionIDs list change', () => {
         const initialProps: UseSearchHighlightAndScroll = {
             searchResults: {
@@ -71,7 +59,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -110,7 +98,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -124,7 +112,7 @@ describe('useSearchHighlightAndScroll', () => {
             reportActions: {
                 reportActions_209647397999267: {
                     1: {
-                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
                         reportActionID: '1',
                         created: '',
                     },
@@ -133,7 +121,7 @@ describe('useSearchHighlightAndScroll', () => {
             previousReportActions: {
                 reportActions_209647397999267: {
                     1: {
-                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
                         reportActionID: '1',
                         created: '',
                     },
@@ -182,7 +170,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -203,16 +191,11 @@ describe('useSearchHighlightAndScroll', () => {
         // When the transaction ids list change though it has the same length as previous value
         rerender(changedProp);
 
-        // Then Search will be triggerred.
+        // Then Search will be triggered.
         expect(search).toHaveBeenCalled();
     });
 
-    it('should not trigger Search when navigation is not focused', () => {
-        // Mock navigation.isFocused to return false
-        (useNavigation as jest.Mock).mockReturnValue({
-            isFocused: () => false,
-        });
-
+    it('should trigger Search when report actions change', () => {
         const initialProps: UseSearchHighlightAndScroll = {
             searchResults: {
                 data: {personalDetailsList: {}},
@@ -230,88 +213,12 @@ describe('useSearchHighlightAndScroll', () => {
                     isLoading: false,
                 },
             },
-            transactions: {
-                transactions_1: {
-                    amount: -100,
-                    bank: '',
-                    billable: false,
-                    cardID: 0,
-                    cardName: 'Cash Expense',
-                    cardNumber: '',
-                    category: '',
-                    comment: {
-                        comment: '',
-                    },
-                    created: '2025-01-08',
-                    currency: 'ETB',
-                    filename: 'w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    inserted: '2025-01-08 15:35:32',
-                    managedCard: false,
-                    merchant: 'g',
-                    modifiedAmount: 0,
-                    modifiedCreated: '',
-                    modifiedCurrency: '',
-                    modifiedMerchant: '',
-                    originalAmount: 0,
-                    originalCurrency: '',
-                    parentTransactionID: '',
-                    posted: '',
-                    receipt: {
-                        receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
-                        source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    },
-                    reimbursable: true,
-                    reportID: '2309609540437471',
-                    status: 'Posted',
-                    tag: '',
-                    transactionID: '1',
-                    hasEReceipt: false,
-                },
-            },
-            previousTransactions: {
-                transactions_1: {
-                    amount: -100,
-                    bank: '',
-                    billable: false,
-                    cardID: 0,
-                    cardName: 'Cash Expense',
-                    cardNumber: '',
-                    category: '',
-                    comment: {
-                        comment: '',
-                    },
-                    created: '2025-01-08',
-                    currency: 'ETB',
-                    filename: 'w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    inserted: '2025-01-08 15:35:32',
-                    managedCard: false,
-                    merchant: 'g',
-                    modifiedAmount: 0,
-                    modifiedCreated: '',
-                    modifiedCurrency: '',
-                    modifiedMerchant: '',
-                    originalAmount: 0,
-                    originalCurrency: '',
-                    parentTransactionID: '',
-                    posted: '',
-                    receipt: {
-                        receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
-                        source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    },
-                    reimbursable: true,
-                    reportID: '2309609540437471',
-                    status: 'Posted',
-                    tag: '',
-                    transactionID: '1',
-                    hasEReceipt: false,
-                },
-            },
+            transactions: {},
+            previousTransactions: {},
             reportActions: {
                 reportActions_209647397999267: {
                     1: {
-                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
                         reportActionID: '1',
                         created: '',
                     },
@@ -320,7 +227,7 @@ describe('useSearchHighlightAndScroll', () => {
             previousReportActions: {
                 reportActions_209647397999267: {
                     1: {
-                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
                         reportActionID: '1',
                         created: '',
                     },
@@ -339,61 +246,34 @@ describe('useSearchHighlightAndScroll', () => {
             },
             offset: 0,
         };
-        const changedProp: UseSearchHighlightAndScroll = {
+
+        const changedProps: UseSearchHighlightAndScroll = {
             ...initialProps,
-            transactions: {
-                transactions_2: {
-                    amount: -100,
-                    bank: '',
-                    billable: false,
-                    cardID: 0,
-                    cardName: 'Cash Expense',
-                    cardNumber: '',
-                    category: '',
-                    comment: {
-                        comment: '',
+            reportActions: {
+                reportActions_209647397999268: {
+                    1: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
+                        reportActionID: '1',
+                        created: '',
                     },
-                    created: '2025-01-08',
-                    currency: 'ETB',
-                    filename: 'w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    inserted: '2025-01-08 15:35:32',
-                    managedCard: false,
-                    merchant: 'g',
-                    modifiedAmount: 0,
-                    modifiedCreated: '',
-                    modifiedCurrency: '',
-                    modifiedMerchant: '',
-                    originalAmount: 0,
-                    originalCurrency: '',
-                    parentTransactionID: '',
-                    posted: '',
-                    receipt: {
-                        receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
-                        source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
+                    2: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        reportActionID: '2',
+                        created: '',
                     },
-                    reimbursable: true,
-                    reportID: '2309609540437471',
-                    status: 'Posted',
-                    tag: '',
-                    transactionID: '2',
-                    hasEReceipt: false,
                 },
             },
         };
 
-        // Reset the mock to track new calls
-        jest.clearAllMocks();
-
-        const {rerender} = renderHook((prop: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(prop), {
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
             initialProps,
         });
         expect(search).not.toHaveBeenCalled();
 
-        // When the transaction ids list changes but navigation is not focused
-        rerender(changedProp);
+        // When report actions change
+        rerender(changedProps);
 
-        // Then Search should NOT be triggered
-        expect(search).not.toHaveBeenCalled();
+        // Then Search will be triggered
+        expect(search).toHaveBeenCalled();
     });
 });

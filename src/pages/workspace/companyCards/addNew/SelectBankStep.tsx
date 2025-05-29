@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getBankCardDetailsImage, getCorrectStepForSelectedBank} from '@libs/CardUtils';
+import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank, getCorrectStepForSelectedBank} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -40,11 +40,11 @@ function SelectBankStep() {
         if (!bankSelected) {
             setHasError(true);
         } else {
-            if (addNewCard?.data.selectedBank !== bankSelected) {
+            if (addNewCard?.data.selectedBank !== bankSelected && !canUsePlaidCompanyCards) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
-                step: getCorrectStepForSelectedBank(bankSelected),
+                step: canUsePlaidCompanyCards ? getCorrectStepForPlaidSelectedBank(bankSelected) : getCorrectStepForSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
                     cardTitle: !isOtherBankSelected ? bankSelected : undefined,
