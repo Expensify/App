@@ -504,16 +504,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
-        report?.type,
-        report?.errorFields?.notFound,
         isOffline,
         route.params,
         currentUserEmail,
         reportIDFromRoute,
         reportActionIDFromRoute,
-        currentUserEmail,
         report,
-        isOffline,
         reportID,
         transactionThreadReport,
         transactionThreadReportID,
