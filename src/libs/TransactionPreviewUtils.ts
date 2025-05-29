@@ -17,7 +17,7 @@ import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getFormattedCreated,
-    getOriginalTransactionWithSplitInfo,
+    getTransaction,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -108,6 +108,22 @@ type TranslationPathOrText = {
 };
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
+
+const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+
+    if (splits && splits.length > 0) {
+        return {isBillSplit: true, originalTransaction: getTransaction(originalTransactionID) ?? transaction};
+    }
+
+    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
+        return {isBillSplit: false, originalTransaction: transaction};
+    }
+
+    const originalTransaction = getTransaction(originalTransactionID);
+
+    return {isBillSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
+};
 
 function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string, isTransactionOnHold: boolean): TranslationPathOrText {
     const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
@@ -252,7 +268,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    const amount = isBillSplit ? getOriginalTransactionWithSplitInfo(transaction).originalTransaction?.amount : requestAmount;
+    const amount = isBillSplit ? getOriginalTransactionIfBillIsSplit(transaction).originalTransaction?.amount : requestAmount;
     let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
@@ -347,5 +363,13 @@ function createTransactionPreviewConditionals({
     };
 }
 
-export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals, getViolationTranslatePath, getUniqueActionErrors};
+export {
+    getReviewNavigationRoute,
+    getIOUData,
+    getTransactionPreviewTextAndTranslationPaths,
+    createTransactionPreviewConditionals,
+    getOriginalTransactionIfBillIsSplit,
+    getViolationTranslatePath,
+    getUniqueActionErrors,
+};
 export type {TranslationPathOrText};
