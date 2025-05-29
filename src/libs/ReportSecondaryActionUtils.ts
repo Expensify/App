@@ -12,14 +12,20 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
+    isInstantSubmitEnabled,
     isPreferredExporter,
+    isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
+import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
     canEditFieldOfMoneyRequest,
     canEditReportPolicy,
+    canHoldUnholdReportAction,
+    hasOnlyHeldExpenses,
     isArchivedReport,
+    isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -31,11 +37,18 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isReportManager as isReportManagerUtils,
+    isSelfDM as isSelfDMReportUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {
+    allHavePendingRTERViolation,
+    isCardTransaction as isCardTransactionUtils,
+    isDuplicate,
+    isOnHold as isOnHoldTransactionUtils,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+} from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -287,16 +300,17 @@ function isHoldAction(report: Report, reportTransactions: Transaction[], reportA
         return false;
     }
 
-    const isTransactionOnHold = isHoldActionForTransaction(report, transaction);
-    return isTransactionOnHold;
+    return !!reportActions && isHoldActionForTransaction(report, transaction, reportActions);
 }
 
-function isHoldActionForTransaction(report: Report, reportTransaction: Transaction): boolean {
+function isHoldActionForTransaction(report: Report, reportTransaction: Transaction, reportActions: ReportAction[]): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
+    const action = getIOUActionForTransactionID(reportActions, reportTransaction.transactionID);
+    const {canHoldRequest} = canHoldUnholdReportAction(action);
 
-    if (!iouOrExpenseReport) {
+    if (!iouOrExpenseReport || !canHoldRequest) {
         return false;
     }
 
@@ -343,29 +357,66 @@ function isMoveTransactionAction(reportTransactions: Transaction[], reportAction
     return canMoveExpense;
 }
 
-function isDeleteAction(report: Report): boolean {
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
+    const isUnreported = isSelfDMReportUtils(report);
+    const transaction = reportTransactions.at(0);
+    const transactionID = transaction?.transactionID;
+    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
+    const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
+    const isSingleTransaction = reportTransactions.length === 1;
 
-    if (!isExpenseReport && !isIOUReport) {
+    if (isUnreported) {
+        return isOwner;
+    }
+
+    // Users cannot delete a report in the unrepeorted or IOU cases, but they can delete individual transactions.
+    // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
+    if (isIOUReport) {
+        return isSingleTransaction && isOwner && isReportOpenOrProcessing;
+    }
+
+    if (isExpenseReport) {
+        const isCardTransactionWithCorporateLiability =
+            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+
+        if (isCardTransactionWithCorporateLiability) {
+            return false;
+        }
+
+        const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+        const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+        const isForwarded = isProcessingReportUtils(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
+
+        return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
+    }
+
+    return false;
+}
+
+function isRetractAction(report: Report, policy?: Policy): boolean {
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isSubmitAndClose = isSubmitAndCloseUtils(policy);
+
+    // This should be removed after we change how instant submit works
+    const isInstantSubmit = isInstantSubmitEnabled(policy);
+
+    if (!isExpenseReport || isSubmitAndClose || isInstantSubmit) {
         return false;
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-
     if (!isReportSubmitter) {
         return false;
     }
 
-    const isReportOpen = isOpenReportUtils(report);
     const isProcessingReport = isProcessingReportUtils(report);
-    const isReportApproved = isReportApprovedUtils({report});
-
-    if (isReportApproved) {
+    if (!isProcessingReport) {
         return false;
     }
 
-    return isReportOpen || isProcessingReport;
+    return true;
 }
 
 function isReopenAction(report: Report, policy?: Policy): boolean {
@@ -400,6 +451,10 @@ function getSecondaryReportActions(
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
+    }
+
     if (canUseTableReportView && isAddExpenseAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
@@ -428,6 +483,10 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
+    if (canUseRetractNewDot && isRetractAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
+    }
+
     if (canUseRetractNewDot && isReopenAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
@@ -450,23 +509,27 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report)) {
+    if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
     return options;
 }
 
-function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
+function getSecondaryTransactionThreadActions(
+    parentReport: Report,
+    reportTransaction: Transaction,
+    reportActions: ReportAction[],
+): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
-    if (isHoldActionForTransaction(parentReport, reportTransaction)) {
+    if (isHoldActionForTransaction(parentReport, reportTransaction, reportActions)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport)) {
+    if (isDeleteAction(parentReport, [reportTransaction], reportActions ?? [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
