@@ -859,6 +859,10 @@ function IOURequestStepScan({
                         }}
                     />
                 )}
+                <Button
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.getRoute())}
+                    text="PRESS"
+                />
             </View>
         </StepScreenWrapper>
     );

@@ -116,15 +116,15 @@ function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownlo
     }
 
     return (
-        <AttachmentCarouselView
-            cycleThroughAttachments={cycleThroughAttachments}
-            page={page}
-            attachments={attachments}
-            shouldShowArrows={shouldShowArrows}
-            autoHideArrows={autoHideArrows}
-            cancelAutoHideArrow={cancelAutoHideArrows}
-        >
-            <View style={containerStyles}>
+        <View style={containerStyles}>
+            <AttachmentCarouselView
+                cycleThroughAttachments={cycleThroughAttachments}
+                page={page}
+                attachments={attachments}
+                shouldShowArrows={shouldShowArrows}
+                autoHideArrows={autoHideArrows}
+                cancelAutoHideArrow={cancelAutoHideArrows}
+            >
                 <AttachmentCarouselPager
                     items={attachments}
                     initialPage={page}
@@ -136,8 +136,8 @@ function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownlo
                     ref={pagerRef}
                     reportID={report.reportID}
                 />
-            </View>
-        </AttachmentCarouselView>
+            </AttachmentCarouselView>
+        </View>
     );
 }
 
