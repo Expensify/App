@@ -41,11 +41,10 @@ jobs:
           REPO: ${{ github.repository	}}
           
       - name: Checkout
-        if: steps.count.outputs.count != '0'
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          fetch-depth: ${{ steps.count.outputs.count }}
+          fetch-depth: ${{ max(1, fromJson(steps.count.outputs.count)) }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
