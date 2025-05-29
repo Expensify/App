@@ -470,6 +470,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
+        case 'agentZeroProcessingRequestIndicator':
         case 'welcomeMessage':
             return validateString(value);
         case 'hasOutstandingChildRequest':
