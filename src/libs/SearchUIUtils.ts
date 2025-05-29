@@ -318,10 +318,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
-    const keys = Object.keys(data) as TransactionKey[];
-
-    return keys
-        .filter((key) => isTransactionEntry(key) && data[key]?.reportID !== CONST.REPORT.SPLIT_REPORT_ID)
+    return Object.keys(data)
+        .filter(isTransactionEntry)
         .map((key) => {
             const transactionItem = data[key];
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
