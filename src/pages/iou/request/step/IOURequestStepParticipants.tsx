@@ -13,7 +13,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {findSelfDMReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
-import {getRequestType} from '@libs/TransactionUtils';
+import {getRequestType, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -61,6 +61,9 @@ function IOURequestStepParticipants({
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
@@ -120,8 +123,8 @@ function IOURequestStepParticipants({
             return;
         }
 
-        transactions.forEach((transaction) => resetDraftTransactionsCustomUnit(transaction.transactionID));
-    }, [isFocused, isMovingTransactionFromTrackExpense, transactions]);
+        transactionIDs.forEach((transactionID) => resetDraftTransactionsCustomUnit(transactionID));
+    }, [isFocused, isMovingTransactionFromTrackExpense, transactionIDs]);
 
     const waitForKeyboardDismiss = useCallback(
         (callback: () => void) => {
@@ -304,6 +307,7 @@ function IOURequestStepParticipants({
                     onFinish={goToNextStep}
                     iouType={iouType}
                     action={action}
+                    isPerDiemRequest={isPerDiemRequest(initialTransaction)}
                 />
             )}
         </StepScreenWrapper>

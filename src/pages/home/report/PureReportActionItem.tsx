@@ -6,6 +6,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -123,16 +124,10 @@ import {
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
     getIconsForParticipants,
-    getIOUApprovedMessage,
     getIOUForwardedMessage,
-    getIOUSubmittedMessage,
-    getIOUUnapprovedMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyApprovedMessage,
-    getReportAutomaticallySubmittedMessage,
-    getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
@@ -239,7 +234,7 @@ type PureReportActionItemProps = {
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
 
-    /** ReportAction Draftmessage */
+    /** ReportAction draft message */
     draftMessage?: string;
 
     /** The IOU/Expense report we are paying */
@@ -405,6 +400,7 @@ function PureReportActionItem({
     policies,
     shouldShowBorder,
 }: PureReportActionItemProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -557,6 +553,29 @@ function PureReportActionItem({
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
+    const handleShowContextMenu = useCallback(
+        (callback: () => void) => {
+            if (!(popoverAnchorRef.current && 'measureInWindow' in popoverAnchorRef.current)) {
+                return;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
+                actionSheetAwareScrollViewContext.transitionActionSheetState({
+                    type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
+                    payload: {
+                        popoverHeight: 0,
+                        frameY,
+                        height,
+                    },
+                });
+
+                callback();
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
+
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
 
     /**
@@ -571,30 +590,32 @@ function PureReportActionItem({
                 return;
             }
 
-            setIsContextMenuActive(true);
-            const selection = SelectionScraper.getCurrentSelection();
-            showContextMenu({
-                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                event,
-                selection,
-                contextMenuAnchor: popoverAnchorRef.current,
-                report: {
-                    reportID,
-                    originalReportID,
-                    isArchivedRoom,
-                    isChronos: isChronosReport,
-                },
-                reportAction: {
-                    reportActionID: action.reportActionID,
-                    draftMessage,
-                    isThreadReportParentAction,
-                },
-                callbacks: {
-                    onShow: toggleContextMenuFromActiveReportAction,
-                    onHide: toggleContextMenuFromActiveReportAction,
-                    setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
-                },
-                disabledOptions: disabledActions,
+            handleShowContextMenu(() => {
+                setIsContextMenuActive(true);
+                const selection = SelectionScraper.getCurrentSelection();
+                showContextMenu({
+                    type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                    event,
+                    selection,
+                    contextMenuAnchor: popoverAnchorRef.current,
+                    report: {
+                        reportID,
+                        originalReportID,
+                        isArchivedRoom,
+                        isChronos: isChronosReport,
+                    },
+                    reportAction: {
+                        reportActionID: action.reportActionID,
+                        draftMessage,
+                        isThreadReportParentAction,
+                    },
+                    callbacks: {
+                        onShow: toggleContextMenuFromActiveReportAction,
+                        onHide: toggleContextMenuFromActiveReportAction,
+                        setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
+                    },
+                    disabledOptions: disabledActions,
+                });
             });
         },
         [
@@ -607,6 +628,7 @@ function PureReportActionItem({
             disabledActions,
             isArchivedRoom,
             isChronosReport,
+            handleShowContextMenu,
             isThreadReportParentAction,
         ],
     );
@@ -626,10 +648,11 @@ function PureReportActionItem({
             action,
             transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+            onShowContextMenu: handleShowContextMenu,
             isDisabled: false,
             shouldDisplayContextMenu,
         }),
-        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs, shouldDisplayContextMenu],
+        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, handleShowContextMenu, reportNameValuePairs, shouldDisplayContextMenu],
     );
 
     const attachmentContextValue = useMemo(() => {
@@ -796,6 +819,7 @@ function PureReportActionItem({
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
+                    onShowContextMenu={handleShowContextMenu}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
@@ -879,6 +903,7 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     action={action}
                     isHovered={hovered}
+                    onShowContextMenu={handleShowContextMenu}
                     contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
@@ -898,6 +923,7 @@ function PureReportActionItem({
                         chatReportID={reportID}
                         action={action}
                         isHovered={hovered}
+                        onShowContextMenu={handleShowContextMenu}
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                         policyID={report?.policyID}
@@ -958,25 +984,25 @@ function PureReportActionItem({
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action, report)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUSubmittedMessage(action, report)} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action, report)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyApproved')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUApprovedMessage(action, report)} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
         } else if (isUnapprovedAction(action)) {
-            children = <ReportActionItemBasicMessage message={getIOUUnapprovedMessage(action, report)} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
@@ -1000,6 +1026,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
+            children = <ReportActionItemBasicMessage message={translate('iou.retracted')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
             children = <ReportActionItemBasicMessage message={getReopenedMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
@@ -1013,11 +1041,7 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
-            children = (
-                <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage(action)}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
-            );
+            children = <ReportActionItemBasicMessage message={translate('iou.unreportedTransaction')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
