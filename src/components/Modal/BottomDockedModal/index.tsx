@@ -1,11 +1,12 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, Dimensions, InteractionManager, KeyboardAvoidingView, Modal, View} from 'react-native';
+import {BackHandler, Dimensions, InteractionManager, Modal, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import Backdrop from './Backdrop';
 import Container from './Container';
 import type ModalProps from './types';
