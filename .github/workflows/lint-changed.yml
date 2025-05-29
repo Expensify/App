@@ -20,7 +20,7 @@ jobs:
       - name: Fetch merge base SHA from API
         id: merge_base
         run: |
-          MERGE_BASE_SHA="$(gh api repos/$REPO/compare/$PR_BASE_SHA...$PR_HEAD_SHA \
+          MERGE_BASE_SHA="$(gh api repos/"$REPO"/compare/"$PR_BASE_SHA"..."$PR_HEAD_SHA" \
           | jq -r '.merge_base_commit.sha')"
           echo "MERGE_BASE_SHA=$MERGE_BASE_SHA" >> "$GITHUB_OUTPUT"
         env:
@@ -32,16 +32,13 @@ jobs:
       - name: Count commits  between merge base and HEAD
         id: count
         run: |
-          echo "Comparing $BASE...$HEAD"
-
-          COMMIT_COUNT=$(gh api repos/${{ github.repository }}/compare/$BASE...main \
-            --jq '.total_commits')
-
-          echo "Number of commits between $BASE and $HEAD: $COMMIT_COUNT"
+          COMMIT_COUNT="$(gh api repos/"$REPO"/compare/"$BASE"...main \
+            --jq '.total_commits')"
           echo "count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE: ${{ steps.merge_base.outputs.MERGE_BASE_SHA }}
+          REPO: ${{ github.repository	}}
           
       - name: Checkout
         if: steps.count.outputs.count != '0'
