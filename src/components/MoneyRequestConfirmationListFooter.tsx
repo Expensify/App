@@ -915,16 +915,18 @@ function MoneyRequestConfirmationListFooter({
                 (receiptImage || receiptThumbnail
                     ? receiptThumbnailContent
                     : shouldShowReceiptEmptyState && (
-                          <ReceiptEmptyState
-                              onPress={() => {
-                                  if (!transactionID) {
-                                      return;
-                                  }
+                          <View style={styles.mv3}>
+                              <ReceiptEmptyState
+                                  onPress={() => {
+                                      if (!transactionID) {
+                                          return;
+                                      }
 
-                                  Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
-                              }}
-                              shouldUseAspectRatio
-                          />
+                                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                                  }}
+                                  style={[styles.expenseViewImageSmall, styles.mv0]}
+                              />
+                          </View>
                       ))}
             {primaryFields}
             {!shouldShowAllFields && (

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -28,29 +28,16 @@ type ReceiptEmptyStateProps = {
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
 
-    shouldUseAspectRatio?: boolean;
+    style?: StyleProp<ViewStyle>;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({
-    hasError = false,
-    onPress,
-    disabled = false,
-    isThumbnail = false,
-    isInMoneyRequestView = false,
-    shouldUseAspectRatio = false,
-    shouldUseFullHeight = false,
-}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
-    let styleWithAspectRatio = {};
-    if (shouldUseAspectRatio) {
-        styleWithAspectRatio = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
-    }
     const containerStyle = [
         styles.alignItemsCenter,
         styles.justifyContentCenter,
@@ -58,9 +45,9 @@ function ReceiptEmptyState({
         isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
         isThumbnail && !isInMoneyRequestView && styles.w100,
         isThumbnail && isInMoneyRequestView && styles.thumbnailImageContainerHighlight,
-        styleWithAspectRatio,
         hasError && styles.borderColorDanger,
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
+        style,
     ];
 
     return (
