@@ -132,6 +132,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The second line text displays under the first line */
     secondLineText?: string;
 
+    /** Callback to execute when a dropdown submenu option is selected */
+    onSubItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
+
     /** Icon for main button */
     icon?: IconAsset;
 };
