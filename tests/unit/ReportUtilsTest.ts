@@ -18,6 +18,7 @@ import {
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
     buildTransactionThread,
+    canAddOrDeleteTransactions,
     canDeleteReportAction,
     canEditWriteCapability,
     canHoldUnholdReportAction,
@@ -1396,7 +1397,7 @@ describe('ReportUtils', () => {
     });
 
     describe('canHoldUnholdReportAction', () => {
-        it.only('should return canUnholdRequest as true for a held duplicate transaction', async () => {
+        it('should return canUnholdRequest as true for a held duplicate transaction', async () => {
             const chatReport: Report = {reportID: '1'};
             const reportPreviewReportActionID = '8';
             const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', undefined, reportPreviewReportActionID);
@@ -2793,6 +2794,26 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             expect(isReportOutstanding(report, policy.id)).toBe(false);
+        });
+    });
+
+    describe('canAddOrDeleteTransactions', () => {
+        it('should return true for a non-archived report', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            expect(canAddOrDeleteTransactions(report)).toBe(true);
+        });
+        it('should return false for an archived report', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+            expect(canAddOrDeleteTransactions(report)).toBe(false);
         });
     });
 });

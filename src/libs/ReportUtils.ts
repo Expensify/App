@@ -10857,6 +10857,9 @@ export {
     isReportNotFound,
     canAddTransaction,
     canDeleteTransaction,
+
+    // Exported for testing purposes
+    canAddOrDeleteTransactions,
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
