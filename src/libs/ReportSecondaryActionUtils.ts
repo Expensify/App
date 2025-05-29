@@ -45,11 +45,11 @@ import {
 import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
+    getOriginalTransactionWithSplitInfo,
+    hasReceipt as hasReceiptTransactionUtils,
     isCardTransaction as isCardTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
-    getOriginalTransactionWithSplitInfo,
-    hasReceipt as hasReceiptTransactionUtils,
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
