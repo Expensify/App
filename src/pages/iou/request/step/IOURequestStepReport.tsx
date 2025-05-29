@@ -48,7 +48,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
         changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
-        Navigation.navigate(backTo);
+        Navigation.dismissModal();
     };
 
     return (

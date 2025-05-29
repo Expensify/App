@@ -40,7 +40,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
         changeTransactionsReport(selectedTransactionsID, CONST.REPORT.UNREPORTED_REPORT_ID);
-        Navigation.navigate(backTo);
+        Navigation.dismissModal();
     };
 
     return (
