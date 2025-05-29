@@ -28,6 +28,7 @@ import {
     getCardIssuedMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
+    getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -61,6 +62,7 @@ import {
     isRenamedAction,
     isTagModificationAction,
     isTaskAction,
+    isTransactionThread,
     shouldReportActionBeVisibleAsLastAction,
 } from './ReportActionsUtils';
 import type {OptionData} from './ReportUtils';
@@ -114,6 +116,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
+import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; phrase4?: string; messageText?: string; messageHtml?: string};
 
@@ -338,9 +341,9 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     reportErrors: Errors,
+    transactions: OnyxCollection<Transaction>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
-    transaction?: OnyxEntry<Transaction>,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const errors = reportErrors;
@@ -369,7 +372,20 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
 
-    if (transaction && hasReceiptError(transaction)) {
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
+    if (transactionThreadReportID) {
+        const transactionID = getTransactionID(transactionThreadReportID);
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (hasReceiptError(transaction)) {
+            return {
+                reason: CONST.RBR_REASONS.HAS_ERRORS,
+            };
+        }
+    }
+    const transactionID = getTransactionID(report.reportID);
+    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
         return {
             reason: CONST.RBR_REASONS.HAS_ERRORS,
         };
@@ -383,11 +399,11 @@ function shouldShowRedBrickRoad(
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     reportErrors: Errors,
+    transactions: OnyxCollection<Transaction>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
-    transaction?: OnyxEntry<Transaction>,
 ) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactionViolations, isReportArchived, transaction);
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isReportArchived);
 }
 
 /**

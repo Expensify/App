@@ -1107,10 +1107,10 @@ describe('DebugUtils', () => {
                         {
                             reportID: '1',
                         },
+                        {},
                         undefined,
                         false,
                         {},
-                        undefined,
                     ) ?? {};
                 expect(reportAction).toBeUndefined();
             });
@@ -1161,9 +1161,9 @@ describe('DebugUtils', () => {
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                         MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
                         undefined,
+                        {},
                         false,
                         {},
-                        undefined,
                     ) ?? {};
                 expect(reportAction).toBe(undefined);
             });
@@ -1223,7 +1223,7 @@ describe('DebugUtils', () => {
                             },
                         });
                         const reportErrors = getAllReportErrors(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS);
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false, reportErrors, undefined) ?? {};
+                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
                         expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                     });
                 });
@@ -1282,7 +1282,7 @@ describe('DebugUtils', () => {
                             },
                         });
                         const reportErrors = getAllReportErrors(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS);
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false, reportErrors, undefined) ?? {};
+                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
                         expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                     });
                 });
@@ -1342,7 +1342,7 @@ describe('DebugUtils', () => {
                         },
                     });
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS);
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, false, reportErrors, undefined) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
                 it('returns correct report action which is a split bill and has an error', async () => {
@@ -1405,7 +1405,7 @@ describe('DebugUtils', () => {
                         },
                     });
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS);
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, reportErrors, undefined) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
                 it("returns undefined if there's no report action is a report preview or a split bill", async () => {
@@ -1462,7 +1462,7 @@ describe('DebugUtils', () => {
                         },
                     });
                     const reportErrors = getAllReportErrors(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS);
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false, reportErrors, undefined) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, {}, false, reportErrors, undefined) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1515,9 +1515,9 @@ describe('DebugUtils', () => {
                             reportID: '1',
                         },
                         MOCK_REPORT_ACTIONS,
+                        {},
                         false,
                         reportErrors,
-                        undefined,
                     ) ?? {};
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
@@ -1545,7 +1545,7 @@ describe('DebugUtils', () => {
                 };
 
                 const reportErrors = getAllReportErrors(mockedReport, mockedReportActions);
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, mockedReportActions, false, reportErrors, undefined) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, mockedReportActions, {}, false, reportErrors) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
             it('returns correct reason when there are violations', () => {
@@ -1555,9 +1555,9 @@ describe('DebugUtils', () => {
                             reportID: '1',
                         },
                         undefined,
+                        {},
                         true,
                         {},
-                        undefined,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
@@ -1568,9 +1568,9 @@ describe('DebugUtils', () => {
                             reportID: '1',
                         },
                         undefined,
+                        {},
                         true,
                         {},
-                        undefined,
                         true,
                     ) ?? {};
                 expect(reason).toBe(undefined);
@@ -1609,7 +1609,7 @@ describe('DebugUtils', () => {
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}, false, {}, undefined) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}, {}, false, {}) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
         });
