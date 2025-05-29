@@ -49,6 +49,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
     const prevReportAttributesLocale = usePrevious(reportAttributes?.locale);
     const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
@@ -117,6 +118,38 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             };
         });
     }, [changedReports, personalDetails]);
+
+    useEffect(() => {
+        if (!changedReportActions || !areOptionsInitialized.current) {
+            return;
+        }
+
+        setOptions((prevOptions) => {
+            const changedReportActionsEntries = Object.entries(changedReportActions);
+            if (changedReportActionsEntries.length === 0) {
+                return prevOptions;
+            }
+
+            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
+            changedReportActionsEntries.forEach(([key, reportAction]) => {
+                if (!reportAction) {
+                    return;
+                }
+
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails);
+
+                if (reportOption) {
+                    updatedReportsMap.set(reportID, reportOption);
+                }
+            });
+
+            return {
+                ...prevOptions,
+                reports: Array.from(updatedReportsMap.values()),
+            };
+        });
+    }, [changedReportActions, personalDetails]);
 
     /**
      * This effect is used to update the options list when personal details change.
