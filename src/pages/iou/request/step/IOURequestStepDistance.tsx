@@ -328,6 +328,7 @@ function IOURequestStepDistance({
                             merchant: translate('iou.fieldPending'),
                             receipt: {},
                             billable: false,
+                            reimbursable: true,
                             validWaypoints: getValidWaypoints(waypoints, true),
                             customUnitRateID,
                             attendees: transaction?.comment?.attendees,

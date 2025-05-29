@@ -514,6 +514,7 @@ type TrackExpenseTransactionParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
+    reimbursable?: boolean;
     validWaypoints?: WaypointCollection;
     gpsPoints?: GPSPoint;
     actionableWhisperReportActionID?: string;
@@ -3061,7 +3062,7 @@ function getSendInvoiceInformation(
     companyName?: string,
     companyWebsite?: string,
 ): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
+    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, reimbursable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
@@ -3119,6 +3120,7 @@ function getSendInvoiceInformation(
             taxCode,
             taxAmount,
             billable,
+            reimbursable,
             filename,
         },
     });
@@ -5533,6 +5535,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         taxCode = '',
         taxAmount = 0,
         billable,
+        reimbursable,
         gpsPoints,
         validWaypoints,
         actionableWhisperReportActionID,
@@ -5660,6 +5663,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 category,
                 tag,
                 billable,
+                reimbursable,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
@@ -5707,6 +5711,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 category,
                 tag,
                 billable,
+                reimbursable,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
