@@ -425,7 +425,7 @@ function ReportActionsList({
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isListInitiallyLoaded, hasNewerActions]);
 
     useEffect(() => {
-        if (linkedReportActionID || unreadMarkerReportActionID) {
+        if (!!linkedReportActionID || !!unreadMarkerReportActionID) {
             return;
         }
         InteractionManager.runAfterInteractions(() => {
