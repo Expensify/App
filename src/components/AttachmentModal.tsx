@@ -155,8 +155,6 @@ type AttachmentModalProps = {
     shouldDisableSendButton?: boolean;
 
     attachmentLink?: string;
-
-    shouldHandleNavigationBack?: boolean;
 };
 
 function AttachmentModal({
@@ -191,7 +189,6 @@ function AttachmentModal({
     iouAction,
     iouType: iouTypeProp,
     attachmentLink = '',
-    shouldHandleNavigationBack,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
@@ -559,11 +556,11 @@ function AttachmentModal({
                     }
                     return submitRef.current;
                 }}
-                shouldHandleNavigationBack={shouldHandleNavigationBack}
             >
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
                     <HeaderWithBackButton
+                        shouldMinimizeMenuButton
                         title={headerTitleNew}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={shouldShowDownloadButton}
