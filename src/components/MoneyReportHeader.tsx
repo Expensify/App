@@ -677,12 +677,7 @@ function MoneyReportHeader({
             text: translate('iou.approve', getAmount(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)),
             icon: Expensicons.ThumbsUp,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
-            onSelected: () => {
-                if (!moneyRequestReport) {
-                    return;
-                }
-                approveMoneyRequest(moneyRequestReport);
-            },
+            onSelected: confirmApproval,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
