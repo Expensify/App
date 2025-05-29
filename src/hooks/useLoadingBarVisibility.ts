@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrentRequestCommand, isRunning} from '@libs/Network/SequentialQueue';
+import {getCurrentRequestCommand, isRunning, subscribeToQueueState} from '@libs/Network/SequentialQueue';
 
 const RELEVANT_COMMANDS = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT] as const;
 
@@ -31,11 +31,8 @@ export default function useLoadingBarVisibility(): boolean {
         // Initial check
         checkQueueStatus();
 
-        // Poll queue status - using a reasonable interval to avoid performance issues
-        // In the future, this could be replaced with an event-driven approach
-        const interval = setInterval(checkQueueStatus, 50);
-
-        return () => clearInterval(interval);
+        // Subscribe to queue state changes instead of polling
+        return subscribeToQueueState(checkQueueStatus);
     }, [checkQueueStatus]);
 
     return shouldShow;
