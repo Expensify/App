@@ -2,7 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/core';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, Image, InteractionManager, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, Image, InteractionManager, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -40,6 +40,7 @@ import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
+import HapticFeedback from '@libs/HapticFeedback';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -137,6 +138,17 @@ function IOURequestStepScan({
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(transactions.length > 1);
+    const blinkOpacity = useSharedValue(0);
+    const blinkStyle = useAnimatedStyle(() => ({
+        opacity: blinkOpacity.value,
+    }));
+
+    const showBlink = useCallback(() => {
+        blinkOpacity.value = withTiming(0.4, {duration: 10}, () => {
+            blinkOpacity.value = withTiming(0, {duration: 50});
+        });
+        HapticFeedback.press();
+    }, [blinkOpacity]);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -626,6 +638,10 @@ function IOURequestStepScan({
             return;
         }
 
+        if (isMultiScanEnabled) {
+            showBlink();
+        }
+
         setDidCapturePhoto(true);
 
         const path = getReceiptsUploadFolderPath();
@@ -696,6 +712,7 @@ function IOURequestStepScan({
         didCapturePhoto,
         isMultiScanEnabled,
         translate,
+        showBlink,
         flash,
         hasFlash,
         isPlatformMuted,
@@ -827,6 +844,10 @@ function IOURequestStepScan({
                                                 </PressableWithFeedback>
                                             </View>
                                         ) : null}
+                                        <Animated.View
+                                            pointerEvents="none"
+                                            style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                        />
                                     </View>
                                 </GestureDetector>
                             </View>

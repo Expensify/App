@@ -2,10 +2,11 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
-import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
+import {ActivityIndicator, PanResponder, PixelRatio, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type Webcam from 'react-webcam';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
@@ -157,6 +158,17 @@ function IOURequestStepScan({
     const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     const platform = getPlatform(true);
+
+    const blinkOpacity = useSharedValue(0);
+    const blinkStyle = useAnimatedStyle(() => ({
+        opacity: blinkOpacity.value,
+    }));
+
+    const showBlink = useCallback(() => {
+        blinkOpacity.value = withTiming(0.4, {duration: 10}, () => {
+            blinkOpacity.value = withTiming(0, {duration: 50});
+        });
+    }, [blinkOpacity]);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -663,6 +675,10 @@ function IOURequestStepScan({
             return;
         }
 
+        if (isMultiScanEnabled) {
+            showBlink();
+        }
+
         const filename = `receipt_${Date.now()}.png`;
         const file = base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
@@ -683,7 +699,18 @@ function IOURequestStepScan({
         }
 
         submitReceipts();
-    }, [receiptFiles, buildOptimisticTransaction, initialTransaction, initialTransactionID, isEditing, isMultiScanEnabled, submitReceipts, requestCameraPermission, updateScanAndNavigate]);
+    }, [
+        receiptFiles,
+        showBlink,
+        buildOptimisticTransaction,
+        initialTransaction,
+        initialTransactionID,
+        isEditing,
+        isMultiScanEnabled,
+        submitReceipts,
+        requestCameraPermission,
+        updateScanAndNavigate,
+    ]);
 
     const toggleMultiScan = () => {
         if (isMultiScanEnabled) {
@@ -836,6 +863,10 @@ function IOURequestStepScan({
                                 </PressableWithFeedback>
                             </View>
                         ) : null}
+                        <Animated.View
+                            pointerEvents="none"
+                            style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                        />
                     </View>
                 )}
             </View>
