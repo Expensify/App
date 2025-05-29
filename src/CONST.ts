@@ -2971,6 +2971,11 @@ const CONST = {
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
+        SECONDARY_ACTIONS: {
+            IMPORT_SPREADSHEET: 'importSpreadsheet',
+            DOWNLOAD_CSV: 'downloadCSV',
+            SETTINGS: 'settings',
+        },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
