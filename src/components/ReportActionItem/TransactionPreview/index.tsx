@@ -92,7 +92,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         );
     }, [duplicates, report, route, transaction]);
 
-    const {isBillSplit, originalTransaction} = getOriginalTransactionIfBillIsSplit(transaction, originalTransactionOnyx);
+    const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction, originalTransactionOnyx);
 
     const iouAction = isBillSplit && originalTransaction ? getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action : action;
 
