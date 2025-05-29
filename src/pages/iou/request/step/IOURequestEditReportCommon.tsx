@@ -8,7 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, isPolicyExpenseChat as isPolicyExpenseChatReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -73,6 +73,16 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
             return [];
         }
 
+        let selectedReportID;
+        if (transactionsReports.length === 1) {
+            const report = transactionsReports.at(0);
+            const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
+            selectedReportID = isPolicyExpenseChat ? report?.iouReportID : report?.reportID;
+        } else {
+            const firstReport = transactionsReports.at(0);
+            selectedReportID = transactionsReports.every((report) => report.reportID === firstReport?.reportID) ? firstReport?.reportID : undefined;
+        }
+
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
@@ -81,7 +91,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 text: report.reportName,
                 value: report.reportID,
                 keyForList: report.reportID,
-                isSelected: report.reportID === transactionsReports.at(0)?.reportID,
+                isSelected: report.reportID === selectedReportID,
             }));
     }, [allReports, debouncedSearchValue, expenseReports, transactionsReports]);
 
