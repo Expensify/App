@@ -80,7 +80,7 @@ function SearchPage({route}: SearchPageProps) {
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
-    const {q, name} = route.params;
+    const {q} = route.params;
 
     const {canUseMultiFilesDragAndDrop} = usePermissions();
 
@@ -518,7 +518,6 @@ function SearchPage({route}: SearchPageProps) {
             <>
                 <SearchPageNarrow
                     queryJSON={queryJSON}
-                    searchName={name}
                     headerButtonsOptions={headerButtonsOptions}
                     lastNonEmptySearchResults={lastNonEmptySearchResults}
                     currentSearchResults={currentSearchResults}
@@ -585,7 +584,6 @@ function SearchPage({route}: SearchPageProps) {
                                 {PDFThumbnailView}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
-                                    searchName={name}
                                     headerButtonsOptions={headerButtonsOptions}
                                     handleSearch={handleSearchAction}
                                 />

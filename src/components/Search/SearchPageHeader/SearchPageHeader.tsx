@@ -13,7 +13,6 @@ import SearchPageHeaderInput from './SearchPageHeaderInput';
 
 type SearchPageHeaderProps = {
     queryJSON: SearchQueryJSON;
-    searchName?: string;
     searchRouterListVisible?: boolean;
     hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
@@ -23,7 +22,7 @@ type SearchPageHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, headerButtonsOptions, handleSearch}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, headerButtonsOptions, handleSearch}: SearchPageHeaderProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
@@ -43,7 +42,6 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
 
     return (
         <SearchPageHeaderInput
-            searchName={searchName}
             searchRouterListVisible={searchRouterListVisible}
             onSearchRouterFocus={onSearchRouterFocus}
             queryJSON={queryJSON}
