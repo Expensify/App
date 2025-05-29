@@ -269,7 +269,7 @@ const styles = (theme: ThemeColors) =>
             marginTop: 4,
             marginBottom: 4,
 
-            // Overwrite default HTML margin for blockquotes
+            // Overwrite default HTML margin for blockquote
             marginLeft: 0,
         },
 
@@ -385,18 +385,39 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
+        textWithMiddleEllipsisContainer: {
+            width: '100%',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            flexDirection: 'row',
+        },
+
+        textWithMiddleEllipsisText: {
+            overflow: 'hidden',
+            textOverflow: 'clip',
+            whiteSpace: 'nowrap',
+        },
+
         verticalAlignTopText: {
             verticalAlign: 'text-top',
         },
         verticalAlignTop: {
             verticalAlign: 'top',
         },
+
+        lineHeightUndefined: {
+            lineHeight: undefined,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
+
         lineHeightXLarge: {
             lineHeight: variables.lineHeightXLarge,
         },
+
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -517,7 +538,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeightSizeH2,
         },
 
         textHeadlineH1: {
@@ -525,7 +546,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh1,
+            lineHeight: variables.lineHeightSizeH1,
         },
 
         textWhite: {
@@ -671,7 +692,7 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
             flexShrink: 1,
 
-            // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
+            // It is needed to unset the line height. We don't need it for buttons as button always contains single line of text.
             // It allows to vertically center the text.
             lineHeight: undefined,
 
@@ -844,6 +865,10 @@ const styles = (theme: ThemeColors) =>
 
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
+        },
+
+        hoveredComponentBG2: {
+            backgroundColor: 'black',
         },
 
         activeComponentBG: {
@@ -1069,12 +1094,14 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.danger,
         },
 
-        textInputDisabled: {
+        textInputDisabledContainer: {
             // Adding disabled color theme to indicate user that the field is not editable.
             backgroundColor: theme.highlightBG,
-            borderBottomWidth: 2,
             borderColor: theme.borderLighter,
-            // Adding browser specefic style to bring consistency between Safari and other platforms.
+        },
+
+        textInputDisabled: {
+            // Adding browser specific style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
             ...(getBrowser()
                 ? {
@@ -1275,7 +1302,10 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: 'transparent',
             overflow: 'hidden',
-            borderBottomWidth: 2,
+            borderWidth: 1,
+            padding: 8,
+            paddingBottom: 0,
+            borderRadius: 8,
             borderColor: theme.border,
         },
 
@@ -1289,16 +1319,20 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
-        textInputLabel: {
+        textInputLabelContainer: {
             position: 'absolute',
-            left: 0,
+            left: 8,
+            paddingRight: 16,
             top: 0,
-            fontSize: variables.fontSizeNormal,
-            color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
             width: '100%',
             zIndex: 1,
             transformOrigin: 'left center',
+        },
+
+        textInputLabel: {
+            fontSize: variables.fontSizeNormal,
+            color: theme.textSupporting,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
         },
 
         textInputLabelBackground: {
@@ -1309,9 +1343,14 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
         },
 
-        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>) => {
+        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>, isForTextComponent?: boolean) => {
             'worklet';
 
+            if (isForTextComponent) {
+                return {
+                    fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
+                } satisfies TextStyle;
+            }
             return {
                 transform: [{translateY: translateY.get()}],
                 fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
@@ -1323,7 +1362,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 23,
+            paddingTop: 15,
             paddingBottom: 8,
             paddingLeft: 0,
             borderWidth: 0,
@@ -1335,7 +1374,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 23,
+            paddingTop: 15,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1353,7 +1392,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputIconContainer: {
             paddingHorizontal: 11,
-            justifyContent: 'center',
+            marginTop: 8,
         },
 
         textInputLeftIconContainer: {
@@ -1386,11 +1425,10 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             left: 0,
             top: 0,
-            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 23,
+            paddingTop: 15,
             paddingBottom: 8,
         },
 
@@ -1398,11 +1436,10 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: 0,
             top: 0,
-            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 23,
+            paddingTop: 15,
             paddingBottom: 8,
         },
 
@@ -1525,6 +1562,12 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             color: theme.text,
+            textAlign: 'center',
+        },
+
+        textDropZone: {
+            ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
             textAlign: 'center',
         },
 
@@ -1665,7 +1708,7 @@ const styles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.navigationTabBarSize,
+            marginLeft: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
         },
 
         searchSidebar: {
@@ -1674,6 +1717,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
+            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles
@@ -1830,12 +1874,6 @@ const styles = (theme: ThemeColors) =>
         breadcrumbLogo: {
             top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
         },
-
-        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
-            ({
-                ...modalNavigatorContainer(isSmallScreenWidth),
-                left: 0,
-            } satisfies ViewStyle),
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
@@ -2693,6 +2731,14 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        reportSearchHeaderBar: {
+            overflow: 'hidden',
+            justifyContent: 'center',
+            display: 'flex',
+            width: '100%',
+            height: 52,
+        },
+
         searchResultsHeaderBar: {
             display: 'flex',
             height: variables.contentHeaderDesktopHeight,
@@ -3036,12 +3082,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pt0,
         },
 
-        workspaceSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
-            ...spacing.pt4,
-        },
-
         centralPaneAnimation: {
             height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
         },
@@ -3315,7 +3355,7 @@ const styles = (theme: ThemeColors) =>
         magicCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
-            minHeight: variables.inputHeight,
+            height: variables.inputHeight,
         },
 
         magicCodeInput: {
@@ -3798,7 +3838,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchAutocompleteInputResults: {
-            backgroundColor: theme.sidebarHover,
             borderWidth: 1,
             borderColor: theme.sidebarHover,
         },
@@ -3806,7 +3845,6 @@ const styles = (theme: ThemeColors) =>
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
-            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {
@@ -3959,6 +3997,17 @@ const styles = (theme: ThemeColors) =>
             height: 200,
         },
 
+        dropWrapper: {
+            zIndex: 2,
+            backgroundColor: theme.dropWrapperBG,
+        },
+
+        dropInnerWrapper: {
+            borderWidth: 2,
+            flex: 1,
+            borderStyle: 'dashed',
+        },
+
         reportDropOverlay: {
             backgroundColor: theme.dropUIBG,
             zIndex: 2,
@@ -3966,7 +4015,31 @@ const styles = (theme: ThemeColors) =>
 
         fileDropOverlay: {
             backgroundColor: theme.fileDropUIBG,
+        },
+
+        attachmentDropOverlay: {
+            backgroundColor: theme.attachmentDropUIBG,
+        },
+
+        attachmentDropText: {
+            color: theme.textAttachmentDropZone,
+        },
+
+        attachmentDropInnerWrapper: {
+            borderColor: theme.attachmentDropBorderColor,
+        },
+
+        receiptDropOverlay: {
+            backgroundColor: theme.receiptDropUIBG,
             zIndex: 2,
+        },
+
+        receiptDropText: {
+            color: theme.textReceiptDropZone,
+        },
+
+        receiptDropInnerWrapper: {
+            borderColor: theme.receiptDropBorderColor,
         },
 
         isDraggingOver: {
@@ -5122,6 +5195,15 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
             marginTop: 12,
         },
+        onboardingAccountingItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: '35%',
+        },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
@@ -5426,6 +5508,17 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        emptyStateMoneyRequestPreviewReport: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            height: 168,
+            width: '100%',
+            boxSizing: 'border-box',
+            ...borders.br4,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,
@@ -5527,6 +5620,11 @@ const styles = (theme: ThemeColors) =>
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
+        },
+
+        tripEmptyStateLottieWebView: {
+            width: 335,
+            height: 220,
         },
 
         workflowApprovalVerticalLine: {
@@ -5651,18 +5749,24 @@ const styles = (theme: ThemeColors) =>
             right: 0,
         },
 
+        getSearchBarStyle: (shouldUseNarrowLayout: boolean) => ({
+            maxWidth: shouldUseNarrowLayout ? '100%' : 300,
+            marginHorizontal: 20,
+            marginBottom: 20,
+        }),
+
         earlyDiscountButton: {
             flexGrow: 1,
             flexShrink: 1,
             flexBasis: 'auto',
         },
 
-        testDriveModalContainer: {
+        testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
             // On small/medium screens, we need to remove the top padding
             paddingTop: 0,
-            // On medium screens, we need to prevent the modal from becoming too big
-            maxWidth: 500,
-        },
+            // On larger screens, we need to prevent the modal from becoming too big
+            maxWidth: shouldUseNarrowLayout ? undefined : 500,
+        }),
 
         backgroundWhite: {
             backgroundColor: colors.white,
@@ -5681,8 +5785,27 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
+        unreportedExpenseCreateExpenseButton: {
+            ...flex.alignSelfStart,
+        },
+
         testDriveBannerGap: {
             height: CONST.DESKTOP_HEADER_PADDING * 2,
+        },
+
+        twoColumnLayoutCol: {
+            flexGrow: 1,
+            flexShrink: 1,
+            // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
+            flexBasis: '35%',
+        },
+
+        thumbnailImageContainerHover: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        thumbnailImageContainerHighlight: {
+            backgroundColor: theme.highlightBG,
         },
     } satisfies Styles);
 

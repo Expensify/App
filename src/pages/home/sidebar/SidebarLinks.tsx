@@ -21,7 +21,7 @@ type SidebarLinksProps = {
     insets: EdgeInsets;
 
     /** List of options to display */
-    optionListItems: string[];
+    optionListItems: Report[];
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoading: OnyxEntry<boolean>;
@@ -31,10 +31,6 @@ type SidebarLinksProps = {
 
     /** Method to change currently active report */
     isActiveReport: (reportID: string) => boolean;
-
-    /** ID of currently active workspace */
-    // eslint-disable-next-line react/no-unused-prop-types -- its used in withOnyx
-    activeWorkspaceID: string | undefined;
 };
 
 function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {

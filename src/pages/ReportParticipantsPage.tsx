@@ -240,9 +240,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSearchValue('');
-        setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
+            setSelectedMembers([]);
             clearUserSearchPhrase();
         });
     };
@@ -306,9 +306,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             },
         ];
 
-        const isAtleastOneAdminSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
+        const isAtLeastOneAdminSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
 
-        if (isAtleastOneAdminSelected) {
+        if (isAtLeastOneAdminSelected) {
             options.push({
                 text: translate('workspace.people.makeMember'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
@@ -317,9 +317,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             });
         }
 
-        const isAtleastOneMemberSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
+        const isAtLeastOneMemberSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
 
-        if (isAtleastOneMemberSelected) {
+        if (isAtLeastOneMemberSelected) {
             options.push({
                 text: translate('workspace.people.makeAdmin'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,

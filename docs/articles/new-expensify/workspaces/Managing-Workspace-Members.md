@@ -1,103 +1,102 @@
 ---
 title: Managing Workspace Members in New Expensify
-description: Learn how to add, remove, and manage user roles in a New Expensify Workspace.
+description: Learn how to add, remove, and manage user roles in a New Expensify workspace.
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, invite users]
 ---
 
-# Managing Workspace Members in New Expensify
+<div id="new-expensify" markdown="1">
 
-Managing users in a New Expensify Workspace is essential for maintaining efficient expense tracking and ensuring the right individuals have appropriate access. This guide covers how to add, remove, and update user roles to streamline Workspace management.
+Managing members in a workspace helps ensure that the right people can submit, approve, and review expenses. This guide walks through how to invite, remove, and update roles for members in New Expensify.
 
-## Overview
+A **Workspace member** is anyone added to a workspace with one of the following roles:
 
-Managing users in a New Expensify Workspace allows administrators to control access, assign roles, and ensure the right individuals can submit and approve expenses efficiently.
+- **Member** – Can submit and/or approve expenses.
+- **Admin** – Can manage members, roles, workflows, and settings.
+- **Auditor** – Can view and comment on reports but cannot make changes.
 
-### Key Advantages
+---
 
-- **Seamless user management** – Easily add, remove, or modify user roles.
-- **Role-based permissions** – Assign different access levels to users for better control.
-- **Efficient expense tracking** – Ensure only authorized users can interact with Workspace expenses.
+# Invite Members to a Workspace
 
-## What Is a Workspace User?
+To invite someone to your workspace:
 
-A Workspace user is anyone added to a New Expensify Workspace. Their assigned role determines their permissions:
+1. Go to **Workspaces > [Workspace Name] > Members**.
+2. Click **Invite Member**.
+3. Search for the user by name, email, or phone number.
+4. (Optional) Click **Role** to change the default role (Member).
+5. (Optional) Add a message to the invitation.
+6. Click **Invite**.
 
-- **Member** – Users who submit and/or approve expenses.
-- **Admin** – Users responsible for managing users, roles, and Workspace settings.
-- **Auditor** – Users who need to review and comment on expense reports.
+**Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
-## How Do I Invite Users to a Workspace?
+---
 
-To add users to your Workspace:
+# Remove Workspace Members
 
-1. From the **Workspace** view, press **Members** on the left.
-2. Press **Invite Member**.
-3. Use the search field to find the individual by name, email, or phone number. (You can select multiple people.)
-4. Click **Next**.
-5. *(Optional)* Click **Role** to change the user’s role type from the default (which is set to **Member**).
-6. *(Optional)* Enter a custom message into the **Message** field.
-7. Click **Invite**.
+If someone no longer needs access to your workspace, you can remove them individually or in bulk to keep your member list up to date.
 
-**Note:** You can also invite members from the Workspace’s **Profile** page by pressing **Share** to share the Workspace’s URL or QR code.
+## Remove a Single Member
 
-## How Do I Remove a User From a Workspace?
+1. Go to **Workspaces > [Workspace Name] > Members**.
+2. Click the member’s name.
+3. In the right-hand panel, click **Remove from Workspace**.
+4. Confirm by clicking **Remove**.
 
-### Method One - Removing Members Individually
+## Remove Multiple Members
 
-1. From the **Workspace** view, press **Members** on the left.
-2. Click the member you want to remove.
-3. Click **Remove from Workspace** on the right panel.
-4. Confirm the removal by pressing **Remove** on the pop-up message.
+1. Go to **Workspaces > Members**.
+2. Select the checkboxes next to the members you want to remove.
+3. Click the **green dropdown arrow** in the top-right.
+4. Choose **Remove Member(s)**.
+5. Confirm by clicking **Remove**.
 
-### Method Two - Removing Multiple Workspace Members at Once
+---
 
-1. From the **Workspace** view, press **Members** on the left.
-2. Select the checkbox next to each member you want to remove.
-3. Click the **green dropdown arrow** on the top right.
-4. Select **Remove Member/s**.
-5. Confirm the removal by pressing **Remove** on the pop-up message.
+# Change a User’s Role
 
-## How Do I Change a User's Role in a Workspace?
+1. Go to **Workspaces > Members**.
+2. Click the member’s name.
+3. In the right-hand panel, click **Roles**.
+4. Select the new role and confirm.
 
-To change an existing user’s role:
+---
 
-1. From the **Workspace** view, press **Members** on the left.
-2. Click the member whose role you want to update.
-3. Click **Roles** on the right-hand panel.
-4. Select the new role for the user.
+# Transfer Workspace Ownership
 
-## How do I change the Workspace Owner?
+To transfer ownership to another Admin:
 
-To change the ownership of a workspace (as the new owner):
+1. Go to **Workspaces > Members**.
+2. Click the current **Owner** (identified with a tag).
+3. Click **Transfer Owner** in the right-hand panel.
+4. Click **Continue** to confirm.
 
-1. From the Workspace view, click Members on the left.
-2. Click the member with the “Owner” tag next to their name.
-3. Click Transfer Owner on the right-hand panel.
-4. Click Continue.
-5. The user who took the action is now the owner, and should have the "Owner" tag next to their name.
+After the transfer, the initiating user becomes the new **Owner**.
 
 ![Workspace list showing Owner tag]({{site.url}}/assets/images/transfer-ownership.png){:width="100%"}
 
 ![Workspace admin role showing transfer owner button]({{site.url}}/assets/images/transfer-ownership_02.png){:width="100%"}
 
+---
+
+# Invite Multiple Members via Spreadsheet
+
+1. Go to **Workspaces > Members**.
+2. Click the **three-dot menu** in the top-right.
+3. Select **Import via Spreadsheet**.
+4. Drag and drop your file or click **Upload File** to browse.
+
+**Note:** Use this **[spreadsheet import template](https://docs.google.com/spreadsheets/d/19fjknN-KOS74RjXDccXZGUNTm-utdV7Gvveo5EyrJLE/edit?gid=0#gid=0)** to ensure proper formatting.
+
+---
+
 # FAQ
 
-## Why Can't I Invite a New User?
+## Why can't I add someone to a workspace?
 
-If you are unable to invite a new user, check the following:
+You must be a **Workspace Admin**, and the email or phone number of the individual you're inviting must be valid and correctly formatted.
 
-- You must be an **Admin** to add new users.
-- The email address entered must be valid and properly formatted.
+## Can I invite multiple members to a workspace at the same time?
 
-## Can I Invite Multiple Users at Once?
+Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
 
-Yes! To invite multiple users at once, you can:
-
-- Use the search field to select multiple people (covered in detail in the **How do I invite users to a Workspace?** section).
-- Upload them via spreadsheet:
-
-1. From the **Workspace** view, press **Members** on the left.
-2. Click the **three vertical dots** on the top right.
-3. Select **Import via Spreadsheet**.
-4. Drag and drop your spreadsheet into the right-hand panel or press **Upload File** to select your file for upload.
-
-**Note:** You can use the **[spreadsheet import template](https://docs.google.com/spreadsheets/d/19fjknN-KOS74RjXDccXZGUNTm-utdV7Gvveo5EyrJLE/edit?gid=0#gid=0)** for formatting.
+</div>

@@ -10,6 +10,7 @@ import {
     getBankCardDetailsImage,
     getBankName,
     getCardFeedIcon,
+    getCardsByCardholderName,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
@@ -129,7 +130,7 @@ const directFeedCardsSingleList: WorkspaceCardsList = {
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
         cardID: 21570652,
         cardName: 'CREDIT CARD...5501',
-        domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+        domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
         fraud: 'none',
         lastFourPAN: '5501',
         lastScrape: '',
@@ -146,7 +147,7 @@ const directFeedCardsMultipleList: WorkspaceCardsList = {
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
         cardID: 21570655,
         cardName: 'CREDIT CARD...5678',
-        domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+        domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
         fraud: 'none',
         lastFourPAN: '5678',
         lastScrape: '',
@@ -161,7 +162,7 @@ const directFeedCardsMultipleList: WorkspaceCardsList = {
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
         cardID: 21570656,
         cardName: 'CREDIT CARD...4444',
-        domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+        domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
         fraud: 'none',
         lastFourPAN: '5678',
         lastScrape: '',
@@ -269,7 +270,7 @@ const allCardsList = {
             bank: CONST.EXPENSIFY_CARD.BANK,
             cardID: 21570657,
             cardName: 'CREDIT CARD...5644',
-            domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
             fraud: 'none',
             lastFourPAN: '',
             lastScrape: '',
@@ -888,7 +889,7 @@ describe('CardUtils', () => {
                 accountID: 1,
                 cardName: 'Card 1',
                 bank: 'expensify',
-                domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
                 lastFourPAN: '',
                 lastScrape: '',
@@ -900,7 +901,7 @@ describe('CardUtils', () => {
                 accountID: 2,
                 bank: 'expensify',
                 cardName: 'Card 2',
-                domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
                 lastFourPAN: '',
                 lastScrape: '',
@@ -912,7 +913,7 @@ describe('CardUtils', () => {
                 accountID: 3,
                 bank: 'expensify',
                 cardName: 'Card 3',
-                domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
                 lastFourPAN: '',
                 lastScrape: '',
@@ -923,7 +924,8 @@ describe('CardUtils', () => {
 
         it('should sort cards by cardholder name in ascending order', () => {
             const policyMembersAccountIDs = [1, 2, 3];
-            const sortedCards = sortCardsByCardholderName(mockCards, mockPersonalDetails, policyMembersAccountIDs);
+            const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
 
             expect(sortedCards).toHaveLength(3);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -933,7 +935,8 @@ describe('CardUtils', () => {
 
         it('should filter out cards that are not associated with policy members', () => {
             const policyMembersAccountIDs = [1, 2]; // Exclude accountID 3
-            const sortedCards = sortCardsByCardholderName(mockCards, mockPersonalDetails, policyMembersAccountIDs);
+            const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
 
             expect(sortedCards).toHaveLength(2);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -942,14 +945,16 @@ describe('CardUtils', () => {
 
         it('should handle undefined cardsList', () => {
             const policyMembersAccountIDs = [1, 2, 3];
-            const sortedCards = sortCardsByCardholderName(undefined, mockPersonalDetails, policyMembersAccountIDs);
+            const cards = getCardsByCardholderName(undefined, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
 
             expect(sortedCards).toHaveLength(0);
         });
 
         it('should handle undefined personalDetails', () => {
             const policyMembersAccountIDs = [1, 2, 3];
-            const sortedCards = sortCardsByCardholderName(mockCards, undefined, policyMembersAccountIDs);
+            const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, undefined);
 
             expect(sortedCards).toHaveLength(3);
             // All cards should be sorted with default names
@@ -965,7 +970,7 @@ describe('CardUtils', () => {
                     accountID: 1,
                     cardName: 'Card 1',
                     bank: 'expensify',
-                    domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                     fraud: 'none',
                     lastFourPAN: '',
                     lastScrape: '',
@@ -976,7 +981,7 @@ describe('CardUtils', () => {
                     cardID: 2,
                     cardName: 'Card 2',
                     bank: 'expensify',
-                    domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                     fraud: 'none',
                     lastFourPAN: '',
                     lastScrape: '',
@@ -986,7 +991,8 @@ describe('CardUtils', () => {
             };
 
             const policyMembersAccountIDs = [1, 2];
-            const sortedCards = sortCardsByCardholderName(cardsWithMissingAccountID, mockPersonalDetails, policyMembersAccountIDs);
+            const cards = getCardsByCardholderName(cardsWithMissingAccountID, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
 
             expect(sortedCards).toHaveLength(1);
             expect(sortedCards.at(0)?.cardID).toBe(1);

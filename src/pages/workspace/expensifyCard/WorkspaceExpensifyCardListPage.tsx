@@ -13,15 +13,17 @@ import {HandCard} from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchBar from '@components/SearchBar';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {sortCardsByCardholderName} from '@libs/CardUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
+import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDescriptionForPolicyDomainCard, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -34,6 +36,7 @@ import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
+import WorkspaceCardListLabels from './WorkspaceCardListLabels';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
 type WorkspaceExpensifyCardListPageProps = {
@@ -71,10 +74,14 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
-    const sortedCards = useMemo(
-        () => sortCardsByCardholderName(cardsList, personalDetails, Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList))),
-        [cardsList, personalDetails, policy?.employeeList],
-    );
+    const allCards = useMemo(() => {
+        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
+    }, [cardsList, policy?.employeeList]);
+
+    const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
+    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails), [personalDetails]);
+    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const handleIssueCardPress = () => {
         if (isActingAsDelegate) {
@@ -133,17 +140,37 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         [personalDetails, policyCurrency, policyID, workspaceAccountID, styles],
     );
 
-    const renderListHeader = useCallback(
-        () => (
-            <WorkspaceCardListHeader
-                policyID={policyID}
-                cardSettings={cardSettings}
-            />
-        ),
-        [policyID, cardSettings],
+    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
+
+    const renderListHeader = (
+        <>
+            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
+                <WorkspaceCardListLabels
+                    policyID={policyID}
+                    cardSettings={cardSettings}
+                />
+                {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.expensifyCard.findCard')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={isSearchEmpty}
+                        style={[styles.mb0, styles.mt5]}
+                    />
+                )}
+            </View>
+            {!isSearchEmpty && <WorkspaceCardListHeader cardSettings={cardSettings} />}
+        </>
     );
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
+
+    const handleBackButtonPress = () => {
+        Navigation.popToSidebar();
+        return true;
+    };
+
+    useHandleBackButton(handleBackButtonPress);
 
     return (
         <ScreenWrapper
@@ -158,7 +185,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldUseHeadlineHeader
                 title={translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
+                onBackButtonPress={handleBackButtonPress}
             >
                 {!shouldShowSelector && !shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
             </HeaderWithBackButton>
@@ -178,7 +205,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
                 <FlatList
-                    data={sortedCards}
+                    data={filteredSortedCards}
                     renderItem={renderItem}
                     ListHeaderComponent={renderListHeader}
                     contentContainerStyle={bottomSafeAreaPaddingStyle}

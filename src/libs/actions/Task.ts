@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -20,12 +19,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {IntroSelectedTask} from '@src/types/onyx/IntroSelected';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction} from './Report';
+import {setSelfTourViewed} from './Welcome';
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
 type Assignee = {
@@ -92,6 +93,18 @@ let introSelected: OnyxEntry<OnyxTypes.IntroSelected> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (val) => (introSelected = val),
+});
+
+let allReportNameValuePair: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allReportNameValuePair = value;
+    },
 });
 
 /**
@@ -340,6 +353,7 @@ function createTaskAndNavigate(
         assigneeChatCreatedReportActionID: assigneeChatReportOnyxData?.optimisticChatCreatedReportAction?.reportActionID,
     };
 
+    playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
@@ -348,7 +362,7 @@ function createTaskAndNavigate(
         });
         Navigation.dismissModalWithReport({reportID: parentReportID});
     }
-    notifyNewAction(parentReportID, currentUserAccountID);
+    notifyNewAction(parentReportID, currentUserAccountID, optimisticAddCommentReport.reportAction);
 }
 
 /**
@@ -996,6 +1010,7 @@ function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<R
     if (!report?.parentReportID || !report.parentReportActionID) {
         return undefined;
     }
+
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 }
 
@@ -1219,7 +1234,11 @@ function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): numb
 /**
  * Check if you're allowed to modify the task - only the author can modify the task
  */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, isParentReportArchived = false): boolean {
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID?: number, isParentReportArchived = false): boolean {
+    if (!sessionAccountID) {
+        return false;
+    }
+
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
@@ -1234,23 +1253,32 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 /**
  * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
  */
-function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number, taskAssigneeAccountID?: number): boolean {
+function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID?: number, parentReport?: OnyxEntry<OnyxTypes.Report>, isParentReportArchived = false): boolean {
+    // Return early if there was no sessionAccountID (this can happen because when connecting to the session key in onyx, the session will be undefined initially)
+    if (!sessionAccountID) {
+        return false;
+    }
+
+    // When there is no parent report, exit early (this can also happen due to onyx key initialization)
+    if (!parentReport) {
+        return false;
+    }
+
+    // Cancelled task reports cannot be actioned since they are cancelled and users shouldn't be able to do anything with them
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
 
-    const parentReport = getParentReport(taskReport);
-
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedNonExpenseReport(parentReport, reportNameValuePairs)) {
+    // If the parent report is a non expense report and it's archived, then the user cannot take actions (similar to cancelled task reports)
+    const isParentAnExpenseReport = ReportUtils.isExpenseReport(parentReport);
+    const isParentAnExpenseRequest = ReportUtils.isExpenseRequest(parentReport);
+    const isParentANonExpenseReport = !(isParentAnExpenseReport || isParentAnExpenseRequest);
+    if (isParentANonExpenseReport && isParentReportArchived) {
         return false;
     }
 
-    const ownerAccountID = taskReport?.ownerAccountID ?? taskOwnerAccountID;
-    const assigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? taskAssigneeAccountID;
-    return sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID;
+    // The task can only be actioned by the task report owner or the task assignee
+    return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport);
 }
 
 function clearTaskErrors(reportID: string | undefined) {
@@ -1274,10 +1302,13 @@ function clearTaskErrors(reportID: string | undefined) {
     });
 }
 
-function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected): OnyxData {
+function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData {
     const taskReportID = introSelected?.[taskName];
-    if (taskReportID) {
-        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`];
+    const parentReportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`];
+    const isParentReportArchived = ReportUtils.isArchivedReport(parentReportNameValuePairs);
+    if (taskReportID && canActionTask(taskReport, currentUserAccountID, parentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
                 return completeTask(taskReport);
@@ -1287,25 +1318,11 @@ function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected
 
     return {};
 }
-function completeTestDriveTask() {
-    const onboardingReport = ReportUtils.getChatUsedForOnboarding();
-    if (!onboardingReport) {
-        return;
-    }
-
-    const onboardingReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onboardingReport.reportID}`];
-    if (!onboardingReportActions) {
-        return;
-    }
-
-    const testDriveTaskParentReport = Object.values(onboardingReportActions).find(
-        (reportAction) => reportAction.childType === CONST.REPORT.TYPE.TASK && Str.stripHTML(reportAction.childReportName ?? '') === CONST.TEST_DRIVE.ONBOARDING_TASK_NAME,
-    );
-
-    const testDriveTaskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${testDriveTaskParentReport?.childReportID}`];
-    if (testDriveTaskReport?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || testDriveTaskReport?.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-        completeTask(testDriveTaskReport);
-    }
+function completeTestDriveTask(shouldUpdateSelfTourViewedOnlyLocally = false) {
+    const taskReportID = introSelected?.viewTour;
+    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
+    completeTask(taskReport, taskReportID);
 }
 
 export {

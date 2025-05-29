@@ -94,6 +94,7 @@ function MoneyRequestPreviewContent({
     onPreviewPressed,
     containerStyles,
     checkIfContextMenuActive = () => {},
+    onShowContextMenu = () => {},
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
@@ -142,7 +143,7 @@ function MoneyRequestPreviewContent({
         merchant,
         tag,
         category,
-    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
 
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -186,7 +187,7 @@ function MoneyRequestPreviewContent({
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = isMoneyRequestActionReportActionsUtils(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
@@ -221,7 +222,7 @@ function MoneyRequestPreviewContent({
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
+        onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive));
     };
 
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');
@@ -261,7 +262,7 @@ function MoneyRequestPreviewContent({
                 const canEdit = isMoneyRequestAction && canEditMoneyRequest(action, transaction);
                 const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
 
-                const translationPath = getViolationTranslatePath(violations, hasFieldErrors, violationMessage);
+                const translationPath = getViolationTranslatePath(violations, hasFieldErrors, violationMessage, isOnHold);
                 return `${message} ${CONST.DOT_SEPARATOR} ${getTranslatedText(translationPath)}`;
             }
             if (hasFieldErrors) {

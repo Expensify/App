@@ -42,7 +42,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
         return;
     }
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
 };
 
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: BookTravelButtonProps) {
@@ -62,7 +62,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {isBlockedFromSpotnanaTravel, isTravelVerified} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
-    const [isVerificationModalVisible, setVerificationModalVisiblity] = useState(false);
+    const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
@@ -72,7 +72,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: false});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
-    const hideVerificationModal = () => setVerificationModalVisiblity(false);
+    const hideVerificationModal = () => setVerificationModalVisibility(false);
 
     const bookATrip = useCallback(() => {
         setErrorMessage('');
@@ -101,12 +101,12 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
 
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
         if (groupPaidPolicies.length < 1) {
-            Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
+            Navigation.navigate(ROUTES.TRAVEL_UPGRADE.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
@@ -136,7 +136,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
         } else if (!isTravelVerified) {
-            setVerificationModalVisiblity(true);
+            setVerificationModalVisibility(true);
         }
         // Determine the domain to associate with the workspace during provisioning in Spotnana.
         // - If all admins share the same private domain, the workspace is tied to it automatically.
@@ -146,12 +146,12 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
             const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
+                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
             } else {
                 navigateToAcceptTerms(domain, !!isUserValidated);
             }
         } else {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(Navigation.getActiveRoute()));
         }
     }, [
         isBlockedFromSpotnanaTravel,

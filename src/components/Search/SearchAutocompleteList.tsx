@@ -5,18 +5,16 @@ import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
 import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
@@ -34,7 +32,7 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -56,6 +54,9 @@ type SearchAutocompleteListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
 
+    /** Callback to trigger search action * */
+    handleSearch: (value: string) => void;
+
     /** An optional item to always display on the top of the router list  */
     searchQueryItem?: SearchQueryItem;
 
@@ -76,6 +77,9 @@ type SearchAutocompleteListProps = {
 
     /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
     onHighlightFirstItem?: () => void;
+
+    /** Ref for textInput */
+    textInputRef?: React.RefObject<AnimatedTextInputRef>;
 };
 
 const defaultListOptions = {
@@ -129,13 +133,15 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 function SearchAutocompleteList(
     {
         autocompleteQueryValue,
+        handleSearch,
         searchQueryItem,
         getAdditionalSections,
         onListItemPress,
         setTextQuery,
         updateAutocompleteSubstitutions,
-        shouldSubscribeToArrowKeyEvents,
+        shouldSubscribeToArrowKeyEvents = true,
         onHighlightFirstItem,
+        textInputRef,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -143,8 +149,6 @@ function SearchAutocompleteList(
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {activeWorkspaceID} = useActiveWorkspace();
-    const policy = usePolicy(activeWorkspaceID);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -163,13 +167,28 @@ function SearchAutocompleteList(
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
-    const statusAutocompleteList = Object.values({
-        ...CONST.SEARCH.STATUS.EXPENSE,
-        ...CONST.SEARCH.STATUS.INVOICE,
-        ...CONST.SEARCH.STATUS.CHAT,
-        ...CONST.SEARCH.STATUS.TRIP,
-        ...CONST.SEARCH.STATUS.TASK,
-    });
+
+    const statusAutocompleteList = useMemo(() => {
+        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+        const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+        const currentType = typeFilter?.value;
+
+        switch (currentType) {
+            case CONST.SEARCH.DATA_TYPES.EXPENSE:
+                return Object.values(CONST.SEARCH.STATUS.EXPENSE);
+            case CONST.SEARCH.DATA_TYPES.INVOICE:
+                return Object.values(CONST.SEARCH.STATUS.INVOICE);
+            case CONST.SEARCH.DATA_TYPES.CHAT:
+                return Object.values(CONST.SEARCH.STATUS.CHAT);
+            case CONST.SEARCH.DATA_TYPES.TRIP:
+                return Object.values(CONST.SEARCH.STATUS.TRIP);
+            case CONST.SEARCH.DATA_TYPES.TASK:
+                return Object.values(CONST.SEARCH.STATUS.TASK);
+            default:
+                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK});
+        }
+    }, [autocompleteQueryValue]);
+
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
@@ -214,16 +233,16 @@ function SearchAutocompleteList(
         [areOptionsInitialized, options.personalDetails],
     );
 
-    const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates, policy), [policy, taxRates]);
+    const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates), [taxRates]);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const categoryAutocompleteList = useMemo(() => {
-        return getAutocompleteCategories(allPolicyCategories, activeWorkspaceID);
-    }, [activeWorkspaceID, allPolicyCategories]);
+        return getAutocompleteCategories(allPolicyCategories);
+    }, [allPolicyCategories]);
     const recentCategoriesAutocompleteList = useMemo(() => {
-        return getAutocompleteRecentCategories(allRecentCategories, activeWorkspaceID);
-    }, [activeWorkspaceID, allRecentCategories]);
+        return getAutocompleteRecentCategories(allRecentCategories);
+    }, [allRecentCategories]);
 
     const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
@@ -242,12 +261,17 @@ function SearchAutocompleteList(
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS, {canBeMissing: true});
     const tagAutocompleteList = useMemo(() => {
-        return getAutocompleteTags(allPoliciesTags, activeWorkspaceID);
-    }, [activeWorkspaceID, allPoliciesTags]);
-    const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags, activeWorkspaceID);
+        return getAutocompleteTags(allPoliciesTags);
+    }, [allPoliciesTags]);
+    const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags);
+
+    const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
+        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+        const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
+        return [parsedQuery, queryWithoutFilters];
+    }, [autocompleteQueryValue]);
 
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
-        const autocompleteParsedQuery = parseForAutocomplete(autocompleteQueryValue);
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
         const autocompleteKey = autocomplete?.key;
         const autocompleteValue = autocomplete?.value ?? '';
@@ -431,7 +455,7 @@ function SearchAutocompleteList(
             }
         }
     }, [
-        autocompleteQueryValue,
+        autocompleteParsedQuery,
         tagAutocompleteList,
         recentTagsAutocompleteList,
         categoryAutocompleteList,
@@ -494,8 +518,12 @@ function SearchAutocompleteList(
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
-        searchInServer(autocompleteQueryValue.trim());
-    }, [autocompleteQueryValue]);
+        if (!handleSearch) {
+            return;
+        }
+
+        handleSearch(autocompleteQueryWithoutFilters);
+    }, [autocompleteQueryWithoutFilters, handleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
@@ -582,6 +610,9 @@ function SearchAutocompleteList(
                 onLayout={() => {
                     setPerformanceTimersEnd();
                     setIsInitialRender(false);
+                    if (!!textInputRef?.current && ref && 'current' in ref) {
+                        ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
+                    }
                 }}
                 showScrollIndicator={!shouldUseNarrowLayout}
                 sectionTitleStyles={styles.mhn2}
