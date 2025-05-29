@@ -131,7 +131,6 @@ type MovedTransactionParams = {
 
 type MovedFromReportParams = {
     reportName: string;
-    reportID: string;
 };
 
 type SettleExpensifyCardParams = {

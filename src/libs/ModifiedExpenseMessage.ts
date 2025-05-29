@@ -190,9 +190,8 @@ function getForReportAction({
     }
 
     if (reportActionOriginalMessage?.movedFromReport) {
-        const reportID = reportActionOriginalMessage?.movedFromReport;
-        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
-        return translateLocal('iou.movedFromReport', {reportName: reportName ?? '', reportID});
+        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`]);
+        return translateLocal('iou.movedFromReport', {reportName: reportName ?? ''});
     }
 
     const removalFragments: string[] = [];
