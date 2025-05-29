@@ -163,7 +163,7 @@ function IOURequestStepScan({
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
-        opacity: blinkOpacity.value,
+        opacity: blinkOpacity.get(),
     }));
 
     const showBlink = useCallback(() => {

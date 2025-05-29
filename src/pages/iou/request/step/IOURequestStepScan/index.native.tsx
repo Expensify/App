@@ -141,7 +141,7 @@ function IOURequestStepScan({
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(transactions.length > 1);
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
-        opacity: blinkOpacity.value,
+        opacity: blinkOpacity.get(),
     }));
 
     const showBlink = useCallback(() => {
