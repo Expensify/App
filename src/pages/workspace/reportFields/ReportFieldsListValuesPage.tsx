@@ -197,6 +197,9 @@ function ReportFieldsListValuesPage({
     };
 
     const getCustomListHeader = () => {
+        if (filteredListValues.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -309,6 +312,22 @@ function ReportFieldsListValuesPage({
 
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
+    const headerContent = (
+        <>
+            <View style={[styles.ph5, styles.pv4]}>
+                <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
+            </View>
+            {data.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.reportFields.findReportField')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={!shouldShowEmptyState && filteredListValues.length === 0}
+                />
+            )}
+        </>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -335,17 +354,6 @@ function ReportFieldsListValuesPage({
                     {!isSmallScreenWidth && !hasAccountingConnections && getHeaderButtons()}
                 </HeaderWithBackButton>
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
-                <View style={[styles.ph5, styles.pv4]}>
-                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
-                </View>
-                {data.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.reportFields.findReportField')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={!shouldShowEmptyState && filteredListValues.length === 0}
-                    />
-                )}
                 {shouldShowEmptyState && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
@@ -366,13 +374,15 @@ function ReportFieldsListValuesPage({
                         turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         sections={sections}
-                        selectedItemKeys={selectedValuesArray}
+                        selectedItems={selectedValuesArray}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
-                        onSelectAll={toggleAllValues}
+                        onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
                         ListItem={TableListItem}
+                        listHeaderContent={headerContent}
                         customListHeader={getCustomListHeader()}
+                        shouldShowListEmptyContent={false}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
