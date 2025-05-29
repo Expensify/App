@@ -63,7 +63,7 @@ function TabSelectorItem({
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
 
-    const shouldShowEducationTooltip = shouldShowProductTrainingTooltip && isActive;
+    const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
 
     const children = (
         <AnimatedPressableWithFeedback
@@ -92,9 +92,9 @@ function TabSelectorItem({
         </AnimatedPressableWithFeedback>
     );
 
-    return shouldShowEducationTooltip ? (
+    return shouldShowEducationalTooltip ? (
         <EducationalTooltip
-            shouldRender={shouldShowEducationTooltip}
+            shouldRender
             renderTooltipContent={renderProductTrainingTooltip}
             shouldHideOnNavigate
             anchorAlignment={{

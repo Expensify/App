@@ -39,5 +39,4 @@ const computeHorizontalShift: ComputeHorizontalShift = (windowWidth, tooltipLeft
     return 0;
 };
 
-export {GUTTER_WIDTH};
 export default computeHorizontalShift;

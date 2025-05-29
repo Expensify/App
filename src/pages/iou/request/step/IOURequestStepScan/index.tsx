@@ -877,9 +877,6 @@ function IOURequestStepScan({
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
                         onLayout={() => {
-                            if (!onLayout) {
-                                return;
-                            }
                             onLayout(setTestReceiptAndNavigate);
                         }}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
