@@ -6,13 +6,18 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type AfterSignOutRedirect from './types';
 
-const afterSignOutRedirect: AfterSignOutRedirect = (onyxSetParams, hasSwitchedAccountInHybridMode) => {
+const afterSignOutRedirect: AfterSignOutRedirect = (onyxSetParams, hasSwitchedAccountInHybridMode, accountID) => {
     // Sign out from classic as well so the user does not get logged back in when visiting expensify.com and subsequently auto redirected back to New Expensify
     const oldDotSignOutUrl = new URL(CONST.OLDDOT_URLS.SIGN_OUT, CONFIG.EXPENSIFY.EXPENSIFY_URL);
     oldDotSignOutUrl.searchParams.set('clean', 'true');
 
     // Redirect back to New Expensify after classic sign out so the user is not confused by being redirected to a different site
     oldDotSignOutUrl.searchParams.set('signedOutFromNewExpensify', 'true');
+
+    // Pass the account ID of the user that is signing out
+    if (accountID) {
+        oldDotSignOutUrl.searchParams.set('accountID', String(accountID));
+    }
 
     asyncOpenURL(
         redirectToSignIn().then(() => {
