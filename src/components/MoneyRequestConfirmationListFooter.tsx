@@ -8,7 +8,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -251,7 +250,6 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseTableReportView} = usePermissions();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -681,7 +679,7 @@ function MoneyRequestConfirmationListFooter({
                     shouldRenderAsHTML
                 />
             ),
-            shouldShow: isPolicyExpenseChat && canUseTableReportView,
+            shouldShow: isPolicyExpenseChat,
             isSupplementary: true,
         },
     ];
