@@ -971,7 +971,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             }
 
             const isIntacctExporter = policy.connections?.intacct?.config?.export?.exporter === email;
-            const isNetSuiteExporter = policy.connections?.netsuite?.options.config?.exporter === email;
+            const isNetSuiteExporter = policy.connections?.netsuite?.options?.config?.exporter === email;
             const isQuickbooksDesktopExporter = policy.connections?.quickbooksDesktop?.config?.export?.exporter === email;
             const isQuickbooksOnlineExporter = policy.connections?.quickbooksOnline?.config?.export?.exporter === email;
             const isXeroExporter = policy.connections?.xero?.config?.export?.exporter === email;
