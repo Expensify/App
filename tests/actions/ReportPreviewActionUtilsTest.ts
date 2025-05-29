@@ -31,9 +31,6 @@ const REPORT_ID = 1;
 const TRANSACTION_ID = 1;
 const VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
-jest.mock('@components/ConfirmedRoute.tsx');
-
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     hasViolations: jest.fn().mockReturnValue(false),

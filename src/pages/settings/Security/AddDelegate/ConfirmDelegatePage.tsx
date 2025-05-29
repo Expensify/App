@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {useCustomHistoryParam} from '@libs/Navigation/AppNavigator/customHistory';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -24,21 +25,17 @@ import DelegateMagicCodeModal from './DelegateMagicCodeModal';
 
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
-function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
+function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const {translate} = useLocalize();
 
     const styles = useThemeStyles();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
-    const showValidateActionModal = route.params.showValidateActionModal === 'true';
     const {isOffline} = useNetwork();
     const [shouldDisableModalAnimation, setShouldDisableModalAnimation] = useState(true);
-    const [shouldShowLoading, setShouldShowLoading] = useState(showValidateActionModal ?? false);
 
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModal ?? false);
-    useEffect(() => {
-        navigation.setParams({showValidateActionModal: String(isValidateCodeActionModalVisible)});
-    }, [isValidateCodeActionModalVisible, navigation]);
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useCustomHistoryParam();
+    const [shouldShowLoading, setShouldShowLoading] = useState(isValidateCodeActionModalVisible ?? false);
 
     const personalDetails = getPersonalDetailByEmail(login);
     const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
@@ -93,7 +90,6 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
                         // We should disable the animation initially and only enable it when the user manually opens the modal
                         // to ensure it appears immediately when refreshing the page.
                         disableAnimation={shouldDisableModalAnimation}
-                        shouldHandleNavigationBack
                         login={login}
                         role={role}
                         onClose={() => {

@@ -48,9 +48,11 @@ function EmployeeTestDriveModal() {
 
         setIsLoading(true);
 
-        verifyTestDriveRecipient(bossEmail)
-            .then(() => {
-                setTestReceipt(TestReceipt, 'jpg', (source, _, filename) => {
+        verifyTestDriveRecipient(bossEmail).then(() => {
+            setTestReceipt(
+                TestReceipt,
+                'jpg',
+                (source, _, filename) => {
                     const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
                     const reportID = generateReportID();
                     initMoneyRequest(reportID, undefined, false, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
@@ -75,12 +77,13 @@ function EmployeeTestDriveModal() {
                         Navigation.goBack();
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                     });
-                });
-            })
-            .catch(() => {
-                setIsLoading(false);
-                setFormError(translate('testDrive.modal.employee.error'));
-            });
+                },
+                () => {
+                    setIsLoading(false);
+                    setFormError(translate('testDrive.modal.employee.error'));
+                },
+            );
+        });
     };
 
     const skipTestDrive = () => {

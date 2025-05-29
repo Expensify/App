@@ -3,9 +3,10 @@ import type {FileObject} from '@components/AttachmentModal';
 
 type OnFileRead = (source: string, file: FileObject, filename: string) => void;
 
-type ReceiptExtension = 'jpg' | 'png';
+type OnFileError = (error: unknown) => void;
 
-type SetTestReceipt = (asset: ImageSourcePropType, assetExtension: ReceiptExtension, onFileRead: OnFileRead) => void;
+type AssetExtension = 'jpg' | 'png';
 
-// eslint-disable-next-line import/prefer-default-export
-export type {SetTestReceipt};
+type SetTestReceipt = (asset: ImageSourcePropType, assetExtension: AssetExtension, onFileRead: OnFileRead, onFileError?: OnFileError) => void;
+
+export type {AssetExtension, SetTestReceipt};

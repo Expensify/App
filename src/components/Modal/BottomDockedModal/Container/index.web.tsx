@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import Animated, {Easing, Keyframe} from 'react-native-reanimated';
 import type ModalProps from '@components/Modal/BottomDockedModal/types';
 import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
@@ -8,6 +8,11 @@ const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
 function Container({style, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, ...props}: ModalProps & ContainerProps) {
     const styles = useThemeStyles();
+    const onCloseCallbackRef = useRef(onCloseCallBack);
+
+    useEffect(() => {
+        onCloseCallbackRef.current = onCloseCallBack;
+    }, [onCloseCallBack]);
 
     const Entering = useMemo(() => {
         const FadeIn = new Keyframe({
@@ -30,8 +35,9 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
             },
         });
 
-        return FadeOut.duration(animationOutTiming).withCallback(onCloseCallBack);
-    }, [animationOutTiming, onCloseCallBack]);
+        // eslint-disable-next-line react-compiler/react-compiler
+        return FadeOut.duration(animationOutTiming).withCallback(() => onCloseCallbackRef.current());
+    }, [animationOutTiming]);
 
     return (
         <Animated.View

@@ -32,7 +32,6 @@ jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
 jest.mock('@src/hooks/useLHNEstimatedListSize/index.native.ts');
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Object.fromEntries(

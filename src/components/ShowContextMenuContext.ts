@@ -29,7 +29,7 @@ const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     action: undefined,
     transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},
-    isDisabled: false,
+    isDisabled: true,
     shouldDisplayContextMenu: true,
 });
 

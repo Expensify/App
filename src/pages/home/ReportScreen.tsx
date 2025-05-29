@@ -336,7 +336,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
-        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
+        if (backTo === SCREENS.SEARCH.REPORT_RHP) {
+            Navigation.goBack();
+            return;
+        }
+        if (isInNarrowPaneModal) {
             Navigation.dismissModal();
             return;
         }
@@ -460,7 +464,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        if (reportMetadata.isOptimisticReport) {
+        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT) {
             return;
         }
 
@@ -480,13 +484,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
-        route.params?.moneyRequestReportActionID,
-        route.params?.transactionID,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        currentUserEmail,
+        report?.type,
         report?.errorFields?.notFound,
         isOffline,
+        route.params?.moneyRequestReportActionID,
+        route.params?.transactionID,
+        currentUserEmail,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
     ]);
 
     useEffect(() => {

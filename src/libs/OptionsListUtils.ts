@@ -63,6 +63,7 @@ import {
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
+    getRetractedMessage,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
@@ -95,10 +96,7 @@ import {
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
     getIcons,
-    getIOUApprovedMessage,
     getIOUForwardedMessage,
-    getIOUSubmittedMessage,
-    getIOUUnapprovedMessage,
     getMoneyRequestSpendBreakdown,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
@@ -106,9 +104,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
-    getReportAutomaticallySubmittedMessage,
     getReportLastMessage,
     getReportName,
     getReportNotificationPreference,
@@ -789,19 +785,19 @@ function getLastMessageTextForReport(
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? getOriginalMessage(lastReportAction)?.harvesting ?? false : false;
         if (wasSubmittedViaHarvesting) {
-            lastMessageTextFromReport = getReportAutomaticallySubmittedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.automaticallySubmitted');
         } else {
-            lastMessageTextFromReport = getIOUSubmittedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.submitted');
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
-            lastMessageTextFromReport = getReportAutomaticallyApprovedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.automaticallyApproved');
         } else {
-            lastMessageTextFromReport = getIOUApprovedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
     } else if (isUnapprovedAction(lastReportAction)) {
-        lastMessageTextFromReport = getIOUUnapprovedMessage(lastReportAction);
+        lastMessageTextFromReport = translateLocal('iou.unapproved');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
@@ -828,6 +824,8 @@ function getLastMessageTextForReport(
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
+        lastMessageTextFromReport = getRetractedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         lastMessageTextFromReport = getReopenedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
@@ -847,6 +845,11 @@ function getLastMessageTextForReport(
     // so we reconstruct the last message text of the report from the last report action.
     if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
         lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
+    }
+
+    // If the last report action is a pending moderation action, get the last message text from the last visible report action
+    if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalReportAction)) {
+        lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');

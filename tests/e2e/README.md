@@ -187,7 +187,7 @@ For the app to detect that it is currently running e2e tests, an environment var
 be set. There is a custom environment file in `e2e/.env.e2e` that contains the env setup needed. The build automatically
 picks this file for configuration.
 
-It can be useful to debug the app while running the e2e tests (to catch errors durign development of a test).
+It can be useful to debug the app while running the e2e tests (to catch errors during development of a test).
 You can simply add the `debuggable true` property to the `e2eRelease` buildType config in `android/app/build.gradle`.
 Then rebuild the app. You can now monitor the app's logs using `logcat` (`adb logcat | grep "ReactNativeJS"`).
 

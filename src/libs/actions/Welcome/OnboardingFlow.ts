@@ -38,7 +38,6 @@ type GetOnboardingInitialPathParamsType = {
     isUserFromPublicDomain: boolean;
     hasAccessiblePolicies: boolean;
     onboardingValuesParam?: Onboarding;
-    canUsePrivateDomainOnboarding?: boolean;
 };
 
 /**
@@ -59,7 +58,7 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
 }
 
 function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingInitialPathParamsType): string {
-    const {isUserFromPublicDomain, hasAccessiblePolicies, onboardingValuesParam, canUsePrivateDomainOnboarding} = getOnboardingInitialPathParams;
+    const {isUserFromPublicDomain, hasAccessiblePolicies, onboardingValuesParam} = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -81,7 +80,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
-    if (!isUserFromPublicDomain && hasAccessiblePolicies && canUsePrivateDomainOnboarding) {
+    if (!isUserFromPublicDomain && hasAccessiblePolicies) {
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
