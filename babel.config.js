@@ -132,7 +132,6 @@ const metro = {
                 },
             },
         ],
-        process.env.DEBUG_BABEL_TRACE ? traceTransformer : () => {},
     ],
     env: {
         production: {
@@ -141,6 +140,10 @@ const metro = {
         },
     },
 };
+
+if (process.env.DEBUG_BABEL_TRACE) {
+    metro.plugins.push(traceTransformer);
+}
 
 /*
  * We use <React.Profiler> and react-native-performance to capture/monitor stats
