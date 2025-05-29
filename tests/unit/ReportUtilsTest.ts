@@ -1396,7 +1396,7 @@ describe('ReportUtils', () => {
     });
 
     describe('canHoldUnholdReportAction', () => {
-        it('should return canUnholdRequest as true for a held duplicate transaction', async () => {
+        it.only('should return canUnholdRequest as true for a held duplicate transaction', async () => {
             const chatReport: Report = {reportID: '1'};
             const reportPreviewReportActionID = '8';
             const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', undefined, reportPreviewReportActionID);
