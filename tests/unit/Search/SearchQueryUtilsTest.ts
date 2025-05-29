@@ -187,6 +187,7 @@ describe('SearchQueryUtils', () => {
         });
 
         it('matches with special characters', () => {
+            // cspell:disable-next-line
             expect(shouldHighlight('Explore the #%tự đặc biệt!', '#%tự')).toBe(true);
         });
 
