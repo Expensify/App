@@ -4,6 +4,7 @@ import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewS
 import {InteractionManager, Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -18,20 +19,23 @@ import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
+import {createNewReport} from '@libs/actions/Report';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -42,6 +46,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
     hash: number;
+    groupBy?: ValueOf<typeof CONST.SEARCH.GROUP_BY>;
     type: SearchDataTypes;
     hasResults: boolean;
 };
@@ -70,16 +75,19 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
@@ -186,6 +194,60 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
             });
         };
 
+        // If we are grouping by reports, show a custom message rather than a type-specific message
+        if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+            return {
+                headerMedia: LottieAnimations.GenericEmptyState,
+                title: translate('search.searchResults.emptyReportResults.title'),
+                subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
+                headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+                buttons: [
+                    ...(!hasSeenTour
+                        ? [
+                              {
+                                  buttonText: translate('emptySearchView.takeATestDrive'),
+                                  buttonAction: startTestDrive,
+                              },
+                          ]
+                        : []),
+                    {
+                        buttonText: translate('quickAction.createReport'),
+                        buttonAction: () => {
+                            interceptAnonymousUser(() => {
+                                const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+                                let workspaceIDForReportCreation: string | undefined;
+
+                                if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                    // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                    workspaceIDForReportCreation = activePolicyID;
+                                } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                    // If the user has only one paid group workspace with chat enabled, we create a report with it
+                                    workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                }
+
+                                if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                                    // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
+                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                    return;
+                                }
+
+                                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                                    const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
+                                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                    });
+                                } else {
+                                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                                }
+                            });
+                        },
+                        success: true,
+                    },
+                ],
+            };
+        }
+
         // If we didn't match a specific search hash, show a specific message
         // based on the type of the data
         switch (type) {
@@ -291,8 +353,12 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
         introSelected?.choice,
         tripViewChildren,
         hasResults,
+        groupBy,
         hasSeenTour,
         shouldRedirectToExpensifyClassic,
+        activePolicy,
+        activePolicyID,
+        currentUserPersonalDetails,
     ]);
 
     return (

@@ -5275,6 +5275,11 @@ const translations = {
                 subtitle: 'Create an expense or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to create an expense.',
             },
+            emptyReportResults: {
+                title: "You haven't created any reports yet",
+                subtitle: 'Create a report or take a test drive of Expensify to learn more.',
+                subtitleWithOnlyCreateButton: 'Use the green button below to create a report.',
+            },
             emptyInvoiceResults: {
                 title: "You haven't created any \ninvoices yet",
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',

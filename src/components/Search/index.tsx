@@ -514,6 +514,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 <EmptySearchView
                     hash={hash}
                     type={type}
+                    groupBy={groupBy}
                     hasResults={searchResults.search.hasResults}
                 />
             </View>
