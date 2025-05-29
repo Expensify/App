@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -17,6 +17,7 @@ import {
     findSelectedTaxAccountWithDefaultSelect,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
@@ -52,9 +53,12 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const config = policy?.connections?.netsuite?.options.config;
     const shouldGoBackToSpecificRoute =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
-            config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT) &&
-        backTo;
+        config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
+        config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
+
+    const goBack = useCallback(() => {
+        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
+    }, [backTo, shouldGoBackToSpecificRoute]);
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
@@ -209,7 +213,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title="workspace.netsuite.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.goBack(backTo) : undefined}
+            onBackButtonPress={goBack}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}

@@ -96,6 +96,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 minDate={minDate}
                 maxDate={maxDate}
                 shouldSaveDraft={!isEditing}
+                autoFocus
             />
             {footerComponent}
         </FormProvider>

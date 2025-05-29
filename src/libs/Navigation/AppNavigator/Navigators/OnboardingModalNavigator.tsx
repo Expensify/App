@@ -2,6 +2,7 @@ import {CardStyleInterpolators} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -17,6 +18,8 @@ import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
+import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
+import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +39,23 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
+
+    let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
+
+    if (isOnPrivateDomainAndHasAccessiblePolicies) {
+        initialRouteName = SCREENS.ONBOARDING.PERSONAL_DETAILS;
+    }
+
+    if (account?.isFromPublicDomain) {
+        initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
+    }
+
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        canBeMissing: false,
+    });
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
@@ -54,6 +73,11 @@ function OnboardingModalNavigator() {
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
+    // If the account data is not loaded yet, we don't want to show the onboarding modal
+    if (isOnPrivateDomainAndHasAccessiblePolicies === undefined) {
+        return null;
+    }
+
     return (
         <NoDropZone>
             <Overlay />
@@ -67,7 +91,10 @@ function OnboardingModalNavigator() {
                         onClick={(e) => e.stopPropagation()}
                         style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
-                        <Stack.Navigator screenOptions={defaultScreenOptions}>
+                        <Stack.Navigator
+                            screenOptions={defaultScreenOptions}
+                            initialRouteName={initialRouteName}
+                        >
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PURPOSE}
                                 component={OnboardingPurpose}
@@ -75,6 +102,14 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORK_EMAIL}
+                                component={OnboardingWorkEmail}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
+                                component={OnboardingWorkEmailValidation}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}

@@ -49,7 +49,7 @@ function CardNameStep() {
     return (
         <ScreenWrapper
             testID={CardNameStep.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -66,6 +66,7 @@ function CardNameStep() {
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
+                addBottomSafeAreaPadding
             >
                 <InputWrapper
                     InputComponent={TextInput}

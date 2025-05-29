@@ -19,8 +19,16 @@ function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 }
 
+function isTravelVerified(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.IS_TRAVEL_VERIFIED) || canUseAllBetas(betas);
+}
+
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
+}
+
+function canUseMultiLevelTags(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.MULTI_LEVEL_TAGS) || canUseAllBetas(betas);
 }
 
 /**
@@ -34,16 +42,8 @@ function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
 }
 
-function canUsePDFExport(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_PDF_EXPORT) || canUseAllBetas(betas);
-}
-
 function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
-}
-
-function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
 }
 
 function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
@@ -54,20 +54,36 @@ function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
 }
 
-function canUseHelpSidePanel(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.HELP_SIDE_PANEL) || canUseAllBetas(betas);
-}
-
 function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) || canUseAllBetas(betas);
 }
 
-function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
+function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
 }
 
-function canUseLeftHandBar(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.LEFT_HAND_BAR) || canUseAllBetas(betas);
+function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
+}
+
+function canUsePlaidCompanyCards(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PLAID_COMPANY_CARDS) || canUseAllBetas(betas);
+}
+
+function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
+}
+
+function canUseMultiScan(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_SCAN) || canUseAllBetas(betas);
+}
+
+function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
+}
+
+function canUseTrackFlows(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.TRACK_FLOWS) || canUseAllBetas(betas);
 }
 
 export default {
@@ -75,15 +91,19 @@ export default {
     canUseLinkPreviews,
     canUseSpotnanaTravel,
     isBlockedFromSpotnanaTravel,
+    isTravelVerified,
     canUseNetSuiteUSATax,
-    canUsePDFExport,
     canUseMergeAccounts,
     canUseManagerMcTest,
-    canUseInternationalBankAccount,
     canUseCustomRules,
     canUseTableReportView,
-    canUseHelpSidePanel,
     canUseTalkToAISales,
-    canUseProhibitedExpenses,
-    canUseLeftHandBar,
+    canUseInAppProvisioning,
+    canUseGlobalReimbursementsOnND,
+    canUseRetractNewDot,
+    canUseMultiLevelTags,
+    canUseMultiFilesDragAndDrop,
+    canUseMultiScan,
+    canUsePlaidCompanyCards,
+    canUseTrackFlows,
 };

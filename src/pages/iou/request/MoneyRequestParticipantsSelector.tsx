@@ -17,7 +17,7 @@ import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
@@ -62,6 +62,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
+
+    /** Whether this is a per diem expense request */
+    isPerDiemRequest?: boolean;
 };
 
 function MoneyRequestParticipantsSelector({
@@ -71,6 +74,7 @@ function MoneyRequestParticipantsSelector({
     onParticipantsAdded,
     iouType,
     action,
+    isPerDiemRequest = false,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -79,12 +83,12 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (session) => session?.email});
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -127,16 +131,20 @@ function MoneyRequestParticipantsSelector({
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
 
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-                // sees the option to submit an expense from their admin on their own Workspace Chat.
+                // sees the option to submit an expense from their admin on their own Expense Chat.
                 includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
 
-                includeP2P: !isCategorizeOrShareAction,
+                // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
+                excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
+
+                // Per diem expenses should only be submitted to workspaces, not individual users
+                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
-                canShowManagerMcTest: true,
+                canShowManagerMcTest: action !== CONST.IOU.ACTION.SUBMIT,
             },
         );
 
@@ -146,7 +154,7 @@ function MoneyRequestParticipantsSelector({
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants, isPerDiemRequest]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -162,7 +170,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
-            canInviteUser: !isCategorizeOrShareAction,
+            canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -170,7 +178,7 @@ function MoneyRequestParticipantsSelector({
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -207,14 +215,14 @@ function MoneyRequestParticipantsSelector({
 
         newSections.push({
             title: translate('common.recents'),
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
+            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
         });
 
         newSections.push({
             title: translate('common.contacts'),
             data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
+            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
         });
 
         if (
@@ -223,7 +231,8 @@ function MoneyRequestParticipantsSelector({
                 ...chatOptions.userToInvite,
                 accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 status: chatOptions.userToInvite?.status ?? undefined,
-            })
+            }) &&
+            !isPerDiemRequest
         ) {
             newSections.push({
                 title: undefined,
@@ -256,6 +265,7 @@ function MoneyRequestParticipantsSelector({
         personalDetails,
         translate,
         cleanSearchTerm,
+        isPerDiemRequest,
     ]);
 
     /**

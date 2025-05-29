@@ -5,13 +5,13 @@ import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import type {ComposedGesture, GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {ToddBehindCloud} from '@components/Icon/Illustrations';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,7 +51,7 @@ function DeviceAwareGestureDetector({canUseTouchScreen, gesture, children}: Devi
     return canUseTouchScreen ? <GestureDetector gesture={gesture}>{children}</GestureDetector> : children;
 }
 
-function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink, onAttachmentError}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -61,8 +61,8 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
     const isPagerScrolling = useSharedValue(false);
     const pagerRef = useRef<GestureType>(null);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
     const canUseTouchScreen = canUseTouchScreenUtil();
 
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
@@ -226,8 +226,9 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
             onTap: handleTap,
             onScaleChanged: handleScaleChange,
             onSwipeDown: onClose,
+            onAttachmentError,
         }),
-        [source, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose],
+        [onAttachmentError, source, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose],
     );
 
     /** Defines how a single attachment should be rendered */

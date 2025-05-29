@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -24,13 +24,16 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import variables from '@styles/variables';
 import UserListItem from '@src/components/SelectionList/UserListItem';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
+import getFileSize from './getFileSize';
 import {showErrorAlert} from './ShareRootPage';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
@@ -42,13 +45,40 @@ function ShareDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
+    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const isTextShared = currentAttachment?.mimeType === 'txt';
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
+    const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails), [report, unknownUserDetails]);
+
+    useEffect(() => {
+        if (!currentAttachment?.content || errorTitle) {
+            return;
+        }
+        getFileSize(currentAttachment?.content).then((size) => {
+            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
+                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
+            }
+
+            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
+                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
+            }
+        });
+    }, [currentAttachment, errorTitle, translate]);
+
+    useEffect(() => {
+        if (!errorTitle || !errorMessage) {
+            return;
+        }
+
+        showErrorAlert(errorTitle, errorMessage);
+    }, [errorTitle, errorMessage]);
 
     if (isEmptyObject(report)) {
         return <NotFoundPage />;
@@ -68,7 +98,7 @@ function ShareDetailsPage({
         if (isTextShared) {
             addComment(report.reportID, message);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-            Navigation.navigate(routeToNavigate);
+            Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
         }
 
@@ -100,20 +130,19 @@ function ShareDetailsPage({
     };
 
     return (
-        <PressableWithoutFeedback
-            onPress={() => {
-                KeyboardUtils.dismiss();
-            }}
-            accessible={false}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            keyboardAvoidingViewBehavior="padding"
+            shouldEnableMinHeight={canUseTouchScreen()}
+            testID={ShareDetailsPage.displayName}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom
-                shouldEnableKeyboardAvoidingView={false}
-                keyboardAvoidingViewBehavior="padding"
-                shouldEnableMinHeight={canUseTouchScreen()}
-                testID={ShareDetailsPage.displayName}
-            >
-                <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
+            <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
+                <PressableWithoutFeedback
+                    onPress={() => {
+                        KeyboardUtils.dismiss();
+                    }}
+                    accessible={false}
+                >
                     <HeaderWithBackButton
                         title={translate('share.shareToExpensify')}
                         shouldShowBackButton
@@ -136,20 +165,29 @@ function ShareDetailsPage({
                             />
                         </View>
                     )}
-
-                    <View style={[styles.ph5, styles.flex1, styles.flexColumn]}>
-                        <View style={styles.pv5}>
-                            <ScrollView>
-                                <TextInput
-                                    autoFocus={false}
-                                    value={message}
-                                    multiline
-                                    onChangeText={setMessage}
-                                    accessibilityLabel={translate('share.messageInputLabel')}
-                                    label={translate('share.messageInputLabel')}
-                                />
-                            </ScrollView>
-                        </View>
+                </PressableWithoutFeedback>
+                <View style={[styles.ph5, styles.flex1, styles.flexColumn, styles.overflowHidden]}>
+                    <View style={styles.pv3}>
+                        <ScrollView scrollEnabled={false}>
+                            <TextInput
+                                autoFocus={false}
+                                value={message}
+                                scrollEnabled
+                                type="markdown"
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                onChangeText={setMessage}
+                                accessibilityLabel={translate('share.messageInputLabel')}
+                                label={translate('share.messageInputLabel')}
+                            />
+                        </ScrollView>
+                    </View>
+                    <PressableWithoutFeedback
+                        onPress={() => {
+                            KeyboardUtils.dismiss();
+                        }}
+                        accessible={false}
+                    >
                         {shouldShowAttachment && (
                             <>
                                 <View style={[styles.pt6, styles.pb2]}>
@@ -176,19 +214,19 @@ function ShareDetailsPage({
                                 </SafeAreaView>
                             </>
                         )}
-                    </View>
+                    </PressableWithoutFeedback>
                 </View>
-                <FixedFooter style={[styles.appBG, styles.pt2, styles.pb2]}>
+                <FixedFooter style={[styles.pt4]}>
                     <Button
                         success
                         large
                         text={translate('common.share')}
-                        style={[styles.w100]}
+                        style={styles.w100}
                         onPress={handleShare}
                     />
                 </FixedFooter>
-            </ScreenWrapper>
-        </PressableWithoutFeedback>
+            </View>
+        </ScreenWrapper>
     );
 }
 

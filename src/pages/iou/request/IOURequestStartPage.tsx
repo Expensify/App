@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -8,11 +8,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import Performance from '@libs/Performance';
 import {getPerDiemCustomUnit, getPerDiemCustomUnits} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -43,14 +46,13 @@ function IOURequestStartPage({
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [selectedTab = CONST.TAB_REQUEST.SCAN, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [selectedTab = CONST.TAB_REQUEST.SCAN, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
-    // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || CONST.DEFAULT_NUMBER_ID}`);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID}`, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -58,6 +60,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: getPayeeName(report)}),
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: getPayeeName(report)}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
+        [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
@@ -67,16 +70,11 @@ function IOURequestStartPage({
         [transaction?.iouRequestType, shouldUseTab, selectedTab],
     );
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
+    const prevTransactionReportID = usePrevious(transaction?.reportID);
 
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
-    useFocusEffect(
-        useCallback(() => {
-            if (transaction?.reportID === reportID || isLoadingSelectedTab) {
-                return;
-            }
-            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
-        }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]),
-    );
+    useEffect(() => {
+        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
+    }, []);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
@@ -90,6 +88,21 @@ function IOURequestStartPage({
             initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
         },
         [policy, reportID, isFromGlobalCreate, transaction],
+    );
+
+    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
+    useFocusEffect(
+        useCallback(() => {
+            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
+            if (
+                (transaction?.reportID === reportID && iouType !== CONST.IOU.TYPE.CREATE && iouType !== CONST.IOU.TYPE.SUBMIT) ||
+                isLoadingSelectedTab ||
+                prevTransactionReportID !== transaction?.reportID
+            ) {
+                return;
+            }
+            resetIOUTypeIfChanged(transactionRequestType);
+        }, [transaction?.reportID, reportID, iouType, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
     );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
@@ -112,6 +125,8 @@ function IOURequestStartPage({
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
+
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
@@ -123,7 +138,7 @@ function IOURequestStartPage({
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
+                headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.receiptDropHeaderGap] : []}
                 testID={IOURequestStartPage.displayName}
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
@@ -169,6 +184,7 @@ function IOURequestStartPage({
                                             <IOURequestStepScan
                                                 route={route}
                                                 navigation={navigation}
+                                                isTooltipAllowed
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}

@@ -1,12 +1,11 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-// eslint-disable-next-line lodash/import-scope
-import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -30,12 +29,11 @@ import {
     getFirstVisibleReportActionID,
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
+    isCurrentActionUnread,
     isDeletedParentAction,
-    isReportActionUnread,
     isReportPreviewAction,
     isReversedTransaction,
     isTransactionThread,
-    shouldHideNewMarker,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {
@@ -65,8 +63,8 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-
-type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
+import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
+import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -167,18 +165,18 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
     useEffect(() => {
-        const unsubscriber = Visibility.onVisibilityChange(() => {
+        const unsubscribe = Visibility.onVisibilityChange(() => {
             setIsVisible(Visibility.isVisible());
         });
 
-        return unsubscriber;
+        return unsubscribe;
     }, []);
 
     const scrollingVerticalOffset = useRef(0);
@@ -237,62 +235,30 @@ function ReportActionsList({
      * The reportActionID the unread marker should display above
      */
     const unreadMarkerReportActionID = useMemo(() => {
-        const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
-            const nextMessage = sortedVisibleReportActions.at(index + 1);
-            const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
-
-            // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
-            const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
-            if (isEarliestReceivedOfflineMessage && !isNextMessageUnread) {
-                return true;
-            }
-
-            // If the unread marker should be hidden or is not within the visible area, don't show the unread marker.
-            if (shouldHideNewMarker(message)) {
-                return false;
-            }
-
-            const isCurrentMessageUnread = isReportActionUnread(message, unreadMarkerTime);
-
-            // If the current message is read or the next message is unread, don't show the unread marker.
-            if (!isCurrentMessageUnread || isNextMessageUnread) {
-                return false;
-            }
-
-            const isPendingAdd = (action: OnyxTypes.ReportAction) => {
-                return action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-            };
-
-            // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
-            const isFromCurrentUser = accountID === (isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
-            const isNewMessage = !prevSortedVisibleReportActionsObjects[message.reportActionID];
-
-            // The unread marker will show if the action's `created` time is later than `unreadMarkerTime`.
-            // The `unreadMarkerTime` has already been updated to match the optimistic action created time,
-            // but once the new action is saved on the backend, the actual created time will be later than the optimistic one.
-            // Therefore, we also need to prevent the unread marker from appearing for previously optimistic actions.
-            const isPreviouslyOptimistic =
-                (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
-                (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
-            const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
-
-            if (isFromCurrentUser) {
-                return !shouldIgnoreUnreadForCurrentUserMessage;
-            }
-
-            return !isNewMessage || scrollingVerticalOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-        };
-
-        // If there are message that were recevied while offline,
-        // we can skip checking all messages later than the earliest recevied offline message.
+        // If there are message that were received while offline,
+        // we can skip checking all messages later than the earliest received offline message.
         const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = startIndex; index < sortedVisibleReportActions.length; index++) {
             const reportAction = sortedVisibleReportActions.at(index);
+            const nextAction = sortedVisibleReportActions.at(index + 1);
+            const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             // eslint-disable-next-line react-compiler/react-compiler
-            if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
+            const shouldDisplayNewMarker =
+                reportAction &&
+                shouldDisplayNewMarkerOnReportAction({
+                    message: reportAction,
+                    nextMessage: nextAction,
+                    isEarliestReceivedOfflineMessage,
+                    accountID,
+                    prevSortedVisibleReportActionsObjects,
+                    unreadMarkerTime,
+                    scrollingVerticalOffset: scrollingVerticalOffset.current,
+                    prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+                });
+            if (shouldDisplayNewMarker) {
                 return reportAction.reportActionID;
             }
         }
@@ -353,14 +319,25 @@ function ReportActionsList({
     const reportActionID = route?.params?.reportActionID;
     const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
     const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
-    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(!isLinkedActionCloseToNewest);
+
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
+        reportID: report.reportID,
+        currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
+        floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
+        readActionSkippedRef: readActionSkipped,
+        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
+        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+            onScroll?.(event);
+        },
+    });
 
     useEffect(() => {
         if (isLinkedActionCloseToNewest) {
             return;
         }
         setIsFloatingMessageCounterVisible(true);
-    }, [isLinkedActionCloseToNewest, route]);
+    }, [isLinkedActionCloseToNewest, route, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         if (
@@ -374,7 +351,7 @@ function ReportActionsList({
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID]);
+    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
@@ -386,7 +363,7 @@ function ReportActionsList({
             return;
         }
 
-        if (isUnread(report, transactionThreadReport)) {
+        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
@@ -451,12 +428,12 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager],
+        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
-        //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
+        //         meaning that the cleanup might not get called. When we then open a report we had open already previously, a new
         //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
         //         because the two subscriptions could conflict!
         //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
@@ -484,14 +461,12 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
-    const previousLastAction = usePrevious(lastAction);
+    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
+    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
+    const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
+
     useEffect(() => {
-        if (
-            lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER ||
-            lastAction?.reportActionID === previousLastAction?.reportActionID ||
-            !hasNewestReportAction ||
-            scrollingVerticalOffset.current >= AUTOSCROLL_TO_TOP_THRESHOLD
-        ) {
+        if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
         InteractionManager.runAfterInteractions(() => {
@@ -499,29 +474,6 @@ function ReportActionsList({
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastAction]);
-
-    /**
-     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
-     */
-    const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) {
-            setIsFloatingMessageCounterVisible(true);
-        }
-
-        if (scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
-            if (readActionSkipped.current) {
-                readActionSkipped.current = false;
-                readNewestAction(report.reportID);
-            }
-            setIsFloatingMessageCounterVisible(false);
-        }
-    };
-
-    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-        handleUnreadFloatingButton();
-        onScroll?.(event);
-    };
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
@@ -535,7 +487,7 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [report.reportID, reportScrollManager, hasNewestReportAction]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
@@ -621,28 +573,30 @@ function ReportActionsList({
     }, [isFocused, isVisible]);
 
     const renderItem = useCallback(
-        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
-            <ReportActionsListItemRenderer
-                reportAction={reportAction}
-                reportActions={sortedReportActions}
-                parentReportAction={parentReportAction}
-                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                index={index}
-                report={report}
-                transactionThreadReport={transactionThreadReport}
-                linkedReportActionID={linkedReportActionID}
-                displayAsGroup={
-                    !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                    isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
-                }
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
-                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-            />
-        ),
+        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            return (
+                <ReportActionsListItemRenderer
+                    reportAction={reportAction}
+                    reportActions={sortedReportActions}
+                    parentReportAction={parentReportAction}
+                    parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                    index={index}
+                    report={report}
+                    transactionThreadReport={transactionThreadReport}
+                    linkedReportActionID={linkedReportActionID}
+                    displayAsGroup={
+                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
+                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
+                    }
+                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                    shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
+                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                    shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                />
+            );
+        },
         [
             report,
             linkedReportActionID,
@@ -726,8 +680,6 @@ function ReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
-    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
-
     return (
         <>
             <FloatingMessageCounter
@@ -747,6 +699,7 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
+                    renderScrollComponent={renderScrollComponent}
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
@@ -774,4 +727,4 @@ ReportActionsList.displayName = 'ReportActionsList';
 
 export default memo(ReportActionsList);
 
-export type {LoadNewerChats, ReportActionsListProps};
+export type {ReportActionsListProps};

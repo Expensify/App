@@ -5,7 +5,7 @@ import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
     OpenPolicyTagsPageParams,
-    RenamePolicyTaglistParams,
+    RenamePolicyTagListParams,
     RenamePolicyTagsParams,
     SetPolicyTagApproverParams,
     SetPolicyTagsEnabled,
@@ -20,7 +20,6 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -31,15 +30,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
-import type {ApprovalRule, Attributes, Rate} from '@src/types/onyx/Policy';
+import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
-};
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -97,7 +89,7 @@ Onyx.connect({
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
-        Log.warn('openPolicyTasgPage invalid params', {policyID});
+        Log.warn('openPolicyTagsPage invalid params', {policyID});
         return;
     }
 
@@ -139,8 +131,8 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
-                        prompt: translateLocal('spreadsheet.importTagsSuccessfullDescription', {tags: tagsLength}),
+                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
+                        prompt: translateLocal('spreadsheet.importTagsSuccessfulDescription', {tags: tagsLength}),
                     },
                 },
             },
@@ -260,8 +252,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
             return acc;
         }, {}),
     };
-    const shouldDisableRequiredTag = !OptionsListUtils.hasEnabledOptions({...policyTag.tags, ...optimisticPolicyTagsData});
-
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -269,7 +259,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {required: false, pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
                         tags: optimisticPolicyTagsData,
                     },
                 },
@@ -281,7 +270,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
@@ -308,7 +296,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}, required: policyTag.required} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
@@ -698,7 +685,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     }
 }
 
-function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
+function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyTags?.[oldName] ?? {};
@@ -738,7 +725,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
             },
         ],
     };
-    const parameters: RenamePolicyTaglistParams = {
+    const parameters: RenamePolicyTagListParams = {
         policyID,
         oldName,
         newName,
@@ -1042,6 +1029,20 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function downloadMultiLevelIndependentTagsCSV(policyID: string, onDownloadFailed: () => void) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV, {
+        policyID,
+    });
+    const fileName = 'MultiLevelTags.csv';
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        formData.append(key, String(value));
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
 function getPolicyTagsData(policyID: string | undefined) {
     return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
@@ -1058,13 +1059,12 @@ export {
     enablePolicyTags,
     openPolicyTagsPage,
     renamePolicyTag,
-    renamePolicyTaglist,
+    renamePolicyTagList,
     setWorkspaceTagEnabled,
     setPolicyTagGLCode,
     setPolicyTagApprover,
     importPolicyTags,
     downloadTagsCSV,
     getPolicyTagsData,
+    downloadMultiLevelIndependentTagsCSV,
 };
-
-export type {NewCustomUnit};

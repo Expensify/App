@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import {DefinePlugin} from 'webpack';
 import type {Configuration, RuleSetRule} from 'webpack';
+import webpackMockPaths from './webpackMockPaths';
 
 type CustomWebpackConfig = {
     resolve: {
@@ -54,11 +55,7 @@ const webpackConfig = ({config}: {config: Configuration}) => {
     }
 
     config.resolve.alias = {
-        'react-native-config': 'react-web-config',
-        'react-native$': 'react-native-web',
-        '@react-native-community/netinfo': path.resolve(__dirname, '../__mocks__/@react-native-community/netinfo.ts'),
-        '@react-navigation/native': path.resolve(__dirname, '../__mocks__/@react-navigation/native'),
-        '@libs/TransactionPreviewUtils': path.resolve(__dirname, '../src/libs/__mocks__/TransactionPreviewUtils.ts'),
+        ...webpackMockPaths,
         ...custom.resolve.alias,
     };
 

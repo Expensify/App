@@ -102,9 +102,6 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         /** In which direction modal will swipe */
         swipeDirection?: Direction;
 
-        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
-        shouldUseNewModal?: boolean;
-
         /** Used to set the element that should receive the initial focus */
         initialFocus?: FocusTrapOptions['initialFocus'];
 

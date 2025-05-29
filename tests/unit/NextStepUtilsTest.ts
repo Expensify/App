@@ -31,7 +31,7 @@ describe('libs/NextStepUtils', () => {
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
             isPolicyExpenseChatEnabled: true,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
         const optimisticNextStep: ReportNextStep = {
             type: 'neutral',
@@ -77,7 +77,14 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates and optimistic nextStep once a report has been created', () => {
             test('Correct next steps message', () => {
-                const emptyReport = buildOptimisticEmptyReport('fake-empty-report-id-2', currentUserAccountID, 'fake-parent-report-id-3', policy, '2025-03-31 13:23:11');
+                const emptyReport = buildOptimisticEmptyReport(
+                    'fake-empty-report-id-2',
+                    currentUserAccountID,
+                    {reportID: 'fake-parent-report-id-3'},
+                    'fake-parent-report-action-id-4',
+                    policy,
+                    '2025-03-31 13:23:11',
+                );
 
                 optimisticNextStep.message = [
                     {
@@ -677,9 +684,13 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
             });
 
             test('payer', () => {

@@ -161,6 +161,7 @@ function AddressForm({
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
             enabledWhenOffline
+            addBottomSafeAreaPadding
         >
             <View>
                 <InputWrapper

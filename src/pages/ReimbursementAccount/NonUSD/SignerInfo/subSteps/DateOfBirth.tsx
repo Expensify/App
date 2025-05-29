@@ -9,15 +9,15 @@ import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type DateOfBirthProps = SubStepProps & {isSecondSigner: boolean};
+type DateOfBirthProps = SubStepProps;
 
-const {SIGNER_DATE_OF_BIRTH, SECOND_SIGNER_DATE_OF_BIRTH} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {SIGNER_DATE_OF_BIRTH} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function DateOfBirth({onNext, onMove, isEditing, isSecondSigner}: DateOfBirthProps) {
+function DateOfBirth({onNext, onMove, isEditing}: DateOfBirthProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const inputID = isSecondSigner ? SECOND_SIGNER_DATE_OF_BIRTH : SIGNER_DATE_OF_BIRTH;
+    const inputID = SIGNER_DATE_OF_BIRTH;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const defaultValue = reimbursementAccount?.achData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';

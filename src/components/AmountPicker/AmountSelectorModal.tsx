@@ -49,19 +49,22 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={AmountSelectorModal.displayName}
                 shouldEnableMaxHeight
-                style={[styles.pb0]}
             >
                 <HeaderWithBackButton
                     title={description}
                     onBackButtonPress={onClose}
                 />
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mb5]}>
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, styles.mb5]}
+                    addBottomSafeAreaPadding
+                >
                     <View style={styles.flex1}>
                         <AmountForm
                             // eslint-disable-next-line react/jsx-props-no-spreading

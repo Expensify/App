@@ -8,7 +8,7 @@ import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import {shouldDisplayPolicyNotFoundPage} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SplitNavigatorRouterOptions} from './types';
+import type SplitNavigatorRouterOptions from './types';
 import {getPreservedNavigatorState} from './usePreserveNavigatorState';
 
 type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
@@ -31,7 +31,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
     const routePolicyID = getRoutePolicyID(lastRoute);
 
-    // If invalid policy page is displayed on narrow layout, sidebar screen should not be pushed to the navigation state to avoid adding reduntant not found page
+    // If invalid policy page is displayed on narrow layout, sidebar screen should not be pushed to the navigation state to avoid adding redundant not found page
     if (isNarrowLayout && !!routePolicyID) {
         if (shouldDisplayPolicyNotFoundPage(routePolicyID)) {
             return;
@@ -53,8 +53,8 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
         const params = isEmptyObject(copiedParams) ? undefined : copiedParams;
 
         // @ts-expect-error Updating read only property
-        // noinspection JSConstantReassignment
-        state.stale = true; // eslint-disable-line
+        // eslint-disable-next-line no-param-reassign
+        state.stale = true;
 
         // @ts-expect-error Updating read only property
         // Unshift the root screen to fill left pane.
@@ -78,8 +78,8 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
                 previousSameNavigatorState?.routes && previousSameNavigatorState.routes.length > 1 ? previousSameNavigatorState.routes.at(-1)?.name : undefined;
 
             // @ts-expect-error Updating read only property
-            // noinspection JSConstantReassignment
-            state.stale = true; // eslint-disable-line
+            // eslint-disable-next-line no-param-reassign
+            state.stale = true;
 
             // @ts-expect-error Updating read only property
             // Push the default settings central pane screen.
@@ -89,8 +89,10 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
             });
         }
     }
-    // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
-    (state.index as number) = state.routes.length - 1;
+
+    // @ts-expect-error Updating read only property
+    // eslint-disable-next-line no-param-reassign
+    state.index = state.routes.length - 1;
 }
 
 function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {

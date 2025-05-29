@@ -3,7 +3,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {ActivityIndicator, Dimensions, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
@@ -55,23 +55,24 @@ type WalletPageProps = {
 };
 
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {initialValue: {}});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {initialValue: {}});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}});
-    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}});
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {initialValue: {}, canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {initialValue: {}, canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}, canBeMissing: true});
+    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true, canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}, canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isUserValidated = userAccount?.validated ?? false;
+    const isActingAsDelegate = !!userAccount?.delegatedAccess?.delegate || false;
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const network = useNetwork();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -318,26 +319,19 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     }, [network.isOffline]);
 
     useLayoutEffect(() => {
-        if (!shouldListenForResize) {
+        if (!shouldListenForResize || (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu)) {
             return;
         }
-        const popoverPositionListener = Dimensions.addEventListener('change', () => {
-            if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu) {
-                return;
-            }
-            if (shouldShowAddPaymentMenu) {
-                debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
-                return;
-            }
-            setMenuPosition();
-        });
-        return () => {
-            if (!popoverPositionListener) {
-                return;
-            }
-            popoverPositionListener.remove();
-        };
-    }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, shouldShowCardMenu, setMenuPosition, shouldListenForResize]);
+
+        if (shouldShowAddPaymentMenu) {
+            debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+            return;
+        }
+        setMenuPosition();
+
+        // This effect is intended to update menu position only on window dimension change.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [windowWidth, windowHeight]);
 
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu) {
@@ -388,6 +382,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
+            onBackButtonPress={Navigation.popToSidebar}
         />
     );
 
@@ -480,13 +475,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     titleStyles={styles.accountSettingsSectionTitle}
                                 >
                                     <>
-                                        {shouldShowLoadingSpinner ? (
+                                        {shouldShowLoadingSpinner && (
                                             <ActivityIndicator
                                                 color={theme.spinner}
                                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                                 style={[styles.mt7, styles.mb5]}
                                             />
-                                        ) : (
+                                        )}
+                                        {!shouldShowLoadingSpinner && hasActivatedWallet && (
                                             <OfflineWithFeedback
                                                 pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
                                                 errors={walletTerms?.errors}
@@ -500,6 +496,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                     titleStyle={styles.textHeadlineH2}
                                                     interactive={false}
                                                     wrapperStyle={styles.sectionMenuItemTopDescription}
+                                                    copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0)}
                                                 />
                                             </OfflineWithFeedback>
                                         )}
@@ -514,7 +511,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                             }}
                                             enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route}
                                             addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                             source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                             shouldIncludeDebitCard={hasActivatedWallet}
@@ -580,7 +577,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                             }
 
                                                             if (!isUserValidated) {
-                                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS));
+                                                                Navigation.navigate(
+                                                                    ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS),
+                                                                );
                                                                 return;
                                                             }
                                                             Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
@@ -649,6 +648,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         setShouldShowDefaultDeleteMenu(false);
                                     }}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                    numberOfLinesTitle={0}
                                 />
                             )}
                             <MenuItem

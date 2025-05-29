@@ -1,9 +1,9 @@
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {reportTransactionsSelector} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import useOnyx from './useOnyx';
 
 const DEFAULT_TRANSACTIONS: Transaction[] = [];
 const DEFAULT_VIOLATIONS: Record<string, TransactionViolation[]> = {};

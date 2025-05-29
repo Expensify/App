@@ -21,7 +21,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     };
 
     const hideModal = () => {
-        setStatusBarColor(previousStatusBarColor);
         onModalHide();
         if ((window.history.state as WindowState)?.shouldGoBack) {
             window.history.back();
@@ -33,20 +32,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     });
 
     const showModal = () => {
-        const statusBarColor = StatusBar.getBackgroundColor() ?? theme.appBG;
-
-        const isFullScreenModal =
-            type === CONST.MODAL.MODAL_TYPE.CENTERED ||
-            type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
-            type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED ||
-            type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT;
-
-        if (statusBarColor) {
-            setPreviousStatusBarColor(statusBarColor);
-            // If it is a full screen modal then match it with appBG, otherwise we use the backdrop color
-            setStatusBarColor(isFullScreenModal ? theme.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
-        }
-
         if (shouldHandleNavigationBack) {
             window.history.pushState({shouldGoBack: true}, '', null);
             window.addEventListener('popstate', handlePopStateRef.current);
@@ -61,12 +46,36 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         [],
     );
 
+    const onModalWillShow = () => {
+        const statusBarColor = StatusBar.getBackgroundColor() ?? theme.appBG;
+
+        const isFullScreenModal =
+            type === CONST.MODAL.MODAL_TYPE.CENTERED ||
+            type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
+            type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED ||
+            type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT;
+
+        if (statusBarColor) {
+            setPreviousStatusBarColor(statusBarColor);
+            // If it is a full screen modal then match it with appBG, otherwise we use the backdrop color
+            setStatusBarColor(isFullScreenModal ? theme.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
+        }
+        rest.onModalWillShow?.();
+    };
+
+    const onModalWillHide = () => {
+        setStatusBarColor(previousStatusBarColor);
+        rest.onModalWillHide?.();
+    };
+
     return (
         <BaseModal
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onModalHide={hideModal}
             onModalShow={showModal}
+            onModalWillShow={onModalWillShow}
+            onModalWillHide={onModalWillHide}
             avoidKeyboard={false}
             fullscreen={fullscreen}
             useNativeDriver={false}

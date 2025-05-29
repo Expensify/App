@@ -31,7 +31,7 @@ beforeAll(() => {
     }));
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 create: jest.fn().mockImplementation((arg: Arguments) =>
@@ -58,9 +58,11 @@ beforeAll(() => {
                 list: jest.fn().mockResolvedValue([]),
             },
         },
-        paginate: jest.fn().mockImplementation((objectMethod: () => Promise<{data: unknown}>) => objectMethod().then(({data}) => data)),
+        paginate: jest
+            .fn()
+            .mockImplementation((objectMethod: (args: Record<string, unknown>) => Promise<{data: unknown}>, args: Record<string, unknown>) => objectMethod(args).then(({data}) => data)),
     } as unknown as InternalOctokit;
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
@@ -84,6 +86,7 @@ afterAll(() => {
 const LABELS = {
     STAGING_DEPLOY_CASH: {
         id: 2783847782,
+        // cspell:disable-next-line
         node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
         url: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/labels/StagingDeployCash`,
         name: CONST.LABELS.STAGING_DEPLOY,
@@ -93,6 +96,7 @@ const LABELS = {
     },
     DEPLOY_BLOCKER_CASH: {
         id: 2810597462,
+        // cspell:disable-next-line
         node_id: 'MDU6TGFiZWwyODEwNTk3NDYy',
         url: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/labels/DeployBlockerCash`,
         name: CONST.LABELS.DEPLOY_BLOCKER,
@@ -117,8 +121,8 @@ const basePRList = [
 
 const baseIssueList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`];
 // eslint-disable-next-line max-len
-const baseExpectedOutput = (tag = '1.0.2-1') =>
-    `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+const baseExpectedOutput = (version = '1.0.2-1') =>
+    `**Release Version:** \`${version}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const deployerVerificationsHeader = '**Deployer verifications:**';
@@ -173,7 +177,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         });
 
         mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-            if (fromRef === '1.0.1-0' && toRef === '1.0.2-1') {
+            if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 return [...baseNewPullRequests];
             }
             return [];
@@ -181,10 +185,10 @@ describe('createOrUpdateStagingDeployCash', () => {
 
         mockListIssues.mockImplementation((args: Arguments) => {
             if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                return {data: [closedStagingDeployCash]};
+                return Promise.resolve({data: [closedStagingDeployCash]});
             }
 
-            return {data: []};
+            return Promise.resolve({data: []});
         });
 
         const result = await run();
@@ -270,7 +274,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
                 return [];
@@ -278,11 +282,11 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return Promise.resolve({data: [openStagingDeployCashBefore, closedStagingDeployCash]});
                 }
 
                 if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return {
+                    return Promise.resolve({
                         data: [
                             ...currentDeployBlockers,
                             {
@@ -298,10 +302,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                         ],
-                    };
+                    });
                 }
 
-                return {data: []};
+                return Promise.resolve({data: []});
             });
 
             const result = await run();
@@ -347,18 +351,18 @@ describe('createOrUpdateStagingDeployCash', () => {
                 return 'fake_token';
             });
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-1') {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     return [...baseNewPullRequests];
                 }
                 return [];
             });
             mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return Promise.resolve({data: [openStagingDeployCashBefore, closedStagingDeployCash]});
                 }
 
                 if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return {
+                    return Promise.resolve({
                         data: [
                             // Suppose the first deploy blocker is demoted, it should not be removed from the checklist and instead just be checked off
                             ...currentDeployBlockers.slice(1),
@@ -375,10 +379,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                         ],
-                    };
+                    });
                 }
 
-                return {data: []};
+                return Promise.resolve({data: []});
             });
 
             const result = await run();

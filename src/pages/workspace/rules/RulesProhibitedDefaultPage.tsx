@@ -6,7 +6,6 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,7 +27,6 @@ function RulesProhibitedDefaultPage({
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
-    const {canUseProhibitedExpenses} = usePermissions();
     const styles = useThemeStyles();
 
     return (
@@ -36,7 +34,6 @@ function RulesProhibitedDefaultPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            shouldBeBlocked={!canUseProhibitedExpenses}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

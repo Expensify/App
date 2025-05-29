@@ -2,9 +2,15 @@
 import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
-import * as Search from '@libs/actions/Search';
+import {search} from '@libs/actions/Search';
+import CONST from '@src/CONST';
 
 jest.mock('@libs/actions/Search');
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
+afterEach(() => {
+    jest.clearAllMocks();
+});
 
 describe('useSearchHighlightAndScroll', () => {
     it('should trigger Search when transactionIDs list change', () => {
@@ -53,7 +59,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -92,7 +98,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -106,7 +112,7 @@ describe('useSearchHighlightAndScroll', () => {
             reportActions: {
                 reportActions_209647397999267: {
                     1: {
-                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
                         reportActionID: '1',
                         created: '',
                     },
@@ -115,7 +121,7 @@ describe('useSearchHighlightAndScroll', () => {
             previousReportActions: {
                 reportActions_209647397999267: {
                     1: {
-                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
                         reportActionID: '1',
                         created: '',
                     },
@@ -164,7 +170,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -180,12 +186,94 @@ describe('useSearchHighlightAndScroll', () => {
         const {rerender} = renderHook((prop: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(prop), {
             initialProps,
         });
-        expect(Search.search).not.toHaveBeenCalled();
+        expect(search).not.toHaveBeenCalled();
 
         // When the transaction ids list change though it has the same length as previous value
         rerender(changedProp);
 
-        // Then Search will be triggerred.
-        expect(Search.search).toHaveBeenCalled();
+        // Then Search will be triggered.
+        expect(search).toHaveBeenCalled();
+    });
+
+    it('should trigger Search when report actions change', () => {
+        const initialProps: UseSearchHighlightAndScroll = {
+            searchResults: {
+                data: {personalDetailsList: {}},
+                search: {
+                    columnsToShow: {
+                        shouldShowCategoryColumn: true,
+                        shouldShowTagColumn: true,
+                        shouldShowTaxColumn: true,
+                    },
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    status: 'all',
+                    type: 'expense',
+                    isLoading: false,
+                },
+            },
+            transactions: {},
+            previousTransactions: {},
+            reportActions: {
+                reportActions_209647397999267: {
+                    1: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
+                        reportActionID: '1',
+                        created: '',
+                    },
+                },
+            },
+            previousReportActions: {
+                reportActions_209647397999267: {
+                    1: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
+                        reportActionID: '1',
+                        created: '',
+                    },
+                },
+            },
+            queryJSON: {
+                type: 'expense',
+                status: 'all',
+                sortBy: 'date',
+                sortOrder: 'desc',
+                filters: {operator: 'and', left: 'tag', right: ''},
+                inputQuery: 'type:expense status:all sortBy:date sortOrder:desc',
+                flatFilters: [],
+                hash: 243428839,
+                recentSearchHash: 422547233,
+            },
+            offset: 0,
+        };
+
+        const changedProps: UseSearchHighlightAndScroll = {
+            ...initialProps,
+            reportActions: {
+                reportActions_209647397999268: {
+                    1: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
+                        reportActionID: '1',
+                        created: '',
+                    },
+                    2: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        reportActionID: '2',
+                        created: '',
+                    },
+                },
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps,
+        });
+        expect(search).not.toHaveBeenCalled();
+
+        // When report actions change
+        rerender(changedProps);
+
+        // Then Search will be triggered
+        expect(search).toHaveBeenCalled();
     });
 });

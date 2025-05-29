@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 /**
  * @jest-environment node
  */
+
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
@@ -43,7 +43,7 @@ beforeAll(() => {
     asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 create: jest.fn().mockImplementation((arg: Parameters<OctokitCreateIssue>[0]) =>
@@ -60,7 +60,7 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     } as unknown as InternalOctokit;
 
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 });
 
 afterEach(() => {
@@ -76,6 +76,7 @@ describe('GithubUtils', () => {
             labels: [
                 {
                     id: 2783847782,
+                    // cspell:disable-next-line
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                     name: 'StagingDeployCash',
@@ -116,11 +117,13 @@ describe('GithubUtils', () => {
                     description: '',
                     id: 2783847782,
                     name: 'StagingDeployCash',
+                    // cspell:disable-next-line
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                 },
             ],
-            tag: '1.0.1-47',
+            version: '1.0.1-47',
+            tag: '1.0.1-47-staging',
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             number: 29,

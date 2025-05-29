@@ -1,15 +1,17 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ChatBubble} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -19,8 +21,9 @@ import ROUTES from '@src/ROUTES';
 function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
 
     const handleBackButtonPress = () => {
@@ -47,13 +50,12 @@ function Finish() {
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
-                    <Button
-                        text={translate('finishStep.iHaveA')}
+                    <MenuItem
+                        icon={ChatBubble}
+                        title={translate('finishStep.iHaveA')}
                         onPress={handleNavigateToConciergeChat}
-                        icon={Expensicons.ChatBubble}
-                        success
-                        large
-                        innerStyles={[styles.h13]}
+                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                        shouldShowRightIcon
                     />
                 </Section>
                 <Section
@@ -70,7 +72,7 @@ function Finish() {
                             icon: Expensicons.Shield,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
-                            wrapperStyle: [styles.cardMenuItem],
+                            outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                         },
                     ]}
                 >

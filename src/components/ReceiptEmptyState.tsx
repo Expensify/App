@@ -23,15 +23,29 @@ type ReceiptEmptyStateProps = {
 
     /** Whether the receipt is in the money request view */
     isInMoneyRequestView?: boolean;
+
+    /** Whether the receipt empty state should extend to the full height of the container. */
+    shouldUseFullHeight?: boolean;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
+    const containerStyle = [
+        styles.alignItemsCenter,
+        styles.justifyContentCenter,
+        styles.moneyRequestViewImage,
+        isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
+        isThumbnail && !isInMoneyRequestView && styles.w100,
+        isThumbnail && isInMoneyRequestView && styles.thumbnailImageContainerHighlight,
+        isInMoneyRequestView && styles.expenseViewImage,
+        hasError && styles.borderColorDanger,
+        shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
+    ];
 
     return (
         <Wrapper
@@ -40,14 +54,7 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
             onPress={onPress}
             disabled={disabled}
             disabledStyle={styles.cursorDefault}
-            style={[
-                styles.alignItemsCenter,
-                styles.justifyContentCenter,
-                styles.moneyRequestViewImage,
-                isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
-                isInMoneyRequestView && styles.expenseViewImage,
-                hasError && styles.borderColorDanger,
-            ]}
+            style={containerStyle}
         >
             <View>
                 <Icon

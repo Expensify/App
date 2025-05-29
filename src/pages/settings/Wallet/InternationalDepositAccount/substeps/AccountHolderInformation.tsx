@@ -10,7 +10,7 @@ import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';

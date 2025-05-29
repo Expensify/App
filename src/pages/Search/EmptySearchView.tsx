@@ -1,5 +1,7 @@
-import React, {useMemo, useState} from 'react';
-import {Linking, View} from 'react-native';
+import React, {useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, ImageStyle, Text as RNText, ViewStyle} from 'react-native';
+import {InteractionManager, Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
@@ -9,28 +11,28 @@ import type {FeatureListItem} from '@components/FeatureList';
 import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
-import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
-import {setSelfTourViewed} from '@libs/actions/Welcome';
+import {openOldDotLink} from '@libs/actions/Link';
+import {completeTestDriveTask} from '@libs/actions/Task';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
-import {getNavatticURL} from '@libs/TourUtils';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -56,23 +58,42 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [modalVisible, setModalVisible] = useState(false);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
 
+    const contextMenuAnchor = useRef<RNText>(null);
     const tripViewChildren = useMemo(() => {
+        const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.LINK,
+                event,
+                selection: CONST.BOOK_TRAVEL_DEMO_URL,
+                contextMenuAnchor: contextMenuAnchor.current,
+            });
+        };
+
         return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
                     {translate('travel.subtitle')}{' '}
-                    <TextLink
-                        onPress={() => {
-                            Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
-                        }}
+                    <PressableWithSecondaryInteraction
+                        inline
+                        onSecondaryInteraction={onLongPress}
+                        accessible
+                        accessibilityLabel={translate('travel.bookADemo')}
                     >
-                        {translate('travel.bookADemo')}
-                    </TextLink>
+                        <TextLink
+                            onLongPress={onLongPress}
+                            onPress={() => {
+                                Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
+                            }}
+                            ref={contextMenuAnchor}
+                        >
+                            {translate('travel.bookADemo')}
+                        </TextLink>
+                    </PressableWithSecondaryInteraction>
                     {translate('travel.toLearnMore')}
                 </Text>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1, styles.mb5]}>
@@ -100,48 +121,46 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         );
     }, [styles, translate]);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const onboardingPurpose = introSelected?.choice;
-    const {environment} = useEnvironment();
-    const navatticURL = getNavatticURL(environment, onboardingPurpose);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
+        canBeMissing: true,
     });
-    const viewTourTaskReportID = introSelected?.viewTour;
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
-    const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
+        const startTestDrive = () => {
+            InteractionManager.runAfterInteractions(() => {
+                if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+                    completeTestDriveTask();
+                    Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                } else {
+                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                }
+            });
+        };
+
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
-                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
+                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,
-                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
+                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (!hasResults) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
-                        subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
                                       {
-                                          buttonText: translate('emptySearchView.takeATour'),
-                                          buttonAction: () => {
-                                              openExternalLink(navatticURL);
-                                              setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
-                                                  completeTask(viewTourTaskReport);
-                                              }
-                                          },
+                                          buttonText: translate('emptySearchView.takeATestDrive'),
+                                          buttonAction: startTestDrive,
                                       },
                                   ]
                                 : []),
@@ -169,19 +188,13 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
-                        subtitle: translate('search.searchResults.emptyInvoiceResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
                                       {
-                                          buttonText: translate('emptySearchView.takeATour'),
-                                          buttonAction: () => {
-                                              openExternalLink(navatticURL);
-                                              setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
-                                                  completeTask(viewTourTaskReport);
-                                              }
-                                          },
+                                          buttonText: translate('emptySearchView.takeATestDrive'),
+                                          buttonAction: startTestDrive,
                                       },
                                   ]
                                 : []),
@@ -221,14 +234,12 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
+        styles.tripEmptyStateLottieWebView,
         tripViewChildren,
         hasSeenTour,
-        navatticURL,
         shouldRedirectToExpensifyClassic,
+        introSelected?.choice,
         hasResults,
-        viewTourTaskReport,
-        canModifyTheTask,
-        canActionTheTask,
     ]);
 
     return (
@@ -246,7 +257,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     titleStyles={content.titleStyles}
                     subtitle={content.subtitle}
                     buttons={content.buttons}
-                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles] as Array<ViewStyle & ImageStyle>}
                     lottieWebViewStyles={content.lottieWebViewStyles}
                 >
                     {content.children}

@@ -35,7 +35,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE>, PopoverMenuItem>;
+type MoneyRequestOptions = Record<
+    Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
+    PopoverMenuItem
+>;
 
 type AttachmentPickerWithMenuItemsProps = {
     /** The report currently being looked at */
@@ -128,22 +131,24 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const {canUseTableReportView} = usePermissions();
 
-    /**
-     * Returns the list of IOU Options
-     */
-    const moneyRequestOptions = useMemo(() => {
-        const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
+    const selectOption = useCallback(
+        (onSelected: () => void, shouldRestrictAction: boolean) => {
             if (shouldRestrictAction && policy && shouldRestrictUserBillableActions(policy.id)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
 
             onSelected();
-        };
-
+        },
+        [policy],
+    );
+    /**
+     * Returns the list of IOU Options
+     */
+    const moneyRequestOptions = useMemo(() => {
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Transfer,
@@ -190,7 +195,7 @@ function AttachmentPickerWithMenuItems({
         }));
 
         return moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted, shouldUseNarrowLayout]);
+    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!canUseTableReportView || !isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
@@ -201,12 +206,10 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Document,
                 text: translate('report.newReport.createReport'),
-                onSelected: () => {
-                    createNewReport(currentUserPersonalDetails, report?.policyID);
-                },
+                onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, true), true),
             },
         ];
-    }, [canUseTableReportView, currentUserPersonalDetails, report, translate]);
+    }, [canUseTableReportView, currentUserPersonalDetails, report, selectOption, translate]);
 
     /**
      * Determines if we can show the task option
@@ -406,7 +409,6 @@ function AttachmentPickerWithMenuItems({
                             menuItems={menuItems}
                             withoutOverlay
                             anchorRef={actionButtonRef}
-                            shouldUseNewModal
                         />
                         <DelegateNoAccessModal
                             isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}

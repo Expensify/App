@@ -10,23 +10,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type NameProps = SubStepProps & {isSecondSigner: boolean};
+type NameProps = SubStepProps;
 
-const {SIGNER_FULL_NAME, SECOND_SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function Name({onNext, onMove, isEditing, isSecondSigner}: NameProps) {
+function Name({onNext, onMove, isEditing}: NameProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const inputID = isSecondSigner ? SECOND_SIGNER_FULL_NAME : SIGNER_FULL_NAME;
-    const defaultValue = reimbursementAccount?.achData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
+    const inputID = SIGNER_FULL_NAME;
+    const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = getFieldRequiredErrors(values, [inputID]);
 
-            if (values[inputID] && !isValidLegalName(values[inputID])) {
+            if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
                 errors[inputID] = translate('bankAccount.error.fullName');
             }
 

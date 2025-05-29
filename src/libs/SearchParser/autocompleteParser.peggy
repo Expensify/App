@@ -64,12 +64,17 @@ autocompleteKey "key"
       / to
       / taxRate
       / from
+      / createdBy
+      / assignee
       / expenseType
       / type
       / status
       / cardID
       / feed
       / groupBy
+      / reimbursable
+      / billable
+      / policyID
     )
 
 filterKey

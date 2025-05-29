@@ -73,4 +73,4 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type BankAccountList = Record<string, BankAccount>;
 
 export default BankAccount;
-export type {AccountData, BankAccountAdditionalData, BankAccountList};
+export type {BankAccountAdditionalData, BankAccountList};

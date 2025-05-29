@@ -1,11 +1,15 @@
 ---
 title: Domain Groups
 description: How to set different rules for different members of your domain
+keywords: [Expensify Classic, domain groups, domain restrictions, additional permissions, rules]
 ---
+
+<div id="expensify-classic" markdown="1">
 
 To set different domain rules for different members, you can place them into groups. This allows organizations to customize permissions based on roles, such as employees and managers, ensuring they have the appropriate access and settings.  
 
 ---
+
 # Configuring Domain Groups  
 
 1. Hover over **Settings**, then click **Domains**.  
@@ -16,7 +20,7 @@ To set different domain rules for different members, you can place them into gro
    - **Permission Group Name**: Enter a name for the group.  
    - **Default Group**: Choose if new domain members will be automatically added to this group.  
    - **Strictly enforce expense workspace rules**: Decide if all expense rules must be met before group members can submit a report.  
-   - **Restrict primary login selection**: Choose whether members can access their Expensify account using a personal email.  
+   - **Restrict primary contact method selection**: Choose whether members can access their Expensify account using a personal email.  
    - **Restrict expense workspace creation/removal**: Set whether members can create or remove workspaces.  
    - **Preferred workspace**: Select a default workspace for group members' expenses and reports.  
    - **Set preferred workspace to**: If enabled, specify which workspace will be set as preferred.  
@@ -24,12 +28,13 @@ To set different domain rules for different members, you can place them into gro
 6. Click **Save**.
 
 ---
+
 # When to Use Different Domain Group Permissions  
 
 ## Strictly enforce expense workspace rules
 This setting ensures all workspace-level rules are followed before an expense report is submitted. This prevents expense reports from being submitted with missing receipts, incorrect categories, or violations.  
 
-## Restrict primary login selection
+## Restrict primary contact method selection
 Enable this setting to ensure employees use their company email instead of a personal email account when submitting expense reports. This helps to maintain security and compliance within your organization.  
 
 ## Restrict expense workspace creation/removal
@@ -40,3 +45,4 @@ If you have multiple workspaces across several teams, use this setting to assign
 
 ## Expensify Card Preferred Workspace
 Enable this if your team uses the Expensify Cards for business expenses. This will ensure that all transactions are posted directly to the correct workspace without additional setup.  
+</div>

@@ -1,4 +1,6 @@
 import {useCallback, useContext} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
 import {ActionListContext} from '@pages/home/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
@@ -41,10 +43,28 @@ function useReportScrollManager(): ReportScrollManagerData {
             return;
         }
 
+        const scrollViewRef = flatListRef.current.getNativeScrollRef();
+        // Try to scroll on underlying scrollView if available, fallback to usual listRef
+        if (scrollViewRef && 'scrollToEnd' in scrollViewRef) {
+            (scrollViewRef as ScrollView).scrollToEnd({animated: false});
+            return;
+        }
+
         flatListRef.current.scrollToEnd({animated: false});
     }, [flatListRef]);
 
-    return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd};
+    const scrollToOffset = useCallback(
+        (offset: number) => {
+            if (!flatListRef?.current) {
+                return;
+            }
+
+            flatListRef.current.scrollToOffset({offset, animated: false});
+        },
+        [flatListRef],
+    );
+
+    return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }
 
 export default useReportScrollManager;

@@ -4,6 +4,8 @@ description: Expensify bill management and payment methods.
 keywords: Bill pay, pay vendors, invoice, vendor bills
 ---
 
+<div id="expensify-classic" markdown="1">
+
 Easily receive and pay vendor or supplier bills directly in Expensify. Your vendors don’t need an Expensify account to manage everything in one place!
 
 ---
@@ -121,9 +123,11 @@ Only the primary domain contact can view and pay a bill.
 
 The primary contact can share bills or grant Copilot access for others to manage payments.
 
-## Is bill Pay supported internationally?
+## Is Bill Pay supported internationally?
 
 Currently, payments are only supported in USD.
+
+</div>
 
 ## What's the difference between a bill and an Invoice in Expensify?
 

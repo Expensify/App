@@ -53,7 +53,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={EditPerDiemCurrencyPage.displayName}
             >
                 <HeaderWithBackButton
@@ -67,6 +67,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
                     initiallySelectedCurrencyCode={selectedRate?.currency}
                     onSelect={editCurrency}
                     searchInputLabel={translate('common.search')}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

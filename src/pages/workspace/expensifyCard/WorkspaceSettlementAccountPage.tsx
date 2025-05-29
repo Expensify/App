@@ -9,14 +9,14 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useDomainFundID from '@hooks/useDomainFundID';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -34,24 +34,24 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const domainFundID = useDomainFundID(policyID);
-    // TODO: add logic for choosing between the domain and workspace feed when both available
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const fundID = domainFundID || workspaceAccountID;
+    const defaultFundID = useDefaultFundID(policyID);
 
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
-    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${fundID}`);
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${fundID}`);
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const [isUsingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`, {canBeMissing: true});
+    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`, {canBeMissing: true});
 
     const connectionName = reconciliationConnection ?? '';
     const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-    const paymentBankAccountNumber = paymentBankAccountID ? bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '' : '';
+    const paymentBankAccountNumberFromCardSettings = cardSettings?.paymentBankAccountNumber;
+    const paymentBankAccountAddressName = cardSettings?.paymentBankAccountAddressName;
+    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
 
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList ?? {});
+
+    const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
 
     const data = useMemo(() => {
         const options = eligibleBankAccounts.map((bankAccount) => {
@@ -79,11 +79,33 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 isSelected: bankAccountID === paymentBankAccountID,
             };
         });
+        if (options.length === 0) {
+            const bankName = (paymentBankAccountAddressName ?? '') as BankName;
+            const bankAccountNumber = paymentBankAccountNumberFromCardSettings ?? '';
+            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
+            options.push({
+                value: paymentBankAccountID,
+                text: paymentBankAccountAddressName,
+                leftElement: (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
+                        <Icon
+                            src={icon}
+                            width={iconSize}
+                            height={iconSize}
+                            additionalStyles={iconStyles}
+                        />
+                    </View>
+                ),
+                alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
+                keyForList: paymentBankAccountID?.toString(),
+                isSelected: true,
+            });
+        }
         return options;
-    }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
+    }, [eligibleBankAccounts, paymentBankAccountAddressName, paymentBankAccountID, paymentBankAccountNumberFromCardSettings, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
-        updateSettlementAccountCard(fundID, policyID, value, paymentBankAccountID);
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
         Navigation.goBack();
     };
 
@@ -95,7 +117,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         >
             <ScreenWrapper
                 testID={WorkspaceSettlementAccountPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -109,6 +131,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     }}
                 />
                 <SelectionList
+                    addBottomSafeAreaPadding
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
@@ -117,7 +140,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     listHeaderContent={
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                            {!!isUsedContinuousReconciliation && (
+                            {!!isUsingContinuousReconciliation && (
                                 <Text style={[styles.mh5, styles.mb6]}>
                                     <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
                                     <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam))}>

@@ -26,7 +26,7 @@ import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_l
 import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
-import LaptopwithSecondScreenandHourglass from '@assets/images/LaptopwithSecondScreenandHourglass.svg';
+import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '@assets/images/product-illustrations/bank-mouse--green.svg';
@@ -66,7 +66,6 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
-import ReportReceipt from '@assets/images/simple-illustration__report-receipt.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -102,6 +101,7 @@ import FolderOpen from '@assets/images/simple-illustrations/simple-illustration_
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import HandEarth from '@assets/images/simple-illustrations/simple-illustration__handearth.svg';
+import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import HotDogStand from '@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
@@ -131,6 +131,7 @@ import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustra
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
+import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
@@ -206,7 +207,7 @@ export {
     CreditCardsNew,
     CreditCardsNewGreen,
     InvoiceBlue,
-    LaptopwithSecondScreenandHourglass,
+    LaptopWithSecondScreenAndHourglass,
     LockOpen,
     Luggage,
     MoneyIntoWallet,
@@ -221,6 +222,7 @@ export {
     ThumbsUpStars,
     Hands,
     HandEarth,
+    HeadSet,
     SmartScan,
     Hourglass,
     CommentBubbles,

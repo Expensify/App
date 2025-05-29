@@ -1,7 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, DeviceEventEmitter, Dimensions, InteractionManager, KeyboardAvoidingView, Modal, View} from 'react-native';
+import {BackHandler, Dimensions, InteractionManager, KeyboardAvoidingView, Modal, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
@@ -22,8 +22,6 @@ function BottomDockedModal({
     backdropColor = 'black',
     backdropOpacity = 0.72,
     customBackdrop = null,
-    deviceHeight: deviceHeightProp = null,
-    deviceWidth: deviceWidthProp = null,
     isVisible = false,
     onModalWillShow = noop,
     onModalShow = noop,
@@ -39,26 +37,10 @@ function BottomDockedModal({
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
-    const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
-    const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
-    const handleRef = useRef<number>();
+    const handleRef = useRef<number | undefined>(undefined);
 
     const styles = useThemeStyles();
-
-    const handleDimensionsUpdate = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (deviceHeightProp || deviceWidthProp) {
-            return;
-        }
-
-        const deviceWidthTemp = Dimensions.get('window').width;
-        const deviceHeightTemp = Dimensions.get('window').height;
-        if (deviceWidthTemp !== deviceWidth || deviceHeightTemp !== deviceHeight) {
-            setDeviceWidth(deviceWidthTemp);
-            setDeviceHeight(deviceHeightTemp);
-        }
-    }, [deviceWidth, deviceWidthProp, deviceHeight, deviceHeightProp]);
 
     const onBackButtonPressHandler = useCallback(() => {
         if (isVisibleState) {
@@ -79,14 +61,14 @@ function BottomDockedModal({
     );
 
     useEffect(() => {
-        if (getPlatform() === CONST.PLATFORM.WEB) {
+        if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
             backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
         }
 
         return () => {
-            if (getPlatform() === CONST.PLATFORM.WEB) {
+            if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
                 document.body.removeEventListener('keyup', handleEscape, {capture: true});
             } else {
                 backHandlerListener.current?.remove();
@@ -94,14 +76,11 @@ function BottomDockedModal({
         };
     }, [handleEscape, onBackButtonPressHandler]);
 
-    useEffect(() => {
-        const deviceEventListener = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
-        return () => deviceEventListener.remove();
-    }, [handleDimensionsUpdate]);
-
     useEffect(
         () => () => {
-            onModalWillHide();
+            if (handleRef.current) {
+                InteractionManager.clearInteractionHandle(handleRef.current);
+            }
 
             setIsVisibleState(false);
             setIsContainerOpen(false);
@@ -128,13 +107,9 @@ function BottomDockedModal({
     }, [isVisible, isContainerOpen, isTransitioning]);
 
     const backdropStyle: ViewStyle = useMemo(() => {
-        return {
-            width: deviceWidthProp ?? deviceWidth,
-            height: deviceHeightProp ?? deviceHeight,
-            backgroundColor: backdropColor,
-            ...(getPlatform() === CONST.PLATFORM.WEB ? {opacity: backdropOpacity} : {}),
-        };
-    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor, backdropOpacity]);
+        const {width, height} = Dimensions.get('screen');
+        return {width, height, backgroundColor: backdropColor};
+    }, [backdropColor]);
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
@@ -172,12 +147,14 @@ function BottomDockedModal({
 
     const backdropView = (
         <Backdrop
+            isBackdropVisible={isVisible}
             style={backdropStyle}
             customBackdrop={customBackdrop}
             onBackdropPress={onBackdropPress}
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
             animationInDelay={animationInDelay}
+            backdropOpacity={backdropOpacity}
         />
     );
 
@@ -187,16 +164,12 @@ function BottomDockedModal({
                 pointerEvents="box-none"
                 style={[styles.modalBackdrop, styles.modalContainerBox]}
             >
-                {isVisibleState && (
-                    <>
-                        {hasBackdrop && backdropView}
-                        {containerView}
-                    </>
-                )}
+                {hasBackdrop && backdropView}
+                {containerView}
             </View>
         );
     }
-
+    const isBackdropMounted = isVisibleState || ((isTransitioning || isContainerOpen !== isVisibleState) && getPlatform() === CONST.PLATFORM.WEB);
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
             <Modal
@@ -216,7 +189,7 @@ function BottomDockedModal({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
-                {isVisibleState && hasBackdrop && backdropView}
+                {isBackdropMounted && hasBackdrop && backdropView}
                 {avoidKeyboard ? (
                     <KeyboardAvoidingView
                         behavior="padding"

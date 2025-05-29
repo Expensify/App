@@ -43,7 +43,7 @@ function CategoryDescriptionHintPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CategoryDescriptionHintPage.displayName}
                 shouldEnableMaxHeight
@@ -62,6 +62,7 @@ function CategoryDescriptionHintPage({
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', {categoryName})}</Text>

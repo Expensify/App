@@ -25,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
-import type {AccountData} from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -537,21 +536,6 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRE
 }
 
 /**
- * Set payment card form with API data
- *
- */
-function setPaymentCardForm(values: AccountData) {
-    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
-        [INPUT_IDS.CARD_NUMBER]: values.cardNumber,
-        [INPUT_IDS.EXPIRATION_DATE]: `${values.cardMonth}${values.cardYear?.toString()?.substring(2)}`,
-        [INPUT_IDS.ADDRESS_STREET]: values.addressStreet,
-        [INPUT_IDS.ADDRESS_ZIP_CODE]: values.addressZip?.toString(),
-        [INPUT_IDS.ADDRESS_STATE]: values.addressState,
-        [INPUT_IDS.CURRENCY]: values.currency,
-    });
-}
-
-/**
  *  Sets the default bank account to use for receiving payouts from
  *
  */
@@ -617,7 +601,6 @@ export {
     setPaymentMethodCurrency,
     clearPaymentCard3dsVerification,
     clearWalletTermsError,
-    setPaymentCardForm,
     verifySetupIntent,
     addPaymentCardGBP,
     setInvoicingTransferBankAccount,

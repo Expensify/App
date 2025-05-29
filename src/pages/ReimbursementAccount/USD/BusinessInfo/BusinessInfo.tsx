@@ -6,6 +6,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import BankAccount from '@libs/models/BankAccount';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {isValidWebsite} from '@libs/ValidationUtils';
 import getInitialSubStepForBusinessInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForBusinessInfo';
@@ -16,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AddressBusiness from './subSteps/AddressBusiness';
 import ConfirmationBusiness from './subSteps/ConfirmationBusiness';
+import IncorporationCode from './subSteps/IncorporationCode';
 import IncorporationDateBusiness from './subSteps/IncorporationDateBusiness';
 import IncorporationStateBusiness from './subSteps/IncorporationStateBusiness';
 import NameBusiness from './subSteps/NameBusiness';
@@ -40,6 +42,7 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     TypeBusiness,
     IncorporationDateBusiness,
     IncorporationStateBusiness,
+    IncorporationCode,
     ConfirmationBusiness,
 ];
 
@@ -78,7 +81,8 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         [reimbursementAccount, values, getBankAccountFields, policyID],
     );
 
-    const startFrom = useMemo(() => getInitialSubStepForBusinessInfo(values), [values]);
+    const isBankAccountVerifying = reimbursementAccount?.achData?.state === BankAccount.STATE.VERIFYING;
+    const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
 
     const {
         componentToRender: SubStep,

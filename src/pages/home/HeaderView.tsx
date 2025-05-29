@@ -1,14 +1,18 @@
 import {useRoute} from '@react-navigation/native';
+import {addMinutes, isPast} from 'date-fns';
 import React, {memo, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, CalendarSolid, Close, DotIndicator, FallbackAvatar, Phone} from '@components/Icon/Expensicons';
+import {BackArrow, CalendarSolid, Close, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -21,20 +25,24 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openExternalLink} from '@libs/actions/Link';
-import {initializeOpenAIRealtime, stopConnection} from '@libs/actions/OpenAI';
+import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
+import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canJoinChat,
+    canUserPerformWriteAction,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
     getIcons,
@@ -65,15 +73,18 @@ import {
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
+import variables from '@styles/variables';
 import {joinRoom} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {deleteTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import TalkToSalesButton from './TalkToSalesButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -105,17 +116,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const route = useRoute();
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
-    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -123,9 +134,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
     const {canUseTalkToAISales} = usePermissions();
-    const shouldShowTalkToSales = canUseTalkToAISales && isAdminRoom(report);
+    const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
 
-    const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
+    const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
     const isMultipleParticipant = participants.length > 1;
@@ -146,6 +157,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report?.reportID);
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
+    const subscriptionPlan = useSubscriptionPlan();
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
@@ -160,11 +173,11 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = !!account && !!account?.guideDetails?.calendarLink && isAdminRoom(report) && !!canUserPerformWriteAction(report) && !isChatThread;
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
-    const canJoin = canJoinChat(report, parentReportAction, policy);
+    const canJoin = canJoinChat(report, parentReportAction, policy, reportNameValuePairs);
 
     const joinButton = (
         <Button
@@ -188,9 +201,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner() && !isArchivedReport(reportNameValuePairs), [firstDayFreeTrial, lastDayFreeTrial, reportNameValuePairs]);
+    const shouldShowDiscount = useMemo(
+        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan) && !isArchivedReport(reportNameValuePairs),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan],
+    );
 
     const shouldShowSubscript = shouldReportShowSubscript(report);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -203,52 +219,120 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
-    const guideBookingButton = (
-        <Button
-            success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
-            text={translate('getAssistancePage.scheduleADemo')}
-            onPress={() => {
-                openExternalLink(account?.guideDetails?.calendarLink ?? '');
-            }}
-            style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && [styles.flex1]}
-            icon={CalendarSolid}
-        />
-    );
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
-    const talkToSalesIcon = () => {
-        if (talkToAISales?.isLoading) {
-            return undefined;
+    const guideBookingButton = useMemo(() => {
+        // Filter Old calls.
+        const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
+        const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
+
+        if (!hasActiveScheduledCall) {
+            return (
+                <Button
+                    success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
+                    text={translate('getAssistancePage.scheduleACall')}
+                    onPress={() => {
+                        if (!report?.reportID) {
+                            return;
+                        }
+                        clearBookingDraft();
+                        Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(report?.reportID));
+                    }}
+                    style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && styles.earlyDiscountButton}
+                    icon={CalendarSolid}
+                    // Ensure that a button with an icon displays an ellipsis when its content overflows https://github.com/Expensify/App/issues/58974#issuecomment-2794297554
+                    iconWrapperStyles={[styles.mw100]}
+                    isContentCentered
+                />
+            );
         }
-        if (talkToAISales?.isTalkingToAISales) {
-            return Close;
-        }
-        return Phone;
-    };
+
+        const menuItems: Array<DropdownOption<string>> = [
+            {
+                text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${DateUtils.formatInTimeZoneWithFallback(
+                    latestScheduledCall.eventTime,
+                    userTimezone,
+                    CONST.DATE.MONTH_DAY_YEAR_FORMAT,
+                )}`,
+                value: latestScheduledCall.eventTime,
+                description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
+                    addMinutes(latestScheduledCall.eventTime, 30),
+                    userTimezone,
+                    CONST.DATE.LOCAL_TIME_FORMAT,
+                )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
+                descriptionTextStyle: [styles.themeTextColor, styles.ml2],
+                displayInDefaultIconColor: true,
+                icon: Illustrations.HeadSet,
+                iconWidth: variables.avatarSizeLargeNormal,
+                iconHeight: variables.avatarSizeLargeNormal,
+                wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
+                interactive: false,
+                titleStyle: styles.ml2,
+                avatarSize: CONST.AVATAR_SIZE.LARGE_NORMAL,
+            },
+            {
+                text: translate('common.reschedule'),
+                value: 'Reschedule',
+                onSelected: () => rescheduleBooking(latestScheduledCall),
+                icon: CalendarSolid,
+            },
+            {
+                text: translate('common.cancel'),
+                value: 'Cancel',
+                onSelected: () => cancelBooking(latestScheduledCall),
+                icon: Close,
+            },
+        ];
+
+        return (
+            <ButtonWithDropdownMenu
+                success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
+                onPress={() => null}
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                customText={translate('scheduledCall.callScheduled')}
+                icon={CalendarSolid}
+                options={menuItems}
+                isSplitButton={false}
+                style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                testID="scheduled-call-header-dropdown-menu-button"
+            />
+        );
+    }, [
+        reportNameValuePairs?.calendlyCalls,
+        userTimezone,
+        styles.themeTextColor,
+        styles.ml2,
+        styles.mb3,
+        styles.pl4,
+        styles.pr5,
+        styles.pt3,
+        styles.pb6,
+        styles.borderBottom,
+        styles.flexGrow1,
+        styles.earlyDiscountButton,
+        styles.mw100,
+        translate,
+        shouldShowGuideBookingButtonInEarlyDiscountBanner,
+        shouldUseNarrowLayout,
+        report?.reportID,
+    ]);
 
     const talkToSalesButton = (
-        <Button
-            text={talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : translate('aiSales.talkWithSales')}
-            onPress={() => {
-                if (talkToAISales?.isTalkingToAISales) {
-                    stopConnection();
-                    return;
-                }
-
-                initializeOpenAIRealtime(Number(report?.reportID) ?? CONST.DEFAULT_NUMBER_ID);
-            }}
-            style={shouldUseNarrowLayout && [styles.flex1]}
-            icon={talkToSalesIcon()}
-            isLoading={talkToAISales?.isLoading}
+        <TalkToSalesButton
+            reportID={report?.reportID}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
     );
 
-    const getGuideBookButtonStyles = () => {
-        if (isChatUsedForOnboarding && !shouldShowDiscount) {
+    const getActionButtonStyles = () => {
+        if (isChatUsedForOnboarding && shouldShowDiscount) {
             return [styles.pb3, styles.pl5, styles.w50, styles.pr1];
         }
         return [styles.pb3, styles.ph5];
@@ -260,7 +344,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.appContentHeader, styles.pr3, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeader, styles.pr3]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
@@ -368,7 +452,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && talkToSalesButton}
+                                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && !shouldUseNarrowLayout && talkToSalesButton}
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -401,8 +485,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
                 <View style={isChatUsedForOnboarding && !shouldShowDiscount && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
+                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && shouldUseNarrowLayout && <View style={getActionButtonStyles()}>{talkToSalesButton}</View>}
                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && !isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && (
-                        <View style={getGuideBookButtonStyles()}>{guideBookingButton}</View>
+                        <View style={getActionButtonStyles()}>{guideBookingButton}</View>
                     )}
                     {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                         <FreeTrial

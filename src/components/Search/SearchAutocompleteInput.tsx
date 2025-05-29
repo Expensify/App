@@ -1,15 +1,14 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {LinearTransition, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,27 +100,26 @@ function SearchAutocompleteInput(
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
     const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
     const categoryAutocompleteList = useMemo(() => {
-        return getAutocompleteCategories(allPolicyCategories, activeWorkspaceID);
-    }, [activeWorkspaceID, allPolicyCategories]);
+        return getAutocompleteCategories(allPolicyCategories);
+    }, [allPolicyCategories]);
     const categorySharedValue = useSharedValue(categoryAutocompleteList);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const tagAutocompleteList = useMemo(() => {
-        return getAutocompleteTags(allPoliciesTags, activeWorkspaceID);
-    }, [activeWorkspaceID, allPoliciesTags]);
+        return getAutocompleteTags(allPoliciesTags);
+    }, [allPoliciesTags]);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
@@ -196,7 +193,6 @@ function SearchAutocompleteInput(
                         value={value}
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
-                        shouldDelayFocus={shouldDelayFocus}
                         caretHidden={caretHidden}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                         role={CONST.ROLE.PRESENTATION}

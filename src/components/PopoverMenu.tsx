@@ -3,7 +3,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -61,26 +61,34 @@ type PopoverMenuItem = MenuItemProps & {
     rightIcon?: React.FC<SvgProps>;
 
     key?: string;
+
+    /** Whether to keep the modal open after clicking on the menu item */
+    shouldKeepModalOpen?: boolean;
+
+    /** Test identifier used to find elements in unit and e2e tests */
+    testID?: string;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
-    Pick<BottomDockedModalProps, 'animationInDelay'> & {
-        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
-        shouldUseNewModal?: boolean;
-    };
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<BottomDockedModalProps, 'animationInDelay'>;
 
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
+    /** Optional callback passed to popover's children container */
+    onLayout?: (e: LayoutChangeEvent) => void;
+
     /** Callback method fired when the modal is shown */
     onModalShow?: () => void;
+
+    /** Callback method fired when the modal is hidden */
+    onModalHide?: () => void;
 
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
     /** Callback to fire when a CreateMenu item is selected */
-    onItemSelected?: (selectedItem: PopoverMenuItem, index: number) => void;
+    onItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Menu items to be rendered on the list */
     menuItems: PopoverMenuItem[];
@@ -171,7 +179,9 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    onLayout,
     onModalShow,
+    onModalHide,
     headerText,
     fromSidebarMediumScreen,
     anchorAlignment = {
@@ -197,9 +207,8 @@ function PopoverMenu({
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
-    shouldUseNewModal,
-    testID,
     shouldAvoidSafariException = false,
+    testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -215,7 +224,7 @@ function PopoverMenu({
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
-    const selectItem = (index: number) => {
+    const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
         if (!selectedItem) {
             return;
@@ -226,7 +235,7 @@ function PopoverMenu({
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
-            onItemSelected?.(selectedItem, index);
+            onItemSelected?.(selectedItem, index, event);
             close(
                 () => {
                     selectedItem.onSelected?.();
@@ -235,7 +244,7 @@ function PopoverMenu({
                 selectedItem.shouldCloseAllModals,
             );
         } else {
-            onItemSelected?.(selectedItem, index);
+            onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
         }
     };
@@ -278,7 +287,7 @@ function PopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, ...menuItemProps} = item;
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, ...menuItemProps} = item;
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key
@@ -288,9 +297,9 @@ function PopoverMenu({
                 <FocusableMenuItem
                     // eslint-disable-next-line react/no-array-index-key
                     key={key ?? `${item.text}_${menuIndex}`}
-                    pressableTestID={`PopoverMenuItem-${item.text}`}
+                    pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
-                    onPress={() => selectItem(menuIndex)}
+                    onPress={(event) => selectItem(menuIndex, event)}
                     focused={focusedIndex === menuIndex}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     shouldCheckActionAllowedOnPress={false}
@@ -352,7 +361,8 @@ function PopoverMenu({
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWebOrDesktop && isVisible, shouldPreventDefault: false});
 
-    const onModalHide = () => {
+    const handleModalHide = () => {
+        onModalHide?.();
         setFocusedIndex(currentMenuItemsFocusedIndex);
     };
 
@@ -395,7 +405,7 @@ function PopoverMenu({
                 onClose();
             }}
             isVisible={isVisible}
-            onModalHide={onModalHide}
+            onModalHide={handleModalHide}
             onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
@@ -412,10 +422,12 @@ function PopoverMenu({
             innerContainerStyle={innerContainerStyle}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
-            shouldUseNewModal={shouldUseNewModal}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={[menuContainerStyle, containerStyles]}>
+                <View
+                    onLayout={onLayout}
+                    style={[menuContainerStyle, containerStyles]}
+                >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}

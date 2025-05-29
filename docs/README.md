@@ -153,7 +153,7 @@ You can now begin adding articles inside the subcategory `hr-integrations/`.
 
 ## Add content
 
-Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `docs/articles`. For example, if the article belongs in the `Bank Accounts` hub for the platform `Expensify Classic`, then copy the template into `docs/articles/expensiyfy-classic/bank-accounts` directory.
+Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `docs/articles`. For example, if the article belongs in the `Bank Accounts` hub for the platform `Expensify Classic`, then copy the template into `docs/articles/expensify-classic/bank-accounts` directory.
 
 Next, rename the copy with the name of the article title, i.e. `Connect-ANZ.md`. It is **important** that the article has `.md` extension (you can use dashes for spaces in the file name if it's needed). The dashes will be removed in the generated site page. 
 
@@ -167,6 +167,23 @@ The sections of the article will be filled and nested automatically in the LHN, 
 - Note to replace `Image description here`  with an apt description of the image.
 
 If you're unfamiliar with github branches, PRs and confused how to add images and article in the same PR, head to this [slack thread 🧵](https://expensify.slack.com/archives/C02QSAC6BJ8/p1699632298177679?thread_ts=1699576284.768909&cid=C02QSAC6BJ8) in `#expensifyhelp`.
+
+## Add videos
+1. Upload your video to cloudflare.
+2. Import the video in an article. You can do that by pasting the below snippet.
+3. Replace `src` with the public URL for the video. **It should be cloudflarestream.com url**.
+4. Make sure to remove `/manifest/video.x` from the url.
+
+
+Without a custom thumbnail
+```
+{% include video.html src="https://customer-dtm7nf3ai7b93j1q.cloudflarestream.com/b81eabafe1391ab06901ddc19dcda161" %}
+```
+
+Optional: Add a custom thumbnail for the video. Replace `your-image.png` with a **16x9 aspect ratio image** from the `assets/images` directory.
+```
+{% include video.html thumbnail="assets/images/your-image.png" src="https://customer-dtm7nf3ai7b93j1q.cloudflarestream.com/b81eabafe1391ab06901ddc19dcda161" %}
+```
 
 ## Add meta-description tags for SEO
 

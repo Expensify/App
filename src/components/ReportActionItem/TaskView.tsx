@@ -16,6 +16,8 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useParentReport from '@hooks/useParentReport';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
@@ -26,17 +28,20 @@ import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTa
 import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask as canActionTaskUtil, canModifyTask as canModifyTaskUtil, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type TaskViewProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
+
+    /** The task report action */
+    action: OnyxEntry<ReportAction>;
 };
 
-function TaskView({report}: TaskViewProps) {
+function TaskView({report, action}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -54,11 +59,13 @@ function TaskView({report}: TaskViewProps) {
 
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
-    const canModifyTask = canModifyTaskUtil(report, currentUserPersonalDetails.accountID);
-    const canActionTask = canActionTaskUtil(report, currentUserPersonalDetails.accountID);
+    const parentReport = useParentReport(report?.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
-    const disableState = !canModifyTask;
-    const isDisableInteractive = !canModifyTask || !isOpen;
+    const disableState = !isTaskModifiable;
+    const isDisableInteractive = disableState || !isOpen;
     const {translate} = useLocalize();
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const contextValue = useMemo(
@@ -66,12 +73,14 @@ function TaskView({report}: TaskViewProps) {
             anchor: null,
             report,
             reportNameValuePairs: undefined,
-            action: undefined,
+            action,
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
             isDisabled: true,
+            onShowContextMenu: (callback: () => void) => callback(),
+            shouldDisplayContextMenu: false,
         }),
-        [report],
+        [report, action],
     );
 
     const attachmentContextValue = useMemo(() => ({type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID}), [accountID]);
@@ -129,7 +138,7 @@ function TaskView({report}: TaskViewProps) {
                                                 containerBorderRadius={8}
                                                 caretSize={16}
                                                 accessibilityLabel={taskTitle || translate('task.task')}
-                                                disabled={!canActionTask}
+                                                disabled={!isTaskActionable}
                                             />
                                             <View style={[styles.flexRow, styles.flex1]}>
                                                 <RenderHTML html={taskTitle} />

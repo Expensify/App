@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
 
     const benefits = [
         translate('workspace.upgrade.commonFeatures.benefits.benefit1'),
@@ -57,7 +59,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
                     {translate('workspace.upgrade.commonFeatures.benefits.startsAt')}
                     <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
-                    {translate('workspace.upgrade.commonFeatures.benefits.perMember')}{' '}
+                    {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}{' '}
                     <TextLink
                         style={[styles.link]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
@@ -88,7 +90,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     large
                 />
             )}

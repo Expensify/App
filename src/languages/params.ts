@@ -110,6 +110,10 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
+type DuplicateTransactionParams = {
+    isSubmitted: boolean;
+};
+
 type RequestCountParams = {
     scanningReceipts: number;
     pendingReceipts: number;
@@ -118,6 +122,11 @@ type RequestCountParams = {
 type DeleteTransactionParams = {
     amount: string;
     merchant: string;
+};
+
+type MovedTransactionParams = {
+    reportUrl: string;
+    reportName?: string;
 };
 
 type SettleExpensifyCardParams = {
@@ -162,9 +171,9 @@ type AdminCanceledRequestParams = {manager: string; amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
-type PaidElsewhereWithAmountParams = {payer?: string; amount: string};
+type PaidElsewhereParams = {payer?: string} | undefined;
 
-type PaidWithExpensifyWithAmountParams = {payer?: string; amount: string};
+type PaidWithExpensifyParams = {payer?: string} | undefined;
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
@@ -212,7 +221,7 @@ type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
 type RoomNameReservedErrorParams = {reservedName: string};
 
-type RenamedRoomActionParams = {oldName: string; newName: string};
+type RenamedRoomActionParams = {oldName: string; newName: string; isExpenseReport: boolean; actorName?: string};
 
 type RoomRenamedToParams = {newName: string};
 
@@ -356,8 +365,6 @@ type UnshareParams = {to: string};
 
 type StripePaidParams = {amount: string; currency: string};
 
-type UnapprovedParams = {amount: string};
-
 type RemoveMembersWarningPrompt = {
     memberName: string;
     ownerName: string;
@@ -401,6 +408,8 @@ type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkTex
 type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
+
+type UpdatedCustomFieldParams = {email: string; previousValue: string; newValue: string};
 
 type LeftWorkspaceParams = {nameOrEmail: string};
 
@@ -474,11 +483,15 @@ type CardInfoParams = {name: string; expiration: string; currency: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
 
+type YourPlanPriceValueParams = {price: string};
+
 type SubscriptionSizeParams = {size: number};
 
 type SubscriptionCommitmentParams = {size: number; date: string};
 
 type SubscriptionSettingsSaveUpToParams = {amountWithCurrency: string};
+
+type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscriptionSize: string; autoRenew: string; autoIncrease: string};
 
 type SubscriptionSettingsRenewsOnParams = {date: string};
 
@@ -573,7 +586,7 @@ type InvalidValueParams = {
     expectedValues: string;
 };
 
-type ImportTagsSuccessfullDescriptionParams = {
+type ImportTagsSuccessfulDescriptionParams = {
     tags: number;
 };
 
@@ -581,12 +594,12 @@ type ImportedTagsMessageParams = {
     columnCounts: number;
 };
 
-type ImportMembersSuccessfullDescriptionParams = {
+type ImportMembersSuccessfulDescriptionParams = {
     added: number;
     updated: number;
 };
 
-type ImportPerDiemRatesSuccessfullDescriptionParams = {
+type ImportPerDiemRatesSuccessfulDescriptionParams = {
     rates: number;
 };
 
@@ -603,6 +616,14 @@ type WorkspaceYouMayJoin = {
     email: string;
 };
 
+type WorkEmailResendCodeParams = {
+    workEmail: string | undefined;
+};
+
+type WorkEmailMergingBlockedParams = {
+    workEmail: string | undefined;
+};
+
 type WorkspaceMemberList = {
     employeeCount: number;
     policyOwner: string;
@@ -610,10 +631,6 @@ type WorkspaceMemberList = {
 
 type FileLimitParams = {
     fileLimit: number;
-};
-
-type LastFourDigitsParams = {
-    lastFourDigits: string;
 };
 
 type CompanyCardBankName = {
@@ -665,11 +682,36 @@ type ReviewParams = {
     amount: string;
 };
 
+type CurrencyInputDisabledTextParams = {
+    currency: string;
+};
+
+type SplitExpenseSubtitleParams = {
+    amount: string;
+    merchant: string;
+};
+
+type SplitExpenseEditTitleParams = {
+    amount: string;
+    merchant: string;
+};
+
+type TotalAmountGreaterOrLessThanOriginalParams = {
+    amount: string;
+};
+
+type EmployeeInviteMessageParams = {
+    name: string;
+};
+
 export type {
+    SplitExpenseEditTitleParams,
+    SplitExpenseSubtitleParams,
+    TotalAmountGreaterOrLessThanOriginalParams,
     AuthenticationErrorParams,
-    ImportMembersSuccessfullDescriptionParams,
+    ImportMembersSuccessfulDescriptionParams,
     ImportedTagsMessageParams,
-    ImportTagsSuccessfullDescriptionParams,
+    ImportTagsSuccessfulDescriptionParams,
     MissingPropertyParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -759,7 +801,6 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -773,11 +814,12 @@ export type {
     OOOEventSummaryFullDayParams,
     OOOEventSummaryPartialDayParams,
     OurEmailProviderParams,
-    PaidElsewhereWithAmountParams,
-    PaidWithExpensifyWithAmountParams,
+    PaidElsewhereParams,
+    PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
+    DuplicateTransactionParams,
     PayerOwesParams,
     RoleNamesParams,
     PayerPaidAmountParams,
@@ -793,6 +835,7 @@ export type {
     RequestAmountParams,
     RequestCountParams,
     DeleteTransactionParams,
+    MovedTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -851,7 +894,6 @@ export type {
     ShareParams,
     UnshareParams,
     StripePaidParams,
-    UnapprovedParams,
     RemoveMembersWarningPrompt,
     ApprovalWorkflowErrorParams,
     ConnectionNameParams,
@@ -861,6 +903,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
+    UpdatedCustomFieldParams,
     LeftWorkspaceParams,
     RemoveMemberParams,
     DateParams,
@@ -875,7 +918,7 @@ export type {
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
-    ImportPerDiemRatesSuccessfullDescriptionParams,
+    ImportPerDiemRatesSuccessfulDescriptionParams,
     CurrencyCodeParams,
     WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
@@ -891,6 +934,8 @@ export type {
     UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    WorkEmailResendCodeParams,
+    WorkEmailMergingBlockedParams,
     NewWorkspaceNameParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,
@@ -901,6 +946,10 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
+    YourPlanPriceValueParams,
     NeedCategoryForExportToIntegrationParams,
+    SubscriptionSettingsSummaryParams,
     ReviewParams,
+    CurrencyInputDisabledTextParams,
+    EmployeeInviteMessageParams,
 };

@@ -8,7 +8,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -84,7 +83,6 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, styles}: Indi
 function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {canUseProhibitedExpenses} = usePermissions();
     const policy = usePolicy(policyID);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -140,7 +138,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
         // If no expenses are prohibited, return empty string
         if (!prohibitedExpensesList.length) {
-            return translate('workspace.rules.individualExpenseRules.none');
+            return '';
         }
 
         return prohibitedExpensesList.join(', ');
@@ -173,14 +171,12 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         },
     ];
 
-    if (canUseProhibitedExpenses) {
-        individualExpenseRulesItems.push({
-            title: prohibitedExpenses,
-            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
-            action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
-            pendingAction: policy?.pendingFields?.prohibitedExpenses,
-        });
-    }
+    individualExpenseRulesItems.push({
+        title: prohibitedExpenses,
+        descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
+        action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
+        pendingAction: policy?.pendingFields?.prohibitedExpenses,
+    });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
 
