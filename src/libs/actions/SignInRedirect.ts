@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import CONFIG from '@src/CONFIG';
-import {clearAllPolicies} from './Policy/Policy';
 import {resetSignInFlow} from './HybridApp';
+import {clearAllPolicies} from './Policy/Policy';
 
 let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;
