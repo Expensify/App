@@ -274,6 +274,7 @@ function BaseTextInput(
         isAutoGrowHeightMarkdown && styles.pb2,
         inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
         !hasLabel && styles.pt0,
+        shouldAddPaddingBottom && styles.pb1,
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
