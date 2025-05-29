@@ -2366,10 +2366,6 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchiv
         return false;
     }
 
-    // // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // // eslint-disable-next-line deprecation/deprecation
-    // const reportNameValuePairs = getReportNameValuePairs(moneyRequestReport?.reportID);
-    // isArchivedReport(reportNameValuePairs)
     return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
 }
 
