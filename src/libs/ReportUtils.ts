@@ -8390,10 +8390,11 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // DM chats will have the Split Expense option.
     // Your own expense chats will have the split expense option.
     if (
-        (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
+        Permissions.canUseNewDotSplits(allBetas) &&
+        ((isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && otherParticipants.length > 0) ||
         (isGroupChat(report) && otherParticipants.length > 0) ||
-        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat))
     ) {
         options = [...options, CONST.IOU.TYPE.SPLIT];
     }

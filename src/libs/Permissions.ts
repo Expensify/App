@@ -110,4 +110,5 @@ export default {
     canUseMultiScan,
     canUsePlaidCompanyCards,
     canUseTrackFlows,
+    canUseNewDotSplits,
 };
