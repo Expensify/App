@@ -112,6 +112,21 @@ function IOURequestStartPage({
         [policy, reportID, isFromGlobalCreate, transaction],
     );
 
+    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
+    useFocusEffect(
+        useCallback(() => {
+            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
+            if (
+                (transaction?.reportID === reportID && iouType !== CONST.IOU.TYPE.CREATE && iouType !== CONST.IOU.TYPE.SUBMIT) ||
+                isLoadingSelectedTab ||
+                prevTransactionReportID !== transaction?.reportID
+            ) {
+                return;
+            }
+            resetIOUTypeIfChanged(transactionRequestType);
+        }, [transaction?.reportID, reportID, iouType, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
+    );
+
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
