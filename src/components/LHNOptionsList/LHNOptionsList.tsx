@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {FlashListProps} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -11,7 +11,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
-import useIsScreenFocused from '@hooks/useIsScreenFocus';
 import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -58,7 +57,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
-    const isScreenFocused = useIsScreenFocused();
+    const isScreenFocused = useIsFocused();
 
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
