@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagListName, getTagLists, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
@@ -40,15 +40,15 @@ function IOURequestStepTag({
     },
     transaction,
 }: IOURequestStepTagProps) {
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     let reportID: string | undefined;
     if (action === CONST.IOU.ACTION.EDIT) {
         reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
     }
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const session = useSession();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchContext();
@@ -67,6 +67,7 @@ function IOURequestStepTag({
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
+    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -80,17 +81,37 @@ function IOURequestStepTag({
     const updateTag = (selectedTag: Partial<OptionData>) => {
         const isSelectedTag = selectedTag.searchText === tag;
         const searchText = selectedTag.searchText ?? '';
-        const updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex);
+        let updatedTag: string;
+
+        if (hasDependentTags) {
+            const tagParts = transactionTag ? transactionTag.split(':') : [];
+
+            if (isSelectedTag) {
+                // Deselect: clear this and all child tags
+                tagParts.splice(tagListIndex);
+            } else {
+                // Select new tag: replace this index and clear child tags
+                tagParts.splice(tagListIndex, tagParts.length - tagListIndex, searchText);
+            }
+
+            updatedTag = tagParts.join(':');
+        } else {
+            // Independent tags (fallback): use comma-separated list
+            updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex);
+        }
+
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
             return;
         }
+
         if (isEditing) {
             updateMoneyRequestTag(transactionID, report?.reportID, updatedTag, policy, policyTags, policyCategories, currentSearchHash);
             navigateBack();
             return;
         }
+
         setMoneyRequestTag(transactionID, updatedTag);
         navigateBack();
     };
@@ -141,6 +162,8 @@ function IOURequestStepTag({
                         tagListName={policyTagListName}
                         tagListIndex={tagListIndex}
                         selectedTag={tag}
+                        transactionTag={transactionTag}
+                        hasDependentTags={hasDependentTags}
                         onSubmit={updateTag}
                     />
                 </>
