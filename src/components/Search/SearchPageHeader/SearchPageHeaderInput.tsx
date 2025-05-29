@@ -344,7 +344,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         autoFocus={false}
                         onFocus={showAutocompleteList}
                         onBlur={hideAutocompleteList}
-                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.border}}
+                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                         wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                         outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
                         autocompleteListRef={listRef}
