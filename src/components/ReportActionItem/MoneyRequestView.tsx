@@ -16,7 +16,6 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -51,6 +50,7 @@ import {
     getBillable,
     getDescription,
     getDistanceInMeters,
+    getOriginalTransactionWithSplitInfo,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -110,7 +110,6 @@ const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {canUseTableReportView} = usePermissions();
     const {translate, toLocaleDigit} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
@@ -301,6 +300,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     } else {
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
+        }
+        if (getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
@@ -788,7 +790,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </OfflineWithFeedback>
                 )}
-                {!!parentReportID && !!canUseTableReportView && (
+                {!!parentReportID && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
