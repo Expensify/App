@@ -44,6 +44,7 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -1573,6 +1574,17 @@ const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: !originalTransaction?.comment?.splits, originalTransaction: originalTransaction ?? transaction};
 };
 
+/**
+ * Return transactions pending action.
+ */
+function getTransactionPendingAction(transaction: OnyxEntry<Transaction>): PendingAction {
+    if (transaction?.pendingAction) {
+        return transaction.pendingAction;
+    }
+    const hasPendingFields = Object.keys(transaction?.pendingFields ?? {}).length > 0;
+    return hasPendingFields ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1673,6 +1685,7 @@ export {
     getTransactionOrDraftTransaction,
     checkIfShouldShowMarkAsCashButton,
     getOriginalTransactionWithSplitInfo,
+    getTransactionPendingAction,
 };
 
 export type {TransactionChanges};
