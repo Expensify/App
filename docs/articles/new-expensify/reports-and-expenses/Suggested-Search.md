@@ -35,39 +35,6 @@ Depending on your role, you’ll see shortcuts like:
 
 ---
 
-## Workflow breakdown
-
-Here’s how these actions are usually completed manually and how Suggested Search streamlines them for you.
-
-### Submit
-
-1. Go to **Reports > Expense Reports**.
-2. Click the **Drafts** tab.
-3. Use the **Filter** to select `From: yourself`.
-4. View and submit your draft reports.
-
-### Approve
-
-1. Go to **Reports > Expense Reports**.
-2. Click the **Outstanding** tab.
-3. Use the **Filter** to select `To: yourself`.
-4. View reports that need your approval.
-
-### Pay
-
-1. Go to **Reports > Expense Reports**.
-2. Click the **Approved** tab.
-3. Use the **Filter** to select `To: yourself`.
-4. View approved reports ready for payment.
-
-### Export
-
-1. Go to **Reports > Expense Reports**.
-2. In the search bar, enter: `status:approved,paid,done`.
-3. View finalized reports eligible for export.
-
----
-
 ## Who sees what?
 
 ### All members
