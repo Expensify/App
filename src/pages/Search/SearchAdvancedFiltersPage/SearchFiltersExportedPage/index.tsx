@@ -15,11 +15,10 @@ function SearchFiltersExportedPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const [view, setView] = useState<SearchDateModifier | null>(null);
-    const [localDateValues, setLocalDateValues] = useState<SearchFiltersExportedPageValues>(() => {
-        return Object.values(CONST.SEARCH.DATE_MODIFIERS).reduce((acc, dateType) => {
-            acc[dateType] = searchAdvancedFiltersForm?.[`${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED}${dateType}`] ?? null;
-            return acc;
-        }, {} as SearchFiltersExportedPageValues);
+    const [localDateValues, setLocalDateValues] = useState<SearchFiltersExportedPageValues>({
+        After: searchAdvancedFiltersForm?.exportedAfter ?? null,
+        Before: searchAdvancedFiltersForm?.exportedBefore ?? null,
+        On: searchAdvancedFiltersForm?.exportedOn ?? null,
     });
 
     const setDateValue = (key: SearchDateModifier, dateValue: string | null) => {
