@@ -2790,16 +2790,23 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         },
     ];
 
-    return {optimisticReportName: optimisticReportData.reportName, optimisticData, successData, failureData};
+    return {
+        optimisticReportName: optimisticReportData.reportName,
+        reportPreviewAction: optimisticReportPreview,
+        parentReportID: parentReport?.reportID,
+        optimisticData,
+        successData,
+        failureData,
+    };
 }
 
-function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
+function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldNotifyNewAction = false) {
     const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {optimisticReportName, optimisticData, successData, failureData} = buildNewReportOptimisticData(
+    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData} = buildNewReportOptimisticData(
         policy,
         optimisticReportID,
         reportActionID,
@@ -2812,6 +2819,10 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         {reportName: optimisticReportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID, shouldUpdateQAB: true},
         {optimisticData, successData, failureData},
     );
+    if (shouldNotifyNewAction) {
+        notifyNewAction(parentReportID, creatorPersonalDetails.accountID, reportPreviewAction);
+    }
+
     return optimisticReportID;
 }
 
