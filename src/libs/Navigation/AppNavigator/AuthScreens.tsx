@@ -3,7 +3,6 @@ import {useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
-import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {MoneyRequestReportContextProvider} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
@@ -43,6 +42,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SigningOutPage from '@pages/SigningOutPage';
+import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -73,7 +73,6 @@ import defaultScreenOptions from './defaultScreenOptions';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
-import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
@@ -107,7 +106,6 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
-const loadWorkspaceHubSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceHubSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
@@ -556,9 +554,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders
-            components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}
-        >
+        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}>
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
@@ -577,11 +573,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     getComponent={loadSearchNavigator}
                 />
                 <RootStack.Screen
-                    name={NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.splitNavigator}
-                    getComponent={loadWorkspaceHubSplitNavigator}
-                />
-                <RootStack.Screen
                     name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
                     options={getWorkspaceSplitNavigatorOptions}
                     getComponent={loadWorkspaceSplitNavigator}
@@ -595,6 +586,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     }}
                     listeners={fullScreenListeners}
                     getComponent={loadValidateLoginPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACES_LIST}
+                    options={rootNavigatorScreenOptions.workspacesListPage}
+                    component={WorkspacesListPage}
                 />
                 <RootStack.Screen
                     name={SCREENS.TRANSITION_BETWEEN_APPS}
@@ -676,12 +672,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             setShouldShowRequire2FAPage(false);
                         },
                     }}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.leftModalNavigator}
-                    component={LeftModalNavigator}
-                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}

@@ -84,7 +84,7 @@ describe('Session', () => {
                 }),
             )
 
-            // The next call should be Authenticate since we are reauthenticating
+            // The next call should be Authenticate since we are re-authenticating
             .mockImplementationOnce(() =>
                 Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,

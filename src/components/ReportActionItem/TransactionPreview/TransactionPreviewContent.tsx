@@ -195,7 +195,7 @@ function TransactionPreviewContent({
                                 {shouldShowIOUHeader && (
                                     <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
                                         <UserInfoCellsWithArrow
-                                            shouldDisplayArrowIcon
+                                            shouldShowToRecipient
                                             participantFrom={from}
                                             participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
                                             participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
