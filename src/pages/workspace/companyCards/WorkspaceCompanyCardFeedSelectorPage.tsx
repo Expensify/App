@@ -1,8 +1,10 @@
 import React from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import Image from '@components/Image';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -20,6 +22,7 @@ import {
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
+    getPlaidInstitutionLink,
     getSelectedFeed,
 } from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -64,6 +67,8 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feed}`],
         );
         const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
+        const plaidUrl = getPlaidInstitutionLink(feed);
+
         return {
             value: feed,
             text: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
@@ -73,7 +78,21 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             pendingAction: companyFeeds[feed]?.pendingAction,
             brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             canShowSeveralIndicators: isFeedConnectionBroken,
-            leftElement: (
+            leftElement: feed ? (
+                <View style={styles.mr3}>
+                    <Image
+                        source={{uri: plaidUrl}}
+                        style={styles.plaidIconSmall}
+                        cachePolicy="memory-disk"
+                    />
+                    <Icon
+                        src={illustrations.GenericPlaidCardLarge}
+                        height={variables.cardIconHeight}
+                        width={variables.cardIconWidth}
+                        additionalStyles={styles.cardIcon}
+                    />
+                </View>
+            ) : (
                 <Icon
                     src={getCardFeedIcon(feed, illustrations)}
                     height={variables.cardIconHeight}
