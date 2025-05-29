@@ -12,8 +12,8 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getOriginalTransactionIfBillIsSplit, getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
+import {getOriginalTransactionWithSplitInfo, isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
@@ -78,9 +78,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
         clearIOUError(chatReportID);
     }, [chatReportID]);
 
-    const {originalTransactionID} = transaction?.comment ?? {};
-    const [originalTransactionOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {canBeMissing: true});
-
     const navigateToReviewFields = useCallback(() => {
         Navigation.navigate(
             getReviewNavigationRoute(
@@ -92,7 +89,13 @@ function TransactionPreview(props: TransactionPreviewProps) {
         );
     }, [duplicates, report, route, transaction]);
 
-    const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction, originalTransactionOnyx);
+    let transactionPreview = transaction;
+
+    const {originalTransaction, isBillSplit} = getOriginalTransactionWithSplitInfo(transaction);
+
+    if (isBillSplit) {
+        transactionPreview = originalTransaction;
+    }
 
     const iouAction = isBillSplit && originalTransaction ? getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action : action;
 
@@ -119,7 +122,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
-                    transaction={originalTransaction}
+                    transaction={transactionPreview}
                     iouReport={iouReport}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}

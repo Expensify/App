@@ -20,6 +20,7 @@ import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getFormattedCreated,
+    getOriginalTransactionWithSplitInfo,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -141,20 +142,6 @@ type TranslationPathOrText = {
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
-const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Transaction>, originalTransaction: OnyxEntry<OnyxTypes.Transaction>) => {
-    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
-
-    if (splits && splits.length > 0) {
-        return {isBillSplit: true, originalTransaction: originalTransaction ?? transaction};
-    }
-
-    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
-        return {isBillSplit: false, originalTransaction: transaction};
-    }
-
-    return {isBillSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
-};
-
 function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string, isTransactionOnHold: boolean): TranslationPathOrText {
     const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
 
@@ -184,7 +171,6 @@ function getUniqueActionErrors(reportActions: OnyxTypes.ReportActions) {
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
     transaction,
-    originalTransaction,
     action,
     violations,
     transactionDetails,
@@ -300,7 +286,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    const amount = isBillSplit ? getOriginalTransactionIfBillIsSplit(transaction, originalTransaction).originalTransaction?.amount : requestAmount;
+    const amount = isBillSplit ? getOriginalTransactionWithSplitInfo(transaction).originalTransaction?.amount : requestAmount;
     let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
@@ -395,13 +381,5 @@ function createTransactionPreviewConditionals({
     };
 }
 
-export {
-    getReviewNavigationRoute,
-    getIOUData,
-    getTransactionPreviewTextAndTranslationPaths,
-    createTransactionPreviewConditionals,
-    getOriginalTransactionIfBillIsSplit,
-    getViolationTranslatePath,
-    getUniqueActionErrors,
-};
+export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals, getViolationTranslatePath, getUniqueActionErrors};
 export type {TranslationPathOrText};
