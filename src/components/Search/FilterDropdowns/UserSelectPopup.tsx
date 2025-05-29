@@ -41,6 +41,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     // Since accountIDs are passed as value, we need to "populate" them into OptionData
     const initialSelectedData: OptionData[] = useMemo(() => {
@@ -92,10 +93,20 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         const personalDetailList = filteredOptionsList.map((participant) => ({
             ...participant,
             isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
-        }));
+        })).sort((a, b) =>{
+            // Put the current user at the top of the list
+            if (a.accountID === session?.accountID) {
+                return -1
+            }
+            if (b.accountID === session?.accountID) {
+                return 1;
+            }
+            return 0;
+        });
 
-        return [...(recentReports ?? []), ...(personalDetailList ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions]);
+
+        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
+    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, session?.accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
