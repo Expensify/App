@@ -92,7 +92,7 @@ function TransactionItemRowRBR({transaction, containerStyles}: TransactionItemRo
     ].join(' ');
     return (
         RBRMessages.length > 0 && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles, styles.w100]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}>
                 <Icon
                     src={DotIndicator}
                     fill={theme.danger}

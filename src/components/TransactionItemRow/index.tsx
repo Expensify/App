@@ -317,7 +317,7 @@ function TransactionItemRow({
                                 </View>
                             </View>
                             <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                                <View style={[styles.flexColumn, styles.mw100]}>
+                                <View style={[styles.flexColumn, styles.flex1]}>
                                     {hasCategoryOrTag && (
                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>
                                             <CategoryCell
