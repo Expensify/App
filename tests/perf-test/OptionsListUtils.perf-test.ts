@@ -16,8 +16,6 @@ import {getRandomDate} from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 const REPORTS_COUNT = 5000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
 const SEARCH_VALUE = 'TestingValue';

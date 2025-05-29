@@ -12,9 +12,10 @@ import {
     hasIntegrationAutoSync,
     isPreferredExporter,
 } from './PolicyUtils';
-import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
+import {getAllReportActions, getOneTransactionThreadReportID, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     canAddTransaction as canAddTransactionUtil,
+    canHoldUnholdReportAction,
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
@@ -118,7 +119,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     return false;
 }
 
-function isPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
+function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
@@ -270,6 +271,14 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
+function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: ReportAction[]) {
+    if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
+        return [];
+    }
+
+    return reportActions?.filter((action) => isMoneyRequestAction(action) && action.childType === CONST.REPORT.TYPE.CHAT && canHoldUnholdReportAction(action).canUnholdRequest);
+}
+
 function getReportPrimaryAction(
     report: Report,
     reportTransactions: Transaction[],
@@ -278,7 +287,7 @@ function getReportPrimaryAction(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
-    const isPayActionWithAllExpensesHeld = isPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID);
+    const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID);
 
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
@@ -304,12 +313,16 @@ function getReportPrimaryAction(
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isPayAction(report, policy, reportNameValuePairs)) {
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
     if (isExportAction(report, policy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
+    }
+
+    if (getAllExpensesToHoldIfApplicable(report, reportActions).length) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
     return '';
@@ -357,4 +370,4 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, getAllExpensesToHoldIfApplicable};
