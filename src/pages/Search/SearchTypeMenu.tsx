@@ -37,10 +37,9 @@ import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
-    searchName?: string;
 };
 
-function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash} = queryJSON ?? {};
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -84,7 +83,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
             }
 
-            const isItemFocused = searchName === item.name;
+            const isItemFocused = Number(key) === hash;
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
             return {
@@ -114,7 +113,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             };
         },
         [
-            searchName,
+            hash,
             getOverflowMenu,
             shouldShowSavedSearchTooltip,
             hideSavedSearchTooltip,
@@ -155,11 +154,26 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const savedSearchesMenuItems = useMemo(() => {
+    const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {
+        let savedSearchFocused = false;
+
         if (!savedSearches) {
-            return [];
+            return {
+                isSavedSearchActive: false,
+                savedSearchesMenuItems: [],
+            };
         }
-        return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item, key, index));
+
+        const menuItems = Object.entries(savedSearches).map(([key, item], index) => {
+            const baseMenuItem = createSavedSearchMenuItem(item, key, index);
+            savedSearchFocused ||= !!baseMenuItem.focused;
+            return baseMenuItem;
+        });
+
+        return {
+            savedSearchesMenuItems: menuItems,
+            isSavedSearchActive: savedSearchFocused,
+        };
     }, [createSavedSearchMenuItem, savedSearches]);
 
     const renderSavedSearchesSection = useCallback(
@@ -180,7 +194,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active
-        if (searchName) {
+        if (isSavedSearchActive) {
             return -1;
         }
 
@@ -190,7 +204,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
             return searchQueryJSON?.hash === hash;
         });
-    }, [hash, searchName, typeMenuSections]);
+    }, [hash, isSavedSearchActive, typeMenuSections]);
 
     return (
         <ScrollView

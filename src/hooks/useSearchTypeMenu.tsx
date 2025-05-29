@@ -137,7 +137,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
                 savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
             }
 
-            const isItemFocused = searchName === item.name;
+            const isItemFocused = Number(key) === hash;
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, savedSearchTitle, isItemFocused);
 
             return {

@@ -32,7 +32,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     const route = state.routes.at(-1);
     const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
-    const searchName = params?.name;
     const {lastSearchType, setLastSearchType} = useSearchContext();
 
     const queryJSON = useMemo(() => {
@@ -73,10 +72,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                     shouldDisplaySearch={false}
                     shouldDisplayHelpButton={false}
                 />
-                <SearchTypeMenu
-                    searchName={searchName}
-                    queryJSON={queryJSON}
-                />
+                <SearchTypeMenu queryJSON={queryJSON} />
             </View>
             <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>
