@@ -28,6 +28,7 @@ import TextWithCopy from '@components/TextWithCopy';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
@@ -141,6 +142,7 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseTrackFlows} = usePermissions();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
@@ -406,26 +408,28 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SUBMIT, actionableWhisperReportActionID);
                 },
             });
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
-                translationKey: 'actionableMentionTrackExpense.categorize',
-                icon: Expensicons.Folder,
-                isAnonymousAction: false,
-                shouldShowRightIcon: true,
-                action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.CATEGORIZE, actionableWhisperReportActionID);
-                },
-            });
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SHARE,
-                translationKey: 'actionableMentionTrackExpense.share',
-                icon: Expensicons.UserPlus,
-                isAnonymousAction: false,
-                shouldShowRightIcon: true,
-                action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SHARE, actionableWhisperReportActionID);
-                },
-            });
+            if (canUseTrackFlows) {
+                items.push({
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
+                    translationKey: 'actionableMentionTrackExpense.categorize',
+                    icon: Expensicons.Folder,
+                    isAnonymousAction: false,
+                    shouldShowRightIcon: true,
+                    action: () => {
+                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.CATEGORIZE, actionableWhisperReportActionID);
+                    },
+                });
+                items.push({
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SHARE,
+                    translationKey: 'actionableMentionTrackExpense.share',
+                    icon: Expensicons.UserPlus,
+                    isAnonymousAction: false,
+                    shouldShowRightIcon: true,
+                    action: () => {
+                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SHARE, actionableWhisperReportActionID);
+                    },
+                });
+            }
         }
 
         // Prevent displaying private notes option for threads and task reports
@@ -534,6 +538,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
+        canUseTrackFlows,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {

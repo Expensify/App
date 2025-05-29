@@ -82,6 +82,10 @@ function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
 }
 
+function canUseTrackFlows(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.TRACK_FLOWS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -101,4 +105,5 @@ export default {
     canUseMultiFilesDragAndDrop,
     canUseMultiScan,
     canUsePlaidCompanyCards,
+    canUseTrackFlows,
 };
