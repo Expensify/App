@@ -52,7 +52,7 @@ function HybridAppHandler({url, hybridAppSettings}: AppProps) {
     const parsedHybridAppSettings = parseHybridAppSettings(hybridAppSettings);
     setupNewDotAfterTransitionFromOldDot(parsedHybridAppSettings, tryNewDot).then(() => {
         handleHybridUrlNavigation(url);
-        setSplashScreenState(parsedHybridAppSettings.hybridApp?.loggedOutFromOldDot ? CONST.BOOT_SPLASH_STATE.HIDDEN : CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN); // }
+        setSplashScreenState(parsedHybridAppSettings.hybridApp?.loggedOutFromOldDot ? CONST.BOOT_SPLASH_STATE.HIDDEN : CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
         setSignInHandled(true);
     });
 
