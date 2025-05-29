@@ -51,9 +51,30 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
+    const selectedReportID = useMemo(() => {
+        if (transactionsReports.length > 1) {
+            const firstReport = transactionsReports.at(0);
+            return transactionsReports.every((report) => report.reportID === firstReport?.reportID) ? firstReport?.reportID : undefined;
+        }
+
+        const report = transactionsReports.at(0);
+        const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
+        return isPolicyExpenseChat ? report?.iouReportID : report?.reportID;
+
+    }, [transactionsReports]);
+
     const expenseReports = useMemo(
-        () =>
-            Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
+        () => {
+            if (selectedReportID) {
+                return getOutstandingReportsForUser(
+                    transactionsReports.at(0)?.policyID,
+                    transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
+                    allReports ?? {},
+                    reportNameValuePairs,
+                );
+            }
+
+            return Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
                 if (!policyID) {
                     return [];
                 }
@@ -64,23 +85,14 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                     reportNameValuePairs,
                 );
                 return reports;
-            }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
+            });
+        },
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, selectedReportID],
     );
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
-        }
-
-        let selectedReportID;
-        if (transactionsReports.length === 1) {
-            const report = transactionsReports.at(0);
-            const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
-            selectedReportID = isPolicyExpenseChat ? report?.iouReportID : report?.reportID;
-        } else {
-            const firstReport = transactionsReports.at(0);
-            selectedReportID = transactionsReports.every((report) => report.reportID === firstReport?.reportID) ? firstReport?.reportID : undefined;
         }
 
         return expenseReports
@@ -93,7 +105,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 keyForList: report.reportID,
                 isSelected: report.reportID === selectedReportID,
             }));
-    }, [allReports, debouncedSearchValue, expenseReports, transactionsReports]);
+    }, [allReports, debouncedSearchValue, expenseReports, selectedReportID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
