@@ -1,3 +1,5 @@
+import type JSZip from 'jszip';
+import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import {Alert} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
@@ -34,8 +36,6 @@ type File = {
 type BaseRecordTroubleshootDataToolMenuProps = {
     /** Locally created file */
     file?: File;
-    /** Action to run when pressing Share button */
-    onShareLogs?: () => void;
     /** Action to run when disabling the switch */
     onDisableLogging: (logs: OnyxLog[]) => void;
     /** Action to run when enabling logging */
@@ -48,6 +48,10 @@ type BaseRecordTroubleshootDataToolMenuProps = {
     displayPath2: string;
     /** Whether to show the share button */
     showShareButton?: boolean;
+    /** Zip ref */
+    zipRef: MutableRefObject<InstanceType<typeof JSZip>>;
+    /** A method to download the zip archive */
+    onDownloadZip: () => void;
 };
 
 function formatBytes(bytes: number, decimals = 2) {
@@ -69,13 +73,14 @@ const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
 
 function BaseRecordTroubleshootDataToolMenu({
     file,
-    onShareLogs,
     onDisableLogging,
     onEnableLogging,
     displayPath,
     showShareButton = false,
     pathToBeUsed,
     displayPath2,
+    zipRef,
+    onDownloadZip,
 }: BaseRecordTroubleshootDataToolMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -116,6 +121,20 @@ function BaseRecordTroubleshootDataToolMenu({
         };
     }, [isProfilingInProgress, stop]);
 
+    const getAppInfo = useCallback(
+        () =>
+            JSON.stringify({
+                appVersion: pkg.version,
+                environment: CONFIG.ENVIRONMENT,
+                platform: getPlatform(),
+                totalMemory: formatBytes(totalMemory, 2),
+                usedMemory: formatBytes(usedMemory, 2),
+                memoizeStats,
+                performance: Performance.getPerformanceMeasures(),
+            }),
+        [memoizeStats, totalMemory, usedMemory],
+    );
+
     const onToggle = () => {
         onToggleProfiling();
         if (!shouldRecordTroubleshootData) {
@@ -139,24 +158,13 @@ function BaseRecordTroubleshootDataToolMenu({
         const logs = Object.values(capturedLogs);
         const logsWithParsedMessages = parseStringifiedMessages(logs);
 
+        const infoFileName = `App_Info_${pkg.version}.json`;
+        zipRef.current.file(infoFileName, getAppInfo());
+
         onDisableLogging(logsWithParsedMessages);
         Console.disableLoggingAndFlushLogs();
         Troubleshoot.setShouldRecordTroubleshootData(false);
     };
-
-    const getAppInfo = useCallback(
-        () =>
-            JSON.stringify({
-                appVersion: pkg.version,
-                environment: CONFIG.ENVIRONMENT,
-                platform: getPlatform(),
-                totalMemory: formatBytes(totalMemory, 2),
-                usedMemory: formatBytes(usedMemory, 2),
-                memoizeStats,
-                performance: Performance.getPerformanceMeasures(),
-            }),
-        [memoizeStats, totalMemory, usedMemory],
-    );
 
     useEffect(() => {
         if (!filePath) {
@@ -202,8 +210,6 @@ function BaseRecordTroubleshootDataToolMenu({
                 const infoFilePath = `${RNFS.DocumentDirectoryPath}/${infoFileName}`;
                 const actualInfoFile = `file://${infoFilePath}`;
 
-                await RNFS.writeFile(infoFilePath, getAppInfo(), 'utf8');
-
                 const shareOptions = {
                     urls: [`file://${sharePath}`, actualInfoFile],
                 };
@@ -214,7 +220,7 @@ function BaseRecordTroubleshootDataToolMenu({
             }
         };
         shareFiles();
-    }, [getAppInfo, sharePath]);
+    }, [sharePath]);
 
     return (
         <>
@@ -226,6 +232,18 @@ function BaseRecordTroubleshootDataToolMenu({
                 />
             </TestToolRow>
             {!!file && (
+                <>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
+                    <TestToolRow title="Download troubleshoot data">
+                        <Button
+                            small
+                            text={translate('common.share')}
+                            onPress={onDownloadZip}
+                        />
+                    </TestToolRow>
+                </>
+            )}
+            {/* {!!file && (
                 <>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.debugConsole.logs')}>
@@ -248,7 +266,7 @@ function BaseRecordTroubleshootDataToolMenu({
                         />
                     </TestToolRow>
                 </>
-            )}
+            )} */}
         </>
     );
 }
