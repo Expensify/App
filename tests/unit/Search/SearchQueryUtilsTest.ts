@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
+import {SearchQueryJSON} from '@components/Search/types';
 import CONST from '@src/CONST';
-import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 const personalDetailsFakeData = {
@@ -121,6 +122,18 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('sortBy:date sortOrder:desc type:expense status:all category:services,consulting currency:USD,EUR');
         });
 
+        test('has empty category values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: 'all',
+                category: ['equipment', 'consulting', 'none,Uncategorized'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense status:all category:equipment,consulting,none,Uncategorized');
+        });
+
         test('empty filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {};
 
@@ -157,6 +170,67 @@ describe('SearchQueryUtils', () => {
                 'sortBy:date sortOrder:desc type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com category:finance,insurance date<2025-03-10 date>2025-03-01 amount>1 amount<1000',
             );
             expect(result).not.toMatch(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+        });
+    });
+
+    describe('buildFilterFormValuesFromQuery', () => {
+        test('category filter includes empty values', () => {
+            const queryJSON: SearchQueryJSON = {
+                filters: {
+                    left: 'category',
+                    operator: 'eq',
+                    right: ['none', 'Uncategorized', 'Maintenance'],
+                },
+                flatFilters: [
+                    {
+                        filters: [
+                            {operator: 'eq', value: 'none'},
+                            {operator: 'eq', value: 'Uncategorized'},
+                            {operator: 'eq', value: 'Maintenance'},
+                        ],
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    },
+                ],
+                hash: 123456789,
+                inputQuery: 'sortBy:date sortOrder:desc type:expense status:all category:none,Uncategorized,Maintenance',
+                recentSearchHash: 987654321,
+                sortBy: 'date',
+                sortOrder: 'desc',
+                status: 'all',
+                type: 'expense',
+            };
+
+            const policyCategories = {
+                ['policyCategories_testPolicy']: {
+                    Maintenance: {
+                        enabled: true,
+                        name: 'Maintenance',
+                    },
+                    Travel: {
+                        enabled: true,
+                        name: 'Travel',
+                    },
+                    Meals: {
+                        enabled: true,
+                        name: 'Meals',
+                    },
+                },
+            };
+
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: 'all',
+                category: ['Maintenance', 'none,Uncategorized'],
+            });
         });
     });
 
