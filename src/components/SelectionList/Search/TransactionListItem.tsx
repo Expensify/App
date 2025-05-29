@@ -62,21 +62,24 @@ function TransactionListItem<TItem extends ListItem>({
         return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [transactionItem]);
 
-    const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
-
-    const columns = [
-        COLUMNS.RECEIPT,
-        COLUMNS.TYPE,
-        COLUMNS.DATE,
-        COLUMNS.MERCHANT,
-        COLUMNS.FROM,
-        COLUMNS.TO,
-        ...(transactionItem?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
-        ...(transactionItem?.shouldShowTag ? [COLUMNS.TAG] : []),
-        ...(transactionItem?.shouldShowTax ? [COLUMNS.TAX] : []),
-        COLUMNS.TOTAL_AMOUNT,
-        COLUMNS.ACTION,
-    ] as Array<ValueOf<typeof COLUMNS>>;
+    const columns = useMemo(
+        () =>
+            [
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO,
+                ...(transactionItem?.shouldShowCategory ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] : []),
+                ...(transactionItem?.shouldShowTag ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] : []),
+                ...(transactionItem?.shouldShowTax ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX] : []),
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
+            ] as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>,
+        [transactionItem?.shouldShowCategory, transactionItem?.shouldShowTag, transactionItem?.shouldShowTax],
+    );
 
     return (
         <BaseListItem
@@ -105,6 +108,7 @@ function TransactionListItem<TItem extends ListItem>({
                             handleActionButtonPress={() => {
                                 handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
                             }}
+                            shouldShowUserInfo={!!transactionItem?.from}
                         />
                     )}
                     <TransactionItemRow

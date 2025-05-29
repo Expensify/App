@@ -130,7 +130,6 @@ function ReportListItem<TItem extends ListItem>({
                     <ReportListItemHeader
                         report={reportItem}
                         policy={policy}
-                        item={item}
                         onSelectRow={onSelectRow}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
