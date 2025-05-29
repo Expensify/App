@@ -36,6 +36,10 @@ const PUBLIC_SCREENS_ROUTES = {
 
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
+
+    // Sign out route - requires authentication
+    SIGN_OUT: 'sign-out',
+
     // This route renders the list of reports.
     HOME: 'home',
 
