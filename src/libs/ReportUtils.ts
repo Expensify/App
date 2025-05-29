@@ -11283,7 +11283,6 @@ export {
     findReportIDForAction,
     isWorkspaceEligibleForReportChange,
     pushTransactionViolationsOnyxData,
-    getReportAttributes,
     navigateOnDeleteExpense,
 };
 
