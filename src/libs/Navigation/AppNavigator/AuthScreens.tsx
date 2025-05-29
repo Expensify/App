@@ -102,6 +102,7 @@ const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/
 const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
+const loadSignOutPage = () => require<ReactComponentModule>('../../../pages/SignOutPage').default;
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
@@ -759,6 +760,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.BANK_CONNECTION_COMPLETE}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.SIGN_OUT}
+                    options={rootNavigatorScreenOptions.fullScreen}
+                    getComponent={loadSignOutPage}
                 />
             </RootStack.Navigator>
             <SearchRouterModal />
