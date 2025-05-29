@@ -44,7 +44,7 @@ jobs:
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          fetch-depth: ${{ max(1, fromJson(steps.count.outputs.count)) }}
+          fetch-depth: ${{ fromJSON(steps.count.outputs.count) > 0 && steps.count.outputs.count || '1' }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
