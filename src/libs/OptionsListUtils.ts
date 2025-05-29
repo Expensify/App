@@ -931,6 +931,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         result.keyForList = String(report.reportID);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
+        result.policyName = getPolicyName({report, returnEmptyIfNotFound: true});
         result.isSelfDM = reportUtilsIsSelfDM(report);
         result.notificationPreference = getReportNotificationPreference(report);
         result.lastVisibleActionCreated = report.lastVisibleActionCreated;

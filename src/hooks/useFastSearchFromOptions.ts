@@ -30,7 +30,7 @@ const recentReportToSearchString = (option: OptionData) => {
     } else if (option.isChatRoom) {
         searchStringForTree.push(option.subtitle ?? '');
     } else if (option.isPolicyExpenseChat) {
-        searchStringForTree.push(...[option.subtitle ?? '', option.alternateText ?? '', option.policyName ?? '']);
+        searchStringForTree.push(...[option.subtitle ?? '', option.policyName ?? '']);
     }
 
     return deburr(searchStringForTree.join());
