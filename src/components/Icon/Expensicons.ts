@@ -6,6 +6,7 @@ import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
+import ArrowSplit from '@assets/images/arrow-split.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
@@ -239,6 +240,7 @@ export {
     AnnounceRoomAvatar,
     Apple,
     AppleLogo,
+    ArrowSplit,
     ArrowCollapse,
     ArrowRight,
     ArrowRightLong,

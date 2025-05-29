@@ -87,6 +87,14 @@ function removeDraftTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
+function removeDraftSplitTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
 function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
     const draftTransactions = getDraftTransactions();
     const draftTransactionsSet = draftTransactions.reduce((acc, item) => {
@@ -114,4 +122,5 @@ export {
     removeDraftTransaction,
     removeTransactionReceipt,
     removeDraftTransactions,
+    removeDraftSplitTransaction,
 };
