@@ -4597,7 +4597,7 @@ function clearDeleteTransactionNavigateBackUrl() {
     Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
 }
 
-/** Deletes a report and unreports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
+/** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
 function deleteAppReport(reportID: string | undefined) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
@@ -4779,7 +4779,7 @@ function deleteAppReport(reportID: string | undefined) {
             },
         );
 
-        // 4. Add UNREPORTEDTRANSACTION report action
+        // 4. Add UNREPORTED_TRANSACTION report action
         const unreportedAction = buildOptimisticUnreportedTransactionAction(childReportID, reportID);
 
         optimisticData.push({

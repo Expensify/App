@@ -105,7 +105,7 @@ function WorkspaceHubInitialPage() {
     );
 
     /**
-     * Retuns a list of menu items data for workspace section
+     * Returns a list of menu items data for workspace section
      * @returns object with translationKey, style and items for the workspace section
      */
     const workspaceMenuItemsData: MenuData[] = useMemo(() => {
@@ -145,7 +145,7 @@ function WorkspaceHubInitialPage() {
     }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, subscriptionPlan]);
 
     /**
-     * Retuns JSX.Element with menu items
+     * Returns JSX.Element with menu items
      * @param menuItemsData list with menu items data
      * @returns the menu items for passed data
      */
@@ -226,7 +226,7 @@ function WorkspaceHubInitialPage() {
 
     const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
         (e) => {
-            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
             // We should ignore this case.
             if (e.nativeEvent.layoutMeasurement.height === 0) {
                 return;
