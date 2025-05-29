@@ -959,6 +959,7 @@ function IOURequestStepScan({
                                 receiptImageTopPosition={receiptImageTopPosition}
                             />
                         )}
+                        {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
                         {!isMobile() && <DownloadAppBanner />}
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}

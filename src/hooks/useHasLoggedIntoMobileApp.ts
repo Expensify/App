@@ -1,6 +1,10 @@
 import {useOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+/**
+ * Returns whether the user has ever logged into one of the Expensify mobile apps (iOS or Android),
+ * along with a flag indicating if the login data has finished loading.
+ */
 const useHasLoggedIntoMobileApp = () => {
     const [lastECashIOSLogin, lastECashIOSLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN, {canBeMissing: true});
     const [lastECashAndroidLogin, lastECashAndroidLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN, {canBeMissing: true});
