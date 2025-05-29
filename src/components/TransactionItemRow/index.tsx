@@ -5,6 +5,7 @@ import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionList/Search/ActionCell';
 import DateCell from '@components/SelectionList/Search/DateCell';
@@ -15,7 +16,7 @@ import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMerchant, getCreated as getTransactionCreated, isPartialMerchant} from '@libs/TransactionUtils';
+import {getMerchant, getCreated as getTransactionCreated, getTransactionPendingAction, isPartialMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
@@ -84,6 +85,7 @@ function TransactionItemRow({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const pendingAction = getTransactionPendingAction(transactionItem);
     const viewRef = useRef<View>(null);
 
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
@@ -249,7 +251,10 @@ function TransactionItemRow({
             onMouseEnter={bindHover.onMouseEnter}
             ref={viewRef}
         >
-            {shouldUseNarrowLayout ? (
+            <OfflineWithFeedback
+                pendingAction={pendingAction}
+                shouldForceOpacity={!!pendingAction}
+            >{shouldUseNarrowLayout ? (
                 <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
                     <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
                         <View style={[styles.flexRow]}>
@@ -356,7 +361,7 @@ function TransactionItemRow({
                         <TransactionItemRowRBR transaction={transactionItem} />
                     </View>
                 </Animated.View>
-            )}
+            )}</OfflineWithFeedback>
         </View>
     );
 }
