@@ -4,9 +4,9 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -52,7 +52,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
                         return null;
                     }
 
-                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+                    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                     const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                     const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
 
@@ -80,7 +80,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         const filteredApprovers =
             debouncedSearchTerm !== ''
                 ? approvers.filter((option) => {
-                      const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+                      const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
                       const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                       return isPartOfSearchTerm;
                   })
@@ -89,7 +89,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         return [
             {
                 title: undefined,
-                data: OptionsListUtils.sortAlphabetically(filteredApprovers, 'text'),
+                data: sortAlphabetically(filteredApprovers, 'text'),
                 shouldShow: true,
             },
         ];
@@ -112,7 +112,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             onSelectRow={handleOnSelectRow}
             showScrollIndicator
             showLoadingPlaceholder={!didScreenTransitionEnd}
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             addBottomSafeAreaPadding
         />
     );
