@@ -686,28 +686,11 @@ type CurrencyInputDisabledTextParams = {
     currency: string;
 };
 
-type SplitExpenseSubtitleParams = {
-    amount: string;
-    merchant: string;
-};
-
-type SplitExpenseEditTitleParams = {
-    amount: string;
-    merchant: string;
-};
-
-type TotalAmountGreaterOrLessThanOriginalParams = {
-    amount: string;
-};
-
 type EmployeeInviteMessageParams = {
     name: string;
 };
 
 export type {
-    SplitExpenseEditTitleParams,
-    SplitExpenseSubtitleParams,
-    TotalAmountGreaterOrLessThanOriginalParams,
     AuthenticationErrorParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportedTagsMessageParams,
