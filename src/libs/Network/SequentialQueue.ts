@@ -47,6 +47,7 @@ resolveIsReadyPromise?.();
 
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
+let currentRequestCommand: string | null = null;
 let isQueuePaused = false;
 const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
@@ -135,8 +136,12 @@ function process(): Promise<void> {
     const requestToProcess = processNextPersistedRequest();
     if (!requestToProcess) {
         Log.info('[SequentialQueue] Unable to process. No next request to handle.');
+        currentRequestCommand = null;
         return Promise.resolve();
     }
+
+    // Track the current request command
+    currentRequestCommand = requestToProcess.command;
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
@@ -157,6 +162,7 @@ function process(): Promise<void> {
             }
 
             sequentialQueueRequestThrottle.clear();
+            currentRequestCommand = null;
             return process();
         })
         .catch((error: RequestError) => {
@@ -169,6 +175,7 @@ function process(): Promise<void> {
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
+                currentRequestCommand = null;
                 return process();
             }
             rollbackOngoingPersistedRequest();
@@ -180,6 +187,7 @@ function process(): Promise<void> {
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
+                    currentRequestCommand = null;
                     return process();
                 });
         });
@@ -349,6 +357,13 @@ function getCurrentRequest(): Promise<void> {
 }
 
 /**
+ * Returns the command of the currently processing request
+ */
+function getCurrentRequestCommand(): string | null {
+    return currentRequestCommand;
+}
+
+/**
  * Returns a promise that resolves when the sequential queue is done processing all persisted write requests.
  */
 function waitForIdle(): Promise<unknown> {
@@ -362,6 +377,7 @@ function waitForIdle(): Promise<unknown> {
 function resetQueue(): void {
     isSequentialQueueRunning = false;
     currentRequestPromise = null;
+    currentRequestCommand = null;
     isQueuePaused = false;
     isReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
@@ -372,6 +388,7 @@ function resetQueue(): void {
 export {
     flush,
     getCurrentRequest,
+    getCurrentRequestCommand,
     isPaused,
     isRunning,
     pause,
