@@ -27,8 +27,9 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
+import {getTransactionPendingAction} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -113,7 +114,8 @@ function MoneyRequestReportTransactionList({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
 
@@ -121,6 +123,11 @@ function MoneyRequestReportTransactionList({
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
+
+    const pendingActionsOpacity = useMemo(() => {
+        const pendingAction = transactions.some(getTransactionPendingAction);
+        return pendingAction && styles.opacitySemiTransparent;
+    }, [styles.opacitySemiTransparent, transactions]);
 
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
@@ -221,12 +228,14 @@ function MoneyRequestReportTransactionList({
 
                                 setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                             }}
+                            isIOUReport={isIOUReport(report)}
                         />
                     )}
                 </View>
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                 {sortedTransactions.map((transaction) => {
+                    const isPendingDelete = getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                     return (
                         <PressableWithFeedback
                             key={transaction.transactionID}
@@ -249,12 +258,13 @@ function MoneyRequestReportTransactionList({
                             hoverDimmingValue={1}
                             onMouseDown={(e) => e.preventDefault()}
                             id={transaction.transactionID}
-                            style={[pressableStyle]}
+                            style={[pressableStyle, styles.userSelectNone]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             onMouseLeave={handleMouseLeave}
                             onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
                             onLongPress={() => {
-                                if (!shouldUseNarrowLayout) {
+                                if (!isSmallScreenWidth) {
                                     return;
                                 }
                                 if (selectionMode?.isEnabled) {
@@ -264,6 +274,7 @@ function MoneyRequestReportTransactionList({
                                 setSelectedTransactionID(transaction.transactionID);
                                 setIsModalVisible(true);
                             }}
+                            disabled={isPendingDelete}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
@@ -271,7 +282,7 @@ function MoneyRequestReportTransactionList({
                                 dateColumnSize={dateColumnSize}
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                                shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}
+                                shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
                                 onCheckboxPress={toggleTransaction}
                                 columns={allReportColumns}
                                 scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
@@ -313,7 +324,7 @@ function MoneyRequestReportTransactionList({
                 </Animated.Text>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
-                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold]}>
+                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, pendingActionsOpacity]}>
                         {convertToDisplayString(totalDisplaySpend, report?.currency)}
                     </Text>
                 </View>
