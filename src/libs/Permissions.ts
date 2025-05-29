@@ -31,6 +31,10 @@ function canUseMultiLevelTags(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.MULTI_LEVEL_TAGS) || canUseAllBetas(betas);
 }
 
+function canUseNewDotSplits(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_SPLITS) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
