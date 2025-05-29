@@ -36,6 +36,7 @@ import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
 import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcierge, getReportRecipientAccountIDs} from '@libs/ReportUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
@@ -569,6 +570,7 @@ function ReportActionCompose({
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
+                        <AgentZeroProcessingRequestIndicator reportID={reportID} />
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}
