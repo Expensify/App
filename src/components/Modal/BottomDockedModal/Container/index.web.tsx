@@ -16,7 +16,6 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
         onCloseCallbackRef.current = onCloseCallBack;
     }, [onCloseCallBack]);
 
-
     useEffect(() => {
         if (isInitiated.get()) {
             return;
