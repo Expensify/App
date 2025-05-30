@@ -187,10 +187,74 @@ function ensureSingleSpacing(text: string) {
     return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
 }
 
-/**
- * @returns An array of reportIDs sorted in the proper order
- */
-function getOrderedReportIDs(
+function shouldDisplayReportInLHN(
+    report: Report,
+    currentReportId: string | undefined,
+    isInFocusMode: boolean,
+    betas: OnyxEntry<Beta[]>,
+    policies: OnyxCollection<PartialPolicyForSidebar>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+) {
+    if (!report) {
+        return {shouldDisplay: false};
+    }
+
+    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+        return {shouldDisplay: false};
+    }
+
+    // Get report metadata and status
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const isHidden = isHiddenForCurrentUser(report);
+    const isFocused = report.reportID === currentReportId;
+    const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations, reportAttributes);
+    const isReportInAccessible = report?.errorFields?.notFound;
+
+    // Check for transaction thread
+    if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
+        return {shouldDisplay: false};
+    }
+
+    // Handle reports with errors
+    if (hasErrorsOtherThanFailedReceipt && !isReportInAccessible) {
+        return {shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true};
+    }
+
+    // Check if report should override hidden status
+    const isSystemChat = isSystemChatUtil(report);
+    const shouldOverrideHidden =
+        hasValidDraftComment(report.reportID) ||
+        hasErrorsOtherThanFailedReceipt ||
+        isFocused ||
+        isSystemChat ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        report.isPinned ||
+        (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
+        reportAttributes?.[report?.reportID]?.requiresAttention;
+
+    if (isHidden && !shouldOverrideHidden) {
+        return {shouldDisplay: false};
+    }
+
+    // Final check for display eligibility
+    const shouldDisplay = shouldReportBeInOptionList({
+        report,
+        currentReportId,
+        isInFocusMode,
+        betas,
+        policies: policies as OnyxCollection<Policy>,
+        excludeEmptyChats: true,
+        doesReportHaveViolations,
+        includeSelfDM: true,
+    });
+
+    return {shouldDisplay};
+}
+
+function getReportsToDisplayInLHN(
     currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
@@ -199,65 +263,82 @@ function getOrderedReportIDs(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+) {
+    const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    const allReportsDictValues = reports ?? {};
+    const reportsToDisplay: OnyxCollection<Report & {hasErrorsOtherThanFailedReceipt?: boolean}> = {};
+
+    Object.entries(allReportsDictValues).forEach(([reportID, report]) => {
+        const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
+            report,
+            currentReportId,
+            isInFocusMode,
+            betas,
+            policies,
+            transactionViolations,
+            reportNameValuePairs,
+            reportAttributes,
+        );
+
+        if (shouldDisplay) {
+            reportsToDisplay[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
+        }
+    });
+
+    return reportsToDisplay;
+}
+
+function updateReportsToDisplayInLHN(
+    displayedReports: OnyxCollection<Report>,
+    reports: OnyxCollection<Report>,
+    updatedReportsKeys: string[],
+    currentReportId: string | undefined,
+    isInFocusMode: boolean,
+    betas: OnyxEntry<Beta[]>,
+    policies: OnyxCollection<PartialPolicyForSidebar>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+) {
+    const displayedReportsCopy = {...displayedReports};
+    updatedReportsKeys.forEach((reportID) => {
+        const report = reports?.[reportID];
+        if (!report) {
+            return;
+        }
+        const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
+            report,
+            currentReportId,
+            isInFocusMode,
+            betas,
+            policies,
+            transactionViolations,
+            reportNameValuePairs,
+            reportAttributes,
+        );
+
+        if (shouldDisplay) {
+            displayedReportsCopy[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
+        } else {
+            delete displayedReportsCopy[reportID];
+        }
+    });
+
+    return displayedReportsCopy;
+}
+
+/**
+ * @returns An array of reportIDs sorted in the proper order
+ */
+function sortReportsToDisplayInLHN(
+    reportsToDisplay: Array<Report & {hasErrorsOtherThanFailedReceipt?: boolean}>,
+    priorityMode: OnyxEntry<PriorityMode>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
-    const allReportsDictValues = Object.values(reports ?? {});
-    // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay: Array<Report & {hasErrorsOtherThanFailedReceipt?: boolean}> = [];
-    allReportsDictValues.forEach((report) => {
-        if (!report) {
-            return;
-        }
-        if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
-            return;
-        }
-        const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const isHidden = isHiddenForCurrentUser(report);
-        const isFocused = report.reportID === currentReportId;
-        const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations, reportAttributes);
-        const isReportInAccessible = report?.errorFields?.notFound;
-        if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
-            return;
-        }
-        if (hasErrorsOtherThanFailedReceipt && !isReportInAccessible) {
-            reportsToDisplay.push({
-                ...report,
-                hasErrorsOtherThanFailedReceipt: true,
-            });
-            return;
-        }
-        const isSystemChat = isSystemChatUtil(report);
-        const shouldOverrideHidden =
-            hasValidDraftComment(report.reportID) ||
-            hasErrorsOtherThanFailedReceipt ||
-            isFocused ||
-            isSystemChat ||
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            report.isPinned ||
-            (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
-            reportAttributes?.[report?.reportID]?.requiresAttention;
-        if (isHidden && !shouldOverrideHidden) {
-            return;
-        }
-
-        if (
-            shouldReportBeInOptionList({
-                report,
-                currentReportId,
-                isInFocusMode,
-                betas,
-                policies: policies as OnyxCollection<Policy>,
-                excludeEmptyChats: true,
-                doesReportHaveViolations,
-                includeSelfDM: true,
-            })
-        ) {
-            reportsToDisplay.push(report);
-        }
-    });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
@@ -826,8 +907,10 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
 
 export default {
     getOptionData,
-    getOrderedReportIDs,
+    sortReportsToDisplayInLHN,
     getWelcomeMessage,
     getReasonAndReportActionThatHasRedBrickRoad,
     shouldShowRedBrickRoad,
+    getReportsToDisplayInLHN,
+    updateReportsToDisplayInLHN,
 };

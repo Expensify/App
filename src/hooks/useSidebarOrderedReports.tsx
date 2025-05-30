@@ -1,5 +1,5 @@
-import React, {createContext, useCallback, useContext, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -51,14 +51,16 @@ function SidebarOrderedReportsContextProvider({
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
-    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
     const draftAmount = Object.keys(reportsDrafts ?? {}).length;
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [reportsToDisplayInLHN, setReportsToDisplayInLHN] = useState<OnyxCollection<Report>>([]);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -67,16 +69,56 @@ function SidebarOrderedReportsContextProvider({
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
 
+    useEffect(() => {
+        // if reportsToDisplayInLHN is already set, we don't need to re-calculate entirely
+        if (Object.keys(reportsToDisplayInLHN ?? {}).length > 0) {
+            return;
+        }
+        const reports = SidebarUtils.getReportsToDisplayInLHN(
+            derivedCurrentReportID,
+            chatReports,
+            betas,
+            policies,
+            priorityMode,
+            transactionViolations,
+            reportNameValuePairs,
+            reportAttributes,
+        );
+        setReportsToDisplayInLHN(reports);
+    }, [chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes, derivedCurrentReportID, reportsToDisplayInLHN]);
+
+    useEffect(() => {
+        let reportsToUpdate = [];
+        if (reportUpdates) {
+            reportsToUpdate = Object.keys(reportUpdates ?? {});
+        } else if (reportNameValuePairsUpdates) {
+            reportsToUpdate = Object.keys(reportNameValuePairsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT));
+        } else if (transactionsUpdates) {
+            reportsToUpdate = Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+        }
+
+        const updatedReportsToDisplayInLHN = SidebarUtils.updateReportsToDisplayInLHN(
+            reportsToDisplayInLHN,
+            chatReports,
+            reportsToUpdate,
+            derivedCurrentReportID,
+            false,
+            betas,
+            policies,
+            transactionViolations,
+            reportNameValuePairs,
+            reportAttributes,
+        );
+        setReportsToDisplayInLHN(updatedReportsToDisplayInLHN);
+    }, [reportUpdates, reportNameValuePairsUpdates, transactionsUpdates]);
+
     const getOrderedReportIDs = useCallback(
-        (currentReportID?: string) =>
-            SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes),
-        // we need reports draft in deps array to reload the list when a draft is added or removed
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [chatReports, betas, policies, priorityMode, transactionViolations, draftAmount, reportNameValuePairs, reportAttributes],
+        () => SidebarUtils.sortReportsToDisplayInLHN(Object.values(reportsToDisplayInLHN), priorityMode, reportNameValuePairs, reportAttributes),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [reportsToDisplayInLHN, priorityMode, reportNameValuePairs, reportAttributes, draftAmount],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
-
     // Get the actual reports based on the ordered IDs
     const getOrderedReports = useCallback(
         (reportIDs: string[]): OnyxTypes.Report[] => {
@@ -107,7 +149,7 @@ function SidebarOrderedReportsContextProvider({
             derivedCurrentReportID !== '-1' &&
             orderedReportIDs.indexOf(derivedCurrentReportID) === -1
         ) {
-            const updatedReportIDs = getOrderedReportIDs(derivedCurrentReportID);
+            const updatedReportIDs = getOrderedReportIDs();
             const updatedReports = getOrderedReports(updatedReportIDs);
             return {
                 orderedReports: updatedReports,
