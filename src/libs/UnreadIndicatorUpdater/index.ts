@@ -7,7 +7,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions} from '@src/types/onyx';
+import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
@@ -16,6 +16,15 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+
+let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportNameValuePairs = value;
     },
 });
 
@@ -33,6 +42,8 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
         const notificationPreference = ReportUtils.getReportNotificationPreference(report);
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report?.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        const nameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+        const isReportArchived = ReportUtils.isArchivedReport(nameValuePairs);
         return (
             ReportUtils.isUnread(report, oneTransactionThreadReport) &&
             ReportUtils.shouldReportBeInOptionList({
@@ -43,6 +54,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
                 doesReportHaveViolations: false,
                 isInFocusMode: false,
                 excludeEmptyChats: false,
+                isReportArchived,
             }) &&
             /**
              * Chats with hidden preference remain invisible in the LHN and are not considered "unread."

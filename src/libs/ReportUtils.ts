@@ -2329,12 +2329,8 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(moneyRequestReport?.reportID);
-
-    if (!isMoneyRequestReport(moneyRequestReport) || isArchivedReport(reportNameValuePairs)) {
+function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
         return false;
     }
 
@@ -2361,7 +2357,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
  * - report is a non-settled IOU
  * - report is a draft
  */
-function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
+function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
@@ -2371,7 +2367,7 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    return canAddOrDeleteTransactions(moneyRequestReport);
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
 }
 
 /**
@@ -2380,8 +2376,8 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
  * - report is a non-settled IOU
  * - report is a non-approved IOU
  */
-function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
-    return canAddOrDeleteTransactions(moneyRequestReport);
+function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
 }
 
 /**
@@ -3354,6 +3350,7 @@ type ReasonAndReportActionThatRequiresAttention = {
 function getReasonAndReportActionThatRequiresAttention(
     optionOrReport: OnyxEntry<Report> | OptionData,
     parentReportAction?: OnyxEntry<ReportAction>,
+    isReportArchived = false,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -3368,9 +3365,7 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID)) || isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID))) {
+    if (isReportArchived) {
         return null;
     }
 
@@ -3440,8 +3435,8 @@ function getReasonAndReportActionThatRequiresAttention(
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
  */
-function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction?: OnyxEntry<ReportAction>) {
-    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, parentReportAction);
+function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction?: OnyxEntry<ReportAction>, isReportArchived = false) {
+    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, parentReportAction, isReportArchived);
 }
 
 /**
@@ -7843,6 +7838,7 @@ type ShouldReportBeInOptionListParams = {
     includeSelfDM?: boolean;
     login?: string;
     includeDomainEmail?: boolean;
+    isReportArchived?: boolean;
 };
 
 function reasonForReportToBeInOptionList({
@@ -7856,6 +7852,7 @@ function reasonForReportToBeInOptionList({
     includeSelfDM = false,
     login,
     includeDomainEmail = false,
+    isReportArchived = false,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -7874,9 +7871,7 @@ function reasonForReportToBeInOptionList({
             // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
             !isChatRoom(report) &&
             !isChatThread(report) &&
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
-            !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
+            !isReportArchived &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report) &&
             !isSelfDM(report) &&
@@ -7932,7 +7927,7 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
-    if (requiresAttentionFromCurrentUser(report)) {
+    if (requiresAttentionFromCurrentUser(report, undefined, isReportArchived)) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
 
@@ -10770,8 +10765,8 @@ function generateReportAttributes({
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report?.reportID, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
-    const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction);
-    const isReportArchived = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
+    const isReportArchived = !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
+    const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction, isReportArchived);
 
     return {
         doesReportHasViolations,
