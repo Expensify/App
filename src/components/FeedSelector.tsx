@@ -7,6 +7,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import * as Illustrations from './Icon/Illustrations';
+import Image from './Image';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 
@@ -28,9 +30,12 @@ type Props = {
 
     /** Whether the RBR indicator should be shown */
     shouldShowRBR?: boolean;
+
+    /** Image url for plaid bank account */
+    plaidUrl?: string | null;
 };
 
-function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false}: Props) {
+function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -40,12 +45,27 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
             accessibilityLabel={feedName ?? ''}
         >
-            <Icon
-                src={cardIcon}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
-                additionalStyles={styles.cardIcon}
-            />
+            {plaidUrl ? (
+                <View>
+                    <Image
+                        source={{uri: plaidUrl}}
+                        style={styles.plaidIconSmall}
+                        cachePolicy="memory-disk"
+                    />
+                    <Icon
+                        src={Illustrations.PlaidCompanyCardDetail}
+                        height={variables.cardIconHeight}
+                        width={variables.cardIconWidth}
+                    />
+                </View>
+            ) : (
+                <Icon
+                    src={cardIcon}
+                    height={variables.cardIconHeight}
+                    width={variables.cardIconWidth}
+                    additionalStyles={styles.cardIcon}
+                />
+            )}
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1]}>
                     <CaretWrapper style={styles.flex1}>

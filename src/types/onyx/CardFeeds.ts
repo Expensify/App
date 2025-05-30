@@ -40,6 +40,9 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Indicates the day when the statement period for this card ends */
     statementPeriodEndDay?: string;
+
+    /** Indicates the day when the statement period for this card ends */
+    plaidAccessToken?: string;
 }>;
 
 /** Direct card feed data */
@@ -61,6 +64,9 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether any actions are pending */
     pending?: boolean;
+
+    /** Indicates the day when the statement period for this card ends */
+    plaidAccessToken?: string;
 }>;
 
 /** Card feed data */
@@ -112,6 +118,15 @@ type AddNewCardFeedData = {
 
     /** Selected country */
     selectedCountry?: string;
+
+    /** Public token from Plaid connection */
+    publicToken?: string;
+
+    /** Bank from Plaid connection */
+    plaidConnectedBank?: string;
+
+    /** Bank name from Plaid connection */
+    plaidConnectedBankName?: string;
 };
 
 /** Issue new card flow steps */

@@ -4,6 +4,8 @@ import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Image from '@components/Image';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
@@ -18,7 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getFilteredCardList, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, getFilteredCardList, getPlaidInstitutionLink, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -44,6 +46,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [list] = useCardsList(policyID, feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
+    const plaidUrl = getPlaidInstitutionLink(feed);
+    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
@@ -92,7 +96,20 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         text: maskCardNumber(cardNumber, feed),
         alternateText: lastFourNumbersFromCardName(cardNumber),
         isSelected: cardSelected === encryptedCardNumber,
-        leftElement: (
+        leftElement: plaidUrl ? (
+            <View style={styles.mr3}>
+                <Image
+                    source={{uri: plaidUrl}}
+                    style={styles.plaidIconSmall}
+                    cachePolicy="memory-disk"
+                />
+                <Icon
+                    src={Illustrations.PlaidCompanyCardDetail}
+                    height={variables.cardIconHeight}
+                    width={variables.cardIconWidth}
+                />
+            </View>
+        ) : (
             <Icon
                 src={getCardFeedIcon(feed, illustrations)}
                 height={variables.cardIconHeight}
@@ -158,7 +175,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                                 {translate('workspace.companyCards.chooseCardFor', {
                                     assignee: assigneeDisplayName,
-                                    feed: getBankName(feed),
+                                    feed: plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed),
                                 })}
                             </Text>
                         </View>

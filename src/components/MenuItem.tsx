@@ -30,7 +30,9 @@ import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import * as Illustrations from './Icon/Illustrations';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
+import Image from './Image';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
 import type {PressableRef} from './Pressable/GenericPressable/types';
@@ -50,7 +52,7 @@ type IconProps = {
 };
 
 type AvatarProps = {
-    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE | typeof CONST.ICON_TYPE_PLAID;
 
     icon: AvatarSource | IconType[];
 };
@@ -372,6 +374,9 @@ type MenuItemBaseProps = {
 
     /** The value to copy on secondary interaction */
     copyValue?: string;
+
+    /** Plaid image for the bank */
+    plaidUrl?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -491,6 +496,7 @@ function MenuItem(
         pressableTestID,
         shouldTeleportPortalToModalLayer,
         copyValue,
+        plaidUrl,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -780,6 +786,20 @@ function MenuItem(
                                                                     size={avatarSize}
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
+                                                            )}
+                                                            {iconType === CONST.ICON_TYPE_PLAID && (
+                                                                <View>
+                                                                    <Image
+                                                                        source={{uri: plaidUrl}}
+                                                                        style={styles.plaidIconSmall}
+                                                                        cachePolicy="memory-disk"
+                                                                    />
+                                                                    <Icon
+                                                                        src={Illustrations.PlaidCompanyCardDetail}
+                                                                        height={variables.cardIconHeight}
+                                                                        width={variables.cardIconWidth}
+                                                                    />
+                                                                </View>
                                                             )}
                                                         </View>
                                                     )}
