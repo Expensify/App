@@ -1616,8 +1616,11 @@ function markAllMessagesAsRead() {
 
     const lastReadTime = DateUtils.getDBTimeWithSkew();
 
-    const optimisticUnreadReports: Record<string, Pick<Report, 'lastReadTime'>> = {};
-    const failureUnreadReports: Record<string, Pick<Report, 'lastReadTime'>> = {};
+    type PartialReport = {
+        lastReadTime: Report['lastReadTime'] | null,
+    };
+    const optimisticUnreadReports: Record<string, PartialReport> = {};
+    const failureUnreadReports: Record<string, PartialReport> = {};
     const reportIDList: string[] = [];
     Object.values(allReports ?? {}).forEach((report) => {
         if (!report) {
@@ -1635,7 +1638,7 @@ function markAllMessagesAsRead() {
 
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
         optimisticUnreadReports[reportKey] = {lastReadTime};
-        failureUnreadReports[reportKey] = {lastReadTime: report.lastReadTime};
+        failureUnreadReports[reportKey] = {lastReadTime: report.lastReadTime ?? null};
         reportIDList.push(report.reportID);
     });
 
