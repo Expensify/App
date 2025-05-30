@@ -1767,9 +1767,12 @@ const normalizedConfigs = Object.keys(config.screens)
         ),
     )
     .flat()
-    .reduce((acc, route) => {
-        acc[route.screen as Screen] = route;
-        return acc;
-    }, {} as Record<Screen, RouteConfig>);
+    .reduce(
+        (acc, route) => {
+            acc[route.screen as Screen] = route;
+            return acc;
+        },
+        {} as Record<Screen, RouteConfig>,
+    );
 
 export {normalizedConfigs, config};
