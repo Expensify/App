@@ -149,15 +149,8 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
 
-        const lastRouteOfTopmostFullScreenRoute = 'state' in topmostFullScreenRoute ? topmostFullScreenRoute.state?.routes.at(-1) : undefined;
-
-        if (lastRouteOfTopmostFullScreenRoute && lastRouteOfTopmostFullScreenRoute.name === SCREENS.WORKSPACE_HUB.WORKSPACES && shouldUseNarrowLayout) {
-            Navigation.goBack(ROUTES.WORKSPACE_HUB_INITIAL);
-            return;
-        }
-
         if (topmostFullScreenRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-            Navigation.goBack(ROUTES.WORKSPACE_HUB_INITIAL);
+            Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
             return;
         }
 
@@ -166,7 +159,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             const lastWorkspacesTabNavigatorRoute = state.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
             // If there is no settings or workspace navigator route, then we should open the settings navigator.
             if (!lastWorkspacesTabNavigatorRoute) {
-                Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
+                Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
                 return;
             }
 
@@ -193,23 +186,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 return;
             }
 
-            // If the path stored in the session storage leads to a settings screen, we just navigate to it on a wide layout.
-            // On a small screen, we want to go to the page containing the bottom tab bar (ROUTES.SETTINGS or ROUTES.SETTINGS_WORKSPACES) when changing tabs
-            if (workspacesTabState && !shouldUseNarrowLayout) {
-                const lastVisitedSettingsRoute = getLastVisitedTabPath(workspacesTabState);
-                if (lastVisitedSettingsRoute) {
-                    Navigation.navigate(lastVisitedSettingsRoute);
-                    return;
-                }
-            }
-            // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
-            if (workspacesTabState?.routes?.at(-1)?.name === SCREENS.WORKSPACE_HUB.WORKSPACES) {
-                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
-                return;
-            }
-
-            // Otherwise we should simply open the workspace hub navigator.
-            Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
+            Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
         });
     }, [shouldUseNarrowLayout]);
 
