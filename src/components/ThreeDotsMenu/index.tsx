@@ -156,6 +156,7 @@ function ThreeDotsMenu({
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
+                enableEdgeToEdgeBottomSafeAreaPadding
             />
         </>
     );
