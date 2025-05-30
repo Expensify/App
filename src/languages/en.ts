@@ -2941,8 +2941,8 @@ const translations = {
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
         },
         verifyCompany: {
-            title: 'Get started with travel today!',
-            message: `Please contact your Account manager or salesteam@expensify.com to get a demo of travel and have it enabled for your company.`,
+            title: 'We\'re reviewing your request...',
+            message: `We're doing a few checks on our end to verify your account is ready for Expensify Travel. We'll be in touch shortly!`,
         },
     },
     workspace: {
