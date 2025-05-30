@@ -725,17 +725,6 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         res.blob().then((blob) => {
             const file = new File([blob], 'testFile.csv', {type: blob.type || 'text/csv'});
 
-            // Trigger a download in the browser (only works on web)
-            if (Platform.OS === 'web') {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(file);
-                link.download = 'importedTags.csv';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-            }
-
             const parameters: ImportMultiLevelTagsParams = {
                 policyID,
                 isFirstLineHeader: spreadsheet?.containsHeader,
