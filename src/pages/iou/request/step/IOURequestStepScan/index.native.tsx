@@ -524,7 +524,7 @@ function IOURequestStepScan({
     /**
      * Converts HEIC image to JPEG using promises
      */
-    const convertHeicImageToPromise = (file: FileObject): Promise<FileObject> => {
+    const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
         return new Promise((resolve, reject) => {
             convertHeicImage(file, {
                 onStart: () => setIsLoaderVisible(true),
@@ -588,7 +588,7 @@ function IOURequestStepScan({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (originalFile.name?.toLowerCase().endsWith('.heic') || originalFile.name?.toLowerCase().endsWith('.heif'))
         ) {
-            convertHeicImageToPromise(originalFile)
+            convertHeicImageToJpegPromise(originalFile)
                 .then((convertedFile) => {
                     processFile(convertedFile);
                 })
