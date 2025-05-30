@@ -803,7 +803,6 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 
 function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -848,25 +847,23 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
         ],
     };
 
-    if (isMultiLevelTags) {
-        const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
-                    acc[key] = {
-                        ...acc[key],
-                        required,
-                    };
-                    return acc;
-                }, {}),
-            },
-        });
+    const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
+        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+        onyxMethod: Onyx.METHOD.MERGE,
+        value: {
+            ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                acc[key] = {
+                    ...acc[key],
+                    required,
+                };
+                return acc;
+            }, {}),
+        },
+    });
 
-        onyxData.optimisticData?.push(getUpdatedTagsData(requiresTag));
-        onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
-        onyxData.successData?.push(getUpdatedTagsData(requiresTag));
-    }
+    onyxData.optimisticData?.push(getUpdatedTagsData(requiresTag));
+    onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
+    onyxData.successData?.push(getUpdatedTagsData(requiresTag));
 
     const parameters = {
         policyID,

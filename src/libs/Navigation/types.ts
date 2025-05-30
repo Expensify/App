@@ -61,7 +61,6 @@ type SplitNavigatorSidebarScreen = keyof typeof SIDEBAR_TO_SPLIT;
 type SplitNavigatorParamList = {
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: ReportsSplitNavigatorParamList;
-    [NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR]: WorkspaceHubSplitNavigatorParamList;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
 };
 
@@ -339,14 +338,13 @@ type SettingsNavigatorParamList = {
         tagName: string;
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT]: {backTo?: Routes};
-    [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SIZE]: {
+    [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
     };
-    [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
-    [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
-    [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: undefined;
-    [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: undefined;
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
         policyID: string;
     };
@@ -1621,6 +1619,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
 };
@@ -1646,6 +1646,16 @@ type TravelNavigatorParamList = {
     };
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         domain: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
+        backTo?: Routes;
+    };
+    [SCREENS.TRAVEL.UPGRADE]: {
+        backTo?: Routes;
+    };
+    [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
+        backTo?: Routes;
     };
 };
 
@@ -1673,14 +1683,7 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
-};
-
-type WorkspaceHubSplitNavigatorParamList = {
-    [SCREENS.WORKSPACE_HUB.ROOT]: undefined;
-    [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
-        backTo?: Routes;
-    };
-    [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
 };
 
 type WorkspaceSplitNavigatorParamList = {
@@ -1914,11 +1917,13 @@ type AuthScreensParamList = SharedScreensParamList & {
         reportID: string;
         policyID?: string;
     };
+    [SCREENS.WORKSPACES_LIST]: {
+        backTo?: Routes;
+    };
     [SCREENS.NOT_FOUND]: undefined;
     [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
-    [NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceHubSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
@@ -1999,6 +2004,21 @@ type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: undefined;
 };
 
+type SplitExpenseParamList = {
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
+        reportID: string;
+        transactionID: string;
+        splitExpenseTransactionID?: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
+        reportID: string;
+        transactionID: string;
+        splitExpenseTransactionID: string;
+        backTo?: Routes;
+    };
+};
+
 type AddUnreportedExpensesParamList = {
     [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
         reportID: string;
@@ -2058,10 +2078,10 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
+type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST;
 
-// There are two split navigators which can be displayed when the Workspaces tab is selected
-type WorkspacesTabNavigatorName = typeof NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
+// There are two screens/navigators which can be displayed when the Workspaces tab is selected
+type WorkspacesTabNavigatorName = typeof SCREENS.WORKSPACES_LIST | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
@@ -2135,7 +2155,6 @@ export type {
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WelcomeVideoModalNavigatorParamList,
-    WorkspaceHubSplitNavigatorParamList,
     WorkspaceSplitNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
@@ -2145,6 +2164,7 @@ export type {
     TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
     TestDriveDemoNavigatorParamList,
+    SplitExpenseParamList,
     SetParamsAction,
     WorkspacesTabNavigatorName,
 };

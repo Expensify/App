@@ -106,6 +106,7 @@ function EmptyStateComponent({
                             <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.mhAuto]}>
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style}) => (
                                     <Button
+                                        key={buttonText}
                                         success={success}
                                         onPress={buttonAction}
                                         text={buttonText}

@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -156,7 +155,6 @@ function PolicyDistanceRatesPage({
                     `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                 )}`,
                 keyForList: value.customUnitRateID,
-                isSelected: selectedDistanceRates.includes(value.customUnitRateID) && canSelectMultiple,
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction:
                     value.pendingAction ??
@@ -176,7 +174,7 @@ function PolicyDistanceRatesPage({
                     />
                 ),
             })),
-        [customUnitRates, translate, customUnit, selectedDistanceRates, canSelectMultiple, policy?.pendingAction, updateDistanceRateEnabled],
+        [customUnitRates, translate, customUnit, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
     const filterRate = useCallback((rate: RateForList, searchInput: string) => {
@@ -266,6 +264,9 @@ function PolicyDistanceRatesPage({
     };
 
     const getCustomListHeader = () => {
+        if (filteredDistanceRatesList.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -346,13 +347,25 @@ function PolicyDistanceRatesPage({
         </View>
     );
 
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-        </View>
-    );
-
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+
+    const headerContent = (
+        <>
+            {Object.values(customUnitRates).length > 0 && (
+                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                </View>
+            )}
+            {Object.values(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.distanceRates.findRate')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={filteredDistanceRatesList.length === 0}
+                />
+            )}
+        </>
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -383,47 +396,35 @@ function PolicyDistanceRatesPage({
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                >
-                    {Object.values(customUnitRates).length > 0 && getHeaderText()}
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
-                        />
-                    )}
-                    {Object.values(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT && (
-                        <SearchBar
-                            label={translate('workspace.distanceRates.findRate')}
-                            inputValue={inputValue}
-                            onChangeText={setInputValue}
-                            shouldShowEmptyState={filteredDistanceRatesList.length === 0}
-                        />
-                    )}
-                    {Object.values(customUnitRates).length > 0 && (
-                        <SelectionListWithModal
-                            addBottomSafeAreaPadding
-                            canSelectMultiple={canSelectMultiple}
-                            turnOnSelectionModeOnLongPress
-                            onTurnOnSelectionMode={(item) => item && toggleRate(item)}
-                            sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
-                            shouldUseDefaultRightHandSideCheckmark={false}
-                            selectedItemKeys={selectedDistanceRates}
-                            onCheckboxPress={toggleRate}
-                            onSelectRow={openRateDetails}
-                            onSelectAll={toggleAllRates}
-                            onDismissError={dismissError}
-                            ListItem={TableListItem}
-                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            showScrollIndicator={false}
-                        />
-                    )}
-                </ScrollView>
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
+                    />
+                )}
+                {Object.values(customUnitRates).length > 0 && (
+                    <SelectionListWithModal
+                        addBottomSafeAreaPadding
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
+                        sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        selectedItems={selectedDistanceRates}
+                        onCheckboxPress={toggleRate}
+                        onSelectRow={openRateDetails}
+                        onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
+                        onDismissError={dismissError}
+                        ListItem={TableListItem}
+                        listHeaderContent={headerContent}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        customListHeader={getCustomListHeader()}
+                        shouldShowListEmptyContent={false}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        showScrollIndicator={false}
+                    />
+                )}
                 <ConfirmModal
                     onConfirm={() => setIsWarningModalVisible(false)}
                     onCancel={() => setIsWarningModalVisible(false)}
