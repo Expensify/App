@@ -78,7 +78,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
                     <Text>
                         {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.route)}>
                             {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.link')}
                         </TextLink>
                         {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part2')}
