@@ -8,7 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, isPolicyExpenseChat as isPolicyExpenseChatReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -51,29 +51,40 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const expenseReports = useMemo(
-        () =>
-            Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID) {
-                    return [];
-                }
-                const reports = getOutstandingReportsForUser(
-                    policyID,
-                    transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
-                    allReports ?? {},
-                    reportNameValuePairs,
-                );
-                return reports;
-            }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
-    );
+    const selectedReportID = useMemo(() => {
+        if (transactionsReports.length > 1) {
+            const firstReport = transactionsReports.at(0);
+            return transactionsReports.every((report) => report.reportID === firstReport?.reportID) ? firstReport?.reportID : undefined;
+        }
+
+        const report = transactionsReports.at(0);
+        const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
+        return isPolicyExpenseChat ? report?.iouReportID : report?.reportID;
+    }, [transactionsReports]);
+
+    const expenseReports = useMemo(() => {
+        if (selectedReportID) {
+            return getOutstandingReportsForUser(
+                transactionsReports.at(0)?.policyID,
+                transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
+                allReports ?? {},
+                reportNameValuePairs,
+            );
+        }
+
+        return Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
+            if (!policyID) {
+                return [];
+            }
+            const reports = getOutstandingReportsForUser(policyID, transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs);
+            return reports;
+        });
+    }, [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, selectedReportID]);
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
         }
-
-        const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
 
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
@@ -83,9 +94,9 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 text: report.reportName,
                 value: report.reportID,
                 keyForList: report.reportID,
-                isSelected: onlyReport && report.reportID === onlyReport?.reportID,
+                isSelected: report.reportID === selectedReportID,
             }));
-    }, [allReports, debouncedSearchValue, expenseReports, transactionsReports]);
+    }, [allReports, debouncedSearchValue, expenseReports, selectedReportID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
