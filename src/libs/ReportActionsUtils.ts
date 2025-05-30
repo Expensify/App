@@ -380,6 +380,10 @@ function isRenamedAction(reportAction: OnyxEntry<ReportAction>): reportAction is
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RENAMED);
 }
 
+function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REOPENED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED);
+}
+
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
     return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
 }
@@ -2581,6 +2585,7 @@ export {
     getLeaveRoomMessage,
     getRetractedMessage,
     getReportActionFromExpensifyCard,
+    isReopenedAction,
     getIntegrationSyncFailedMessage,
 };
 

@@ -191,6 +191,7 @@ import {
     isPolicyChangeLogAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isReopenedAction,
     isReportActionAttachment,
     isReportPreviewAction,
     isReversedTransaction,
@@ -10810,6 +10811,16 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         })
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
+
+function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    if (!reportActions) {
+        return false;
+    }
+
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+    return reportActionList.some((action) => isReopenedAction(action));
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11185,6 +11196,7 @@ export {
     findReportIDForAction,
     isWorkspaceEligibleForReportChange,
     navigateOnDeleteExpense,
+    hasReportBeenReopened,
 };
 
 export type {
