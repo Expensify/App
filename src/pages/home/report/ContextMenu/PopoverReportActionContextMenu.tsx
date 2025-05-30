@@ -270,6 +270,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     };
 
     const handleModalHide = () => {
+        runAndResetOnPopoverHide();
+
         if (composerToRefocusOnClose === 'main') {
             ReportActionComposeFocusManager.composerRef.current?.focus();
             setComposerToRefocusOnClose(undefined);
@@ -277,8 +279,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             ReportActionComposeFocusManager.editComposerRef.current?.focus();
             setComposerToRefocusOnClose(undefined);
         }
-
-        runAndResetOnPopoverHide();
     };
 
     /**
