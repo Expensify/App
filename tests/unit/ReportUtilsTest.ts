@@ -33,6 +33,7 @@ import {
     getMostRecentlyVisitedReport,
     getParticipantsList,
     getPolicyExpenseChat,
+    getPreviewName,
     getQuickActionDetails,
     getReportIDFromLink,
     getReportName,
@@ -2793,6 +2794,35 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             expect(isReportOutstanding(report, policy.id)).toBe(false);
+        });
+    });
+
+    describe('getPreviewName', () => {
+        it('should return the report name if present', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: 'Test Report',
+            };
+            const result = getPreviewName(action, report);
+            expect(result).toBe('Test Report');
+        });
+
+        it('should return the child report name if the report name is not present', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: 'Child Report',
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: '',
+            };
+            const result = getPreviewName(action, report);
+            expect(result).toBe('Child Report');
         });
     });
 });

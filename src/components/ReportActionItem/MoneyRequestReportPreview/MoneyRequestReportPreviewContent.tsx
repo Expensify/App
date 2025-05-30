@@ -35,7 +35,6 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
@@ -45,6 +44,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
+    getPreviewName,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -436,14 +436,6 @@ function MoneyRequestReportPreviewContent({
         setOptimisticIndex(undefined);
     }, [carouselTransactions.length, currentIndex, currentVisibleItems, currentVisibleItems.length, optimisticIndex, visibleItemsOnEndCount]);
 
-    const getPreviewName = () => {
-        if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
-            const originalMessage = getOriginalMessage(action);
-            return originalMessage && translate('iou.invoiceReportName', originalMessage);
-        }
-        return action.childReportName;
-    };
-
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID) {
             return;
@@ -650,7 +642,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getPreviewName()}
+                                                            {getPreviewName(action, iouReport, isInvoice)}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
                                                     </Text>
