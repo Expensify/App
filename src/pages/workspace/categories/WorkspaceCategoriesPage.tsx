@@ -1,4 +1,3 @@
-import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -164,7 +163,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         return categoryText.includes(normalizedSearchInput) || alternateText.includes(normalizedSearchInput);
     }, []);
     const sortCategories = useCallback((data: PolicyOption[]) => {
-        return lodashSortBy(data, 'text', localeCompare) as PolicyOption[];
+        return data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
     }, []);
     const [inputValue, setInputValue, filteredCategoryList] = useSearchResults(categoryList, filterCategory, sortCategories);
 

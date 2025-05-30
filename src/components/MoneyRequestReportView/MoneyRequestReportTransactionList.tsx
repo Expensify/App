@@ -29,7 +29,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
-import {getTransactionPendingAction} from '@libs/TransactionUtils';
+import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -206,7 +206,7 @@ function MoneyRequestReportTransactionList({
                                 if (selectedTransactionsID.length !== 0) {
                                     setSelectedTransactionsID([]);
                                 } else {
-                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                    setSelectedTransactionsID(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
@@ -235,7 +235,6 @@ function MoneyRequestReportTransactionList({
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                 {sortedTransactions.map((transaction) => {
-                    const isPendingDelete = getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                     return (
                         <PressableWithFeedback
                             key={transaction.transactionID}
@@ -274,7 +273,7 @@ function MoneyRequestReportTransactionList({
                                 setSelectedTransactionID(transaction.transactionID);
                                 setIsModalVisible(true);
                             }}
-                            disabled={isPendingDelete}
+                            disabled={isTransactionPendingDelete(transaction)}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
