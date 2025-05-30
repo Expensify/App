@@ -102,6 +102,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.subtitle')}</Text>
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
 
+
                     <RenderHtml
                         contentWidth={width}
                         source={{
@@ -117,6 +118,7 @@ function RequestEarlyCancellationPage() {
                             },
                         }}
                     />
+
                 </View>
                 <FixedFooter style={styles.ph0}>
                     <Button
