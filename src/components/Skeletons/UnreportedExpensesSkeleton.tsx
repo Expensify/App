@@ -17,7 +17,7 @@ function getMessageSkeletonWidth(index: number) {
     }
 }
 
-function getExpenseAmmountSkeletonWidth(index: number) {
+function getExpenseAmountSkeletonWidth(index: number) {
     switch (index % 3) {
         case 0:
             return 45;
@@ -67,9 +67,9 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
                         height={12}
                     />
                     <Rect
-                        x={pageWidth - 12 - getExpenseAmmountSkeletonWidth(args.itemIndex)}
+                        x={pageWidth - 12 - getExpenseAmountSkeletonWidth(args.itemIndex)}
                         y={26}
-                        width={getExpenseAmmountSkeletonWidth(args.itemIndex)}
+                        width={getExpenseAmountSkeletonWidth(args.itemIndex)}
                         height={12}
                     />
                 </>

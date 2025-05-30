@@ -419,7 +419,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         return isOwner;
     }
 
-    // Users cannot delete a report in the unrepeorted or IOU cases, but they can delete individual transactions.
+    // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
     // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
     if (isIOUReport) {
         return isSingleTransaction && isOwner && isReportOpenOrProcessing;
