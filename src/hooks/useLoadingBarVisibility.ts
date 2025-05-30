@@ -3,11 +3,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getOngoingRequest, subscribeToQueueState} from '@libs/Network/SequentialQueue';
 
 // Commands that should trigger the LoadingBar to show
-const RELEVANT_COMMANDS = [
-    WRITE_COMMANDS.OPEN_APP, 
-    WRITE_COMMANDS.RECONNECT_APP, 
-    WRITE_COMMANDS.OPEN_REPORT
-] as const;
+const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT]);
 
 /**
  * Hook that determines whether LoadingBar should be visible based on active queue requests
@@ -18,8 +14,7 @@ export default function useLoadingBarVisibility(): boolean {
 
     const checkRelevantQueue = useCallback(() => {
         const ongoingRequest = getOngoingRequest();
-        const hasRelevantCommand = ongoingRequest && 
-            (RELEVANT_COMMANDS as readonly string[]).includes(ongoingRequest.command);
+        const hasRelevantCommand = ongoingRequest && RELEVANT_COMMANDS.has(ongoingRequest.command);
 
         setIsRelevantQueueActive(!!hasRelevantCommand);
     }, []);
