@@ -39,8 +39,6 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
 
             if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && url) {
                 const iouRoutes: Record<string, Route> = {
-                    [ROUTES.IOU_REQUEST]: ROUTES.IOU_REQUEST,
-                    [ROUTES.IOU_SEND]: ROUTES.IOU_SEND,
                     [CONST.WALLET.STATEMENT_ACTIONS.SUBMIT_EXPENSE]: ROUTES.MONEY_REQUEST_CREATE.getRoute(
                         CONST.IOU.ACTION.CREATE,
                         CONST.IOU.TYPE.SUBMIT,
