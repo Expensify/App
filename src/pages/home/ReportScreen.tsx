@@ -492,7 +492,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && currentUserEmail) {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && reportTransactions.length === 1 && currentUserEmail) {
             const optimisticTransactionThreadReportID = generateReportID();
             const transactions = getReportTransactions(reportID);
             const oneTransactionID = transactions.at(0)?.transactionID;
@@ -511,6 +511,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportActionIDFromRoute,
         report,
         reportID,
+        reportTransactions.length,
         transactionThreadReport,
         transactionThreadReportID,
     ]);
