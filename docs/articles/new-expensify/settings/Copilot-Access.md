@@ -29,14 +29,13 @@ Copilots can access another user’s Expensify account to:
 
 To grant someone access to your account:
 
-1. Click your **profile icon** in the bottom-left corner.
-2. Select **Security** from the left-hand menu.
-3. In the **Copilot: Delegated Access** section, click **Add Copilot**.
-4. Search for the user by **name** or **email**.
-5. Choose the access level:
+1. In the left-hand menu, click **Account > Security**.
+2. In the **Copilot: Delegated Access** section, click **Add Copilot**.
+3. Search for the user by **name** or **email**.
+4. Choose the access level:
    - **Full Access** – Grants complete access to all areas and actions.
    - **Limited Access** – Excludes approvals, payments, rejections, and holds.
-6. Click **Add Copilot**.
+5. Click **Add Copilot**.
 
 💡 **Note:** You can invite someone who doesn’t have an Expensify account. They’ll receive an invite to create one.
 
@@ -46,15 +45,16 @@ To grant someone access to your account:
 
 To **remove a Copilot**:
 
-1. Click your **profile icon**, then go to **Security**.
+1. In the left-hand menu, click **Account > Security**.
 2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
 3. Select **Remove Copilot**, then confirm.
 
 To **change a Copilot's access level**:
 
-1. Go to **Security** > **Copilot: Delegated Access**.
-2. Click the **three-dot menu** next to their name and choose **Change Access Level**.
-3. Select **Full Access** or **Limited Access** and confirm your choice.
+1. In the left-hand menu, click **Account > Security**.
+2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
+3. Choose **Change Access Level**.
+4. Select **Full Access** or **Limited Access** and confirm your choice.
 
 ---
 
