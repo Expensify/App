@@ -4344,6 +4344,57 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
     API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);
 }
 
+function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEnabled: boolean) {
+    const policy = getPolicy(policyID);
+
+    const originalIsAttendeeTrackingEnabled = !!policy?.isAttendeeTrackingEnabled;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isAttendeeTrackingEnabled,
+                    pendingFields: {
+                        isAttendeeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isAttendeeTrackingEnabled: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isAttendeeTrackingEnabled: originalIsAttendeeTrackingEnabled,
+                    pendingFields: {isAttendeeTrackingEnabled: null},
+                    errorFields: {isAttendeeTrackingEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        enabled: isAttendeeTrackingEnabled,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_ATTENDEE_TRACKING_ENABLED, parameters, onyxData);
+}
+
 function getAdminPolicies(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL);
 }
@@ -5296,4 +5347,5 @@ export {
     clearQuickbooksOnlineAutoSyncErrorField,
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
+    setPolicyAttendeeTrackingEnabled,
 };
