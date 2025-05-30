@@ -1610,6 +1610,10 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
 }
 
 function markAllMessagesAsRead() {
+    if (isAnonymousUser()) {
+        return;
+    }
+
     const lastReadTime = DateUtils.getDBTimeWithSkew();
 
     const optimisticUnreadReports: Record<string, Pick<Report, 'lastReadTime'>> = {};
