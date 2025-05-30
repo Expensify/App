@@ -285,7 +285,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         fill={theme.tooltipHighlightText}
                         medium
                     />
-                    <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
+                    <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw95]}>
                         {tooltip.content.map(({text, isBold}) => {
                             const translatedText = translate(text);
                             return (
