@@ -151,6 +151,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const openAdvancedFilters = useCallback(() => {
         updateAdvancedFilters(filterFormValues);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+
         // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,7 +193,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const items = getStatusOptions(type, groupBy);
-            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : items.find((option) => option.value === status) ?? [];
+            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : (items.find((option) => option.value === status) ?? []);
             const value = [selected].flat();
 
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
