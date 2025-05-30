@@ -123,8 +123,8 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
 
-    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    // TODO: remove beta check after the feature is enabled
+    const {isBetaEnabled} = usePermissions();
 
     /**
      * Updates the Highlight state of the composer
@@ -500,8 +500,8 @@ function ReportActionCompose({
                                         onValueChange={onValueChange}
                                         didHideComposerInput={didHideComposerInput}
                                     />
-                                    {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
-                                    {canUseMultiFilesDragAndDrop ? (
+                                    {/* TODO: remove beta check after the feature is enabled */}
+                                    {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
                                         <DropZoneUI
                                             onDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {

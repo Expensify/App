@@ -1,5 +1,4 @@
 import type Permissions from '@libs/Permissions';
-import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 
 /**
@@ -11,5 +10,5 @@ import type Beta from '@src/types/onyx/Beta';
 
 export default {
     ...jest.requireActual<typeof Permissions>('../Permissions'),
-    canUseDefaultRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.DEFAULT_ROOMS),
+    isBetaEnabled: (beta: Beta, betas: Beta[]) => betas.includes(beta),
 };
