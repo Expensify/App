@@ -262,7 +262,6 @@ describe('ReportUtils', () => {
     beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
 
     describe('prepareOnboardingOnyxData', () => {
-        console.log('aasdiaosdoadaspsssasdasdasasdas');
         it('provides test drive url to task title', () => {
             const title = jest.fn();
 
