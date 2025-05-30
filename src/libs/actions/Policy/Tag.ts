@@ -700,8 +700,8 @@ function setImportedSpreadsheetIsImportingIndependentMultiLevelTags(isImportingI
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingIndependentMultiLevelTags});
 }
 
-function setImportedSpreadsheetIsFirstLineHeader(isFirstLineHeader: boolean) {
-    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isFirstLineHeader});
+function setImportedSpreadsheetIsFirstLineHeader(containsHeader: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {containsHeader});
 }
 
 function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
@@ -738,7 +738,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
 
             const parameters: ImportMultiLevelTagsParams = {
                 policyID,
-                isFirstLineHeader: spreadsheet?.isFirstLineHeader,
+                isFirstLineHeader: spreadsheet?.containsHeader,
                 isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
                 isGLAdjacent: spreadsheet?.isGLAdjacent,
                 file,

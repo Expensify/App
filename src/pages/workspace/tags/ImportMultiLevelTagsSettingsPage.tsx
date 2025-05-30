@@ -82,7 +82,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Text style={[styles.textNormal]}>{translate('workspace.tags.importMultiLevelTags.firstRowTitle')}</Text>
                         <Switch
-                            isOn={spreadsheet?.isFirstLineHeader ?? true}
+                            isOn={spreadsheet?.containsHeader ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsFirstLineHeader(value);
