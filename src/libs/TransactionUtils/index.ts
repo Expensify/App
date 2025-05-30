@@ -1589,6 +1589,10 @@ function getTransactionPendingAction(transaction: OnyxEntry<Transaction>): Pendi
     return hasPendingFields ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
 }
 
+function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolean {
+    return getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1690,6 +1694,7 @@ export {
     checkIfShouldShowMarkAsCashButton,
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
+    isTransactionPendingDelete,
 };
 
 export type {TransactionChanges};
