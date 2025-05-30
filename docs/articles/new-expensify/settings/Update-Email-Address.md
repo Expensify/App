@@ -5,7 +5,7 @@ keywords: [New Expensify, change email, add email, contact method, update defaul
 ---
 <div id="new-expensify" markdown="1">
 
-Keep your Expensify account secure and accessible by updating or adding new email addresses. You can add personal or secondary emails, change your default email, and remove outdated addresses.
+Update or add new email addresses to keep your Expensify account secure and accessible. You can add personal or secondary emails, change your default email, and remove outdated addresses.
 
 ---
 
@@ -13,7 +13,7 @@ Keep your Expensify account secure and accessible by updating or adding new emai
 
 Adding an additional email helps you:
 
-- **Switch your default email** to a new one (e.g. a personal address).
+- **Switch your default email** to a new one (e.g., a personal address).
 - **Maintain access** if your primary email is tied to an employer domain.
 - **Use multiple logins**—emails and phone numbers can be used interchangeably to access your account.
 
@@ -24,29 +24,13 @@ Adding an additional email helps you:
 # Add or Change an Email Address
 
 ## On Desktop:
-1. Click your **profile icon** in the bottom-left corner.
-2. Select **Profile** from the left-hand menu.
-3. Click **Contact Method**.
-4. Click **New Contact Method**.
-5. Enter the email address or phone number you want to add.
-6. Click **Add**.
-7. Check your email for a **verification code**, enter it in Expensify, and click **Verify**.
+1. In the left-hand menu, click **Account > Profile**.
+2. Under **Contact Method**, click **New Contact Method**.
+3. Enter the email address or phone number you want to add.
+4. Click **Add**.
+5. Check your email for a **verification code**, enter it in Expensify, and click **Verify**.
 
 After verifying, click any contact method to:
-- Set it as your **default**
-- **Remove** it
-- **Re-send verification**
-
-## On Mobile:
-1. Tap your **profile icon** at the bottom of the screen.
-2. Tap **Profile** from the left-hand menu.
-3. Tap **Contact Method**.
-4. Tap **New Contact Method**.
-5. Enter the email address or phone number you want to add.
-6. Tap **Add**.
-7. Check your email for a **verification code**, enter it in Expensify, and tap **Verify**.
-
-Once verified, tap any email in your list to:
 - Set it as your **default**
 - **Remove** it
 - **Re-send verification**
