@@ -2,11 +2,10 @@ import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import useLocalize from '@hooks/useLocalize';
-import {putOnHold} from '@libs/actions/IOU';
+import {bulkHold} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchReportParamList} from '@libs/Navigation/types';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import {clearErrorFields, clearErrors} from '@userActions/FormActions';
@@ -17,19 +16,13 @@ import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>) {
     const {translate} = useLocalize();
 
-    const {backTo, reportID} = route.params;
+    const {backTo, reportID, searchHash} = route.params;
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        selectedTransactionsID.forEach((transactionID) => {
-            const iouAction = getIOUActionForReportID(reportID, transactionID);
-            const transactionThreadReportID = iouAction?.childReportID;
-            if (!transactionThreadReportID) {
-                return;
-            }
-
-            putOnHold(transactionID, values.comment, transactionThreadReportID);
-        });
+        if (selectedTransactionsID.length) {
+            bulkHold(selectedTransactionsID, values.comment, reportID, searchHash);
+        }
         setSelectedTransactionsID([]);
         Navigation.goBack();
     };
