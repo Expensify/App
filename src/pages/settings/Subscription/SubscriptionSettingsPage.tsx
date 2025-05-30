@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -21,7 +21,7 @@ import CardSection from './CardSection/CardSection';
 import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
 import SubscriptionPlan from './SubscriptionPlan';
 
-type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.ROOT>;
+type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT>;
 
 function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const backTo = route?.params?.backTo;

@@ -5,7 +5,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
-import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACE_HUB} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,6 +99,21 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         );
     }
 
+    if (RHP_TO_WORKSPACE_HUB[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_WORKSPACE_HUB[route.name]);
+
+        return getInitialSplitNavigatorState(
+            {
+                name: SCREENS.WORKSPACE_HUB.ROOT,
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+            {
+                name: RHP_TO_WORKSPACE_HUB[route.name],
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+        );
+    }
+
     if (RHP_TO_SETTINGS[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_SETTINGS[route.name]);
 
@@ -169,8 +184,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
     const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
     if (isWorkspaceSplitNavigator) {
-        const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
-        return getRoutesWithIndex([workspacesListRoute, ...state.routes]);
+        const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.WORKSPACE_HUB.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
+        return getRoutesWithIndex([settingsSplitRoute, ...state.routes]);
     }
 
     // If there is no full screen route in the root, we want to add it.
@@ -184,8 +199,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             if (matchingRootRoute) {
                 const routes = [matchingRootRoute, ...state.routes];
                 if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
-                    routes.unshift(workspacesListRoute);
+                    const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.WORKSPACE_HUB.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
+                    routes.unshift(settingsSplitRoute);
                 }
                 return getRoutesWithIndex(routes);
             }
