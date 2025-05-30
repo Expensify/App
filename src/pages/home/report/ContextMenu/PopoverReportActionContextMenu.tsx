@@ -267,7 +267,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
+    };
 
+    const handleModalHide = () => {
         if (composerToRefocusOnClose === 'main') {
             ReportActionComposeFocusManager.composerRef.current?.focus();
             setComposerToRefocusOnClose(undefined);
@@ -275,6 +277,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             ReportActionComposeFocusManager.editComposerRef.current?.focus();
             setComposerToRefocusOnClose(undefined);
         }
+
+        runAndResetOnPopoverHide();
     };
 
     /**
@@ -356,7 +360,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 isVisible={isPopoverVisible}
                 onClose={hideContextMenu}
                 onModalShow={runAndResetOnPopoverShow}
-                onModalHide={runAndResetOnPopoverHide}
+                onModalHide={handleModalHide}
                 anchorPosition={popoverAnchorPosition.current}
                 animationIn="fadeIn"
                 disableAnimation={false}
