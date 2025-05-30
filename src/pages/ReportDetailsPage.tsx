@@ -454,7 +454,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
-                        Navigation.dismissModal();
+                        Navigation.goBack(backTo);
                         reopenTask(report);
                     }),
                 });
