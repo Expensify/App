@@ -170,6 +170,30 @@ function hash(str: string, max: number = 2 ** 32): number {
     return Math.abs(hashCode);
 }
 
+/**
+ * Find the minimum indentation of any line in the string,
+ * and remove that number of leading spaces from every line in the string.
+ */
+function dedent(str: string): string {
+    const lines = str.replace(/\r\n/g, '\n').split('\n');
+
+    // Find the minimum indentation of non-empty lines
+    let minIndent = Number.MAX_SAFE_INTEGER;
+    for (const line of lines) {
+        if (line.trim().length === 0) {
+            // eslint-disable-next-line no-continue
+            continue;
+        }
+        const indentation = line.match(/^ */)?.[0].length ?? 0;
+        if (indentation < minIndent) {
+            minIndent = indentation;
+        }
+    }
+
+    // Remove the common indentation
+    return lines.map((line) => line.slice(minIndent)).join('\n');
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -183,4 +207,5 @@ export default {
     removePreCodeBlock,
     sortStringArrayByLength,
     hash,
+    dedent,
 };

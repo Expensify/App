@@ -29,4 +29,50 @@ describe('StringUtils', () => {
             expect(emojiHash).toBeGreaterThan(0);
         });
     });
+
+    describe('dedent', () => {
+        it('removes common leading whitespace', () => {
+            const input = `
+              line 1
+                line 2
+              line 3
+            `;
+            expect(StringUtils.dedent(input)).toBe(
+                `
+line 1
+  line 2
+line 3
+`,
+            );
+        });
+
+        it('handles no indentation', () => {
+            const input = `line1\nline2\nline3`;
+            expect(StringUtils.dedent(input)).toBe('line1\nline2\nline3');
+        });
+
+        it('handles single line', () => {
+            const input = `    single line`;
+            expect(StringUtils.dedent(input)).toBe('single line');
+        });
+
+        it('handles empty string', () => {
+            expect(StringUtils.dedent('')).toBe('');
+        });
+
+        it('preserves internal blank lines', () => {
+            const input = `
+                first
+
+                second
+            `;
+            expect(StringUtils.dedent(input)).toBe(
+                `
+first
+
+second
+`,
+            );
+        });
+    });
 });
