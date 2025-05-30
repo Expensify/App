@@ -91,7 +91,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         [draftTransaction],
     );
 
-    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? ''), [translate]);
+    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
     const [sections] = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};

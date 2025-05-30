@@ -197,7 +197,7 @@ function SearchPage({route}: SearchPageProps) {
                     const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
-                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                        : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
