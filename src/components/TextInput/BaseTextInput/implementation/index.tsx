@@ -451,7 +451,7 @@ function BaseTextInput(
                                     }}
                                 >
                                     <TextInputClearButton
-                                        containerStyles={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false)]}
+                                        style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false)}
                                         onPressButton={() => {
                                             setValue('');
                                             onClearInput?.();
