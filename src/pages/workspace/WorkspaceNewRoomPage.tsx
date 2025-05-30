@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/core';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -9,12 +9,11 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -53,14 +52,18 @@ function EmptyWorkspaceView() {
                 success
                 large
                 text={translate('footer.learnMore')}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(Navigation.getActiveRoute()))}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(Navigation.getActiveRoute()))}
                 style={[styles.mh5, bottomSafeAreaPaddingStyle]}
             />
         </>
     );
 }
 
-function WorkspaceNewRoomPage() {
+type WorkspaceNewRoomPageRef = {
+    focus?: () => void;
+};
+
+function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -74,9 +77,11 @@ function WorkspaceNewRoomPage() {
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const roomPageInputRef = useRef<AnimatedTextInputRef | null>(null);
 
-    const activeWorkspaceOrDefaultID = activeWorkspaceID ?? activePolicyID;
+    useImperativeHandle(ref, () => ({
+        focus: () => roomPageInputRef.current?.focus(),
+    }));
 
     const workspaceOptions = useMemo(
         () =>
@@ -90,8 +95,8 @@ function WorkspaceNewRoomPage() {
         [policies, session?.email],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
-        if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((option) => option.value === activeWorkspaceOrDefaultID)) {
-            return activeWorkspaceOrDefaultID;
+        if (!!activePolicyID && workspaceOptions.some((option) => option.value === activePolicyID)) {
+            return activePolicyID;
         }
         return '';
     });
@@ -145,12 +150,12 @@ function WorkspaceNewRoomPage() {
             }
             return;
         }
-        if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((opt) => opt.value === activeWorkspaceOrDefaultID)) {
-            setPolicyID(activeWorkspaceOrDefaultID);
+        if (!!activePolicyID && workspaceOptions.some((opt) => opt.value === activePolicyID)) {
+            setPolicyID(activePolicyID);
         } else {
             setPolicyID('');
         }
-    }, [activeWorkspaceOrDefaultID, policyID, workspaceOptions]);
+    }, [activePolicyID, policyID, workspaceOptions]);
 
     useEffect(() => {
         if (isAdminPolicy) {
@@ -223,8 +228,6 @@ function WorkspaceNewRoomPage() {
         [translate],
     );
 
-    const {inputCallbackRef} = useAutoFocusInput();
-
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -251,11 +254,10 @@ function WorkspaceNewRoomPage() {
                 >
                     <View style={styles.mb5}>
                         <InputWrapper
+                            ref={roomPageInputRef}
                             InputComponent={RoomNameInput}
-                            ref={inputCallbackRef}
                             inputID={INPUT_IDS.ROOM_NAME}
                             isFocused={isFocused}
-                            autoFocus
                         />
                     </View>
                     <View style={styles.mb5}>
@@ -314,4 +316,4 @@ function WorkspaceNewRoomPage() {
 
 WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
-export default WorkspaceNewRoomPage;
+export default forwardRef(WorkspaceNewRoomPage);
