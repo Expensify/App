@@ -125,24 +125,27 @@ function buildCardsData(
  * @returns a record where keys are domain names and values contain domain feed data.
  */
 function generateDomainFeedData(cardList: CardList | undefined): Record<string, DomainFeedData> {
-    return Object.values(cardList ?? {}).reduce((domainFeedData, currentCard) => {
-        // Cards in cardList can also be domain cards, we use them to compute domain feed
-        if (!currentCard?.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard) && currentCard.fundID) {
-            if (domainFeedData[`${currentCard.fundID}_${currentCard.bank}`]) {
-                domainFeedData[`${currentCard.fundID}_${currentCard.bank}`].correspondingCardIDs.push(currentCard.cardID.toString());
-            } else {
-                // if the cards belongs to the same domain, every card of it should have the same fundID
-                // eslint-disable-next-line no-param-reassign
-                domainFeedData[`${currentCard.fundID}_${currentCard.bank}`] = {
-                    fundID: currentCard.fundID,
-                    domainName: currentCard.domainName,
-                    bank: currentCard?.bank,
-                    correspondingCardIDs: [currentCard.cardID?.toString()],
-                };
+    return Object.values(cardList ?? {}).reduce(
+        (domainFeedData, currentCard) => {
+            // Cards in cardList can also be domain cards, we use them to compute domain feed
+            if (!currentCard?.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard) && currentCard.fundID) {
+                if (domainFeedData[`${currentCard.fundID}_${currentCard.bank}`]) {
+                    domainFeedData[`${currentCard.fundID}_${currentCard.bank}`].correspondingCardIDs.push(currentCard.cardID.toString());
+                } else {
+                    // if the cards belongs to the same domain, every card of it should have the same fundID
+                    // eslint-disable-next-line no-param-reassign
+                    domainFeedData[`${currentCard.fundID}_${currentCard.bank}`] = {
+                        fundID: currentCard.fundID,
+                        domainName: currentCard.domainName,
+                        bank: currentCard?.bank,
+                        correspondingCardIDs: [currentCard.cardID?.toString()],
+                    };
+                }
             }
-        }
-        return domainFeedData;
-    }, {} as Record<string, DomainFeedData>);
+            return domainFeedData;
+        },
+        {} as Record<string, DomainFeedData>,
+    );
 }
 
 function getDomainFeedData(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined) {

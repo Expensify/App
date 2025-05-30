@@ -99,7 +99,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         const isReceiptPDF = Str.isPDF(filename);
-        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
+        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? (receiptURIs.thumbnail ?? '') : (receiptURIs.image ?? ''));
     }
 
     return (
@@ -406,15 +406,15 @@ function TransactionListItemRow({
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        accountID={item.from.accountID}
-                        avatar={item.from.avatar}
+                        accountID={item.from?.accountID}
+                        avatar={item.from?.avatar}
                         displayName={item.formattedFrom}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        accountID={item.to.accountID}
-                        avatar={item.to.avatar}
+                        accountID={item.to?.accountID}
+                        avatar={item.to?.avatar}
                         displayName={item.formattedTo}
                     />
                 </View>
