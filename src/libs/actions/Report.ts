@@ -1617,7 +1617,7 @@ function markAllMessagesAsRead() {
     const lastReadTime = DateUtils.getDBTimeWithSkew();
 
     type PartialReport = {
-        lastReadTime: Report['lastReadTime'] | null,
+        lastReadTime: Report['lastReadTime'] | null;
     };
     const optimisticUnreadReports: Record<string, PartialReport> = {};
     const failureUnreadReports: Record<string, PartialReport> = {};
