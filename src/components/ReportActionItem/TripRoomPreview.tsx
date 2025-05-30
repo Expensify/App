@@ -83,15 +83,34 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
         const endName = reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? reservation.end.shortName : reservation.end.longName;
 
         titleComponent = (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                <Text style={[styles.labelStrong, styles.flexShrink1]}>{startName}</Text>
-                <Icon
-                    src={Expensicons.ArrowRightLong}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
-                    fill={theme.icon}
-                />
-                <Text style={[styles.labelStrong, styles.flexShrink1]}>{endName}</Text>
+            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                {/* StartName + Arrow with max 50% width */}
+                <View style={styles.tripReservationRow}>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.labelStrong, styles.mr2]} // gap between startName and arrow
+                        ellipsizeMode="tail"
+                    >
+                        {startName}
+                    </Text>
+                    <Icon
+                        src={Expensicons.ArrowRightLong}
+                        width={variables.iconSizeSmall}
+                        height={variables.iconSizeSmall}
+                        fill={theme.icon}
+                    />
+                </View>
+
+                {/* EndName with marginLeft instead of spacer */}
+                <View style={[styles.flex1, styles.ml2]}>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.labelStrong]}
+                        ellipsizeMode="tail"
+                    >
+                        {endName}
+                    </Text>
+                </View>
             </View>
         );
     }
