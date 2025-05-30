@@ -26,6 +26,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -53,7 +54,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
-import { confirmReadyToOpenApp } from '@libs/actions/App';
 import SearchPageNarrow from './SearchPageNarrow';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
@@ -92,7 +92,7 @@ function SearchPage({route}: SearchPageProps) {
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
     useEffect(() => {
-      confirmReadyToOpenApp();
+        confirmReadyToOpenApp();
     }, []);
 
     useEffect(() => {
