@@ -531,7 +531,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
     };
 
     const resetDidUserLoginDuringSessionIfNeeded = () => {
-        if (newDotOnyxValues.nvp_tryNewDot === undefined || tryNewDot?.classicRedirect.dismissed !== true) {
+        if (newDotOnyxValues.nvp_tryNewDot === undefined || tryNewDot?.classicRedirect?.dismissed !== true) {
             return Promise.resolve();
         }
 
