@@ -1514,6 +1514,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags/imported',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/imported` as const,
     },
+    WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL: {
+        route: 'settings/workspaces/:policyID/tags/imported/multi-level',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/imported/multi-level` as const,
+    },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
         getRoute: (policyID: string | undefined) => {

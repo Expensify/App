@@ -710,25 +710,13 @@ function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
 }
 
 function setImportedSpreadsheetFileURI(fileURI: string) {
-    console.log('fileURI', fileURI);
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
 }
 
-// function readOnyxFile(fileUri: string) {
-//     const filePath = decodeURIComponent(fileUri.replace('file://', ''));
-
-//     return ReactNativeBlobUtil.fs.exists(filePath).then((exists) => {
-//         if (!exists) {
-//             throw new Error('File does not exist');
-//         }
-//         return ReactNativeBlobUtil.fs.readFile(filePath, 'utf8');
-//     });
-// }
-
 function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
-    if (!spreadsheet) return;
-
-    console.log('spreadsheet', spreadsheet, 'speadsheet.fileURI', spreadsheet.fileURI);
+    if (!spreadsheet) {
+        return;
+    }
 
     fetch(spreadsheet?.fileURI ?? '').then((res) => {
         if (!res.ok && Platform.OS !== 'android') {
@@ -737,7 +725,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
 
         res.blob().then((blob) => {
             const file = new File([blob], 'testFile.csv', {type: blob.type || 'text/csv'});
-            console.log('file', file);
+
 
             // Trigger a download in the browser (only works on web)
             if (Platform.OS === 'web') {
