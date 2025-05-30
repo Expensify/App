@@ -122,10 +122,11 @@ function FormProvider(
     const prevIsLoadingDraftValues = usePrevious(isLoadingDraftValues);
 
     useEffect(() => {
-        if (!isLoadingDraftValues && prevIsLoadingDraftValues) {
-            setInputValues({...draftValues});
+        if (isLoadingDraftValues || !prevIsLoadingDraftValues) {
+            return;
         }
-    }, [isLoadingDraftValues]);
+        setInputValues({...draftValues});
+    }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurContext();
