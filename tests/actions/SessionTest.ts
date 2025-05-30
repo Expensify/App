@@ -234,7 +234,7 @@ describe('Session', () => {
 
         expect(asyncOpenURL).toHaveBeenCalledWith(
             expect.any(Promise),
-            `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}?clean=true&signedOutFromNewExpensify=true`,
+            `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}?clean=true&signedOutFromNewExpensify=true&accountID=1`,
             true,
             true,
         );
