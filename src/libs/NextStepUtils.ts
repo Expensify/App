@@ -116,9 +116,16 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
  * @param predictedNextStatus - a next expected status of the report
  * @param shouldFixViolations - whether to show `fix the issue` next step
  * @param isUnapprove - whether a report is being unapproved
+ * @param isReopen - whether a report is being reopened
  * @returns nextStep
  */
-function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, shouldFixViolations?: boolean, isUnapprove?: boolean): ReportNextStep | null {
+function buildNextStep(
+    report: OnyxEntry<Report>,
+    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
+    shouldFixViolations?: boolean,
+    isUnapprove?: boolean,
+    isReopen?: boolean,
+): ReportNextStep | null {
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -209,6 +216,33 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 };
                 break;
             }
+            if (isReopen) {
+                optimisticNextStep = {
+                    type,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    message: [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        {
+                            text: `${ownerDisplayName}`,
+                            type: 'strong',
+                            clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
+                        },
+                        {
+                            text: ' to ',
+                        },
+                        {
+                            text: 'submit',
+                        },
+                        {
+                            text: ' %expenses.',
+                        },
+                    ],
+                };
+                break;
+            }
+
             // Self review
             optimisticNextStep = {
                 type,

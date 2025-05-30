@@ -35,6 +35,10 @@ function UserInfoCellsWithArrow({
     const styles = useThemeStyles();
     const theme = useTheme();
 
+    if (!participantFrom) {
+        return null;
+    }
+
     return (
         <>
             <View style={[styles.mw50, fromRecipientStyle]}>

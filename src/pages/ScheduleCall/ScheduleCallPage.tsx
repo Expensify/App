@@ -76,9 +76,9 @@ function ScheduleCallPage() {
         if (!calendlySchedule?.data) {
             return {};
         }
-        const guides = Object.keys(calendlySchedule?.data);
+        const guides = Object.keys(calendlySchedule.data);
 
-        const allTimeSlots = guides?.reduce((allSlots, guideAccountID) => {
+        const allTimeSlots = guides.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
             guideSchedule?.timeSlots.forEach((timeSlot) => {
                 allSlots.push({
@@ -91,6 +91,7 @@ function ScheduleCallPage() {
             return allSlots;
         }, [] as TimeSlot[]);
 
+        // Group timeslots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         allTimeSlots.forEach((timeSlot) => {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
@@ -99,8 +100,14 @@ function ScheduleCallPage() {
             }
             timeSlotMap[timeSlotDate].push(timeSlot);
         });
+
+        // Sort time slots within each date array to have in chronological order
+        Object.values(timeSlotMap).forEach((slots) => {
+            slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+        });
+
         return timeSlotMap;
-    }, [calendlySchedule, userTimezone]);
+    }, [calendlySchedule?.data, userTimezone]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
@@ -172,7 +179,7 @@ function ScheduleCallPage() {
                         {!isEmptyObject(adminReportNameValuePairs?.calendlySchedule?.errors) && (
                             <DotIndicatorMessage
                                 type="error"
-                                style={[styles.mt6, styles.flex0]}
+                                style={[styles.ph5, styles.mt6, styles.flex0]}
                                 messages={getLatestError(adminReportNameValuePairs?.calendlySchedule?.errors)}
                             />
                         )}

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import * as core from '@actions/core';
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import {when} from 'jest-when';

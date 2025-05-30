@@ -53,8 +53,9 @@ This occurs when a submitter has an **Employee Record** in QuickBooks Online, pr
 1. Log in to **QuickBooks Online**.
 2. Go to **Employee Records**.
 3. Edit the employee’s name to differentiate it from their Expensify account.
-4. Sync your QuickBooks Online connection.
-5. Reattempt exporting.
+4. If you already have a vendor record for your employees, make sure there is an email on the profile that is an exact match with their Expensify login.
+5. Sync your QuickBooks Online connection.
+6. Reattempt exporting.
 
 ### **Option 2: Manually Create Vendor Records**
 1. Log in to **QuickBooks Online**.

@@ -12,6 +12,7 @@ import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
+import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
@@ -108,7 +109,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && lastVisitedPath && isOnboardingCompleted && authenticated) {
+        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
             });
@@ -141,7 +142,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
         // The same applies to HybridApp, as we always define the route to which we want to transition.
-        if (!lastVisitedPath || CONFIG.IS_HYBRID_APP) {
+        if (!shouldOpenLastVisitedPath(lastVisitedPath) || CONFIG.IS_HYBRID_APP) {
             return undefined;
         }
 

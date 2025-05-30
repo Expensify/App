@@ -27,6 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
@@ -34,6 +35,7 @@ import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
+import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -89,6 +91,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
@@ -102,6 +105,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
+    const subscriptionPlan = useSubscriptionPlan();
+    const freeTrialText = getFreeTrialText(policies);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
@@ -141,42 +148,65 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      */
     const accountMenuItemsData: Menu = useMemo(() => {
         const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails);
-        const defaultMenu: Menu = {
+        const items: MenuData[] = [
+            {
+                translationKey: 'common.profile',
+                icon: Expensicons.Profile,
+                screenName: SCREENS.SETTINGS.PROFILE.ROOT,
+                brickRoadIndicator: profileBrickRoadIndicator,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
+            },
+            {
+                translationKey: 'common.wallet',
+                icon: Expensicons.Wallet,
+                screenName: SCREENS.SETTINGS.WALLET.ROOT,
+                brickRoadIndicator: walletBrickRoadIndicator,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
+                badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
+            },
+            {
+                translationKey: 'common.preferences',
+                icon: Expensicons.Gear,
+                screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+            },
+            {
+                translationKey: 'initialSettingsPage.security',
+                icon: Expensicons.Lock,
+                screenName: SCREENS.SETTINGS.SECURITY,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
+            },
+        ];
+
+        if (subscriptionPlan) {
+            items.splice(1, 0, {
+                translationKey: 'allSettingsScreen.subscription',
+                icon: Expensicons.CreditCard,
+                screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+                brickRoadIndicator: !!privateSubscription?.errors || hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                badgeText: freeTrialText,
+                badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
+            });
+        }
+
+        return {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
-            items: [
-                {
-                    translationKey: 'common.profile',
-                    icon: Expensicons.Profile,
-                    screenName: SCREENS.SETTINGS.PROFILE.ROOT,
-                    brickRoadIndicator: profileBrickRoadIndicator,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
-                },
-                {
-                    translationKey: 'common.wallet',
-                    icon: Expensicons.Wallet,
-                    screenName: SCREENS.SETTINGS.WALLET.ROOT,
-                    brickRoadIndicator: walletBrickRoadIndicator,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
-                    badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
-                },
-                {
-                    translationKey: 'common.preferences',
-                    icon: Expensicons.Gear,
-                    screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
-                },
-                {
-                    translationKey: 'initialSettingsPage.security',
-                    icon: Expensicons.Lock,
-                    screenName: SCREENS.SETTINGS.SECURITY,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
-                },
-            ],
+            items,
         };
-
-        return defaultMenu;
-    }, [loginList, privatePersonalDetails, styles.accountSettingsSectionContainer, walletBrickRoadIndicator, hasActivatedWallet, userWallet?.currentBalance]);
+    }, [
+        loginList,
+        privatePersonalDetails,
+        walletBrickRoadIndicator,
+        hasActivatedWallet,
+        userWallet?.currentBalance,
+        subscriptionPlan,
+        styles.accountSettingsSectionContainer,
+        styles.badgeSuccess,
+        privateSubscription?.errors,
+        freeTrialText,
+    ]);
 
     /**
      * Return a list of menu items data for general section
