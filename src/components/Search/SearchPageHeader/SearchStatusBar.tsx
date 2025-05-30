@@ -247,12 +247,11 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption} = useSearchContext();
+    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowStatusBarLoading} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const options = getOptions(queryJSON.type, queryJSON.groupBy);
     const scrollRef = useRef<RNScrollView>(null);
     const isScrolledRef = useRef(false);
-    const {shouldShowStatusBarLoading} = useSearchContext();
     const {hash} = queryJSON;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true});
     const {isOffline} = useNetwork();

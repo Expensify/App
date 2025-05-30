@@ -25,7 +25,6 @@ const mockSearchContext = {
     selectedReports: {},
     setSelectedReports: jest.fn(),
     selectedTransactionIDs: [],
-    setSelectedTransactionIDs: jest.fn(),
     clearSelectedItems: jest.fn(),
 };
 

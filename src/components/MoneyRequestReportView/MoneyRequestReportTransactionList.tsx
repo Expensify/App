@@ -10,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -37,7 +38,6 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import {setActiveTransactionThreadIDs} from './TransactionThreadReportIDRepository';
@@ -132,8 +132,16 @@ function MoneyRequestReportTransactionList({
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
-    const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext();
+    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
+
+    const toggleTransaction = useCallback(
+        (transactionID: string) =>
+            setSelectedTransactions(selectedTransactionIDs.includes(transactionID) ? selectedTransactionIDs.filter((t) => t !== transactionID) : [...selectedTransactionIDs, transactionID]),
+        [setSelectedTransactions, selectedTransactionIDs],
+    );
+
+    const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionIDs.includes(transactionID), [selectedTransactionIDs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -141,9 +149,9 @@ function MoneyRequestReportTransactionList({
                 if (navigationRef?.getRootState()?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
                     return;
                 }
-                setSelectedTransactionsID([]);
+                clearSelectedTransactions(true);
             };
-        }, [setSelectedTransactionsID]),
+        }, [clearSelectedTransactions]),
     );
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -203,15 +211,15 @@ function MoneyRequestReportTransactionList({
                     <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
-                                if (selectedTransactionsID.length !== 0) {
-                                    setSelectedTransactionsID([]);
+                                if (selectedTransactionIDs.length !== 0) {
+                                    clearSelectedTransactions(true);
                                 } else {
-                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                    setSelectedTransactions(transactions.map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
-                            isChecked={selectedTransactionsID.length === transactions.length}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactions.length}
+                            isChecked={selectedTransactionIDs.length === transactions.length}
                         />
                         {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
                     </View>
