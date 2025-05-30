@@ -631,14 +631,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 if (isMoneyRequestReportPendingDeletion(prevReport.parentReportID)) {
                     return;
                 }
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                Navigation.isNavigationReady().then(() => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                });
                 return;
             }
 
             Navigation.isNavigationReady().then(() => {
-                InteractionManager.runAfterInteractions(() => {
-                    navigateToConciergeChat();
-                });
+                navigateToConciergeChat();
             });
             return;
         }
