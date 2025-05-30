@@ -268,7 +268,7 @@ function ReportPreview({
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const confirmPayment = useCallback(
-        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
+        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod, usedPolicyID?: string) => {
             if (!type) {
                 return;
             }
@@ -283,7 +283,7 @@ function ReportPreview({
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice(type, chatReport, iouReport, payAsBusiness, methodID, paymentMethod);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport);
+                    payMoneyRequest(type, chatReport, iouReport, usedPolicyID);
                 }
             }
         },

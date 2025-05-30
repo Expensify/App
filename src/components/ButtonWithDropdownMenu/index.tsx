@@ -49,6 +49,8 @@ function ButtonWithDropdownMenu<IValueType>({
     testID,
     secondLineText = '',
     icon,
+    shouldPopoverUseScrollView = false,
+    containerStyles,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -67,6 +69,10 @@ function ButtonWithDropdownMenu<IValueType>({
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
+
+    useEffect(() => {
+        setSelectedItemIndex(defaultSelectedIndex);
+    }, [defaultSelectedIndex]);
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -229,13 +235,25 @@ function ButtonWithDropdownMenu<IValueType>({
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
+                    shouldUseModalPaddingStyle={false}
                     headerText={menuHeaderText}
+                    shouldUseScrollView={shouldPopoverUseScrollView}
+                    containerStyles={containerStyles}
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: item.onSelected
-                            ? () => item.onSelected?.()
+                            ? () => {
+                                  item.onSelected?.();
+                                  if (item.shouldUpdateSelectedIndex) {
+                                      setSelectedItemIndex(index);
+                                  }
+                              }
                             : () => {
                                   onOptionSelected?.(item);
+                                  if (!item.shouldUpdateSelectedIndex && typeof item.shouldUpdateSelectedIndex === 'boolean') {
+                                      return;
+                                  }
+
                                   setSelectedItemIndex(index);
                               },
                         shouldCallAfterModalHide: true,
