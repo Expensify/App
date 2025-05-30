@@ -380,6 +380,10 @@ function isRenamedAction(reportAction: OnyxEntry<ReportAction>): reportAction is
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RENAMED);
 }
 
+function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REOPENED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED);
+}
+
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
     return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
 }
@@ -2427,6 +2431,11 @@ function getReportActionFromExpensifyCard(cardID: number) {
         });
 }
 
+function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>): string {
+    const {label, errorMessage} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {label: '', errorMessage: ''};
+    return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage});
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -2575,6 +2584,8 @@ export {
     getLeaveRoomMessage,
     getRetractedMessage,
     getReportActionFromExpensifyCard,
+    isReopenedAction,
+    getIntegrationSyncFailedMessage,
 };
 
 export type {LastVisibleMessage};
