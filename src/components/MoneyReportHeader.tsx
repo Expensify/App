@@ -485,7 +485,7 @@ function MoneyReportHeader({
                     if (!moneyRequestReport?.reportID) {
                         return;
                     }
-                    if (shouldRestrictAction && policy && shouldRestrictUserBillableActions(policy.id)) {
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                         return;
                     }
@@ -853,7 +853,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (shouldRestrictAction && policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
