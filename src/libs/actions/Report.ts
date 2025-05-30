@@ -5585,6 +5585,188 @@ function changeReportPolicy(reportID: string, policyID: string) {
     }
 }
 
+/**
+ * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
+ */
+function changeReportPolicyAndInviteSubmitter(reportID: string, policyID: string) {
+    if (!reportID || !policyID) {
+        return;
+    }
+    // const reportToMove = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // if (!reportToMove || reportToMove?.policyID === policyID || !isExpenseReport(reportToMove)) {
+    //     return;
+    // }
+
+    // const optimisticData: OnyxUpdate[] = [];
+    // const successData: OnyxUpdate[] = [];
+    // const failureData: OnyxUpdate[] = [];
+
+    // // 1. Optimistically set the policyID on the report (and all its threads)
+
+    // // Preprocess reports to create a map of parentReportID to child reports list of reportIDs
+    // const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
+
+    // // Recursively update the policyID of the report and all its child reports
+    // updatePolicyIdForReportAndThreads(reportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
+
+    // // 2. If the old workspace had a expense chat, mark the report preview action as deleted
+    // if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
+    //     const workspaceChatReportID = reportToMove.parentReportID;
+    //     const reportPreviewActionID = reportToMove.parentReportActionID;
+    //     const oldReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`]?.[reportPreviewActionID];
+    //     const deletedTime = DateUtils.getDBTime();
+    //     const firstMessage = Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.at(0) : null;
+    //     const updatedReportPreviewAction = {
+    //         ...oldReportPreviewAction,
+    //         originalMessage: {
+    //             deleted: deletedTime,
+    //         },
+    //         ...(firstMessage && {
+    //             message: [
+    //                 {
+    //                     ...firstMessage,
+    //                     deleted: deletedTime,
+    //                 },
+    //                 ...(Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.slice(1) : []),
+    //             ],
+    //         }),
+    //         ...(!Array.isArray(oldReportPreviewAction?.message) && {
+    //             message: {
+    //                 deleted: deletedTime,
+    //             },
+    //         }),
+    //     };
+
+    //     optimisticData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
+    //         value: {[reportPreviewActionID]: updatedReportPreviewAction},
+    //     });
+    //     failureData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
+    //         value: {[reportPreviewActionID]: oldReportPreviewAction},
+    //     });
+
+    //     // Update the expense chat report
+    //     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`];
+    //     const lastMessageText = getLastVisibleMessage(workspaceChatReportID, {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastMessageText;
+    //     const lastVisibleActionCreated = getReportLastMessage(workspaceChatReportID, {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastVisibleActionCreated;
+
+    //     optimisticData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
+    //         value: {
+    //             hasOutstandingChildRequest: false,
+    //             iouReportID: null,
+    //             lastMessageText,
+    //             lastVisibleActionCreated,
+    //         },
+    //     });
+    //     failureData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
+    //         value: chatReport,
+    //     });
+    // }
+
+    // // 3. Optimistically create a new REPORT_PREVIEW reportAction with the newReportPreviewActionID
+    // // and set it as a parent of the moved report
+    // const policyExpenseChat = getPolicyExpenseChat(currentUserAccountID, policyID);
+    // const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, reportToMove);
+
+    // if (policyExpenseChat) {
+    //     optimisticData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
+    //         value: {[optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction},
+    //     });
+    //     successData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
+    //         value: {
+    //             [optimisticReportPreviewAction.reportActionID]: {
+    //                 pendingAction: null,
+    //             },
+    //         },
+    //     });
+    //     failureData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
+    //         value: {[optimisticReportPreviewAction.reportActionID]: null},
+    //     });
+
+    //     // Set the new report preview action as a parent of the moved report,
+    //     // and set the parentReportID on the moved report as the expense chat reportID
+    //     optimisticData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+    //         value: {parentReportActionID: optimisticReportPreviewAction.reportActionID, parentReportID: policyExpenseChat.reportID},
+    //     });
+    //     failureData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+    //         value: {parentReportActionID: reportToMove.parentReportActionID, parentReportID: reportToMove.parentReportID},
+    //     });
+
+    //     // Set lastVisibleActionCreated
+    //     optimisticData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+    //         value: {lastVisibleActionCreated: optimisticReportPreviewAction?.created},
+    //     });
+    //     failureData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+    //         value: {lastVisibleActionCreated: policyExpenseChat.lastVisibleActionCreated},
+    //     });
+    // }
+
+    // // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID
+    // const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(reportToMove.policyID, policyID);
+    // optimisticData.push({
+    //     onyxMethod: Onyx.METHOD.MERGE,
+    //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
+    //     value: {[optimisticMovedReportAction.reportActionID]: optimisticMovedReportAction},
+    // });
+    // successData.push({
+    //     onyxMethod: Onyx.METHOD.MERGE,
+    //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
+    //     value: {
+    //         [optimisticMovedReportAction.reportActionID]: {
+    //             pendingAction: null,
+    //             errors: null,
+    //         },
+    //     },
+    // });
+    // failureData.push({
+    //     onyxMethod: Onyx.METHOD.MERGE,
+    //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
+    //     value: {
+    //         [optimisticMovedReportAction.reportActionID]: {
+    //             errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+    //         },
+    //     },
+    // });
+
+    // // Call the ChangeReportPolicy API endpoint
+    const params = {
+        reportID,
+        policyID,
+        reportPreviewReportActionID: '0',
+        changePolicyReportActionID: '0',
+        policyExpenseChatReportID: '0',
+        policyExpenseCreatedReportActionID: '0',
+    };
+    API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params);
+
+    // 5. If the dismissedProductTraining.changeReportModal is not set,
+    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
+    // if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
+    //     Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportToMove.reportID)));
+    // }
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -5691,6 +5873,7 @@ export {
     moveIOUReportToPolicyAndInviteSubmitter,
     dismissChangePolicyModal,
     changeReportPolicy,
+    changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     openUnreportedExpense,
 };
