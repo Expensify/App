@@ -648,6 +648,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
