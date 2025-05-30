@@ -1,5 +1,5 @@
 ---
-title: Change or Add Email Address
+title: Update Email Address
 description: Add or update contact methods for your Expensify account, including changing your default email.
 keywords: [New Expensify, change email, add email, contact method, update default email, account access]
 ---
