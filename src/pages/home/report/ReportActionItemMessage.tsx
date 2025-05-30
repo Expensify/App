@@ -19,9 +19,11 @@ import {
     isApprovedOrSubmittedReportAction as isApprovedOrSubmittedReportActionUtils,
     isMemberChangeAction,
     isMoneyRequestAction,
+    isReimbursementDirectionInformationRequiredAction,
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
 import {getIOUReportActionDisplayMessage, getReportName, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -49,8 +51,8 @@ type ReportActionItemMessageProps = {
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`, {canBeMissing: true});
 
     const fragments = getReportActionMessageFragments(action);
     const isIOUReport = isMoneyRequestAction(action);
@@ -81,6 +83,32 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                     style={style}
                     source=""
                     styleAsDeleted={false}
+                />
+            </View>
+        );
+    }
+
+    const handleEnterSignerInfoPress = () => {
+        const policyID = report?.policyID;
+
+        if (!policyID) {
+            return;
+        }
+
+        navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+    };
+
+    if (isReimbursementDirectionInformationRequiredAction(action)) {
+        const {bankAccountLastFour, currency} = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED>(action) ?? {};
+
+        return (
+            <View style={[styles.chatItemMessage, style]}>
+                <Text>{translate('signerInfoStep.isConnecting', {bankAccountLastFour, currency})}</Text>
+                <Button
+                    style={[styles.mt2, styles.alignSelfStart]}
+                    success
+                    text={translate('signerInfoStep.enterSignerInfo')}
+                    onPress={handleEnterSignerInfoPress}
                 />
             </View>
         );
