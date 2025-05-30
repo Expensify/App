@@ -613,11 +613,10 @@ function ReportActionCompose({
                                         >
                                             <DropZoneUI
                                                 icon={Expensicons.MessageInABottle}
-                                                isDraggingOver
                                                 dropTitle={translate('dropzone.addAttachments')}
                                                 dropStyles={styles.attachmentDropOverlay(true)}
                                                 dropTextStyles={styles.attachmentDropText}
-                                                dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
+                                                dropInnerWrapperStyles={styles.attachmentDropInnerWrapper(true)}
                                             />
                                         </DragAndDropConsumer>
                                     )}

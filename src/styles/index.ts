@@ -3989,7 +3989,6 @@ const styles = (theme: ThemeColors) =>
 
         dropWrapper: {
             zIndex: 2,
-            backgroundColor: theme.dropWrapperBG,
         },
 
         dropInnerWrapper: {
@@ -4015,9 +4014,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textAttachmentDropZone,
         },
 
-        attachmentDropInnerWrapper: {
-            borderColor: theme.attachmentDropBorderColor,
-        },
+        attachmentDropInnerWrapper: (isActive?: boolean) => ({
+            borderColor: isActive ? theme.attachmentDropBorderColorActive : theme.attachmentDropBorderColor,
+            transition: '0.2s ease-in',
+        }),
 
         receiptDropOverlay: (isActive?: boolean) => ({
             backgroundColor: isActive ? theme.receiptDropUIBGActive : theme.receiptDropUIBG,
@@ -4028,9 +4028,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textReceiptDropZone,
         },
 
-        receiptDropInnerWrapper: {
-            borderColor: theme.receiptDropBorderColor,
-        },
+        receiptDropInnerWrapper: (isActive?: boolean) => ({
+            borderColor: isActive ? theme.receiptDropBorderColorActive : theme.receiptDropBorderColor,
+            transition: '0.2s ease-in',
+        }),
 
         isDraggingOver: {
             backgroundColor: theme.fileDropUIBG,

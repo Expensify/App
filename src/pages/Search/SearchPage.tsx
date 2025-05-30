@@ -569,12 +569,11 @@ function SearchPage({route}: SearchPageProps) {
                                 />
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
-                                        isDraggingOver
                                         icon={Expensicons.SmartScan}
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}
-                                        dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
+                                        dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
                                     />
                                 </DragAndDropConsumer>
                             </DragAndDropProvider>

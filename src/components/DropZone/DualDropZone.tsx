@@ -32,12 +32,11 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop}: DropZoneProp
                 <DropZoneWrapper onDrop={onAttachmentDrop}>
                     {({isDraggingOver}) => (
                         <DropZoneUI
-                            isDraggingOver={isDraggingOver}
                             icon={Expensicons.MessageInABottle}
                             dropTitle={translate('dropzone.addAttachments')}
                             dropStyles={styles.attachmentDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.attachmentDropText}
-                            dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
+                            dropInnerWrapperStyles={styles.attachmentDropInnerWrapper(isDraggingOver)}
                             dropWrapperStyles={shouldStackVertically ? styles.pb0 : styles.pr0}
                         />
                     )}
@@ -45,12 +44,11 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop}: DropZoneProp
                 <DropZoneWrapper onDrop={onReceiptDrop}>
                     {({isDraggingOver}) => (
                         <DropZoneUI
-                            isDraggingOver={isDraggingOver}
                             icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
                             dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : 'dropzone.scanReceipts')}
                             dropStyles={styles.receiptDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
+                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(isDraggingOver)}
                         />
                     )}
                 </DropZoneWrapper>

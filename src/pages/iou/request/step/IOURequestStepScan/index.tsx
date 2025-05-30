@@ -944,12 +944,11 @@ function IOURequestStepScan({
                                 }}
                             >
                                 <DropZoneUI
-                                    isDraggingOver
                                     icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
                                     dropStyles={styles.receiptDropOverlay(true)}
                                     dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
                                     dropTextStyles={styles.receiptDropText}
-                                    dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
+                                    dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
                                 />
                             </DragAndDropConsumer>
                         ) : (
