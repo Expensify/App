@@ -280,6 +280,7 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccou
 
     const parameters = {
         authToken,
+        domainAccountID: domainOrWorkspaceAccountID,
         policyID,
         bankName,
     };
