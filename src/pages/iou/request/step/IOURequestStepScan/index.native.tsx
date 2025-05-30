@@ -75,8 +75,25 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
+import ReceiptViewModal from './ReceiptViewModal';
 import type IOURequestStepScanProps from './types';
 import type {ReceiptFile} from './types';
+
+// TODO: remove this
+const mockAttachments = [
+    {
+        source: 'https://picsum.photos/200/300',
+        receiptID: 1,
+    },
+    {
+        source: 'https://picsum.photos/200/300',
+        receiptID: 2,
+    },
+    {
+        source: 'https://picsum.photos/200/300',
+        receiptID: 3,
+    },
+];
 
 function IOURequestStepScan({
     report,
@@ -93,6 +110,13 @@ function IOURequestStepScan({
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
+
+    const [isReceiptModalVisible, setIsReceiptModalVisible] = useState(false);
+    const [currentSelectedIndex, setCurrentSelectedIndex] = useState(0);
+
+    const handleDeleteReceipt = useCallback((index: number) => {
+        // Delete the receipt at the specified index
+    }, []);
 
     const [elementTop, setElementTop] = useState(0);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -859,8 +883,15 @@ function IOURequestStepScan({
                         }}
                     />
                 )}
+                <ReceiptViewModal
+                    sources={mockAttachments}
+                    isOpen={isReceiptModalVisible}
+                    selectedIndex={currentSelectedIndex}
+                    onClose={() => setIsReceiptModalVisible(false)}
+                    onDelete={handleDeleteReceipt}
+                />
                 <Button
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.getRoute())}
+                    onPress={() => setIsReceiptModalVisible(true)}
                     text="PRESS"
                 />
             </View>

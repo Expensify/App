@@ -4,60 +4,49 @@ import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/A
 import type {AttachmentCarouselPagerHandle} from '@components/Attachments/AttachmentCarousel/Pager';
 import AttachmentCarouselPager from '@components/Attachments/AttachmentCarousel/Pager';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
-import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import type {AttachmentSource} from '@components/Attachments/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import type {Receipt} from '@src/types/onyx/Transaction';
 
-type ReceiptViewModalProps = {
-    /** An array of receipt image source URLs to display in the modal. */
-    sources: Attachment[];
-    /** The index of the currently selected receipt in the sources array. */
-    selectedIndex: number;
-    /** Callback function invoked when a receipt is deleted. */
-    onDelete: () => void;
+type ReceiptSource = Receipt & {
+    source: AttachmentSource;
+    receiptID: number;
 };
 
-const mockAttachments: Attachment[] = [
-    {
-        source: 'https://picsum.photos/200/300',
-        attachmentID: '1',
-    },
-    {
-        source: 'https://picsum.photos/200/300',
-        attachmentID: '2',
-    },
-    {
-        source: 'https://picsum.photos/200/300',
-        attachmentID: '3',
-    },
-];
+type ReceiptViewModalProps = {
+    isOpen: boolean;
+    /** An array of receipt image source URLs to display in the modal. */
+    sources: ReceiptSource[];
+    /** The index of the currently selected receipt in the sources array. */
+    selectedIndex: number;
+    /** Callback to delete a receipt */
+    onDelete: (index: number) => void;
+    /** Callback to close modal */
+    onClose: () => void;
+};
 
-function ReceiptViewModal({
-    sources = mockAttachments,
-    selectedIndex = 0,
-    onDelete = () => {},
-}: // route: {
-//     params: {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport},
-// },
-ReceiptViewModalProps) {
-    // const [currentIndex, setCurrentIndex] = useState(selectedIndex);
+function ReceiptViewModal({sources, isOpen, selectedIndex, onDelete, onClose}: ReceiptViewModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isOpen, setIsOpen] = useState(true);
-    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(selectedIndex);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
 
-    // const onCycleThroughAttachments = (deltaSlide: number) => {
-    //     const newIndex = (currentIndex + deltaSlide + sources.length) % sources.length;
-    //     setCurrentIndex(newIndex);
-    // };
+    const [page, setPage] = useState<number>(selectedIndex);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(sources.at(selectedIndex)?.receiptID ?? sources.at(selectedIndex)?.source ?? 0);
 
-    const [page, setPage] = useState<number>(0);
+    const handleDelete = useCallback(() => {
+        onDelete(page);
+
+        if (!sources.length) {
+            onClose();
+        } else if (page >= sources.length - 1) {
+            setPage(page - 1);
+        }
+    }, [onDelete, onClose, sources.length, page]);
 
     const updatePage = useCallback(
         (newPageIndex: number) => {
@@ -68,11 +57,7 @@ ReceiptViewModalProps) {
 
             setPage(newPageIndex);
             if (newPageIndex >= 0 && item) {
-                setActiveAttachmentID(item.attachmentID ?? item.source);
-                // if (onNavigate) {
-                //     onNavigate(item);
-                // }
-                // onNavigate?.(item);
+                setActiveAttachmentID(item.receiptID ?? item.source);
             }
         },
         [setShouldShowArrows, sources],
@@ -96,26 +81,21 @@ ReceiptViewModalProps) {
         [autoHideArrows, page, updatePage],
     );
 
-    const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
-
     return (
         <Modal
             type="centered"
             isVisible={isOpen}
-            onClose={() => {
-                setIsOpen(false);
-                Navigation.goBack();
-            }}
+            onClose={onClose}
         >
             <HeaderWithBackButton
                 title={translate('common.receipt')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={onClose}
                 shouldShowThreeDotsButton
                 threeDotsMenuIcon={Expensicons.Trashcan}
-                onThreeDotsButtonPress={onDelete}
+                onThreeDotsButtonPress={handleDelete}
             />
 
-            <View style={containerStyles}>
+            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
                 <AttachmentCarouselView
                     cycleThroughAttachments={cycleThroughAttachments}
                     page={page}
@@ -130,7 +110,7 @@ ReceiptViewModalProps) {
                         activeAttachmentID={activeAttachmentID}
                         setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                        onClose={() => {}}
+                        onClose={onClose}
                         ref={pagerRef}
                     />
                 </AttachmentCarouselView>
