@@ -10598,7 +10598,6 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
 function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
-    console.log(managerLogin, isWorkspacePayer(managerLogin?.toString() ?? '', newPolicy), newPolicy);
     return (
         isPaidGroupPolicyPolicyUtils(newPolicy) &&
         (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies)) &&
