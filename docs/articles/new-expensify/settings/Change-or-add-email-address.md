@@ -1,45 +1,61 @@
 ---
-title: Change or add email address
-description: Add additional email addresses for your Expensify account or update your email
+title: Change or Add Email Address
+description: Add or update contact methods for your Expensify account, including changing your default email.
+keywords: [New Expensify, change email, add email, contact method, update default email, account access]
 ---
 <div id="new-expensify" markdown="1">
 
-The default email address on your Expensify account is the email that receives email updates and notifications for your account. You can add additional contact methods in order to
-- Change your default email to a new one.
-- Connect your personal email address as an additional way to log in if your default email address is one from your employer. This allows you to always have access to your Expensify account, even if your employer changes. 
+Keep your Expensify account secure and accessible by updating or adding new email addresses. You can add personal or secondary emails, change your default email, and remove outdated addresses.
 
-{% include info.html %}
-Before you can remove a default email address, you must add a new one to your Expensify account and make it the default using the steps below. Email addresses must be added as a contact method before they can be made the default.
-{% include end-info.html %}
+---
 
-To change or add an email address, 
+# Why Add Another Email Address?
 
-{% include selector.html values="desktop, mobile" %}
+Adding an additional email helps you:
 
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu. 
-2. Click **Profile** in the left menu.
-3. Click **Contact method**. 
-4. Click **New contact method**.
-5. Enter the email address or phone number you want to use as a new default or contact method. 
+- **Switch your default email** to a new one (e.g. a personal address).
+- **Maintain access** if your primary email is tied to an employer domain.
+- **Use multiple logins**—emails and phone numbers can be used interchangeably to access your account.
+
+💡 **Note:** You must verify any new contact method before making it your default or removing the existing one.
+
+---
+
+# Add or Change an Email Address
+
+## On Desktop:
+1. Click your **profile icon** in the bottom-left corner.
+2. Select **Profile** from the left-hand menu.
+3. Click **Contact Method**.
+4. Click **New Contact Method**.
+5. Enter the email address or phone number you want to add.
 6. Click **Add**.
-7. You’ll receive an email with a code to verify your email address. Enter the code into the field in Expensify and click **Verify**. 
+7. Check your email for a **verification code**, enter it in Expensify, and click **Verify**.
 
-You can click any email address in your list to set it as the default, remove it, or verify it.
-{% include end-option.html %}
+After verifying, click any contact method to:
+- Set it as your **default**
+- **Remove** it
+- **Re-send verification**
 
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon at the bottom of the screen. 
-2. Tap **Profile** in the left menu.
-3. Tap **Contact method**. 
-4. Tap **New contact method**.
-5. Enter the email address or phone number you want to use as a new default or secondary email. 
+## On Mobile:
+1. Tap your **profile icon** at the bottom of the screen.
+2. Tap **Profile** from the left-hand menu.
+3. Tap **Contact Method**.
+4. Tap **New Contact Method**.
+5. Enter the email address or phone number you want to add.
 6. Tap **Add**.
-7. You’ll receive an email with a code to verify your email address. Enter the code into the field in Expensify and tap **Verify**. 
- 
-You can tap any email address in your list to set it as the default, remove it, or verify it.
-{% include end-option.html %}
+7. Check your email for a **verification code**, enter it in Expensify, and tap **Verify**.
 
-{% include end-selector.html %} 
+Once verified, tap any email in your list to:
+- Set it as your **default**
+- **Remove** it
+- **Re-send verification**
+
+---
+
+# Important Notes
+
+- You can’t remove your default email until another verified contact method is set as default.
+- You can add multiple contact methods for flexibility when logging in or recovering your account.
 
 </div>
