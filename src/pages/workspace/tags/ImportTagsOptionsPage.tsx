@@ -19,13 +19,14 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasIndependentTags as hasIndependentTagsPolicyUtils,
     isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+    goBackFromInvalidPolicy,
+    hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
 } from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -44,7 +45,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const isQuickSettingsFlow = !!backTo;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -74,7 +75,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}

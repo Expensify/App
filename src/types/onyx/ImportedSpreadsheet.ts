@@ -30,10 +30,6 @@ type ImportedSpreadsheet = {
     /** Whether the GL code is in the adjacent column */
     isGLAdjacent: boolean;
 
-    /** Whether the first line is the header */
-    /** Whether the first line is the header */
-    isFirstLineHeader: boolean;
-
     /** The imported file URI */
     fileURI?: string;
 };

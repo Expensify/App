@@ -4,7 +4,7 @@ import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import usePolicy from '@hooks/usePolicy';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -20,7 +20,7 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const isQuickSettingsFlow = !!backTo;
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
@@ -35,7 +35,7 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ImportSpreadsheet
                 backTo={backTo}

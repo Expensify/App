@@ -22,7 +22,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -40,7 +40,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const backTo = route.params.backTo;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -64,7 +64,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}

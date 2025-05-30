@@ -1,6 +1,5 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
 import {Platform} from 'react-native';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';

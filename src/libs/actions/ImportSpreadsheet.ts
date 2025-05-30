@@ -13,7 +13,6 @@ function setSpreadsheetData(data: string[][], fileURI: string): Promise<void | v
             acc[colIndex] = CONST.CSV_IMPORT_COLUMNS.IGNORE;
             return acc;
         }, {}) ?? {};
-    console.log('fileURI', fileURI);
     return Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, {data: transposedData, columns: columnNames, fileURI});
 }
 

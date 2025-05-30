@@ -239,19 +239,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [
-        isMultiLevelTags,
-        policyTagLists,
-        selectedTags,
-        canSelectMultiple,
-        canUseMultiLevelTags,
-        hasDependentTags,
-        translate,
-        policy,
-        policyTags,
-        updateWorkspaceRequiresTag,
-        updateWorkspaceTagEnabled,
-    ]);
+    }, [isMultiLevelTags, policyTagLists, canUseMultiLevelTags, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
@@ -501,7 +489,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo, canUseMultiLevelTags, hasIndependentTags]);
+    }, [policy, hasVisibleTags, hasDependentTags, translate, isOffline, canUseMultiLevelTags, isQuickSettingsFlow, policyID, backTo, hasIndependentTags]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
