@@ -2883,7 +2883,8 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
 
             // There should be some kind of a reason (any reason is fine)
             expect(result).toHaveProperty('reason');
@@ -2900,7 +2901,8 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
 
             // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
 
             // Then the result is null
             expect(result).toBe(null);

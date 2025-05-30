@@ -3349,6 +3349,7 @@ type ReasonAndReportActionThatRequiresAttention = {
 function getReasonAndReportActionThatRequiresAttention(
     optionOrReport: OnyxEntry<Report> | OptionData,
     parentReportAction?: OnyxEntry<ReportAction>,
+    isReportArchived = false,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -3363,9 +3364,7 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID))) {
+    if (isReportArchived) {
         return null;
     }
 
