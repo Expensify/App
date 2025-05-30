@@ -5611,7 +5611,8 @@ const CONST = {
             ],
         },
         [onboardingChoices.TRACK_WORKSPACE]: {
-            message: 'Here are some important tasks to help get your workspace set up.',
+            message:
+                '# Let’s get you set up\n👋 I’m here to help! To get you started, I’ve tailored your workspace settings for sole proprietors and similar businesses. You can adjust your workspace by clicking the link below!\n\nHere’s how to track your spend in a few clicks:',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
@@ -5621,28 +5622,21 @@ const CONST = {
             },
             tasks: [
                 createWorkspaceTask,
-                setupCategoriesTask,
+                testDriveAdminTask,
                 {
-                    type: 'inviteAccountant',
+                    type: 'createReport',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
-                    description: ({workspaceMembersLink}) =>
-                        '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
+                    title: 'Create your first report',
+                    description:
+                        'Here’s how to create a report:\n' +
                         '\n' +
-                        'Here’s how to invite your accountant:\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Create report*.\n' +
+                        '3. Click *Add expense*.\n' +
+                        '4. Add your first expense.\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Members* > Invite member.\n' +
-                        '5. Enter their email or phone number.\n' +
-                        '6. Add an invite message if you’d like.\n' +
-                        '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
-                        '\n' +
-                        'That’s it, happy expensing! 😄\n' +
-                        '\n' +
-                        `[View your workspace members](${workspaceMembersLink}).`,
+                        'And you’re done!',
                 },
             ],
         },
