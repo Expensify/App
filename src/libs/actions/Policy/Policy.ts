@@ -248,13 +248,6 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 }
 
 /**
- * Stores in Onyx the policy ID of the last workspace that was accessed by the user via workspace switcher
- */
-function updateLastAccessedWorkspaceSwitcher(policyID: OnyxEntry<string>) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID, policyID ?? null);
-}
-
-/**
  * Checks if the currency is supported for direct reimbursement
  * USD currency is the only one supported in NewDot for now
  */
@@ -1121,6 +1114,27 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 value: {
                     private_isArchived: false,
                 },
+            });
+            const currentTime = DateUtils.getDBTime();
+            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
+            Object.values(reportActions).forEach((action) => {
+                if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                    return;
+                }
+                workspaceMembersChats.onyxOptimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                    value: {
+                        private_isArchived: null,
+                    },
+                });
+                workspaceMembersChats.onyxFailureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                    value: {
+                        private_isArchived: currentTime,
+                    },
+                });
             });
             return;
         }
@@ -2160,7 +2174,12 @@ function buildPolicyData(
         companySize,
     };
 
-    if (introSelected !== undefined && !introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
+    if (
+        introSelected !== undefined &&
+        (introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !introSelected?.createWorkspace) &&
+        engagementChoice &&
+        shouldAddOnboardingTasks
+    ) {
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -5297,7 +5316,6 @@ export {
     updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
-    getAdminPolicies,
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
@@ -5332,7 +5350,6 @@ export {
     payAndDowngrade,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
-    updateLastAccessedWorkspaceSwitcher,
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
 };

@@ -100,7 +100,8 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
  * @returns - The total amount to be formatted as a string. Returns an empty string if no amount is applicable.
  */
 const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => {
-    // Determine whether the non-held amount is appropriate to display for the PAY button.
+    // Determine whether the non-held amount is appropriate to display for the PAY or APPROVE button.
+    const isPayOrApproveAction: boolean = reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY || reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(report?.reportID);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
@@ -108,7 +109,12 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
     // Split the total spend into different categories as needed.
     const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
+    if (isPayOrApproveAction) {
+        // Return empty string if there are only held expenses which cannot be paid or approved.
+        if (hasOnlyHeldExpenses) {
+            return '';
+        }
+
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
         if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
             return nonHeldAmount;

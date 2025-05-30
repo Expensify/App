@@ -2,15 +2,12 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import Log from '@libs/Log';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, SwitchPolicyIdActionType} from './types';
+import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-    NAVIGATORS.LEFT_MODAL_NAVIGATOR,
     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
     NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR,
@@ -41,9 +38,14 @@ function handleOpenWorkspaceSplitAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const actionToPushWorkspaceHubSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR, {
-        screen: SCREENS.WORKSPACE_HUB.WORKSPACES,
-    });
+    const actionToPushWorkspacesList = StackActions.push(SCREENS.WORKSPACES_LIST);
+
+    const stateWithWorkspacesList = stackRouter.getStateForAction(state, actionToPushWorkspacesList, configOptions);
+
+    if (!stateWithWorkspacesList) {
+        Log.hmmm('[handleOpenWorkspaceSplitAction] WorkspacesList has not been found in the navigation state.');
+        return null;
+    }
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
         screen: action.payload.screenName,
@@ -52,15 +54,8 @@ function handleOpenWorkspaceSplitAction(
         },
     });
 
-    const stateWithWorkspaceHubSplitNavigator = stackRouter.getStateForAction(state, actionToPushWorkspaceHubSplitNavigator, configOptions);
-
-    if (!stateWithWorkspaceHubSplitNavigator) {
-        Log.hmmm('[handleOpenWorkspaceSplitAction] SettingsSplitNavigator has not been found in the navigation state.');
-        return null;
-    }
-
-    const rehydratedStateWithSettingsSplitNavigator = stackRouter.getRehydratedState(stateWithWorkspaceHubSplitNavigator, configOptions);
-    const stateWithWorkspaceSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithSettingsSplitNavigator, actionToPushWorkspaceSplitNavigator, configOptions);
+    const rehydratedStateWithWorkspacesList = stackRouter.getRehydratedState(stateWithWorkspacesList, configOptions);
+    const stateWithWorkspaceSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithWorkspacesList, actionToPushWorkspaceSplitNavigator, configOptions);
 
     if (!stateWithWorkspaceSplitNavigator) {
         Log.hmmm('[handleOpenWorkspaceSplitAction] WorkspaceSplitNavigator has not been found in the navigation state.');
@@ -76,68 +71,6 @@ function handleOpenWorkspaceSplitAction(
     }
 
     return stateWithWorkspaceSplitNavigator;
-}
-
-/**
- * Handles the SWITCH_POLICY_ID action for `SearchFullscreenNavigator`.
- * Information about the currently selected policy can be found in the last Search_Root.
- * After user changes the policy while on Search, a new Search_Root with the changed policy inside query param has to be pushed to the navigation state.
- */
-function handleSwitchPolicyIDFromSearchAction(
-    state: StackNavigationState<ParamListBase>,
-    action: SwitchPolicyIdActionType,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-    setActiveWorkspaceID: (workspaceID: string | undefined) => void,
-) {
-    const lastRoute = state.routes.at(-1);
-    if (lastRoute?.name === SCREENS.SEARCH.ROOT) {
-        const currentParams = lastRoute.params as RootNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
-        if (!queryJSON) {
-            return null;
-        }
-
-        if (action.payload.policyID) {
-            queryJSON.policyID = action.payload.policyID;
-        } else {
-            delete queryJSON.policyID;
-        }
-
-        const newAction = StackActions.push(SCREENS.SEARCH.ROOT, {
-            ...currentParams,
-            q: SearchQueryUtils.buildSearchQueryString(queryJSON),
-        });
-
-        setActiveWorkspaceID(action.payload.policyID);
-        return stackRouter.getStateForAction(state, newAction, configOptions);
-    }
-    // We don't have other navigators that should handle switch policy action.
-    return null;
-}
-
-/**
- * Handles the SWITCH_POLICY_ID action for `ReportsSplitNavigator`.
- * Information about the currently selected policy can be found in the last ReportsSplitNavigator.
- * After user changes the policy while on Inbox, a new ReportsSplitNavigator with the changed policy has to be pushed to the navigation state.
- */
-function handleSwitchPolicyIDAction(
-    state: StackNavigationState<ParamListBase>,
-    action: SwitchPolicyIdActionType,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-    setActiveWorkspaceID: (workspaceID: string | undefined) => void,
-) {
-    const lastRoute = state.routes.at(-1);
-    if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-        const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {policyID: action.payload.policyID});
-
-        setActiveWorkspaceID(action.payload.policyID);
-        return stackRouter.getStateForAction(state, newAction, configOptions);
-    }
-
-    // We don't have other navigators that should handle switch policy action.
-    return null;
 }
 
 /**
@@ -284,8 +217,6 @@ export {
     handlePushSearchPageAction,
     handlePushSettingsSplitAction,
     handleReplaceReportsSplitNavigatorAction,
-    handleSwitchPolicyIDAction,
-    handleSwitchPolicyIDFromSearchAction,
     reportsSplitsWithEnteringAnimation,
     searchFullscreenWithEnteringAnimation,
     settingsSplitWithEnteringAnimation,

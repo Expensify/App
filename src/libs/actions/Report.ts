@@ -58,7 +58,6 @@ import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVPara
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
-import * as Browser from '@libs/Browser';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
@@ -89,7 +88,7 @@ import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {extractPolicyIDFromPath, getDefaultApprover, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
+import {getDefaultApprover, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
@@ -251,7 +250,7 @@ type ReportError = {
     type?: string;
 };
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
-let conciergeChatReportID: string | undefined;
+let conciergeReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
 
@@ -260,7 +259,7 @@ Onyx.connect({
     callback: (value) => {
         // When signed out, val is undefined
         if (!value?.accountID) {
-            conciergeChatReportID = undefined;
+            conciergeReportID = undefined;
             return;
         }
         currentUserEmail = value.email;
@@ -269,8 +268,8 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID,
-    callback: (value) => (conciergeChatReportID = value),
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => (conciergeReportID = value),
 });
 
 let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
@@ -355,17 +354,6 @@ const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
     reportIDDeeplinkedFromOldDot = processReportIDDeeplink(url ?? '');
-});
-
-let lastVisitedPath: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.LAST_VISITED_PATH,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        lastVisitedPath = value;
-    },
 });
 
 let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
@@ -1382,8 +1370,8 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     if (shouldDismissModal) {
-        if (getIsNarrowLayout()) {
-            Navigation.dismissModalWithReport({report});
+        if (getIsNarrowLayout() && report?.reportID) {
+            Navigation.dismissModalWithReport({reportID: report.reportID});
             return;
         }
 
@@ -1392,7 +1380,7 @@ function navigateToAndOpenReport(
 
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
-        Navigation.isNavigationReady().then(() => Navigation.navigateToReportWithPolicyCheck({report}));
+        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID)));
     }, 0);
 }
 
@@ -1413,7 +1401,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
     }
     const report = chat ?? newChat;
 
-    Navigation.navigateToReportWithPolicyCheck({report});
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID));
 }
 
 /**
@@ -2492,13 +2480,13 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
     API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
-function updateDescription(reportID: string, previousValue: string, newValue: string) {
+function updateDescription(reportID: string, currentDescription: string, newMarkdownValue: string) {
     // No change needed
-    if (previousValue === newValue) {
+    if (Parser.htmlToMarkdown(currentDescription) === newMarkdownValue) {
         return;
     }
 
-    const parsedDescription = getParsedComment(newValue, {reportID});
+    const parsedDescription = getParsedComment(newMarkdownValue, {reportID});
     const optimisticDescriptionUpdatedReportAction = buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -2527,7 +2515,7 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                description: previousValue,
+                description: currentDescription,
                 pendingFields: {description: null},
                 lastActorAccountID: report?.lastActorAccountID,
                 lastVisibleActionCreated: report?.lastVisibleActionCreated,
@@ -2592,9 +2580,9 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true, linkToOptions?: LinkToOptions, reportActionID?: string) {
-    // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
+    // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
-    if (!conciergeChatReportID) {
+    if (!conciergeReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         onServerDataReady().then(() => {
@@ -2605,9 +2593,9 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
-        Navigation.dismissModalWithReport({reportID: conciergeChatReportID, reportActionID});
+        Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
     } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), linkToOptions);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
     }
 }
 
@@ -2748,16 +2736,23 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         },
     ];
 
-    return {optimisticReportName: optimisticReportData.reportName, optimisticData, successData, failureData};
+    return {
+        optimisticReportName: optimisticReportData.reportName,
+        reportPreviewAction: optimisticReportPreview,
+        parentReportID: parentReport?.reportID,
+        optimisticData,
+        successData,
+        failureData,
+    };
 }
 
-function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
+function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldNotifyNewAction = false) {
     const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {optimisticReportName, optimisticData, successData, failureData} = buildNewReportOptimisticData(
+    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData} = buildNewReportOptimisticData(
         policy,
         optimisticReportID,
         reportActionID,
@@ -2770,6 +2765,10 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         {reportName: optimisticReportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID, shouldUpdateQAB: true},
         {optimisticData, successData, failureData},
     );
+    if (shouldNotifyNewAction) {
+        notifyNewAction(parentReportID, creatorPersonalDetails.accountID, reportPreviewAction);
+    }
+
     return optimisticReportID;
 }
 
@@ -2885,7 +2884,7 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
     };
 
     API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReport({report: policyReport});
+    Navigation.dismissModalWithReport({reportID: policyReport.reportID});
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
@@ -3129,11 +3128,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         return;
     }
 
-    const onClick = () =>
-        close(() => {
-            const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            navigateFromNotification(reportID, policyID);
-        });
+    const onClick = () => close(() => navigateFromNotification(reportID));
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
@@ -3417,7 +3412,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
 
 function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
-    return lastAccessedReportID ?? conciergeChatReportID;
+    return lastAccessedReportID ?? conciergeReportID;
 }
 
 function joinRoom(report: OnyxEntry<Report>) {
@@ -4589,7 +4584,10 @@ function downloadReportPDF(fileName: string, reportName: string) {
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
         currentUserEmail ?? '',
     )}`;
-    fileDownload(addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
+    // The shouldOpenExternalLink parameter must always be set to
+    // true to avoid CORS errors for as long as we use the OD URL.
+    // See https://github.com/Expensify/App/issues/61937
+    fileDownload(addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', true).then(() => setDownload(fileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
@@ -4772,7 +4770,9 @@ function deleteAppReport(reportID: string | undefined) {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
                 value: {
                     [newReportActionID]: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         originalMessage: {
+                            IOUTransactionID: transactionID,
                             movedToReportID: selfDMReportID,
                         },
                     },
@@ -4845,6 +4845,18 @@ function deleteAppReport(reportID: string | undefined) {
             },
         });
     }
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+        value: {hasOutstandingChildRequest: false},
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+        value: {hasOutstandingChildRequest: report?.hasOutstandingChildRequest},
+    });
 
     const parameters: DeleteAppReportParams = {
         reportID,
