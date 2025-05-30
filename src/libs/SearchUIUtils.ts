@@ -336,6 +336,10 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
     const transactionsSections: TransactionListItemType[] = [];
 
+    const reports = Object.keys(data)
+        .filter(isReportEntry)
+        .map((dataKey) => data[dataKey]);
+
     for (const key of transactionKeys) {
         const transactionItem = data[key];
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
@@ -345,6 +349,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
         const to = transactionItem.managerID && !shouldShowBlankTo ? personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails : emptyPersonalDetails;
+        const isPolicyExpenseChat = !!reports.find((rp) => rp.policyID === transactionItem.policyID && rp.isPolicyExpenseChat);
 
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
@@ -363,6 +368,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowTax,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
+            isPolicyExpenseChat,
 
             // Manually copying all the properties from transactionItem
             transactionID: transactionItem.transactionID,
