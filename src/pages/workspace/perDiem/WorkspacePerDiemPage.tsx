@@ -272,12 +272,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        menuItems.push({
-            icon: Expensicons.Gear,
-            text: translate('common.settings'),
-            onSelected: openSettings,
-            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-        });
+        if (policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {})) {
+            menuItems.push({
+                icon: Expensicons.Gear,
+                text: translate('common.settings'),
+                onSelected: openSettings,
+                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            });
+        }
         menuItems.push({
             icon: Expensicons.Table,
             text: translate('spreadsheet.importSpreadsheet'),
@@ -308,7 +310,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }
 
         return menuItems;
-    }, [translate, openSettings, hasVisibleSubRates, isOffline, policyID]);
+    }, [policy?.areCategoriesEnabled, policyCategories, translate, hasVisibleSubRates, openSettings, isOffline, policyID]);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
@@ -333,10 +335,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     isDisabled={!selectedPerDiem.length}
                 />
             );
-        }
-
-        if (!policy?.areCategoriesEnabled || !hasEnabledOptions(policyCategories ?? {})) {
-            return null;
         }
 
         return (
