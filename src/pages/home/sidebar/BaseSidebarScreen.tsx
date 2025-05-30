@@ -9,7 +9,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
 import Performance from '@libs/Performance';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import SidebarLinksData from './SidebarLinksData';
 
