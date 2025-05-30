@@ -1620,7 +1620,7 @@ describe('actions/Report', () => {
     });
 
     describe('markAllMessagesAsRead', () => {
-        it('should mark all unread report', async () => {
+        it('should mark all unread reports as read', async () => {
             // Given a collection of 10 unread and read reports, where even-index report is unread
             const currentTime = DateUtils.getDBTime();
             const reportCollections: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, OnyxTypes.Report> = createCollection<OnyxTypes.Report>(
