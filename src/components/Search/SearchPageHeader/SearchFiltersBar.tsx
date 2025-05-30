@@ -193,7 +193,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const items = getStatusOptions(type, groupBy);
-            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : items.find((option) => option.value === status) ?? [];
+            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : (items.find((option) => option.value === status) ?? []);
             const value = [selected].flat();
 
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
