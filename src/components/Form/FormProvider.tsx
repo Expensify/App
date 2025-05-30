@@ -185,7 +185,7 @@ function FormProvider(
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate, allowHTML],
+        [shouldTrimValues, formID, validate, errors, translate, allowHTML, shouldUseStrictHtmlTagValidation],
     );
 
     // When locales change from another session of the same account,
