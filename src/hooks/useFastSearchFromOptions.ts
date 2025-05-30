@@ -7,8 +7,6 @@ import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 
-type AllOrSelectiveOptions = OptionsListType;
-
 type Options = {
     includeUserToInvite: boolean;
 };
@@ -21,12 +19,9 @@ const emptyResult = {
 };
 
 // You can either use this to search within report and personal details options
-function useFastSearchFromOptions(
-    options: ReportAndPersonalDetailOptions,
-    config?: {includeUserToInvite: false},
-): {search: (searchInput: string) => AllOrSelectiveOptions; isInitialized: boolean};
+function useFastSearchFromOptions(options: ReportAndPersonalDetailOptions, config?: {includeUserToInvite: false}): {search: (searchInput: string) => OptionsListType; isInitialized: boolean};
 // Or you can use this to include the user invite option. This will require passing all options
-function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): {search: (searchInput: string) => AllOrSelectiveOptions; isInitialized: boolean};
+function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): {search: (searchInput: string) => OptionsListType; isInitialized: boolean};
 
 /**
  * Hook for making options from OptionsListUtils searchable with FastSearch.
@@ -40,7 +35,7 @@ function useFastSearchFromOptions(options: OptionsListType, config?: {includeUse
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
-): {search: (searchInput: string) => AllOrSelectiveOptions; isInitialized: boolean} {
+): {search: (searchInput: string) => OptionsListType; isInitialized: boolean} {
     const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     useEffect(() => {
@@ -82,7 +77,7 @@ function useFastSearchFromOptions(
     }, [options]);
 
     const findInSearchTree = useCallback(
-        (searchInput: string): AllOrSelectiveOptions => {
+        (searchInput: string): OptionsListType => {
             if (!fastSearch) {
                 return emptyResult;
             }

@@ -522,8 +522,10 @@ function SearchAutocompleteList(
         if (!handleSearch) {
             return;
         }
-
-        handleSearch(autocompleteQueryWithoutFilters);
+        const timeout = setTimeout(() => {
+            handleSearch(autocompleteQueryWithoutFilters);
+        }, 300);
+        return () => clearTimeout(timeout);
     }, [autocompleteQueryWithoutFilters, handleSearch]);
 
     /* Sections generation */

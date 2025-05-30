@@ -1,5 +1,4 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
-import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
@@ -81,7 +80,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {
+        initWithStoredValues: false,
+        canBeMissing: true,
+    });
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
@@ -319,13 +321,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
-    const debouncedSearchInServer = useCallback(
-        debounce((query: string) => {
-            searchInServer(query);
-        }, 500),
-        [],
-    );
-
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
@@ -368,7 +363,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     />
                     <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                        handleSearch={debouncedSearchInServer}
+                        handleSearch={searchInServer}
                         searchQueryItem={searchQueryItem}
                         getAdditionalSections={getAdditionalSections}
                         onListItemPress={onListItemPress}
