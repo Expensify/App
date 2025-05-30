@@ -11752,8 +11752,8 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         Navigation.dismissModal();
         return;
     }
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(transactionReport?.parentReportID);
-        Navigation.navigate(reportRoute, {forceReplace: true});
+    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(transactionReport?.parentReportID);
+    Navigation.navigate(reportRoute, {forceReplace: true});
 }
 
 export {
