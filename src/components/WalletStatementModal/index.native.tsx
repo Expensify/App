@@ -27,7 +27,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
             if (!webViewRef.current) {
                 return;
             }
-            
+
             handleWalletStatementNavigation(type, url);
         } catch (error) {
             console.error('Error parsing message from WebView:', error);
