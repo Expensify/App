@@ -60,35 +60,26 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
         const report = transactionsReports.at(0);
         const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
         return isPolicyExpenseChat ? report?.iouReportID : report?.reportID;
-
     }, [transactionsReports]);
 
-    const expenseReports = useMemo(
-        () => {
-            if (selectedReportID) {
-                return getOutstandingReportsForUser(
-                    transactionsReports.at(0)?.policyID,
-                    transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
-                    allReports ?? {},
-                    reportNameValuePairs,
-                );
-            }
+    const expenseReports = useMemo(() => {
+        if (selectedReportID) {
+            return getOutstandingReportsForUser(
+                transactionsReports.at(0)?.policyID,
+                transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
+                allReports ?? {},
+                reportNameValuePairs,
+            );
+        }
 
-            return Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID) {
-                    return [];
-                }
-                const reports = getOutstandingReportsForUser(
-                    policyID,
-                    transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
-                    allReports ?? {},
-                    reportNameValuePairs,
-                );
-                return reports;
-            });
-        },
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, selectedReportID],
-    );
+        return Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
+            if (!policyID) {
+                return [];
+            }
+            const reports = getOutstandingReportsForUser(policyID, transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs);
+            return reports;
+        });
+    }, [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, selectedReportID]);
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {

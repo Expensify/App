@@ -287,7 +287,9 @@ function MoneyRequestConfirmationListFooter({
     const reportOwnerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
 
-    let reportName = shouldUseTransactionReport ? transactionReport?.reportName : Object.values(allReports ?? {}).find((report) => report?.reportID === transactionReport?.iouReportID)?.reportName;
+    let reportName = shouldUseTransactionReport
+        ? transactionReport?.reportName
+        : Object.values(allReports ?? {}).find((report) => report?.reportID === transactionReport?.iouReportID)?.reportName;
     if (!reportName) {
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
