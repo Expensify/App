@@ -13,6 +13,8 @@ import useLocalize from '@hooks/useLocalize';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {AnchorDimensions} from '@src/styles';
@@ -78,6 +80,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         width: 0,
         height: 0,
     });
+
+    const [composerToRefocusOnClose, setComposerToRefocusOnClose] = useState<ComposerType>();
 
     const onPopoverShow = useRef(() => {});
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
@@ -171,6 +175,12 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             shouldCloseOnTarget = false,
             isOverflowMenu = false,
         } = showContextMenuParams;
+        if (ReportActionComposeFocusManager.isFocused()) {
+            setComposerToRefocusOnClose('main');
+        } else if (ReportActionComposeFocusManager.isEditFocused()) {
+            setComposerToRefocusOnClose('edit');
+        }
+
         const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = report;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
@@ -259,6 +269,18 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
     };
 
+    const handleModalHide = () => {
+        runAndResetOnPopoverHide();
+
+        if (composerToRefocusOnClose === 'main') {
+            ReportActionComposeFocusManager.composerRef.current?.focus();
+            setComposerToRefocusOnClose(undefined);
+        } else if (composerToRefocusOnClose === 'edit') {
+            ReportActionComposeFocusManager.editComposerRef.current?.focus();
+            setComposerToRefocusOnClose(undefined);
+        }
+    };
+
     /**
      * Hide the ReportActionContextMenu modal popover.
      * @param onHideActionCallback Callback to be called after popover is completely hidden
@@ -327,6 +349,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         clearActiveReportAction,
         contentRef,
         isContextMenuOpening,
+        composerToRefocusOnCloseEmojiPicker: composerToRefocusOnClose,
     }));
 
     const reportAction = reportActionRef.current;
@@ -337,7 +360,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 isVisible={isPopoverVisible}
                 onClose={hideContextMenu}
                 onModalShow={runAndResetOnPopoverShow}
-                onModalHide={runAndResetOnPopoverHide}
+                onModalHide={handleModalHide}
                 anchorPosition={popoverAnchorPosition.current}
                 animationIn="fadeIn"
                 disableAnimation={false}
@@ -347,6 +370,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
+                shouldEnableNewFocusManagement
+                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}
