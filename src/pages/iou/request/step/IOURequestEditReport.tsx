@@ -20,16 +20,16 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID} = route.params;
 
-    const {selectedTransactionsID, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
 
     const selectReport = (item: ReportListItem) => {
-        if (selectedTransactionsID.length === 0) {
+        if (selectedTransactionIDs.length === 0) {
             return;
         }
         if (item.value !== transactionReport?.reportID) {
-            changeTransactionsReport(selectedTransactionsID, item.value);
+            changeTransactionsReport(selectedTransactionIDs, item.value);
             clearSelectedTransactions(true);
         }
         Navigation.dismissModalWithReport({reportID: item.value});

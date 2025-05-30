@@ -132,16 +132,16 @@ function MoneyRequestReportTransactionList({
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
-    const {selectedTransactionsID, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
 
     const toggleTransaction = useCallback(
         (transactionID: string) =>
-            setSelectedTransactions(selectedTransactionsID.includes(transactionID) ? selectedTransactionsID.filter((t) => t !== transactionID) : [...selectedTransactionsID, transactionID]),
-        [setSelectedTransactions, selectedTransactionsID],
+            setSelectedTransactions(selectedTransactionIDs.includes(transactionID) ? selectedTransactionIDs.filter((t) => t !== transactionID) : [...selectedTransactionIDs, transactionID]),
+        [setSelectedTransactions, selectedTransactionIDs],
     );
 
-    const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionsID.includes(transactionID), [selectedTransactionsID]);
+    const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionIDs.includes(transactionID), [selectedTransactionIDs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -211,15 +211,15 @@ function MoneyRequestReportTransactionList({
                     <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
-                                if (selectedTransactionsID.length !== 0) {
+                                if (selectedTransactionIDs.length !== 0) {
                                     clearSelectedTransactions(true);
                                 } else {
                                     setSelectedTransactions(transactions.map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
-                            isChecked={selectedTransactionsID.length === transactions.length}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactions.length}
+                            isChecked={selectedTransactionIDs.length === transactions.length}
                         />
                         {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
                     </View>

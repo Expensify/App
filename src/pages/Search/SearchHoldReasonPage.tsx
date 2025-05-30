@@ -16,19 +16,20 @@ import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
 function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>) {
     const {translate} = useLocalize();
-    const {backTo = '', reportID} = route.params;
+    const {backTo = '', reportID} = route.params ?? {};
     const context = useSearchContext();
     const isIOUHold = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS;
 
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (isIOUHold) {
-                putTransactionsOnHold(context.selectedTransactionsID, comment, reportID);
+                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID);
+                context.clearSelectedTransactions(true);
             } else {
                 holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment);
+                context.clearSelectedTransactions();
             }
 
-            context.clearSelectedTransactions(isIOUHold);
             Navigation.goBack();
         },
         [isIOUHold, context, reportID],

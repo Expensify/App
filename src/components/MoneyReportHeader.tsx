@@ -261,7 +261,7 @@ function MoneyReportHeader({
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
     const {
         options: selectedTransactionsOptions,
@@ -867,7 +867,7 @@ function MoneyReportHeader({
             return;
         }
         clearSelectedTransactions(true);
-        // We don't need to run the effect on change of setSelectedTransactionsID since it can cause the infinite loop.
+        // We don't need to run the effect on change of clearSelectedTransactions since it can cause the infinite loop.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionThreadReportID]);
@@ -967,7 +967,7 @@ function MoneyReportHeader({
                                 <ButtonWithDropdownMenu
                                     onPress={() => null}
                                     options={selectedTransactionsOptions}
-                                    customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                                     isSplitButton={false}
                                     shouldAlwaysShowDropdownMenu
                                 />
@@ -989,7 +989,7 @@ function MoneyReportHeader({
                             <ButtonWithDropdownMenu
                                 onPress={() => null}
                                 options={selectedTransactionsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                                 isSplitButton={false}
                                 shouldAlwaysShowDropdownMenu
                                 wrapperStyle={styles.w100}
@@ -1085,11 +1085,11 @@ function MoneyReportHeader({
                 shouldEnableNewFocusManagement
             />
             <ConfirmModal
-                title={translate('iou.deleteExpense', {count: selectedTransactionsID.length})}
+                title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
                 isVisible={hookDeleteModalVisible}
                 onConfirm={handleDeleteTransactions}
                 onCancel={hideDeleteModal}
-                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsID.length})}
+                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger

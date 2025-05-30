@@ -145,7 +145,7 @@ function MoneyRequestReportActionsList({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
     const {selectionMode} = useMobileSelectionMode();
     const {
@@ -533,7 +533,7 @@ function MoneyRequestReportActionsList({
                     <ButtonWithDropdownMenu
                         onPress={() => null}
                         options={selectedTransactionsOptions}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                        customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
                         wrapperStyle={[styles.w100, styles.ph5]}
@@ -541,10 +541,10 @@ function MoneyRequestReportActionsList({
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedTransactionsID.length === transactions.length}
-                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
+                            isChecked={selectedTransactionIDs.length === transactions.length}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactions.length}
                             onPress={() => {
-                                if (selectedTransactionsID.length !== 0) {
+                                if (selectedTransactionIDs.length !== 0) {
                                     clearSelectedTransactions(true);
                                 } else {
                                     setSelectedTransactions(transactions.map((t) => t.transactionID));
@@ -554,7 +554,7 @@ function MoneyRequestReportActionsList({
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
-                                if (selectedTransactionsID.length === transactions.length) {
+                                if (selectedTransactionIDs.length === transactions.length) {
                                     clearSelectedTransactions(true);
                                 } else {
                                     setSelectedTransactions(transactions.map((t) => t.transactionID));
@@ -562,18 +562,18 @@ function MoneyRequestReportActionsList({
                             }}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedTransactionsID.length === transactions.length}}
+                            accessibilityState={{checked: selectedTransactionIDs.length === transactions.length}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                         </PressableWithFeedback>
                     </View>
                     <ConfirmModal
-                        title={translate('iou.deleteExpense', {count: selectedTransactionsID.length})}
+                        title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
                         isVisible={isDeleteModalVisible}
                         onConfirm={handleDeleteTransactions}
                         onCancel={hideDeleteModal}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsID.length})}
+                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger

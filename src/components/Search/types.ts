@@ -71,21 +71,27 @@ type SearchStatus =
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 
-type SearchContext = {
+type SearchContextData = {
     currentSearchHash: number;
     selectedTransactions: SelectedTransactions;
-    selectedTransactionsID: string[];
+    selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
+    isOnSearch: boolean;
+    shouldTurnOffSelectionMode: boolean;
+};
+
+type SearchContext = SearchContextData & {
     setCurrentSearchHash: (hash: number) => void;
+    /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
-        (selectedTransactions: string[], unused?: undefined): void;
+        (selectedTransactionIDs: string[], unused?: undefined): void;
         (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
+    /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
     clearSelectedTransactions: {
         (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
-        (clearIDs: boolean, unused?: undefined): void;
+        (clearIDs: true, unused?: undefined): void;
     };
-    shouldTurnOffSelectionMode: boolean;
     shouldShowStatusBarLoading: boolean;
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
@@ -94,7 +100,6 @@ type SearchContext = {
     setShouldShowExportModeOption: (shouldShow: boolean) => void;
     isExportMode: boolean;
     setExportMode: (on: boolean) => void;
-    isOnSearch: boolean;
 };
 
 type ASTNode = {
@@ -180,6 +185,7 @@ export type {
     SearchQueryString,
     SortOrder,
     SearchContext,
+    SearchContextData,
     ASTNode,
     QueryFilter,
     QueryFilters,
