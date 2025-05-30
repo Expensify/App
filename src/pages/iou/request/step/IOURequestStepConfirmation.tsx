@@ -93,7 +93,7 @@ function IOURequestStepConfirmation({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
+        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
@@ -106,7 +106,7 @@ function IOURequestStepConfirmation({
     const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${currentTransactionID}`, {canBeMissing: true});
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
     const transaction = useMemo(
-        () => (!isLoadingCurrentTransaction ? optimisticTransaction ?? existingTransaction : undefined),
+        () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
     );
     const transactionsCategories = useDeepCompareRef(transactions.map(({transactionID, category}) => ({transactionID, category})));
@@ -127,7 +127,7 @@ function IOURequestStepConfirmation({
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const shouldUseTransactionReport =
         transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id);
-    const report = shouldUseTransactionReport ? transactionReport : reportReal ?? reportDraft;
+    const report = shouldUseTransactionReport ? transactionReport : (reportReal ?? reportDraft);
     const policy = policyReal ?? policyDraft;
     const isDraftPolicy = policy === policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -712,7 +712,7 @@ function IOURequestStepConfirmation({
                     .map((accountID) => Number(accountID));
                 splitParticipants = selectedParticipants.filter((participant) =>
                     participantsWithAmount.includes(
-                        participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID : participant.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        participant.isPolicyExpenseChat ? (participant?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) : (participant.accountID ?? CONST.DEFAULT_NUMBER_ID),
                     ),
                 );
             }
