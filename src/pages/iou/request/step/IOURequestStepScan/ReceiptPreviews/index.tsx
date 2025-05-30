@@ -1,5 +1,6 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
+import type {FlatList as FlatListType} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import FlatList from '@components/FlatList';
@@ -8,6 +9,7 @@ import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -36,9 +38,10 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
     const {windowWidth} = useWindowDimensions();
     const isPreviewsVisible = useSharedValue(false);
     const previewsHeight = styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2;
+    const previewItemWidth = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
     const initialReceiptsAmount = useMemo(
-        () => (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / (styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight),
-        [windowWidth, styles],
+        () => (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / previewItemWidth,
+        [windowWidth, styles, previewItemWidth],
     );
     const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
@@ -58,6 +61,9 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
         return receiptsWithPlaceholders;
     }, [initialReceiptsAmount, optimisticTransactionsReceipts]);
     const isScrollEnabled = optimisticTransactionsReceipts ? optimisticTransactionsReceipts.length >= receipts.length : false;
+    const flatListRef = useRef<FlatListType<ReceiptWithTransactionID | undefined>>(null);
+    const receiptsPhotosLength = optimisticTransactionsReceipts?.length ?? 0;
+    const previousReceiptsPhotosLength = usePrevious(receiptsPhotosLength);
 
     useEffect(() => {
         if (isMultiScanEnabled) {
@@ -66,6 +72,14 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
             isPreviewsVisible.set(false);
         }
     }, [isMultiScanEnabled, isPreviewsVisible]);
+
+    useEffect(() => {
+        const shouldScrollToReceipt = receiptsPhotosLength && receiptsPhotosLength > previousReceiptsPhotosLength && receiptsPhotosLength > Math.floor(initialReceiptsAmount);
+        if (!shouldScrollToReceipt) {
+            return;
+        }
+        flatListRef.current?.scrollToIndex({index: receiptsPhotosLength - 1});
+    }, [receiptsPhotosLength, previousReceiptsPhotosLength, initialReceiptsAmount]);
 
     const renderItem = ({item}: {item: ReceiptWithTransactionID | undefined}) => {
         if (!item) {
@@ -103,10 +117,12 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
             {isMultiScanEnabled && (
                 <View style={styles.ph4}>
                     <FlatList
+                        ref={flatListRef}
                         data={receipts}
                         horizontal
                         keyExtractor={(_, index) => index.toString()}
                         renderItem={renderItem}
+                        getItemLayout={(data, index) => ({length: previewItemWidth, offset: previewItemWidth * index, index})}
                         onTouchStart={() => setTabSwipeDisabled?.(true)}
                         onTouchEnd={() => setTabSwipeDisabled?.(false)}
                         style={styles.pv2}
