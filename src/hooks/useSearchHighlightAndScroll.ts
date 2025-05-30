@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
@@ -36,6 +36,13 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const initializedRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
+    const existingSearchResultIDs = useMemo(() => {
+        if (!searchResults?.data) {
+            return [];
+        }
+        return isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
+    }, [searchResults?.data, isChat]);
+
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
@@ -59,17 +66,12 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
-            // Check if the detected changes are actually missing from current search results
-            const currentSearchResultIDs = isChat ? extractReportActionIDsFromSearchResults(searchResults?.data ?? {}) : extractTransactionIDsFromSearchResults(searchResults?.data ?? {});
-
             const newIDs = isChat ? reportActionsIDs : transactionsIDs;
-            const genuinelyNewIDs = newIDs.filter((id) => !currentSearchResultIDs.includes(id));
-
+            const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDs.includes(id));
             // Only trigger search if there are genuinely new items not in current search results AND we're focused
-            if (genuinelyNewIDs.length === 0 || !isFocused) {
+            if (!hasAGenuinelyNewID || !isFocused) {
                 return;
             }
-
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
@@ -92,10 +94,9 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             return;
         }
 
-        const existingIDs = isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
-        highlightedIDs.current = new Set(existingIDs);
+        highlightedIDs.current = new Set(existingSearchResultIDs);
         initializedRef.current = true;
-    }, [searchResults?.data, isChat]);
+    }, [searchResults?.data, isChat, existingSearchResultIDs]);
 
     // Detect new items (transactions or report actions)
     useEffect(() => {
