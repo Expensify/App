@@ -6,16 +6,17 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU';
+import {deleteMoneyRequest, initSplitExpense} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, isSelfDM, navigateBackOnDeleteTransaction, navigateToDetailsPage} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasReceipt,
@@ -90,6 +91,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
     const reportID = report?.reportID;
+    const {canUseNewDotSplits} = usePermissions();
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
@@ -197,11 +199,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const secondaryActions = useMemo(() => {
-        if (!parentReport || !transaction) {
+        const reportActions = !!parentReport && getReportActions(parentReport);
+        if (!transaction || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction);
-    }, [parentReport, transaction]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, canUseNewDotSplits);
+    }, [canUseNewDotSplits, parentReport, policy, transaction]);
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
@@ -214,6 +217,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
 
                 changeMoneyRequestHoldStatus(parentReportAction);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
+            text: translate('iou.split'),
+            icon: Expensicons.ArrowSplit,
+            value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
+            onSelected: () => {
+                initSplitExpense(transaction, reportID ?? String(CONST.DEFAULT_NUMBER_ID));
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
@@ -319,10 +330,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
 
-                    deleteMoneyRequest(transaction?.transactionID, parentReportAction);
-
-                    const goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, parentReportAction, true);
-                    navigateBackOnDeleteTransaction(goBackRoute);
+                    deleteMoneyRequest(transaction?.transactionID, parentReportAction, true);
+                    onBackButtonPress();
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}

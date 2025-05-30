@@ -1,4 +1,6 @@
 import Onyx from 'react-native-onyx';
+import * as API from '@libs/API';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -29,10 +31,22 @@ function setWorkspaceCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT, {currency});
 }
 
+function verifyTestDriveRecipient(email: string) {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT, {email}).then((response) => {
+        if (!response?.accountExists) {
+            // We can invite this user since they do not have an account yet
+            return;
+        }
+
+        throw new Error(response?.message);
+    });
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     clearPersonalDetailsDraft,
     setPersonalDetails,
     clearWorkspaceDetailsDraft,
     setWorkspaceCurrency,
+    verifyTestDriveRecipient,
 };

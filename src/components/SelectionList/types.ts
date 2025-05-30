@@ -23,7 +23,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -390,6 +390,35 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
+type SplitListItemType = ListItem &
+    SplitExpense & {
+        /** Item header text */
+        headerText: string;
+
+        /** Merchant or vendor name */
+        merchant: string;
+
+        /** Currency code */
+        currency: string;
+
+        /** ID of split expense */
+        transactionID: string;
+
+        /** Currency symbol */
+        currencySymbol: string;
+
+        /** Original amount before split */
+        originalAmount: number;
+
+        /** Indicates whether a split was opened through this transaction */
+        isTransactionLinked: boolean;
+
+        /** Function for updating amount */
+        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+    };
+
+type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
@@ -456,6 +485,12 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
+
+    /** List of selected items */
+    selectedItems?: string[];
+
+    /** Whether the item is selected */
+    isSelected?: (item: TItem) => boolean;
 
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
@@ -814,5 +849,7 @@ export type {
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
+    SplitListItemProps,
+    SplitListItemType,
     SearchListItem,
 };
