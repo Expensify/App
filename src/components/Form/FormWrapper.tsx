@@ -61,6 +61,9 @@ type FormWrapperProps = ChildrenProps &
 
         /** Fires at most once per frame during scrolling. */
         onScroll?: () => void;
+
+        /** Prevents the submit button from triggering blur on mouse down. */
+        shouldPreventDefaultFocusOnPressSubmit?: boolean;
     };
 
 function FormWrapper({
@@ -89,6 +92,7 @@ function FormWrapper({
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldSubmitButtonBlendOpacity = false,
+    shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
 }: FormWrapperProps) {
     const styles = useThemeStyles();
@@ -178,7 +182,7 @@ function FormWrapper({
                     enterKeyEventListenerPriority={1}
                     shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                     shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
-                    shouldPreventDefaultFocusOnPress
+                    shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
                 />
             ),
         [

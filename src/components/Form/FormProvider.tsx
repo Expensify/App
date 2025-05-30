@@ -90,6 +90,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Fires at most once per frame during scrolling. */
     onScroll?: () => void;
+
+    /** Prevents the submit button from triggering blur on mouse down. */
+    shouldPreventDefaultFocusOnPressSubmit?: boolean;
 };
 
 function FormProvider(
@@ -105,6 +108,7 @@ function FormProvider(
         allowHTML = false,
         isLoading = false,
         shouldRenderFooterAboveSubmit = false,
+        shouldPreventDefaultFocusOnPressSubmit = false,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
@@ -438,6 +442,7 @@ function FormProvider(
                 isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
+                shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}
             </FormWrapper>

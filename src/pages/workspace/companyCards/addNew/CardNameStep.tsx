@@ -67,6 +67,7 @@ function CardNameStep() {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
+                shouldPreventDefaultFocusOnPressSubmit
             >
                 <InputWrapper
                     InputComponent={TextInput}
