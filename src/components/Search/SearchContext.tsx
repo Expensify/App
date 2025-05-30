@@ -87,8 +87,15 @@ function SearchContextProvider({children}: ChildrenProps) {
         [searchContextData.selectedTransactionsID.length],
     );
 
-    const clearSelectedTransactions = useCallback(
-        (searchHash?: number, shouldTurnOffSelectionMode = false) => {
+    const clearSelectedTransactions: SearchContext['clearSelectedTransactions'] = useCallback(
+        (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
+            if (typeof searchHashOrClearIDsFlag === 'boolean' && searchHashOrClearIDsFlag) {
+                setSelectedTransactions([]);
+                return;
+            }
+
+            const searchHash = searchHashOrClearIDsFlag === false ? undefined : searchHashOrClearIDsFlag;
+
             if (searchHash === searchContextData.currentSearchHash) {
                 return;
             }
@@ -101,7 +108,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowExportModeOption(false);
             setExportMode(false);
         },
-        [searchContextData.currentSearchHash],
+        [searchContextData.currentSearchHash, setSelectedTransactions],
     );
 
     const searchContext = useMemo<SearchContext>(

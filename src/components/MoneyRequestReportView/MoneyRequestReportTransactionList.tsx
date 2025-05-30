@@ -132,7 +132,7 @@ function MoneyRequestReportTransactionList({
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
-    const {selectedTransactionsID, setSelectedTransactions} = useSearchContext();
+    const {selectedTransactionsID, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
 
     const toggleTransaction = useCallback(
@@ -149,9 +149,9 @@ function MoneyRequestReportTransactionList({
                 if (navigationRef?.getRootState()?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
                     return;
                 }
-                setSelectedTransactions([]);
+                clearSelectedTransactions(true);
             };
-        }, [setSelectedTransactions]),
+        }, [clearSelectedTransactions]),
     );
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -212,7 +212,7 @@ function MoneyRequestReportTransactionList({
                         <Checkbox
                             onPress={() => {
                                 if (selectedTransactionsID.length !== 0) {
-                                    setSelectedTransactions([]);
+                                    clearSelectedTransactions(true);
                                 } else {
                                     setSelectedTransactions(transactions.map((t) => t.transactionID));
                                 }

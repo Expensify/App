@@ -145,7 +145,7 @@ function MoneyRequestReportActionsList({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, setSelectedTransactions} = useSearchContext();
+    const {selectedTransactionsID, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
     const {selectionMode} = useMobileSelectionMode();
     const {
@@ -545,7 +545,7 @@ function MoneyRequestReportActionsList({
                             isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
                             onPress={() => {
                                 if (selectedTransactionsID.length !== 0) {
-                                    setSelectedTransactions([]);
+                                    clearSelectedTransactions(true);
                                 } else {
                                     setSelectedTransactions(transactions.map((t) => t.transactionID));
                                 }
@@ -555,7 +555,7 @@ function MoneyRequestReportActionsList({
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
                                 if (selectedTransactionsID.length === transactions.length) {
-                                    setSelectedTransactions([]);
+                                    clearSelectedTransactions(true);
                                 } else {
                                     setSelectedTransactions(transactions.map((t) => t.transactionID));
                                 }

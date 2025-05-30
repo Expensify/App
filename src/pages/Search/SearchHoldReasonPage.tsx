@@ -18,19 +18,20 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params;
     const context = useSearchContext();
+    const isIOUHold = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS;
 
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-            if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
+            if (isIOUHold) {
                 putTransactionsOnHold(context.selectedTransactionsID, comment, reportID);
-                context.setSelectedTransactions([]);
             } else {
                 holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment);
-                context.clearSelectedTransactions();
             }
+
+            context.clearSelectedTransactions(isIOUHold);
             Navigation.goBack();
         },
-        [route.name, context, reportID],
+        [isIOUHold, context, reportID],
     );
 
     const validate = useCallback(

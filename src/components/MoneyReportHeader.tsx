@@ -261,7 +261,7 @@ function MoneyReportHeader({
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, setSelectedTransactions} = useSearchContext();
+    const {selectedTransactionsID, clearSelectedTransactions} = useSearchContext();
 
     const {
         options: selectedTransactionsOptions,
@@ -866,7 +866,7 @@ function MoneyReportHeader({
         if (!transactionThreadReportID) {
             return;
         }
-        setSelectedTransactions([]);
+        clearSelectedTransactions(true);
         // We don't need to run the effect on change of setSelectedTransactionsID since it can cause the infinite loop.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -894,7 +894,7 @@ function MoneyReportHeader({
             <HeaderWithBackButton
                 title={translate('common.selectMultiple')}
                 onBackButtonPress={() => {
-                    setSelectedTransactions([]);
+                    clearSelectedTransactions(true);
                     turnOffMobileSelectionMode();
                 }}
             />

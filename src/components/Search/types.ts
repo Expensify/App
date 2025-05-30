@@ -78,10 +78,13 @@ type SearchContext = {
     selectedReports: SelectedReports[];
     setCurrentSearchHash: (hash: number) => void;
     setSelectedTransactions: {
-        (selectedTransactions: string[], data?: []): void;
+        (selectedTransactions: string[], unused?: undefined): void;
         (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
-    clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
+    clearSelectedTransactions: {
+        (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
+        (clearIDs: boolean, unused?: undefined): void;
+    };
     shouldTurnOffSelectionMode: boolean;
     shouldShowStatusBarLoading: boolean;
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
