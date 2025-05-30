@@ -139,6 +139,7 @@ import {
     getCardIssuedMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
+    getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getLastClosedReportAction,
@@ -160,6 +161,7 @@ import {
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionMessageText,
     getReportActionText,
+    getRetractedMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -189,6 +191,7 @@ import {
     isPolicyChangeLogAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isReopenedAction,
     isReportActionAttachment,
     isReportPreviewAction,
     isReversedTransaction,
@@ -460,6 +463,11 @@ type OptimisticHoldReportAction = Pick<
 >;
 
 type OptimisticReopenedReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+>;
+
+type OptimisticRetractedReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
@@ -3671,10 +3679,7 @@ function getMoneyRequestReportName({
     policy?: OnyxEntry<Policy> | SearchPolicy;
     invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy;
 }): string {
-    const reportFields = getReportFieldsByPolicyID(report?.policyID);
-    const titleReportField = Object.values(reportFields ?? {}).find((reportField) => reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID);
-
-    if (titleReportField && report?.reportName && isPaidGroupPolicyExpenseReport(report)) {
+    if (report?.reportName && isExpenseReport(report)) {
         return report.reportName;
     }
 
@@ -4039,7 +4044,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, searchHash?: number): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -4062,10 +4067,10 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, sea
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
-        unholdRequest(transactionID, reportAction.childReportID, searchHash);
+        unholdRequest(transactionID, reportAction.childReportID);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute, searchHash));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
     }
 };
 
@@ -4307,7 +4312,7 @@ function getReportPreviewMessage(
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
         const formattedReimbursableAmount = convertToDisplayString(reimbursableSpend, report.currency);
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
-        let translatePhraseKey: TranslationPaths = 'iou.paidElsewhereWithAmount';
+        let translatePhraseKey: TranslationPaths = 'iou.paidElsewhere';
         if (isPreviewMessageForParentChatReport) {
             translatePhraseKey = 'iou.payerPaidAmount';
         } else if (
@@ -4315,7 +4320,7 @@ function getReportPreviewMessage(
             !!reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
             report.isWaitingOnBankAccount
         ) {
-            translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
+            translatePhraseKey = 'iou.paidWithExpensify';
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -4754,9 +4759,9 @@ function getReportNameInternal({
     ) {
         const harvesting = !isMarkAsClosedAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.harvesting ?? false : false;
         if (harvesting) {
-            return Parser.htmlToText(getReportAutomaticallySubmittedMessage(parentReportAction));
+            return translateLocal('iou.automaticallySubmitted');
         }
-        return getIOUSubmittedMessage(parentReportAction);
+        return translateLocal('iou.submitted');
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
@@ -4767,6 +4772,9 @@ function getReportNameInternal({
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
+        return getRetractedMessage();
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
         return getReopenedMessage();
@@ -4817,15 +4825,30 @@ function getReportNameInternal({
         return getPolicyChangeMessage(parentReportAction);
     }
 
+    if (isMoneyRequestAction(parentReportAction)) {
+        const originalMessage = getOriginalMessage(parentReportAction);
+        if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+            if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                return translateLocal('iou.paidElsewhere');
+            }
+            if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA || originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                if (originalMessage.automaticAction) {
+                    return translateLocal('iou.automaticallyPaidWithExpensify');
+                }
+                return translateLocal('iou.paidWithExpensify');
+            }
+        }
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
-            return Parser.htmlToText(getReportAutomaticallyApprovedMessage(parentReportAction));
+            return translateLocal('iou.automaticallyApproved');
         }
-        return getIOUApprovedMessage(parentReportAction);
+        return translateLocal('iou.approvedMessage');
     }
     if (isUnapprovedAction(parentReportAction)) {
-        return getIOUUnapprovedMessage(parentReportAction);
+        return translateLocal('iou.unapproved');
     }
 
     if (isActionableJoinRequest(parentReportAction)) {
@@ -4838,6 +4861,10 @@ function getReportNameInternal({
 
     if (isTaskReport(report)) {
         return Parser.htmlToText(report?.reportName ?? '').trim();
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
+        return getIntegrationSyncFailedMessage(parentReportAction);
     }
 
     if (isChatThread(report)) {
@@ -5757,38 +5784,6 @@ function getFormattedAmount(reportAction: ReportAction, report?: Report | null) 
     const amount = report && isExpenseReport(report) ? (report?.total ?? 0) * -1 : Math.abs(originalMessage?.amount ?? 0);
     const formattedAmount = convertToDisplayString(amount, originalMessage?.currency);
     return formattedAmount;
-}
-
-function getReportAutomaticallySubmittedMessage(
-    reportAction:
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
-    report?: Report,
-) {
-    return translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
-}
-
-function getIOUSubmittedMessage(
-    reportAction:
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
-    report?: Report,
-) {
-    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
-}
-
-function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
-    return translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction, report)});
-}
-
-function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>, report?: Report) {
-    return translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction, report)});
-}
-
-function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
-    return translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
 /**
@@ -6928,6 +6923,33 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
     };
 }
 
+function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): OptimisticRetractedReportAction {
+    return {
+        reportActionID: rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+        actorAccountID: currentUserAccountID,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: 'retracted',
+                html: `<muted-text>retracted</muted-text>`,
+            },
+        ],
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created,
+        shouldShow: true,
+    };
+}
+
 function buildOptimisticReopenedReportAction(created = DateUtils.getDBTime()): OptimisticReopenedReportAction {
     return {
         reportActionID: rand64(),
@@ -7788,9 +7810,13 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
     return allReportErrors;
 }
 
-function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveViolations: boolean, transactionViolations: OnyxCollection<TransactionViolation[]>) {
-    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-    const allReportErrors = getAllReportErrors(report, reportActions) ?? {};
+function hasReportErrorsOtherThanFailedReceipt(
+    report: Report,
+    doesReportHaveViolations: boolean,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+) {
+    const allReportErrors = reportAttributes?.[report?.reportID]?.reportErrors ?? {};
     const transactionReportActions = getAllReportActions(report.reportID);
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
     let doesTransactionThreadReportHasViolations = false;
@@ -8393,9 +8419,9 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE>> {
+): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
     return getMoneyRequestOptions(report, policy, reportParticipants, true) as Array<
-        Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE>
+        Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
     >;
 }
 
@@ -8918,11 +8944,11 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                translationKey = hasMissingInvoiceBankAccount(IOUReportID) ? 'iou.payerSettledWithMissingBankAccount' : 'iou.paidElsewhereWithAmount';
+                translationKey = hasMissingInvoiceBankAccount(IOUReportID) ? 'iou.payerSettledWithMissingBankAccount' : 'iou.paidElsewhere';
                 break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
-                translationKey = 'iou.paidWithExpensifyWithAmount';
+                translationKey = 'iou.paidWithExpensify';
                 if (automaticAction) {
                     translationKey = 'iou.automaticallyPaidWithExpensify';
                 }
@@ -9841,7 +9867,7 @@ function prepareOnboardingOnyxData(
         workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID)}`,
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
         workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
-        workspaceConfirmationLink: `${environmentURL}/${ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.SETTINGS_WORKSPACES.route)}`,
+        workspaceConfirmationLink: `${environmentURL}/${ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)}`,
         navatticURL: getNavatticURL(environment, engagementChoice),
         testDriveURL: `${environmentURL}/${
             engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || engagementChoice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER
@@ -10786,13 +10812,13 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
 
-function getReportAttributes(reportID: string | undefined, reportAttributes?: ReportAttributesDerivedValue['reports']) {
-    const attributes = reportAttributes ?? reportAttributesDerivedValue;
-
-    if (!reportID || !attributes?.[reportID]) {
-        return;
+function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    if (!reportActions) {
+        return false;
     }
-    return attributes[reportID];
+
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+    return reportActionList.some((action) => isReopenedAction(action));
 }
 
 export {
@@ -10814,6 +10840,7 @@ export {
     buildOptimisticGroupChatReport,
     buildOptimisticHoldReportAction,
     buildOptimisticHoldReportActionComment,
+    buildOptimisticRetractedReportAction,
     buildOptimisticReopenedReportAction,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
@@ -10896,9 +10923,6 @@ export {
     prepareOnboardingOnyxData,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
-    getReportAutomaticallyApprovedMessage,
-    getIOUUnapprovedMessage,
-    getIOUApprovedMessage,
     getReportAutomaticallyForwardedMessage,
     getIOUForwardedMessage,
     getRejectedReportMessage,
@@ -10906,8 +10930,6 @@ export {
     getDeletedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getDowngradeWorkspaceMessage,
-    getReportAutomaticallySubmittedMessage,
-    getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
@@ -11173,8 +11195,8 @@ export {
     isAllowedToSubmitDraftExpenseReport,
     findReportIDForAction,
     isWorkspaceEligibleForReportChange,
-    getReportAttributes,
     navigateOnDeleteExpense,
+    hasReportBeenReopened,
 };
 
 export type {

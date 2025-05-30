@@ -1856,12 +1856,6 @@ const styles = (theme: ThemeColors) =>
             top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
         },
 
-        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
-            ({
-                ...modalNavigatorContainer(isSmallScreenWidth),
-                left: 0,
-            } satisfies ViewStyle),
-
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 ...modalNavigatorContainer(isSmallScreenWidth),
@@ -5376,6 +5370,14 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             borderRadius: 4,
             backgroundColor: colors.green700,
+        },
+
+        splitItemBottomContent: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 12,
+            justifyContent: 'space-between',
+            minHeight: 16,
         },
 
         volumeSliderOverlay: {
