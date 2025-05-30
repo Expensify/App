@@ -33,10 +33,10 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 
     const sortOptionsWithEmptyValue = (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
         // Always show `No category` and `No tag` as the first option
-        if (a.value === CONST.SEARCH.EMPTY_VALUE) {
+        if (a.value === CONST.SEARCH.CATEGORY_EMPTY_VALUE || a.value === CONST.SEARCH.TAG_EMPTY_VALUE) {
             return -1;
         }
-        if (b.value === CONST.SEARCH.EMPTY_VALUE) {
+        if (b.value === CONST.SEARCH.CATEGORY_EMPTY_VALUE || b.value === CONST.SEARCH.TAG_EMPTY_VALUE) {
             return 1;
         }
         return localeCompare(a.name, b.name);

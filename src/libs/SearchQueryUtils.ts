@@ -517,7 +517,7 @@ function buildFilterFormValuesFromQuery(
                       .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
                       .flat();
             const uniqueTags = new Set(tags);
-            uniqueTags.add(CONST.SEARCH.EMPTY_VALUE);
+            uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
             filtersForm[filterKey] = filterValues.filter((name) => uniqueTags.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
@@ -527,8 +527,11 @@ function buildFilterFormValuesFromQuery(
                       .map((item) => Object.values(item ?? {}).map((category) => category.name))
                       .flat();
             const uniqueCategories = new Set(categories);
-            uniqueCategories.add(CONST.SEARCH.EMPTY_VALUE);
-            filtersForm[filterKey] = filterValues.filter((name) => uniqueCategories.has(name));
+            const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
+            const hasEmptyCategoriesInFilter = emptyCategories.every((category) => filterValues.includes(category));
+            // We split CATEGORY_EMPTY_VALUE into individual values to detect both are present in filterValues.
+            // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
+            filtersForm[filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues
