@@ -530,6 +530,14 @@ const ONYXKEYS = {
     /** Is unreported transactions loading */
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
+    /** Timestamp of the last login on iOS */
+    NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',
+    NVP_LAST_IPHONE_LOGIN: 'nvp_lastiPhoneLogin',
+
+    /** Timestamp of the last login on Android */
+    NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
+    NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1166,6 +1174,10 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
     [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
     [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
+    [ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN]: string;
+    [ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN]: string;
+    [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
+    [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
 };
 
 type OnyxDerivedValuesMapping = {
