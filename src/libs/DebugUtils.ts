@@ -471,7 +471,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
-        case 'agentZeroProcessingRequestIndicator':
         case 'welcomeMessage':
             return validateString(value);
         case 'hasOutstandingChildRequest':
@@ -583,6 +582,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 eventURI: 'string',
                 inserted: 'string',
             });
+        case 'agentZeroProcessingRequestIndicator':
+            return validateString(value);
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':

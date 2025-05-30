@@ -225,9 +225,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The report's welcome message */
         welcomeMessage?: string;
-
-        /** Agent Zero processing request indicator message */
-        agentZeroProcessingRequestIndicator?: string;
     },
     'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport'
 >;
