@@ -3365,7 +3365,7 @@ function getReasonAndReportActionThatRequiresAttention(
 
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID)) || isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID))) {
+    if (isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID))) {
         return null;
     }
 
