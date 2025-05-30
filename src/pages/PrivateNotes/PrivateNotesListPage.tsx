@@ -78,7 +78,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
             return {
                 reportID: report.reportID,
                 accountID: privateNoteAccountID,
-                title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : personalDetailsList?.[privateNoteAccountID]?.login ?? '',
+                title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : (personalDetailsList?.[privateNoteAccountID]?.login ?? ''),
                 action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID, backTo)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
                 note: privateNote?.note ?? '',
