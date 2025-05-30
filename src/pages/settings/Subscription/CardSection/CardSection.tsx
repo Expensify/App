@@ -1,6 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useWindowDimensions} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import RenderHtml from 'react-native-render-html';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
@@ -40,6 +42,7 @@ import CardSectionUtils from './utils';
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
     const {translate, preferredLocale} = useLocalize();
+    const {width} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -228,8 +231,11 @@ function CardSection() {
                     onCancel={() => setIsRequestRefundModalVisible(false)}
                     prompt={
                         <>
-                            <Text style={styles.mb4}>{translate('subscription.cardSection.requestRefundModal.phrase1')}</Text>
-                            <Text>{translate('subscription.cardSection.requestRefundModal.phrase2')}</Text>
+                            <RenderHtml
+                                contentWidth={width}
+                                source={{html: `<div>${translate('subscription.cardSection.requestRefundModal.full')}</div>`}}
+                                baseStyle={styles.mb4}
+                            />
                         </>
                     }
                     confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
