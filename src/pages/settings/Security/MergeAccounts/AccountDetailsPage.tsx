@@ -13,6 +13,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -46,6 +47,10 @@ const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUN
         return CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_NOT_SUPPORTED;
     }
 
+    if (err.includes('400 Cannot merge account into itself')) {
+        return CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF;
+    }
+
     return null;
 };
 
@@ -56,6 +61,7 @@ function AccountDetailsPage() {
     const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge, canBeMissing: true});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
     const [email, setEmail] = useState(params?.email ?? '');
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const validateCodeSent = getValidateCodeForAccountMerge?.validateCodeSent;
     const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
@@ -159,6 +165,7 @@ function AccountDetailsPage() {
                         </Text>
                     </View>
                     <InputWrapper
+                        ref={inputCallbackRef}
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PHONE_OR_EMAIL}
                         autoCapitalize="none"

@@ -123,8 +123,6 @@ key "key"
       / taxRate
       / cardID
       / from
-      / payer
-      / exporter
       / expenseType
       / submitted
       / approved
