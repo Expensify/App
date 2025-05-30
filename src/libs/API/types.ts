@@ -484,7 +484,6 @@ const WRITE_COMMANDS = {
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     REOPEN_REPORT: 'ReopenReport',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
-    TRAVEL_SIGNUP_REQUEST: 'TravelSignupRequest',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
