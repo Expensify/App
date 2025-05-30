@@ -1556,15 +1556,15 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         TRANSACTION_PREVIEW: {
             CAROUSEL: {
-                WIDTH_WIDE: 303,
+                WIDE_WIDTH: 303,
+                WIDE_HEIGHT: 269,
             },
             DUPLICATE: {
-                HEIGHT_WIDE: 347,
+                WIDE_HEIGHT: 347,
             },
         },
+        CAROUSEL_MAX_WIDTH_WIDE: 680,
         MAX_ROOM_NAME_LENGTH: 99,
-        LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
-        MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',

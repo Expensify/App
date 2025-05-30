@@ -24,6 +24,7 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -60,7 +61,10 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
-                cardStyle: StyleUtils.getNavigationModalCardStyle(),
+                cardStyle: {
+                    ...StyleUtils.getNavigationModalCardStyle(),
+                    marginLeft: shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize,
+                },
             },
         },
         fullScreen: {
