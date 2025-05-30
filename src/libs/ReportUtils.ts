@@ -41,7 +41,10 @@ import type {
     PersonalDetails,
     PersonalDetailsList,
     Policy,
+    PolicyCategories,
+    PolicyCategory,
     PolicyReportField,
+    PolicyTagLists,
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
@@ -53,6 +56,7 @@ import type {
     Task,
     Transaction,
     TransactionViolation,
+    TransactionViolations,
     UserWallet,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -66,6 +70,7 @@ import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
 import type {InvoiceReceiverType, NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -122,6 +127,7 @@ import {
     getPolicyRole,
     getRuleApprovers,
     getSubmitToAccountID,
+    hasDependentTags as hasDependentTagsPolicyUtils,
     isExpensifyTeam,
     isInstantSubmitEnabled,
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
@@ -254,6 +260,7 @@ import {
 import {addTrailingForwardSlash} from './Url';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
+import ViolationsUtils from './Violations/ViolationsUtils';
 
 // Dynamic Import to avoid circular dependency
 const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
@@ -914,6 +921,34 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+let allPolicyTagLists: OnyxCollection<PolicyTagLists> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTagLists = {};
+            return;
+        }
+        allPolicyTagLists = value;
+    },
+});
+
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
+});
+
+let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionViolations = value),
 });
 
 let allReports: OnyxCollection<Report>;
@@ -1779,6 +1814,64 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report);
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID;
+}
+
+/**
+ * Pushes optimistic transaction violations to OnyxData for the given policy and categories onyx update.
+ *
+ * @param policyUpdate Changed policy properties, if none pass empty object
+ * @param policyCategoriesUpdate Changed categories properties, if none pass empty object
+ */
+function pushTransactionViolationsOnyxData(
+    onyxData: OnyxData,
+    policyID: string,
+    policyUpdate: Partial<Policy> = {},
+    policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+): OnyxData {
+    if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate)) {
+        return onyxData;
+    }
+    const optimisticPolicy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
+        acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
+        return acc;
+    }, {}) as PolicyCategories;
+
+    const policyTagLists = allPolicyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, policyTagLists);
+
+    getAllPolicyReports(policyID).forEach((report) => {
+        if (!report?.reportID) {
+            return;
+        }
+
+        const isReportAnInvoice = isInvoiceReport(report);
+
+        getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+
+            const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
+                transaction,
+                transactionViolations,
+                optimisticPolicy,
+                policyTagLists,
+                optimisticPolicyCategories,
+                hasDependentTags,
+                isReportAnInvoice,
+            );
+
+            if (optimisticTransactionViolations) {
+                onyxData?.optimisticData?.push(optimisticTransactionViolations);
+                onyxData?.failureData?.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                    value: transactionViolations,
+                });
+            }
+        });
+    });
+    return onyxData;
 }
 
 /**
@@ -11196,6 +11289,7 @@ export {
     isAllowedToSubmitDraftExpenseReport,
     findReportIDForAction,
     isWorkspaceEligibleForReportChange,
+    pushTransactionViolationsOnyxData,
     navigateOnDeleteExpense,
     hasReportBeenReopened,
 };
