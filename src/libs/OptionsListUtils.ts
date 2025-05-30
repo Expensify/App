@@ -2397,6 +2397,26 @@ function getManagerMcTestParticipant(): Participant | undefined {
     return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
 }
 
+function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
+    if (!a || !b) {
+        return false;
+    }
+    if (a.reports.length !== b.reports.length || a.personalDetails.length !== b.personalDetails.length) {
+        return false;
+    }
+    for (let i = 0; i < a.reports.length; i++) {
+        if (a.reports.at(i)?.reportID !== b.reports.at(i)?.reportID) {
+            return false;
+        }
+    }
+    for (let i = 0; i < a.personalDetails.length; i++) {
+        if (a.personalDetails.at(i)?.login !== b.personalDetails.at(i)?.login) {
+            return false;
+        }
+    }
+    return true;
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2457,6 +2477,7 @@ export {
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
     processReport,
+    shallowOptionsListCompare,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
