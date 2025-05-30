@@ -4,8 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import ManageTrips from './ManageTrips';
 
 function MyTripsPage() {
-    const {translate} = useLocalize();
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
