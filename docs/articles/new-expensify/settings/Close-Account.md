@@ -11,19 +11,10 @@ Closing your Expensify account will permanently delete associated personal data.
 
 # How to Close Your Account
 
-## On Desktop:
-1. Click your **profile image** or **icon** in the bottom-left corner.
-2. Click **Security** in the left-hand menu.
-3. Scroll down and click **Close Account**.
-4. Follow the prompts and answer the required questions.
-5. Click **Close Account** to confirm.
-
-## On Mobile:
-1. Tap your **profile image** or **icon** in the bottom menu.
-2. Tap **Security**.
-3. Scroll down and tap **Close Account**.
-4. Follow the prompts and answer the required questions.
-5. Tap **Close Account** to confirm.
+1. In the left-hand menu, click **Account > Security**.
+2. Under **Security options**, click **Close account**.
+3. Follow the prompts and answer the required questions.
+4. Click **Close Account** to confirm.
 
 ---
 
