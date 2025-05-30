@@ -3,14 +3,9 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import {generateReportID} from '@libs/ReportUtils';
-import {navigateToConciergeChat} from '@userActions/Report';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {WalletStatementMessage, WalletStatementProps} from './types';
+import handleWalletStatementNavigation from './walletNavigationUtils';
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -24,40 +19,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
         const {data} = event;
         const {type, url} = data || {};
-        if (!type || (type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
-            return;
-        }
-
-        if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-            navigateToConciergeChat();
-        }
-
-        if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && url) {
-            const iouRoutes: Record<string, Route> = {
-                [CONST.WALLET.STATEMENT_ACTIONS.SUBMIT_EXPENSE]: ROUTES.MONEY_REQUEST_CREATE.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    CONST.IOU.TYPE.SUBMIT,
-                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    generateReportID(),
-                ),
-                [CONST.WALLET.STATEMENT_ACTIONS.PAY_SOMEONE]: ROUTES.MONEY_REQUEST_CREATE.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    CONST.IOU.TYPE.PAY,
-                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    String(CONST.DEFAULT_NUMBER_ID),
-                ),
-                [CONST.WALLET.STATEMENT_ACTIONS.SPLIT_EXPENSE]: ROUTES.MONEY_REQUEST_CREATE.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    CONST.IOU.TYPE.SPLIT,
-                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    generateReportID(),
-                ),
-            };
-            const navigateToIOURoute = Object.keys(iouRoutes).find((iouRoute) => url.includes(iouRoute));
-            if (navigateToIOURoute && iouRoutes[navigateToIOURoute]) {
-                Navigation.navigate(iouRoutes[navigateToIOURoute]);
-            }
-        }
+        handleWalletStatementNavigation(type, url);
     };
 
     return (
