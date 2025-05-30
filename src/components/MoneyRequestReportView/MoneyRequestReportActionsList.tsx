@@ -628,7 +628,7 @@ function MoneyRequestReportActionsList({
                         onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
                         ref={reportScrollManager.ref}
-                        ListEmptyComponent={isLoadingInitialReportActions ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
+                        ListEmptyComponent={!isOffline && isLoadingInitialReportActions ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                     />
                 )}
             </View>
