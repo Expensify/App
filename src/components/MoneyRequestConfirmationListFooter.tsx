@@ -8,9 +8,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -251,7 +249,6 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseTableReportView} = usePermissions();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -289,8 +286,7 @@ function MoneyRequestConfirmationListFooter({
     const policyID = selectedParticipants?.at(0)?.policyID;
     const reportOwnerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
-    const outstandingReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {});
-    const firstOutstandingReport = outstandingReports.at(0);
+    const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}).at(0);
     let reportName: string | undefined;
     if (shouldUseTransactionReport) {
         reportName = transactionReport.reportName;
@@ -302,11 +298,7 @@ function MoneyRequestConfirmationListFooter({
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
     }
-
-    if (!shouldUseTransactionReport && firstOutstandingReport) {
-        setTransactionReport(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, firstOutstandingReport.reportID, true);
-    }
-    const shouldReportBeEditable = outstandingReports.length > 1 || (outstandingReports.length === 1 && firstOutstandingReport?.reportID !== transaction?.reportID);
+    const shouldReportBeEditable = !!firstOutstandingReport;
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
@@ -681,7 +673,7 @@ function MoneyRequestConfirmationListFooter({
                     shouldRenderAsHTML
                 />
             ),
-            shouldShow: isPolicyExpenseChat && canUseTableReportView,
+            shouldShow: isPolicyExpenseChat,
             isSupplementary: true,
         },
     ];
