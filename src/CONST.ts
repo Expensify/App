@@ -834,6 +834,7 @@ const CONST = {
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        TRACK_FLOWS: 'trackFlows',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1224,6 +1225,7 @@ const CONST = {
             DELETE: 'delete',
             RETRACT: 'retract',
             ADD_EXPENSE: 'addExpense',
+            SPLIT: 'split',
             REOPEN: 'reopen',
             MOVE_EXPENSE: 'moveExpense',
             PAY: 'pay',
@@ -1254,6 +1256,7 @@ const CONST = {
         },
         TRANSACTION_SECONDARY_ACTIONS: {
             HOLD: 'hold',
+            SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
         },
@@ -2773,6 +2776,7 @@ const CONST = {
             SEND: 'send',
             PAY: 'pay',
             SPLIT: 'split',
+            SPLIT_EXPENSE: 'split-expense',
             REQUEST: 'request',
             INVOICE: 'invoice',
             SUBMIT: 'submit',

@@ -13,6 +13,7 @@ type RootNavigatorScreenOptions = {
     basicModalNavigator: PlatformStackNavigationOptions;
     splitNavigator: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
+    workspacesListPage: PlatformStackNavigationOptions;
 };
 
 const commonScreenOptions: PlatformStackNavigationOptions = {
@@ -25,6 +26,7 @@ const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return {
         rightModalNavigator: {
@@ -74,6 +76,18 @@ const useRootNavigatorScreenOptions = () => {
                     height: '100%',
                 },
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
+            },
+        },
+        workspacesListPage: {
+            ...commonScreenOptions,
+            // We need to turn off animation for the full screen to avoid delay when closing screens.
+            animation: Animations.NONE,
+            web: {
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
+                cardStyle: {
+                    ...StyleUtils.getNavigationModalCardStyle(),
+                    paddingLeft: shouldUseNarrowLayout ? 0 : variables.navigationTabBarSize,
+                },
             },
         },
     } satisfies RootNavigatorScreenOptions;

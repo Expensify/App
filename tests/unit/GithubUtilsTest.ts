@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 /**
  * @jest-environment node
  */
+
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
