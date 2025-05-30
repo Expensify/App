@@ -43,10 +43,4 @@ function verifyTestDriveRecipient(email: string) {
     });
 }
 
-export {
-    clearPersonalDetailsDraft,
-    setPersonalDetails,
-    clearWorkspaceDetailsDraft,
-    setWorkspaceCurrency,
-    verifyTestDriveRecipient,
-};
+export {clearPersonalDetailsDraft, setPersonalDetails, clearWorkspaceDetailsDraft, setWorkspaceCurrency, verifyTestDriveRecipient};

@@ -11,7 +11,6 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {Section} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -60,7 +59,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {canUseDefaultRooms} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -228,26 +226,15 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         setOnboardingPolicyID();
 
         navigateAfterOnboarding(
-            CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             isSmallScreenWidth,
             canUseDefaultRooms,
             onboardingPolicyID,
-            activeWorkspaceID,
             onboardingAdminsChatReportID,
             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
             // See https://github.com/Expensify/App/issues/57167 for more details
             (session?.email ?? '').includes('+'),
         );
-    }, [
-        currentUserPersonalDetails.firstName,
-        currentUserPersonalDetails.lastName,
-        onboardingAdminsChatReportID,
-        onboardingPolicyID,
-        isSmallScreenWidth,
-        canUseDefaultRooms,
-        activeWorkspaceID,
-        session?.email,
-    ]);
+    }, [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, canUseDefaultRooms, session?.email]);
 
     const inviteUser = useCallback(() => {
         let isValid = true;

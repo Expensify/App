@@ -5611,7 +5611,7 @@ const CONST = {
             },
             tasks: [
                 createWorkspaceTask,
-                testDriveTask,
+                testDriveAdminTask,
                 {
                     type: 'createReport',
                     autoCompleted: false,
