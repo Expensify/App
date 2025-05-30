@@ -10,6 +10,9 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
 
+        /** Disable tab swipe */
+        setTabSwipeDisabled?: (isDisabled: boolean) => void;
+
         /* If the tooltip is allowed to be shown */
         isTooltipAllowed?: boolean;
     };
