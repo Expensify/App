@@ -157,6 +157,7 @@ export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
 export type {default as SplitBillParams} from './SplitBillParams';
+export type {SplitTransactionParams, SplitTransactionSplitsParam} from './SplitTransactionParams';
 export type {default as DeleteMoneyRequestParams} from './DeleteMoneyRequestParams';
 export type {default as CreateDistanceRequestParams} from './CreateDistanceRequestParams';
 export type {default as StartSplitBillParams} from './StartSplitBillParams';
@@ -381,6 +382,7 @@ export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboar
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
+export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
 export type {default as SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';
 export type {default as MoveIOUReportToPolicyAndInviteSubmitterParams} from './MoveIOUReportToPolicyAndInviteSubmitterParams';
 export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOUReportToExistingPolicyParams';
@@ -392,7 +394,10 @@ export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProh
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
 export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
+export type {default as RetractReportParams} from './RetractReportParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
+export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
+export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
