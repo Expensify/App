@@ -55,7 +55,7 @@ Onyx.connect({
 });
 
 function shouldUseOldApp(tryNewDot?: TryNewDot) {
-    if (!tryNewDot) {
+    if (!tryNewDot?.classicRedirect) {
         return true;
     }
 
@@ -68,6 +68,12 @@ function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryN
     }
 
     if (!hybridApp?.useNewDotSignInPage) {
+        currentHybridApp = hybridApp;
+        currentTryNewDot = tryNewDot;
+        return;
+    }
+
+    if (!!tryNewDot && !tryNewDot.classicRedirect) {
         currentHybridApp = hybridApp;
         currentTryNewDot = tryNewDot;
         return;
