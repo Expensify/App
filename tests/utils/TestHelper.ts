@@ -321,13 +321,10 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
     expect(formData).not.toBeUndefined();
     if (formData) {
         expect(
-            Array.from(formData.entries()).reduce(
-                (acc, [key, val]) => {
-                    acc[key] = val;
-                    return acc;
-                },
-                {} as Record<string, string | Blob>,
-            ),
+            Array.from(formData.entries()).reduce((acc, [key, val]) => {
+                acc[key] = val;
+                return acc;
+            }, {} as Record<string, string | Blob>),
         ).toEqual(expect.objectContaining(obj));
     }
 }

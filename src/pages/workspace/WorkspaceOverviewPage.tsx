@@ -251,7 +251,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             type={CONST.ICON_TYPE_WORKSPACE}
                             fallbackIcon={FallbackWorkspaceAvatar}
                             style={[
-                                (policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3,
+                                policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout ? styles.mb1 : styles.mb3,
                                 shouldUseNarrowLayout ? styles.mtn17 : styles.mtn20,
                                 styles.alignItemsStart,
                                 styles.sectionMenuItemTopDescription,

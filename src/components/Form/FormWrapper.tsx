@@ -100,7 +100,7 @@ function FormWrapper({
     const errorMessage = useMemo(() => (formState ? getLatestErrorMessage(formState) : undefined), [formState]);
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
-        const errorFields = !isEmptyObject(errors) ? errors : (formState?.errorFields ?? {});
+        const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};
         const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => Object.keys(errorFields).includes(key));
 
         if (!focusKey) {

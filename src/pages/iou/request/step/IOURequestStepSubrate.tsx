@@ -80,7 +80,7 @@ function IOURequestStepSubrate({
     const parsedIndex = parseInt(pageIndex, 10);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const allSubrates = transaction?.comment?.customUnit?.subRates ?? [];
-    const allPossibleSubrates = selectedDestination ? (customUnit?.rates?.[selectedDestination]?.subRates ?? []) : [];
+    const allPossibleSubrates = selectedDestination ? customUnit?.rates?.[selectedDestination]?.subRates ?? [] : [];
     const currentSubrate: CommentSubrate | undefined = allSubrates.at(parsedIndex) ?? undefined;
     const totalSubrateCount = allPossibleSubrates.length;
     const filledSubrateCount = allSubrates.length;

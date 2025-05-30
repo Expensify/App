@@ -77,13 +77,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
     const excludedUsers = useMemo(() => {
         const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvites.reduce(
-            (acc, login) => {
-                acc[login] = true;
-                return acc;
-            },
-            {} as Record<string, boolean>,
-        );
+        return ineligibleInvites.reduce((acc, login) => {
+            acc[login] = true;
+            return acc;
+        }, {} as Record<string, boolean>);
     }, [policy?.employeeList]);
 
     const defaultOptions = useMemo(() => {

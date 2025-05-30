@@ -43,7 +43,7 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
                             keyForList: key,
                             isSelected: value === fieldValue,
                             searchText: value,
-                        }) satisfies ListItem,
+                        } satisfies ListItem),
                 )
                 .filter(({searchText}) => searchText.toLowerCase().includes(searchValue.toLowerCase())),
         [fieldName, fieldValue, formType, searchValue],

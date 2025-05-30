@@ -135,7 +135,7 @@ function ThreeDotsMenu({
                     >
                         <Icon
                             src={icon}
-                            fill={(iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon}
+                            fill={iconFill ?? isPopupMenuVisible ? theme.success : theme.icon}
                         />
                     </PressableWithoutFeedback>
                 </TooltipToRender>

@@ -33,13 +33,10 @@ type AccountingContextType = {
     popoverAnchorRefs: RefObject<Record<string, MutableRefObject<View | null>>>;
 };
 
-const popoverAnchorRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce(
-    (acc, key) => {
-        acc[key] = {current: null};
-        return acc;
-    },
-    {} as Record<ConnectionName, MutableRefObject<View | null>>,
-);
+const popoverAnchorRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce((acc, key) => {
+    acc[key] = {current: null};
+    return acc;
+}, {} as Record<ConnectionName, MutableRefObject<View | null>>);
 
 const defaultAccountingContext = {
     activeIntegration: undefined,

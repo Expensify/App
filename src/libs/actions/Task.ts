@@ -571,7 +571,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
     // Ensure title is defined before parsing it with getParsedComment. If title is undefined, fall back to reportName from report.
     // Trim the final parsed title for consistency.
-    const reportName = title ? ReportUtils.getParsedComment(title, undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]) : (report?.reportName ?? '');
+    const reportName = title ? ReportUtils.getParsedComment(title, undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]) : report?.reportName ?? '';
     const parsedTitle = (reportName ?? '').trim();
 
     // Description can be unset, so we default to an empty string if so

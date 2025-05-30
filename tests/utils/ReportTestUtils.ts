@@ -46,7 +46,7 @@ const getFakeReportAction = (index: number, overrides: Partial<ReportAction> = {
         sequenceNumber: 0,
         shouldShow: true,
         ...overrides,
-    }) as ReportAction;
+    } as ReportAction);
 
 const getMockedSortedReportActions = (length = 100): ReportAction[] =>
     Array.from({length}, (element, index): ReportAction => {
@@ -57,7 +57,7 @@ const getMockedSortedReportActions = (length = 100): ReportAction[] =>
 const getMockedReportActionsMap = (length = 100): ReportActions => {
     const mockReports: ReportActions[] = Array.from({length}, (element, index): ReportActions => {
         const reportID = index + 1;
-        const actionName: ReportActionName = index === 0 ? 'CREATED' : (actionNames.at(index % actionNames.length) ?? 'CREATED');
+        const actionName: ReportActionName = index === 0 ? 'CREATED' : actionNames.at(index % actionNames.length) ?? 'CREATED';
         const reportAction = {
             ...createRandomReportAction(reportID),
             actionName,

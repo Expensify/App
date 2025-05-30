@@ -271,8 +271,8 @@ function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, poli
 
 function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
-        const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
-        const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
+        const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
+        const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
         const aName = getDisplayNameOrDefault(userA);
         const bName = getDisplayNameOrDefault(userB);
         return localeCompare(aName, bName);

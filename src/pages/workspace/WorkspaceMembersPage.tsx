@@ -459,7 +459,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 errors: policyEmployee.errors,
                 pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
-                invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
+                invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
         return result;

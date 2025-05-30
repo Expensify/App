@@ -39,13 +39,10 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
     }, [corpayFields]);
     const fieldIds = accountHolderDetailsFields?.map((field) => field.id);
 
-    const subStepKeys = accountHolderDetailsFields?.reduce(
-        (acc, field) => {
-            acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
-            return acc;
-        },
-        {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>,
-    );
+    const subStepKeys = accountHolderDetailsFields?.reduce((acc, field) => {
+        acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
+        return acc;
+    }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});

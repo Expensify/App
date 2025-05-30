@@ -253,7 +253,7 @@ function BaseModal(
     // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
     const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
-    const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? (originalValues ?? {}) : {}), [isInNarrowPane, originalValues]);
+    const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? originalValues ?? {} : {}), [isInNarrowPane, originalValues]);
 
     return (
         <ModalContext.Provider value={modalContextValue}>
