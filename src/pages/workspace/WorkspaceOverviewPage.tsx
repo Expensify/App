@@ -57,7 +57,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
-    const {canUseSpotnanaTravel} = usePermissions();
 
     const backTo = route.params.backTo;
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -346,7 +345,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 />
                             </View>
                         </OfflineWithFeedback>
-                        {!!canUseSpotnanaTravel && shouldShowAddress && (
+                        {shouldShowAddress && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                                 <View>
                                     <MenuItemWithTopDescription

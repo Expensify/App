@@ -89,7 +89,6 @@ function canUseNewDotSplits(betas: OnyxEntry<Beta[]>): boolean {
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
-    canUseSpotnanaTravel,
     isBlockedFromSpotnanaTravel,
     isTravelVerified,
     canUseNetSuiteUSATax,

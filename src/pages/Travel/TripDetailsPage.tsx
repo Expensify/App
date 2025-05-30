@@ -40,7 +40,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
+    const {isBlockedFromSpotnanaTravel} = usePermissions();
     const {isOffline} = useNetwork();
 
     const [isModifyTripLoading, setIsModifyTripLoading] = useState(false);
@@ -67,7 +67,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={!reservation || (!CONFIG.IS_HYBRID_APP && (!canUseSpotnanaTravel || isBlockedFromSpotnanaTravel))}
+                shouldShow={!reservation || (!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel)}
             >
                 <HeaderWithBackButton
                     title={reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details')}
