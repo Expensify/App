@@ -2,38 +2,44 @@ import {useCallback, useEffect, useState} from 'react';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCurrentRequestCommand, isRunning, subscribeToQueueState} from '@libs/Network/SequentialQueue';
 
-const RELEVANT_COMMANDS = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT] as const;
+// Commands that should trigger the LoadingBar to show
+const RELEVANT_COMMANDS = [
+    WRITE_COMMANDS.OPEN_APP, 
+    WRITE_COMMANDS.RECONNECT_APP, 
+    WRITE_COMMANDS.OPEN_REPORT
+] as const;
 
 /**
  * Hook that determines whether LoadingBar should be visible based on active queue requests
- * Replaces the Onyx-based IS_LOADING_REPORT_DATA approach
+ * Shows LoadingBar when OpenReport/OpenApp/ReconnectApp requests are being processed
  */
 export default function useLoadingBarVisibility(): boolean {
-    const [shouldShow, setShouldShow] = useState(false);
+    const [isRelevantQueueActive, setIsRelevantQueueActive] = useState(false);
 
-    const checkQueueStatus = useCallback(() => {
+    const checkRelevantQueue = useCallback(() => {
         // Check if queue is running
         const isQueueRunning = isRunning();
 
         if (!isQueueRunning) {
-            setShouldShow(false);
+            setIsRelevantQueueActive(false);
             return;
         }
 
         // Get current request and check if it's a relevant command
-        const currentRequestCommand: string | null = getCurrentRequestCommand();
-        const hasRelevantRequest = currentRequestCommand !== null && (RELEVANT_COMMANDS as readonly string[]).includes(currentRequestCommand);
+        const currentCommand = getCurrentRequestCommand();
+        const hasRelevantCommand = currentCommand && 
+            (RELEVANT_COMMANDS as readonly string[]).includes(currentCommand);
 
-        setShouldShow(hasRelevantRequest);
+        setIsRelevantQueueActive(!!hasRelevantCommand);
     }, []);
 
     useEffect(() => {
         // Initial check
-        checkQueueStatus();
+        checkRelevantQueue();
 
-        // Subscribe to queue state changes instead of polling
-        return subscribeToQueueState(checkQueueStatus);
-    }, [checkQueueStatus]);
+        // Subscribe to queue state changes for real-time updates
+        return subscribeToQueueState(checkRelevantQueue);
+    }, [checkRelevantQueue]);
 
-    return shouldShow;
+    return isRelevantQueueActive;
 }
