@@ -4,6 +4,7 @@ import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
+    getOngoingRequest,
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
     save as savePersistedRequest,
@@ -47,7 +48,6 @@ resolveIsReadyPromise?.();
 
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
-let currentRequestCommand: string | null = null;
 let isQueuePaused = false;
 const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
@@ -136,25 +136,16 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
+    // Track the current request command
     const requestToProcess = processNextPersistedRequest();
     if (!requestToProcess) {
         Log.info('[SequentialQueue] Unable to process. No next request to handle.');
-        const wasProcessingRelevantRequest = currentRequestCommand !== null;
-        currentRequestCommand = null;
-        if (wasProcessingRelevantRequest) {
-            notifyQueueStateChange();
-        }
+        notifyQueueStateChange();
         return Promise.resolve();
     }
 
-    // Track the current request command
-    const previousCommand = currentRequestCommand;
-    currentRequestCommand = requestToProcess.command;
-
-    // Notify if we started processing a relevant request
-    if (previousCommand !== currentRequestCommand) {
-        notifyQueueStateChange();
-    }
+    // Notify queue state change when processing starts
+    notifyQueueStateChange();
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
@@ -175,11 +166,7 @@ function process(): Promise<void> {
             }
 
             sequentialQueueRequestThrottle.clear();
-            const wasProcessingRelevantRequest = currentRequestCommand !== null;
-            currentRequestCommand = null;
-            if (wasProcessingRelevantRequest) {
-                notifyQueueStateChange();
-            }
+            notifyQueueStateChange();
             return process();
         })
         .catch((error: RequestError) => {
@@ -192,11 +179,7 @@ function process(): Promise<void> {
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
-                const wasProcessingRelevantRequest = currentRequestCommand !== null;
-                currentRequestCommand = null;
-                if (wasProcessingRelevantRequest) {
-                    notifyQueueStateChange();
-                }
+                notifyQueueStateChange();
                 return process();
             }
             rollbackOngoingPersistedRequest();
@@ -208,11 +191,7 @@ function process(): Promise<void> {
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
-                    const wasProcessingRelevantRequest = currentRequestCommand !== null;
-                    currentRequestCommand = null;
-                    if (wasProcessingRelevantRequest) {
-                        notifyQueueStateChange();
-                    }
+                    notifyQueueStateChange();
                     return process();
                 });
         });
@@ -405,13 +384,6 @@ function subscribeToQueueState(callback: () => void): () => void {
 }
 
 /**
- * Returns the command of the currently processing request
- */
-function getCurrentRequestCommand(): string | null {
-    return currentRequestCommand;
-}
-
-/**
  * Returns a promise that resolves when the sequential queue is done processing all persisted write requests.
  */
 function waitForIdle(): Promise<unknown> {
@@ -423,27 +395,23 @@ function waitForIdle(): Promise<unknown> {
  * This is to prevent previous requests interfering with other tests
  */
 function resetQueue(): void {
-    const wasProcessingRelevantRequest = currentRequestCommand !== null;
     isSequentialQueueRunning = false;
     currentRequestPromise = null;
-    currentRequestCommand = null;
     isQueuePaused = false;
     isReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
     resolveIsReadyPromise?.();
 
-    // Clear all listeners and notify of state change if needed
+    // Clear all listeners
     queueStateListeners.clear();
-    if (wasProcessingRelevantRequest) {
-        notifyQueueStateChange();
-    }
+    notifyQueueStateChange();
 }
 
 export {
     flush,
     getCurrentRequest,
-    getCurrentRequestCommand,
+    getOngoingRequest,
     isPaused,
     isRunning,
     pause,

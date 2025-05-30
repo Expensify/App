@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrentRequestCommand, isRunning, subscribeToQueueState} from '@libs/Network/SequentialQueue';
+import {getOngoingRequest, subscribeToQueueState} from '@libs/Network/SequentialQueue';
 
 // Commands that should trigger the LoadingBar to show
 const RELEVANT_COMMANDS = [
@@ -17,18 +17,9 @@ export default function useLoadingBarVisibility(): boolean {
     const [isRelevantQueueActive, setIsRelevantQueueActive] = useState(false);
 
     const checkRelevantQueue = useCallback(() => {
-        // Check if queue is running
-        const isQueueRunning = isRunning();
-
-        if (!isQueueRunning) {
-            setIsRelevantQueueActive(false);
-            return;
-        }
-
-        // Get current request and check if it's a relevant command
-        const currentCommand = getCurrentRequestCommand();
-        const hasRelevantCommand = currentCommand && 
-            (RELEVANT_COMMANDS as readonly string[]).includes(currentCommand);
+        const ongoingRequest = getOngoingRequest();
+        const hasRelevantCommand = ongoingRequest && 
+            (RELEVANT_COMMANDS as readonly string[]).includes(ongoingRequest.command);
 
         setIsRelevantQueueActive(!!hasRelevantCommand);
     }, []);
