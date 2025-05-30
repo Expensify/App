@@ -16,6 +16,7 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import DownloadAppBanner from '@components/DownloadAppBanner';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -35,10 +36,11 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import setTestReceipt from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
@@ -587,25 +589,10 @@ function IOURequestStepScan({
      * Sets a test receipt from CONST.TEST_RECEIPT_URL and navigates to the confirmation step
      */
     const setTestReceiptAndNavigate = useCallback(() => {
-        try {
-            const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
-
-            readFileAsync(
-                TestReceipt as string,
-                filename,
-                (file) => {
-                    const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
-                    navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
-                },
-                (error) => {
-                    console.error('Error reading test receipt:', error);
-                },
-                CONST.TEST_RECEIPT.FILE_TYPE,
-            );
-        } catch (error) {
-            console.error('Error in setTestReceiptAndNavigate:', error);
-        }
+        setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
+            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
+            navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
+        });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
@@ -972,6 +959,8 @@ function IOURequestStepScan({
                                 receiptImageTopPosition={receiptImageTopPosition}
                             />
                         )}
+                        {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
+                        {!isMobile() && <DownloadAppBanner />}
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                             onConfirm={hideReceiptModal}

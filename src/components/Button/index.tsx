@@ -294,12 +294,12 @@ function Button(
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
                     !!secondLineText && styles.noPaddingBottom,
-                    isHovered && textHoverStyles,
-                    link && styles.fontWeightNormal,
-                    link && styles.fontSizeLabel,
                     textStyles,
+                    isHovered && textHoverStyles,
                     link && styles.link,
                     link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
+                    link && styles.fontWeightNormal,
+                    link && styles.fontSizeLabel,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
