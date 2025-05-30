@@ -399,7 +399,9 @@ function MagicCodeInput(
                             onLayout={(e) => {
                                 inputWidth.current = e.nativeEvent.layout.width;
                             }}
-                            ref={(newRef) => (inputRef.current = newRef)}
+                            ref={(newRef) => {
+                                inputRef.current = newRef;
+                            }}
                             autoFocus={autoFocus}
                             inputMode="numeric"
                             textContentType="oneTimeCode"
