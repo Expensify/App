@@ -16,7 +16,14 @@ export default function useLoadingBarVisibility(): boolean {
         const ongoingRequest = getOngoingRequest();
         const hasRelevantCommand = ongoingRequest && RELEVANT_COMMANDS.has(ongoingRequest.command);
 
-        setIsRelevantQueueActive(!!hasRelevantCommand);
+        const shouldShowLoadingBar = !!hasRelevantCommand;
+
+        setIsRelevantQueueActive(previousValue => {
+            if (previousValue === shouldShowLoadingBar) {
+                return previousValue; // No change, avoid re-render
+            }
+            return shouldShowLoadingBar;
+        });
     }, []);
 
     useEffect(() => {
