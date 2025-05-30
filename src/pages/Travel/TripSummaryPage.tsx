@@ -8,7 +8,6 @@ import {ReservationView} from '@components/ReportActionItem/TripDetailsView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import CONFIG from '@src/CONFIG';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
@@ -20,7 +19,7 @@ type TripSummaryPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TripSummaryPage({route}: TripSummaryPageProps) {
     const {translate} = useLocalize();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`, {canBeMissing: true});
     const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(transaction ? [transaction] : []);
 
     return (

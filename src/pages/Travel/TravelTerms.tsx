@@ -32,7 +32,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const {isBlockedFromSpotnanaTravel} = usePermissions();
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
+    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
 

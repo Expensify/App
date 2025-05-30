@@ -1,10 +1,6 @@
 import React from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
-import CONFIG from '@src/CONFIG';
 import ManageTrips from './ManageTrips';
 
 function MyTripsPage() {

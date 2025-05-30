@@ -46,16 +46,16 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const [isModifyTripLoading, setIsModifyTripLoading] = useState(false);
     const [isTripSupportLoading, setIsTripSupportLoading] = useState(false);
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.reportID);
     const reservationType = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0)?.type;
     const reservation = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0);
     const reservationIcon = getTripReservationIcon(reservation?.type);
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation)});
+    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation), canBeMissing: true});
 
     return (
         <ScreenWrapper
