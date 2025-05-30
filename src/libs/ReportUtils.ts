@@ -1828,23 +1828,18 @@ function pushTransactionViolationsOnyxData(
     policyUpdate: Partial<Policy> = {},
     policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
 ): OnyxData {
-    if (policyUpdate == null && policyCategoriesUpdate == null) {
+    if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate)) {
         return onyxData;
     }
+    const optimisticPolicy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
     const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
-        const categoryUpdate = policyCategoriesUpdate?.[categoryName];
-        if (categoryUpdate?.name) {
-            acc[categoryName] = {...policyCategories[categoryName], ...categoryUpdate};
-        } else {
-            acc[categoryName] = policyCategories[categoryName];
-        }
+        acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
         return acc;
     }, {}) as PolicyCategories;
 
     const policyTagLists = allPolicyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
-    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagLists);
+    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, policyTagLists);
 
     getAllPolicyReports(policyID).forEach((report) => {
         if (!report?.reportID) {
@@ -1859,7 +1854,7 @@ function pushTransactionViolationsOnyxData(
             const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
                 transactionViolations,
-                policy,
+                optimisticPolicy,
                 policyTagLists,
                 optimisticPolicyCategories,
                 hasDependentTags,
