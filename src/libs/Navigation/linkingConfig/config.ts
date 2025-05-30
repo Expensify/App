@@ -1342,6 +1342,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
+                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
+                            path: ROUTES.SPLIT_EXPENSE.route,
+                            exact: true,
+                        },
+                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
+                            path: ROUTES.SPLIT_EXPENSE_EDIT.route,
+                            exact: true,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {
@@ -1486,7 +1494,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TITLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TITLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_ASSIGNEE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_ASSIGNEE,
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_CREATED_BY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CREATED_BY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_BILLABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_BILLABLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_REIMBURSABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_REIMBURSABLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_WORKSPACE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,

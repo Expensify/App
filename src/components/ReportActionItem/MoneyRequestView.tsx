@@ -16,6 +16,7 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -50,6 +51,7 @@ import {
     getBillable,
     getDescription,
     getDistanceInMeters,
+    getOriginalTransactionWithSplitInfo,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -109,6 +111,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const policyID = report?.policyID;
@@ -290,6 +293,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     } else {
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
+        }
+        if (getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
@@ -519,6 +525,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
     }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
 
+    const receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -532,7 +540,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReceiptEmptyState && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('receipt')}
+                        style={styles.mv3}
+                    >
                         <ReceiptEmptyState
                             hasError={hasErrors}
                             disabled={!canEditReceipt}
@@ -546,6 +557,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             }}
                             isThumbnail={!canEditReceipt}
                             isInMoneyRequestView
+                            style={[receiptStyle, styles.mv0]}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -572,7 +584,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         dismissError={dismissReceiptError}
                     >
                         {hasReceipt && (
-                            <View style={[styles.moneyRequestViewImage, styles.expenseViewImage]}>
+                            <View style={[styles.moneyRequestViewImage, receiptStyle]}>
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
                                     fileExtension={receiptURIs?.fileExtension}
