@@ -122,7 +122,7 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const isLoadingAndOnline = isLoadingInitialReportActions && !isOffline;
+
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
 
@@ -619,7 +619,7 @@ function MoneyRequestReportActionsList({
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
-                                    isLoadingInitialReportActions={isLoadingAndOnline}
+                                    isLoadingInitialReportActions={isLoadingInitialReportActions}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                 />
                             </>
@@ -628,7 +628,7 @@ function MoneyRequestReportActionsList({
                         onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
                         ref={reportScrollManager.ref}
-                        ListEmptyComponent={isLoadingAndOnline ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
+                        ListEmptyComponent={isLoadingInitialReportActions ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                     />
                 )}
             </View>
