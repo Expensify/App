@@ -29,7 +29,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         }
 
         if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-            navigateToConciergeChat(true);
+            navigateToConciergeChat();
         }
 
         if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && url) {
