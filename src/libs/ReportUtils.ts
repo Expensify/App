@@ -139,6 +139,7 @@ import {
     getCardIssuedMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
+    getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getLastClosedReportAction,
@@ -190,6 +191,7 @@ import {
     isPolicyChangeLogAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isReopenedAction,
     isReportActionAttachment,
     isReportPreviewAction,
     isReversedTransaction,
@@ -4042,7 +4044,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, searchHash?: number): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -4065,10 +4067,10 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, sea
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
-        unholdRequest(transactionID, reportAction.childReportID, searchHash);
+        unholdRequest(transactionID, reportAction.childReportID);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute, searchHash));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
     }
 };
 
@@ -4859,6 +4861,10 @@ function getReportNameInternal({
 
     if (isTaskReport(report)) {
         return Parser.htmlToText(report?.reportName ?? '').trim();
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
+        return getIntegrationSyncFailedMessage(parentReportAction);
     }
 
     if (isChatThread(report)) {
@@ -10805,6 +10811,16 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         })
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
+
+function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    if (!reportActions) {
+        return false;
+    }
+
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+    return reportActionList.some((action) => isReopenedAction(action));
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11180,6 +11196,7 @@ export {
     findReportIDForAction,
     isWorkspaceEligibleForReportChange,
     navigateOnDeleteExpense,
+    hasReportBeenReopened,
 };
 
 export type {

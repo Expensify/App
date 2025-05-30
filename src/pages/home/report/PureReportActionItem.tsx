@@ -60,6 +60,7 @@ import {
     extractLinksFromMessageHtml,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
+    getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getOriginalMessage,
@@ -836,7 +837,7 @@ function PureReportActionItem({
 
             // Table Report View does not display these components as separate messages, except for self-DM
             if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
-                if ((report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM && !isDeletedAction(action)) || isSplitInGroupChat) {
+                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || isSplitInGroupChat) {
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
@@ -1132,8 +1133,7 @@ function PureReportActionItem({
             const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-            const {label, errorMessage} = getOriginalMessage(action) ?? {label: '', errorMessage: ''};
-            children = <ReportActionItemBasicMessage message={translate('report.actions.type.integrationSyncFailed', {label, errorMessage})} />;
+            children = <ReportActionItemBasicMessage message={getIntegrationSyncFailedMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
             children = <ReportActionItemBasicMessage message={getRemovedConnectionMessage(action)} />;
         } else {
