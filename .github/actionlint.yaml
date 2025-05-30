@@ -14,3 +14,5 @@ paths:
       #    - issue: https://github.com/rhysd/actionlint/issues/511
       #    - PR: https://github.com/rhysd/actionlint/pull/513
       - '"env" is not allowed in "runs" section because .* is a Composite action.*'
+      # Temporary workaround to fix actionlint not recognizing jobs.<job_id>.result
+      - 'property "result" is not defined in object type \{outputs: \{.*\}\}'
