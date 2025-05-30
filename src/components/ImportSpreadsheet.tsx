@@ -41,7 +41,6 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use different copies depending on the screen size
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -77,6 +76,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
         if (!validateFile(file)) {
             return;
         }
+
         let fileURI = file.uri ?? URL.createObjectURL(file);
         if (!fileURI) {
             return;
@@ -96,7 +96,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
                 const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
 
-                setSpreadsheetData(formattedSpreadsheetData)
+                setSpreadsheetData(formattedSpreadsheetData, fileURI)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })

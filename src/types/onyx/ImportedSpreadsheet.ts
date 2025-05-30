@@ -20,6 +20,18 @@ type ImportedSpreadsheet = {
 
     /** Whether the first row of the spreadsheet contains headers */
     containsHeader: boolean;
+
+    /** Whether the spreadsheet is importing multi-level tags */
+    isImportingMultiLevelTags: boolean;
+
+    /** Whether the spreadsheet is importing independent multi-level tags */
+    isImportingIndependentMultiLevelTags: boolean;
+
+    /** Whether the GL code is in the adjacent column */
+    isGLAdjacent: boolean;
+
+    /** The imported file URI */
+    fileURI?: string;
 };
 
 export default ImportedSpreadsheet;

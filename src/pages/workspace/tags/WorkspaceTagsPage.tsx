@@ -15,6 +15,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -188,22 +189,28 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     enabled: true,
                     required: policyTagList.required,
-                    rightElement: (
-                        <Switch
-                            isOn={isSwitchEnabled}
-                            accessibilityLabel={translate('workspace.tags.requiresTag')}
-                            onToggle={(newValue: boolean) => {
-                                if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
-                                    setIsCannotMakeLastTagOptionalModalVisible(true);
-                                    return;
-                                }
+                    rightElement:
+                        canUseMultiLevelTags && hasDependentTags ? (
+                            <ListItemRightCaretWithLabel
+                                labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})}
+                                shouldShowCaret
+                            />
+                        ) : (
+                            <Switch
+                                isOn={isSwitchEnabled}
+                                accessibilityLabel={translate('workspace.tags.requiresTag')}
+                                onToggle={(newValue: boolean) => {
+                                    if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
+                                        setIsCannotMakeLastTagOptionalModalVisible(true);
+                                        return;
+                                    }
 
-                                updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
-                            }}
-                            disabled={isSwitchDisabled}
-                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
-                        />
-                    ),
+                                    updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
+                                }}
+                                disabled={isSwitchDisabled}
+                                showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
+                            />
+                        ),
                 };
             });
         }
@@ -232,7 +239,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy, policyTags]);
+    }, [isMultiLevelTags, policyTagLists, canUseMultiLevelTags, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
@@ -267,6 +274,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const getCustomListHeader = () => {
+        if (canUseMultiLevelTags && hasDependentTags) {
+            return (
+                <CustomListHeader
+                    canSelectMultiple={false}
+                    leftHeaderText={translate('common.name')}
+                    rightHeaderText={translate('common.count')}
+                    rightHeaderMinimumWidth={120}
+                />
+            );
+        }
+
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -429,16 +447,24 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                    );
+                    if (canUseMultiLevelTags) {
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
+                        );
+                    } else {
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                        );
+                    }
                 },
             });
         }
 
-        if (hasVisibleTags) {
+        if (hasVisibleTags && !hasDependentTags) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
@@ -463,7 +489,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo, canUseMultiLevelTags, hasIndependentTags]);
+    }, [policy, hasVisibleTags, hasDependentTags, translate, isOffline, canUseMultiLevelTags, isQuickSettingsFlow, policyID, backTo, hasIndependentTags]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -529,7 +555,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.popToSidebar();
                         }}
-                        shouldShowThreeDotsButton={canUseMultiLevelTags ? !hasDependentTags : !policy?.hasMultipleTagLists}
+                        shouldShowThreeDotsButton={canUseMultiLevelTags ? true : !policy?.hasMultipleTagLists}
                         threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={threeDotsAnchorPosition}
                     >
