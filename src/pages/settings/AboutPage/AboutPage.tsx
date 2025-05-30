@@ -173,8 +173,8 @@ function AboutPage() {
                         contentWidth={width}
                         source={{
                             html: translate('initialSettingsPage.readTheTermsAndPrivacy.full')
-                                .replace('<a>Terms of Service</a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">${translate('initialSettingsPage.readTheTermsAndPrivacy.terms')}</a>`)
-                                .replace('<a>Privacy</a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">${translate('initialSettingsPage.readTheTermsAndPrivacy.privacy')}</a>`),
+                                .replace('<a>Terms of Service</a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">${translate('initialSettingsPage.readTheTermsAndPrivacy.full')}</a>`)
+                                .replace('<a>Privacy</a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">${translate('initialSettingsPage.readTheTermsAndPrivacy.full')}</a>`),
                         }}
                         baseStyle={styles.chatItemMessageHeaderTimestamp}
                         tagsStyles={{
