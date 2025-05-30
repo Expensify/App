@@ -1,5 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {downloadMultiLevelIndependentTagsCSV, downloadTagsCSV, cleanPolicyTags, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
+import {cleanPolicyTags, downloadMultiLevelIndependentTagsCSV, downloadTagsCSV, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -33,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 
 type ImportTagsOptionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS>;
 
@@ -87,49 +87,49 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <FullPageOfflineBlockingView>
-                <Text style={[styles.ph5, styles.textSupporting, styles.textNormal]}>{translate('workspace.tags.importTagsSupportingText')}</Text>
+                    <Text style={[styles.ph5, styles.textSupporting, styles.textNormal]}>{translate('workspace.tags.importTagsSupportingText')}</Text>
 
-                <MenuItem
-                    title={translate('workspace.tags.tagLevel.singleLevel')}
-                    icon={Tag}
-                    shouldShowRightIcon
-                    onPress={() => {
-                        setImportedSpreadsheetIsImportingMultiLevelTags(false);
-                        if (hasVisibleTags) {
-                            setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
-                        } else {
-                            cleanPolicyTags(policyID);
-                            Navigation.navigate(
-                                isQuickSettingsFlow
-                                    ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                    : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                            );
-                        }
-                    }}
-                />
-                <MenuItem
-                    title={translate('workspace.tags.tagLevel.multiLevel')}
-                    // TODO: Update icon to multi-level tag icon once it's provided by design team
-                    icon={Tag}
-                    shouldShowRightIcon
-                    onPress={() => {
-                        if (!isControlPolicy(policy)) {
-                            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiLevelTags.alias, Navigation.getActiveRoute()));
-                            return;
-                        }
-                        setImportedSpreadsheetIsImportingMultiLevelTags(true);
-                        if (hasVisibleTags) {
-                            setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
-                        } else {
-                            cleanPolicyTags(policyID);
-                            Navigation.navigate(
-                                isQuickSettingsFlow
-                                    ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                    : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                            );
-                        }
-                    }}
-                />
+                    <MenuItem
+                        title={translate('workspace.tags.tagLevel.singleLevel')}
+                        icon={Tag}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            setImportedSpreadsheetIsImportingMultiLevelTags(false);
+                            if (hasVisibleTags) {
+                                setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
+                            } else {
+                                cleanPolicyTags(policyID);
+                                Navigation.navigate(
+                                    isQuickSettingsFlow
+                                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                                );
+                            }
+                        }}
+                    />
+                    <MenuItem
+                        title={translate('workspace.tags.tagLevel.multiLevel')}
+                        // TODO: Update icon to multi-level tag icon once it's provided by design team
+                        icon={Tag}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            if (!isControlPolicy(policy)) {
+                                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiLevelTags.alias, Navigation.getActiveRoute()));
+                                return;
+                            }
+                            setImportedSpreadsheetIsImportingMultiLevelTags(true);
+                            if (hasVisibleTags) {
+                                setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
+                            } else {
+                                cleanPolicyTags(policyID);
+                                Navigation.navigate(
+                                    isQuickSettingsFlow
+                                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                                );
+                            }
+                        }}
+                    />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
             <DecisionModal

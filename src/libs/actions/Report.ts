@@ -701,7 +701,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     if (file && attachmentAction?.reportActionID) {
         optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
-
+    console.log('file', file);
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
@@ -816,6 +816,7 @@ function addAttachment(reportID: string, file: FileObject, text = '', shouldPlay
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
+    console.log('file', file);
     addActions(reportID, text, file);
 }
 

@@ -1,4 +1,6 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
+import {Platform} from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -707,27 +709,60 @@ function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
 }
 
-function setImportedSpreadsheetFile(file: File) {
-    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {file});
+function setImportedSpreadsheetFileURI(fileURI: string) {
+    console.log('fileURI', fileURI);
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
 }
 
+// function readOnyxFile(fileUri: string) {
+//     const filePath = decodeURIComponent(fileUri.replace('file://', ''));
+
+//     return ReactNativeBlobUtil.fs.exists(filePath).then((exists) => {
+//         if (!exists) {
+//             throw new Error('File does not exist');
+//         }
+//         return ReactNativeBlobUtil.fs.readFile(filePath, 'utf8');
+//     });
+// }
 
 function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
-        if(!spreadsheet) {
-        return;
-    }
+    if (!spreadsheet) return;
 
-    const parameters: ImportMultiLevelTagsParams = {
-            policyID,
-            isFirstLineHeader: spreadsheet?.isFirstLineHeader,
-            isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
-            isGLAdjacent: spreadsheet?.isGLAdjacent,
-            file: spreadsheet?.file,
-    };
+    console.log('spreadsheet', spreadsheet, 'speadsheet.fileURI', spreadsheet.fileURI);
 
-    API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters)
+    fetch(spreadsheet?.fileURI ?? '').then((res) => {
+        if (!res.ok && Platform.OS !== 'android') {
+            throw Error(res.statusText);
+        }
 
+        res.blob().then((blob) => {
+            const file = new File([blob], 'testFile.csv', {type: blob.type || 'text/csv'});
+            console.log('file', file);
+
+            // Trigger a download in the browser (only works on web)
+            if (Platform.OS === 'web') {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(file);
+                link.download = 'importedTags.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            }
+
+            const parameters: ImportMultiLevelTagsParams = {
+                policyID,
+                isFirstLineHeader: spreadsheet?.isFirstLineHeader,
+                isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
+                isGLAdjacent: spreadsheet?.isGLAdjacent,
+                file,
+            };
+
+            API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters);
+        });
+    });
 }
+
 function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
@@ -1115,6 +1150,6 @@ export {
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
-    setImportedSpreadsheetFile,
+    setImportedSpreadsheetFileURI,
     importMultiLevelTags,
 };

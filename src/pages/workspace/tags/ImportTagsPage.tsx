@@ -1,4 +1,5 @@
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import usePolicy from '@hooks/usePolicy';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -7,11 +8,10 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import { useOnyx } from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ImportTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT>;
@@ -23,8 +23,7 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const isQuickSettingsFlow = !!backTo;
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
-    
-    
+
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }

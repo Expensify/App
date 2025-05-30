@@ -24,7 +24,6 @@ import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
-import { setImportedSpreadsheetFile } from '@libs/actions/Policy/Tag';
 
 type ImportSpreadsheetProps = {
     // The route to navigate to when the back button is pressed.
@@ -77,7 +76,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
         if (!validateFile(file)) {
             return;
         }
-        setImportedSpreadsheetFile({...file})
+
         let fileURI = file.uri ?? URL.createObjectURL(file);
         if (!fileURI) {
             return;
@@ -97,7 +96,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
                 const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
 
-                setSpreadsheetData(formattedSpreadsheetData)
+                setSpreadsheetData(formattedSpreadsheetData, fileURI)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })

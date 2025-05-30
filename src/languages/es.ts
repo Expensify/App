@@ -4282,7 +4282,7 @@ const translations = {
                 firstRowTitle: 'La primera fila es el título de cada lista de etiquetas',
                 independentTags: 'Estas son etiquetas independientes',
                 glAdjacentColumn: 'Hay un código GL en la columna adyacente',
-            },            
+            },
             tagLevel: {
                 singleLevel: 'Nivel único de etiquetas',
                 multiLevel: 'Etiquetas multinivel',

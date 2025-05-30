@@ -34,8 +34,8 @@ type ImportedSpreadsheet = {
     /** Whether the first line is the header */
     isFirstLineHeader: boolean;
 
-    /** The imported file */
-    file: File;
+    /** The imported file URI */
+    fileURI?: string;
 };
 
 export default ImportedSpreadsheet;
