@@ -17,7 +17,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native');
-jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@src/libs/Navigation/navigationRef');
 
 const wrapper = ({children}: {children: React.ReactNode}) => (

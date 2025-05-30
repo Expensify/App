@@ -250,9 +250,9 @@ describe('NetworkTests', () => {
             .then(() => {
                 // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
                 // And we should also see the reconnection callbacks triggered.
-                const callsToopenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
                 const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
-                expect(callsToopenPublicProfilePage.length).toBe(3);
+                expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
             });

@@ -16,6 +16,7 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import DownloadAppBanner from '@components/DownloadAppBanner';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -998,6 +999,8 @@ function IOURequestStepScan({
                                 receiptImageTopPosition={receiptImageTopPosition}
                             />
                         )}
+                        {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
+                        {!isMobile() && <DownloadAppBanner />}
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                             onConfirm={hideReceiptModal}
