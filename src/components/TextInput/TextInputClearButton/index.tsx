@@ -12,7 +12,6 @@ import CONST from '@src/CONST';
 type TextInputClearButtonProps = {
     style?: StyleProp<ViewStyle>;
     onPressButton: () => void;
-    containerStyles?: ViewStyle[];
 };
 
 function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps) {
