@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import FlatList from '@components/FlatList';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,15 +19,23 @@ import SubmitButtonShadow from './SubmitButtonShadow';
 type ReceiptWithTransactionID = Receipt & {transactionID: string};
 
 type ReceiptPreviewsProps = {
+    /** Submit method */
     submit: () => void;
+
+    /** If the receipts preview should be shown */
+    isMultiScanEnabled: boolean;
+
+    /** Method to disable swipe between tabs */
     setTabSwipeDisabled?: (isDisabled: boolean) => void;
 };
 
-function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
+function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    const isPreviewsVisible = useSharedValue(false);
+    const previewsHeight = styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2;
     const initialReceiptsAmount = useMemo(
         () => (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / (styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight),
         [windowWidth, styles],
@@ -49,6 +58,14 @@ function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
         return receiptsWithPlaceholders;
     }, [initialReceiptsAmount, optimisticTransactionsReceipts]);
     const isScrollEnabled = optimisticTransactionsReceipts ? optimisticTransactionsReceipts.length >= receipts.length : false;
+
+    useEffect(() => {
+        if (isMultiScanEnabled) {
+            isPreviewsVisible.set(true);
+        } else {
+            isPreviewsVisible.set(false);
+        }
+    }, [isMultiScanEnabled, isPreviewsVisible]);
 
     const renderItem = ({item}: {item: ReceiptWithTransactionID | undefined}) => {
         if (!item) {
@@ -73,31 +90,43 @@ function ReceiptPreviews({submit, setTabSwipeDisabled}: ReceiptPreviewsProps) {
         );
     };
 
+    const slideInStyle = useAnimatedStyle(() => {
+        return {
+            height: withTiming(isPreviewsVisible.get() ? previewsHeight : 0, {
+                duration: 300,
+            }),
+        };
+    });
+
     return (
-        <View style={styles.ph4}>
-            <FlatList
-                data={receipts}
-                horizontal
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={renderItem}
-                onTouchStart={() => setTabSwipeDisabled?.(true)}
-                onTouchEnd={() => setTabSwipeDisabled?.(false)}
-                style={styles.pv2}
-                scrollEnabled={isScrollEnabled}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{paddingRight: styles.singleAvatarMedium.width}}
-            />
-            <SubmitButtonShadow>
-                <Button
-                    large
-                    isDisabled={!optimisticTransactionsReceipts?.length}
-                    innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
-                    icon={Expensicons.ArrowRight}
-                    iconFill={theme.white}
-                    onPress={submit}
-                />
-            </SubmitButtonShadow>
-        </View>
+        <Animated.View style={slideInStyle}>
+            {isMultiScanEnabled && (
+                <View style={styles.ph4}>
+                    <FlatList
+                        data={receipts}
+                        horizontal
+                        keyExtractor={(_, index) => index.toString()}
+                        renderItem={renderItem}
+                        onTouchStart={() => setTabSwipeDisabled?.(true)}
+                        onTouchEnd={() => setTabSwipeDisabled?.(false)}
+                        style={styles.pv2}
+                        scrollEnabled={isScrollEnabled}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{paddingRight: styles.singleAvatarMedium.width}}
+                    />
+                    <SubmitButtonShadow>
+                        <Button
+                            large
+                            isDisabled={!optimisticTransactionsReceipts?.length}
+                            innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
+                            icon={Expensicons.ArrowRight}
+                            iconFill={theme.white}
+                            onPress={submit}
+                        />
+                    </SubmitButtonShadow>
+                </View>
+            )}
+        </Animated.View>
     );
 }
 

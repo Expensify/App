@@ -926,12 +926,11 @@ function IOURequestStepScan({
                 )}
             </View>
 
-            {isMultiScanEnabled && (
-                <ReceiptPreviews
-                    submit={submitReceipts}
-                    setTabSwipeDisabled={setTabSwipeDisabled}
-                />
-            )}
+            <ReceiptPreviews
+                isMultiScanEnabled={isMultiScanEnabled}
+                submit={submitReceipts}
+                setTabSwipeDisabled={setTabSwipeDisabled}
+            />
         </>
     );
 
