@@ -631,11 +631,12 @@ function MoneyReportHeader({
             policy,
             reportNameValuePairs,
             reportActions,
+            policies,
             isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
             isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
-            policies,
+            isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
         );
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, isBetaEnabled, policies]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
