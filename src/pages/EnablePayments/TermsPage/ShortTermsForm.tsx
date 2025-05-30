@@ -140,7 +140,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                         {translate('termsStep.shortTermsForm.generalInfo')} <TextLink href={CONST.CFPB_PREPAID_URL}>{CONST.TERMS.CFPB_PREPAID}</TextLink>.
                     </Text>
                     <Text>
-                        {translate('termsStep.shortTermsForm.conditionsDetails')} <TextLink href={CONST.FEES_URL}>{CONST.TERMS.USE_EXPENSIFY_FEES}</TextLink>{' '}
+                        {translate('termsStep.shortTermsForm.conditionsDetails')} <TextLink href={CONST.FEES_URL}>{CONST.FEES_URL}</TextLink>{' '}
                         {translate('termsStep.shortTermsForm.conditionsPhone')}
                     </Text>
                 </View>
