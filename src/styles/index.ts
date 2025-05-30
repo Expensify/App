@@ -3619,6 +3619,10 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 6,
         },
 
+        workspaceOwnerSectionMinWidth: {
+            minWidth: 180,
+        },
+
         workspaceTypeWrapper: {
             margin: 3,
         },
@@ -4478,7 +4482,17 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderColor: theme.borderFocus,
             borderWidth: 2,
-            backgroundColor: theme.highlightBG,
+        },
+
+        shareCodeContainerDownloadPadding: {
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+        },
+
+        qrCodeAppDownloadLinksStyles: {
+            width: 200,
+            height: 200,
+            margin: 'auto',
         },
 
         splashScreenHider: {
@@ -4862,6 +4876,13 @@ const styles = (theme: ThemeColors) =>
 
         expenseViewImage: {
             maxWidth: 360,
+            aspectRatio: 16 / 9,
+            height: 'auto',
+        },
+        expenseViewImageSmall: {
+            maxWidth: 440,
+            aspectRatio: 16 / 9,
+            height: 'auto',
         },
 
         pdfErrorPlaceholder: {

@@ -344,6 +344,10 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
+    if (!policy?.isAttendeeTrackingEnabled) {
+        return false;
+    }
+
     return (
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM)
     );
@@ -1585,6 +1589,10 @@ function getTransactionPendingAction(transaction: OnyxEntry<Transaction>): Pendi
     return hasPendingFields ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
 }
 
+function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolean {
+    return getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1686,6 +1694,7 @@ export {
     checkIfShouldShowMarkAsCashButton,
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
+    isTransactionPendingDelete,
 };
 
 export type {TransactionChanges};

@@ -26,6 +26,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -89,6 +90,10 @@ function SearchPage({route}: SearchPageProps) {
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+
+    useEffect(() => {
+        confirmReadyToOpenApp();
+    }, []);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {

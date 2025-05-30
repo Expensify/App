@@ -14,7 +14,7 @@ function SearchStatusSkeleton({shouldAnimate = true}: SearchStatusSkeletonProps)
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.mh5, styles.mb5]}>
+        <View style={[styles.mh5, styles.mb2]}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
                 height={40}

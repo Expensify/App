@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {FlashListProps} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -58,6 +58,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
+    const isScreenFocused = useIsFocused();
+
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
@@ -225,7 +227,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     lastReportActionTransaction={lastReportActionTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
-                    isFocused={!shouldDisableFocusOptions}
+                    isOptionFocused={!shouldDisableFocusOptions}
                     lastMessageTextFromReport={lastMessageTextFromReport}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
@@ -233,6 +235,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
+                    isScreenFocused={isScreenFocused}
                 />
             );
         },
@@ -253,6 +256,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             onLayoutItem,
             isOffline,
             firstReportIDWithGBRorRBR,
+            isScreenFocused,
         ],
     );
 

@@ -4971,6 +4971,8 @@ const translations = {
                 eReceipts: 'eReceipts',
                 eReceiptsHint: 'eReceipts are auto-created',
                 eReceiptsHintLink: 'for most USD credit transactions',
+                attendeeTracking: 'Attendee tracking',
+                attendeeTrackingHint: 'Track the per-person cost for every expense.',
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
@@ -4991,7 +4993,7 @@ const translations = {
                 customNameInputLabel: 'Name',
                 customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
                 customNameStartDateExample: 'Report start date: {report:startdate}',
-                customNameWorkspaceNameExample: 'Workspace name: {report:policyname}',
+                customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
                 customNameReportIDExample: 'Report ID: {report:id}',
                 customNameTotalExample: 'Total: {report:total}.',
                 preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
@@ -5247,6 +5249,7 @@ const translations = {
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
+            markAllMessagesAsRead: 'Mark all messages as read',
             escape: 'Escape dialogs',
             search: 'Open search dialog',
             newChat: 'New chat screen',
