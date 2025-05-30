@@ -18,16 +18,7 @@ function MyTripsPage() {
             testID={MyTripsPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <FullPageNotFoundView
-                shouldForceFullScreen
-                shouldShow={!CONFIG.IS_HYBRID_APP}
-            >
-                <HeaderWithBackButton
-                    title={translate('travel.header')}
-                    shouldShowBackButton
-                />
-                <ManageTrips />
-            </FullPageNotFoundView>
+            <ManageTrips />
         </ScreenWrapper>
     );
 }
