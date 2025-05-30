@@ -1,11 +1,14 @@
 import truncate from 'lodash/truncate';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
+import {extractCollectionItemID} from './CollectionUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
@@ -35,6 +38,32 @@ import {
     isPerDiemRequest,
     isReceiptBeingScanned,
 } from './TransactionUtils';
+
+const allTransactions: Record<string, OnyxTypes.Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    callback: (transaction, key) => {
+        if (!key || !transaction) {
+            return;
+        }
+        const transactionID = extractCollectionItemID(key);
+        allTransactions[transactionID] = transaction;
+    },
+});
+
+let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allTransactionViolations = {};
+            return;
+        }
+
+        allTransactionViolations = value;
+    },
+});
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -70,11 +99,15 @@ const getReviewNavigationRoute = (
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+    const reviewingTransaction = allTransactions[`${reviewingTransactionID}`];
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
+    const allDuplicateIDs = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const allDuplicates = allDuplicateIDs.map((id) => allTransactions?.[id]);
 
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
-    const comparisonResult = compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
+    const comparisonResult = compareDuplicateTransactionFields(reviewingTransaction, allDuplicates, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
     setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
 
     if (comparisonResult.change.merchant) {
@@ -148,6 +181,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+    originalTransaction: OnyxEntry<OnyxTypes.Transaction>;
     action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
     transactionDetails: Partial<TransactionDetails>;
@@ -168,7 +202,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && isPaidGroupPolicy(iouReport);
     const hasActionWithErrors = hasActionsWithErrors(iouReport?.reportID);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -299,7 +333,7 @@ function createTransactionPreviewConditionals({
     const isApproved = isReportApproved({report: iouReport});
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && iouReport && isPaidGroupPolicy(iouReport);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && iouReport && isPaidGroupPolicy(iouReport);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -313,7 +347,7 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const hasAnyViolations = hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction?.transactionID, violations, true) || hasViolation(transaction, violations, true);
+    const hasAnyViolations = hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction, violations, true) || hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionsWithErrors(iouReport?.reportID);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors;
