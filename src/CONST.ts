@@ -6620,6 +6620,7 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             CREATED_BY: 'createdBy',
+            COMMENTS: 'comments',
             IN: 'in',
         },
         SYNTAX_OPERATORS: {
