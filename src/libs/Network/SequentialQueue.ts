@@ -405,7 +405,6 @@ function resetQueue(): void {
 
     // Clear all listeners
     queueStateListeners.clear();
-    notifyQueueStateChange();
 }
 
 export {
