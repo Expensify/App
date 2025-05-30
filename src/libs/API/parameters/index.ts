@@ -157,6 +157,7 @@ export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
 export type {default as SplitBillParams} from './SplitBillParams';
+export type {SplitTransactionParams, SplitTransactionSplitsParam} from './SplitTransactionParams';
 export type {default as DeleteMoneyRequestParams} from './DeleteMoneyRequestParams';
 export type {default as CreateDistanceRequestParams} from './CreateDistanceRequestParams';
 export type {default as StartSplitBillParams} from './StartSplitBillParams';
@@ -308,6 +309,7 @@ export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
 export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBillableModeParams';
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
+export type {default as SetPolicyAttendeeTrackingEnabledParams} from './SetPolicyAttendeeTrackingEnabledParams';
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
 export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyCardTitleParams';

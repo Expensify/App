@@ -54,7 +54,7 @@ describe('useFastSearchFromOptions', () => {
                 },
                 {
                     // This starts with Ah as well, but should not match
-                    text: 'Ahntony',
+                    text: 'Aha',
                 },
             ],
         } as Options;

@@ -405,19 +405,12 @@ const styles = (theme: ThemeColors) =>
         verticalAlignTop: {
             verticalAlign: 'top',
         },
-
-        lineHeightUndefined: {
-            lineHeight: undefined,
-        },
-
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
-
         lineHeightXLarge: {
             lineHeight: variables.lineHeightXLarge,
         },
-
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -1094,13 +1087,11 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.danger,
         },
 
-        textInputDisabledContainer: {
+        textInputDisabled: {
             // Adding disabled color theme to indicate user that the field is not editable.
             backgroundColor: theme.highlightBG,
+            borderBottomWidth: 2,
             borderColor: theme.borderLighter,
-        },
-
-        textInputDisabled: {
             // Adding browser specific style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
             ...(getBrowser()
@@ -1302,10 +1293,7 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: 'transparent',
             overflow: 'hidden',
-            borderWidth: 1,
-            padding: 8,
-            paddingBottom: 0,
-            borderRadius: 8,
+            borderBottomWidth: 2,
             borderColor: theme.border,
         },
 
@@ -1319,20 +1307,16 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
-        textInputLabelContainer: {
-            position: 'absolute',
-            left: 8,
-            paddingRight: 16,
-            top: 0,
-            width: '100%',
-            zIndex: 1,
-            transformOrigin: 'left center',
-        },
-
         textInputLabel: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
             fontSize: variables.fontSizeNormal,
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
+            width: '100%',
+            zIndex: 1,
+            transformOrigin: 'left center',
         },
 
         textInputLabelBackground: {
@@ -1343,14 +1327,9 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
         },
 
-        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>, isForTextComponent?: boolean) => {
+        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>) => {
             'worklet';
 
-            if (isForTextComponent) {
-                return {
-                    fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
-                } satisfies TextStyle;
-            }
             return {
                 transform: [{translateY: translateY.get()}],
                 fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
@@ -1362,7 +1341,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 15,
+            paddingTop: 23,
             paddingBottom: 8,
             paddingLeft: 0,
             borderWidth: 0,
@@ -1374,7 +1353,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 15,
+            paddingTop: 23,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1392,7 +1371,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputIconContainer: {
             paddingHorizontal: 11,
-            marginTop: 8,
+            justifyContent: 'center',
         },
 
         textInputLeftIconContainer: {
@@ -1425,10 +1404,11 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             left: 0,
             top: 0,
+            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
+            paddingTop: 23,
             paddingBottom: 8,
         },
 
@@ -1436,10 +1416,11 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: 0,
             top: 0,
+            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
+            paddingTop: 23,
             paddingBottom: 8,
         },
 
@@ -3355,7 +3336,7 @@ const styles = (theme: ThemeColors) =>
         magicCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
-            height: variables.inputHeight,
+            minHeight: variables.inputHeight,
         },
 
         magicCodeInput: {
@@ -3638,6 +3619,10 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 6,
         },
 
+        workspaceOwnerSectionMinWidth: {
+            minWidth: 180,
+        },
+
         workspaceTypeWrapper: {
             margin: 3,
         },
@@ -3838,6 +3823,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchAutocompleteInputResults: {
+            backgroundColor: theme.sidebarHover,
             borderWidth: 1,
             borderColor: theme.sidebarHover,
         },
@@ -3845,6 +3831,7 @@ const styles = (theme: ThemeColors) =>
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
+            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {
@@ -4495,7 +4482,17 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderColor: theme.borderFocus,
             borderWidth: 2,
-            backgroundColor: theme.highlightBG,
+        },
+
+        shareCodeContainerDownloadPadding: {
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+        },
+
+        qrCodeAppDownloadLinksStyles: {
+            width: 200,
+            height: 200,
+            margin: 'auto',
         },
 
         splashScreenHider: {
@@ -5387,6 +5384,14 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             borderRadius: 4,
             backgroundColor: colors.green700,
+        },
+
+        splitItemBottomContent: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 12,
+            justifyContent: 'space-between',
+            minHeight: 16,
         },
 
         volumeSliderOverlay: {

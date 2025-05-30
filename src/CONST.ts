@@ -24,6 +24,7 @@ const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
+const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
@@ -829,12 +830,13 @@ const CONST = {
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         RETRACT_NEWDOT: 'retractNewDot',
-        PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        TRACK_FLOWS: 'trackFlows',
+        NEW_DOT_SPLITS: 'newDotSplits',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1060,6 +1062,7 @@ const CONST = {
     DEFAULT_NUMBER_ID,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
+    EXPENSIFY_MOBILE_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
@@ -1084,6 +1087,7 @@ const CONST = {
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+    PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
@@ -1118,8 +1122,9 @@ const CONST = {
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
+    CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
+    SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
-    DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
@@ -1224,6 +1229,7 @@ const CONST = {
             DELETE: 'delete',
             RETRACT: 'retract',
             ADD_EXPENSE: 'addExpense',
+            SPLIT: 'split',
             REOPEN: 'reopen',
             MOVE_EXPENSE: 'moveExpense',
             PAY: 'pay',
@@ -1254,6 +1260,7 @@ const CONST = {
         },
         TRANSACTION_SECONDARY_ACTIONS: {
             HOLD: 'hold',
+            SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
         },
@@ -1405,6 +1412,7 @@ const CONST = {
                     UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
                     UPDATE_TAG_LIST: 'POLICYCHANGELOG_UPDATE_TAG_LIST',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
+                    UPDATE_TAG_LIST_REQUIRED: 'POLICYCHANGELOG_UPDATE_TAG_LIST_REQUIRED',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
@@ -1534,7 +1542,14 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
-        TRANSACTION_PREVIEW_WIDTH_WIDE: 303,
+        TRANSACTION_PREVIEW: {
+            CAROUSEL: {
+                WIDTH_WIDE: 303,
+            },
+            DUPLICATE: {
+                HEIGHT_WIDE: 347,
+            },
+        },
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
@@ -1614,6 +1629,8 @@ const CONST = {
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
+        OPEN_APP: 'open_app',
+        SPLASH_SCREEN: 'splash_screen',
         OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
@@ -1648,6 +1665,7 @@ const CONST = {
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         SKELETON_ANIMATION_SPEED: 3,
+        SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2766,6 +2784,7 @@ const CONST = {
             SEND: 'send',
             PAY: 'pay',
             SPLIT: 'split',
+            SPLIT_EXPENSE: 'split-expense',
             REQUEST: 'request',
             INVOICE: 'invoice',
             SUBMIT: 'submit',
@@ -3200,6 +3219,10 @@ const CONST = {
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
+    },
+
+    QR_CODE_SIZE: {
+        APP_DOWNLOAD_LINKS: 172,
     },
 
     AVATAR_SIZE: {
