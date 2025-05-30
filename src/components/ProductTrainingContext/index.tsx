@@ -353,7 +353,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.flexRow,
         styles.justifyContentStart,
         styles.justifyContentCenter,
-        styles.flexWrap,
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
