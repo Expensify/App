@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, Locale, OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -1195,9 +1195,14 @@ function isTagModificationAction(actionName: string): boolean {
     );
 }
 
+/** Whether action has no linked report by design */
+const isIOUActionTypeExcludedFromFiltering = (type: OriginalMessageIOU['type'] | undefined) =>
+    [CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.TRACK].some((actionType) => actionType === type);
+
 /**
  * Determines whether the given action is an IOU and, if a list of report transaction IDs is provided,
- * whether it corresponds to one of those transactions.
+ * whether it corresponds to one of those transactions. This covers a rare case where IOU report actions was
+ * not deleted or moved after the expense was removed from the report.
  *
  * For compatibility and to avoid using isMoneyRequest next to this function as it is checked here already:
  * - If the action is not a money request and `defaultToFalseForNonIOU` is false (default), the result is true.
@@ -1213,7 +1218,7 @@ const isIOUActionMatchingTransactionList = (
         return !defaultToFalseForNonIOU;
     }
 
-    if (reportTransactionIDs === undefined) {
+    if (isIOUActionTypeExcludedFromFiltering(getOriginalMessage(action)?.type) || reportTransactionIDs === undefined) {
         return true;
     }
 
