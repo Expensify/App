@@ -7,7 +7,6 @@ import type {ValueOf} from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
@@ -31,6 +30,7 @@ import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import * as Illustrations from './Icon/Illustrations';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import Image from './Image';
 import {MenuItemGroupContext} from './MenuItemGroup';
@@ -505,7 +505,6 @@ function MenuItem(
     const StyleUtils = useStyleUtils();
     const combinedStyle = [styles.popoverMenuItem, style];
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useThemeIllustrations();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
 
@@ -792,10 +791,9 @@ function MenuItem(
                                                                         cachePolicy="memory-disk"
                                                                     />
                                                                     <Icon
-                                                                        src={illustrations.GenericPlaidCardLarge}
+                                                                        src={Illustrations.PlaidCompanyCardDetail}
                                                                         height={variables.cardIconHeight}
                                                                         width={variables.cardIconWidth}
-                                                                        additionalStyles={styles.cardIcon}
                                                                     />
                                                                 </View>
                                                             )}
