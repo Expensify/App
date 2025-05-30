@@ -39,6 +39,7 @@ import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
@@ -54,8 +55,6 @@ type AppProps = {
     url?: Route;
     /** Serialized configuration data required to initialize the React Native app (e.g. authentication details) */
     hybridAppSettings?: string;
-    /** A timestamp indicating when the initial properties were last updated, used to detect changes */
-    timestamp?: string;
 };
 
 LogBox.ignoreLogs([
@@ -71,18 +70,14 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url, hybridAppSettings, timestamp}: AppProps) {
+function App({url, hybridAppSettings}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
-                <InitialURLContextProvider
-                    url={url}
-                    hybridAppSettings={hybridAppSettings}
-                    timestamp={timestamp}
-                >
+                <InitialURLContextProvider url={url}>
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
@@ -119,6 +114,12 @@ function App({url, hybridAppSettings, timestamp}: AppProps) {
                         >
                             <CustomStatusBarAndBackground />
                             <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                {CONFIG.IS_HYBRID_APP && (
+                                    <HybridAppHandler
+                                        url={url}
+                                        hybridAppSettings={hybridAppSettings}
+                                    />
+                                )}
                                 <ColorSchemeWrapper>
                                     <Expensify />
                                 </ColorSchemeWrapper>
