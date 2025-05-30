@@ -69,9 +69,11 @@ import {
     deleteMoneyRequest,
     getNavigationUrlOnMoneyRequestDelete,
     getNextApproverAccountID,
+    initSplitExpense,
     payInvoice,
     payMoneyRequest,
     reopenReport,
+    retractReport,
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
@@ -611,7 +613,7 @@ function MoneyReportHeader({
         ),
     };
 
-    const {canUseRetractNewDot, canUseTableReportView} = usePermissions();
+    const {canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
@@ -622,8 +624,19 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot, canUseTableReportView, policies);
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot, canUseTableReportView, policies]);
+        return getSecondaryReportActions(
+            moneyRequestReport,
+            transactions,
+            violations,
+            policy,
+            reportNameValuePairs,
+            reportActions,
+            policies,
+            canUseRetractNewDot,
+            canUseTableReportView,
+            canUseNewDotSplits,
+        );
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -754,6 +767,19 @@ function MoneyReportHeader({
                 changeMoneyRequestHoldStatus(requestParentReportAction);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
+            text: translate('iou.split'),
+            icon: Expensicons.ArrowSplit,
+            value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
+            onSelected: () => {
+                if (Number(transactions?.length) !== 1) {
+                    return;
+                }
+
+                const currentTransaction = transactions.at(0);
+                initSplitExpense(currentTransaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
             icon: Expensicons.Buildings,
@@ -791,6 +817,14 @@ function MoneyReportHeader({
                 }
             },
             shouldShow: canUseTableReportView,
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
+            text: translate('iou.undoSubmit'),
+            icon: Expensicons.CircularArrowBackwards,
+            value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
+            onSelected: () => {
+                retractReport(moneyRequestReport);
+            },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
             text: translate('iou.undoClose'),
