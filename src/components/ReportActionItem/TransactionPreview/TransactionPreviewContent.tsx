@@ -66,7 +66,7 @@ function TransactionPreviewContent({
     const ownerAccountID = iouReport?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
-    const reportActions = useMemo(() => (iouReport ? getReportActions(iouReport) ?? {} : {}), [iouReport]);
+    const reportActions = useMemo(() => (iouReport ? (getReportActions(iouReport) ?? {}) : {}), [iouReport]);
 
     const transactionPreviewCommonArguments = useMemo(
         () => ({
@@ -107,7 +107,7 @@ function TransactionPreviewContent({
             }),
         [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions],
     );
-    const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');
+    const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
     const previewHeaderText = previewText.previewHeaderText.reduce((text, currentKey) => {
         return `${text}${getTranslatedText(currentKey)}`;
@@ -135,7 +135,7 @@ function TransactionPreviewContent({
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
     const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
-    const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isReportAPolicyExpenseChat && isBillSplit) {
@@ -146,8 +146,8 @@ function TransactionPreviewContent({
     const splitShare = useMemo(
         () =>
             shouldShowSplitShare
-                ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID)
+                ? (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
+                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID))
                 : 0,
         [
             shouldShowSplitShare,

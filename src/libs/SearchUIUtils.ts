@@ -195,7 +195,7 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     return Object.keys(data).some((key) => {
         if (isTransactionEntry(key)) {
             const item = data[key];
-            const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
+            const merchant = item.modifiedMerchant ? item.modifiedMerchant : (item.merchant ?? '');
             return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
         }
         return false;
@@ -328,7 +328,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             const shouldShowBlankTo = isOpenExpenseReport(report);
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
@@ -606,7 +606,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const shouldShowBlankTo = isOpenExpenseReport(report);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 

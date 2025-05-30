@@ -741,12 +741,12 @@ function MenuItem(
                                                                         fill={
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
-                                                                                : iconFill ??
+                                                                                : (iconFill ??
                                                                                   StyleUtils.getIconFillColor(
                                                                                       getButtonState(focused || isHovered, pressed, success, disabled, interactive),
                                                                                       true,
                                                                                       isPaneMenu,
-                                                                                  )
+                                                                                  ))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
