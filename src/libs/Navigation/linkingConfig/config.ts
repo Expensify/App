@@ -32,10 +32,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: ROUTES.REQUIRE_TWO_FACTOR_AUTH,
-        [SCREENS.WORKSPACES_LIST]: {
-            path: ROUTES.WORKSPACES_LIST.route,
-            exact: true,
-        },
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
@@ -151,15 +147,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_LANGUAGE,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ADD_PAYMENT_CARD]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY,
                             exact: true,
                         },
@@ -343,19 +339,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SETTINGS_DETAILS]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SIZE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
                             parse: {
                                 canChangeSize: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
                         },
                         [SCREENS.WORKSPACE.CURRENCY]: {
@@ -1672,7 +1668,20 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.SETTINGS_PREFERENCES,
                     // exact: true,
                 },
-                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION.route,
+            },
+        },
+
+        [NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR]: {
+            screens: {
+                [SCREENS.WORKSPACE_HUB.ROOT]: {
+                    path: ROUTES.WORKSPACE_HUB_INITIAL,
+                    exact: true,
+                },
+                [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
+                    path: ROUTES.SETTINGS_WORKSPACES.route,
+                    exact: true,
+                },
+                [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT]: {path: ROUTES.SETTINGS_SUBSCRIPTION.route},
             },
         },
 

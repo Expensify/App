@@ -38,8 +38,6 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
-    WORKSPACES_LIST: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
-
     SEARCH_ROOT: {
         route: 'search',
         getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => {
@@ -204,6 +202,7 @@ const ROUTES = {
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
+    SETTINGS_WORKSPACES: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_MERGE_ACCOUNTS: {
@@ -983,6 +982,7 @@ const ROUTES = {
             return `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const;
         },
     },
+    WORKSPACE_HUB_INITIAL: 'settings/workspace-menu',
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite`, backTo)}` as const,

@@ -18,10 +18,9 @@ type TopBarProps = {
     shouldDisplayHelpButton?: boolean;
     shouldShowLoadingBar?: boolean;
     cancelSearch?: () => void;
-    children?: React.ReactNode;
 };
 
-function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = true, cancelSearch, shouldShowLoadingBar = false, children}: TopBarProps) {
+function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = true, cancelSearch, shouldShowLoadingBar = false}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}, canBeMissing: true});
@@ -47,7 +46,6 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         </Text>
                     </View>
                 </View>
-                {children}
                 {displaySignIn && <SignInButton />}
                 {!!cancelSearch && (
                     <PressableWithoutFeedback

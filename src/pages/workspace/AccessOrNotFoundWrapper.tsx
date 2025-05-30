@@ -100,7 +100,7 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
                     if (secondToLastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                         Navigation.dismissModal();
                     } else {
-                        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+                        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
                     }
                     return;
                 }

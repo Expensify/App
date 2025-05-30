@@ -90,7 +90,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     large
                 />
             )}

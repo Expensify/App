@@ -38,14 +38,9 @@ function handleOpenWorkspaceSplitAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const actionToPushWorkspacesList = StackActions.push(SCREENS.WORKSPACES_LIST);
-
-    const stateWithWorkspacesList = stackRouter.getStateForAction(state, actionToPushWorkspacesList, configOptions);
-
-    if (!stateWithWorkspacesList) {
-        Log.hmmm('[handleOpenWorkspaceSplitAction] WorkspacesList has not been found in the navigation state.');
-        return null;
-    }
+    const actionToPushWorkspaceHubSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR, {
+        screen: SCREENS.WORKSPACE_HUB.WORKSPACES,
+    });
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
         screen: action.payload.screenName,
@@ -54,8 +49,15 @@ function handleOpenWorkspaceSplitAction(
         },
     });
 
-    const rehydratedStateWithWorkspacesList = stackRouter.getRehydratedState(stateWithWorkspacesList, configOptions);
-    const stateWithWorkspaceSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithWorkspacesList, actionToPushWorkspaceSplitNavigator, configOptions);
+    const stateWithWorkspaceHubSplitNavigator = stackRouter.getStateForAction(state, actionToPushWorkspaceHubSplitNavigator, configOptions);
+
+    if (!stateWithWorkspaceHubSplitNavigator) {
+        Log.hmmm('[handleOpenWorkspaceSplitAction] SettingsSplitNavigator has not been found in the navigation state.');
+        return null;
+    }
+
+    const rehydratedStateWithSettingsSplitNavigator = stackRouter.getRehydratedState(stateWithWorkspaceHubSplitNavigator, configOptions);
+    const stateWithWorkspaceSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithSettingsSplitNavigator, actionToPushWorkspaceSplitNavigator, configOptions);
 
     if (!stateWithWorkspaceSplitNavigator) {
         Log.hmmm('[handleOpenWorkspaceSplitAction] WorkspaceSplitNavigator has not been found in the navigation state.');
