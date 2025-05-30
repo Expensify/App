@@ -18,7 +18,9 @@ import {
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
     buildTransactionThread,
+    canAddTransaction,
     canDeleteReportAction,
+    canDeleteTransaction,
     canEditWriteCapability,
     canHoldUnholdReportAction,
     findLastAccessedReport,
@@ -1396,7 +1398,7 @@ describe('ReportUtils', () => {
     });
 
     describe('canHoldUnholdReportAction', () => {
-        it.only('should return canUnholdRequest as true for a held duplicate transaction', async () => {
+        it('should return canUnholdRequest as true for a held duplicate transaction', async () => {
             const chatReport: Report = {reportID: '1'};
             const reportPreviewReportActionID = '8';
             const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', undefined, reportPreviewReportActionID);
@@ -2793,6 +2795,78 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             expect(isReportOutstanding(report, policy.id)).toBe(false);
+        });
+    });
+
+    describe('canAddTransaction', () => {
+        it('should return true for a non-archived report', async () => {
+            // Given a non-archived expense report
+            const report: Report = {
+                ...createRandomReport(10000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When it's checked if the transactions can be added
+            // Simulate how components determined if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is true
+            expect(result).toBe(true);
+        });
+
+        it('should return false for an archived report', async () => {
+            // Given an archived expense report
+            const report: Report = {
+                ...createRandomReport(10001),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+            // When it's checked if the transactions can be added
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('canDeleteTransaction', () => {
+        it('should return true for a non-archived report', async () => {
+            // Given a non-archived expense report
+            const report: Report = {
+                ...createRandomReport(20000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When it's checked if the transactions can be deleted
+            // Simulate how components determined if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canDeleteTransaction(report, isReportArchived.current);
+
+            // Then the result is true
+            expect(result).toBe(true);
+        });
+
+        it('should return false for an archived report', async () => {
+            // Given an archived expense report
+            const report: Report = {
+                ...createRandomReport(20001),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+            // When it's checked if the transactions can be deleted
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canDeleteTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
         });
     });
 });
