@@ -32,6 +32,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: ROUTES.REQUIRE_TWO_FACTOR_AUTH,
+        [SCREENS.WORKSPACES_LIST]: {
+            path: ROUTES.WORKSPACES_LIST.route,
+            exact: true,
+        },
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
@@ -147,15 +151,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_LANGUAGE,
                             exact: true,
                         },
-                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ADD_PAYMENT_CARD]: {
+                        [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
                             exact: true,
                         },
-                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: {
+                        [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY,
                             exact: true,
                         },
-                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: {
+                        [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY,
                             exact: true,
                         },
@@ -339,19 +343,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                         },
-                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SETTINGS_DETAILS]: {
+                        [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS,
                         },
-                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SIZE]: {
+                        [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
                             parse: {
                                 canChangeSize: Number,
                             },
                         },
-                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
+                        [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },
-                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
+                        [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
                         },
                         [SCREENS.WORKSPACE.CURRENCY]: {
@@ -1338,6 +1342,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
+                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
+                            path: ROUTES.SPLIT_EXPENSE.route,
+                            exact: true,
+                        },
+                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
+                            path: ROUTES.SPLIT_EXPENSE_EDIT.route,
+                            exact: true,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {
@@ -1482,7 +1494,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TITLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TITLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_ASSIGNEE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_ASSIGNEE,
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_CREATED_BY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CREATED_BY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_BILLABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_BILLABLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_REIMBURSABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_REIMBURSABLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_WORKSPACE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
@@ -1660,20 +1671,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.SETTINGS_PREFERENCES,
                     // exact: true,
                 },
-            },
-        },
-
-        [NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR]: {
-            screens: {
-                [SCREENS.WORKSPACE_HUB.ROOT]: {
-                    path: ROUTES.WORKSPACE_HUB_INITIAL,
-                    exact: true,
-                },
-                [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
-                    path: ROUTES.SETTINGS_WORKSPACES.route,
-                    exact: true,
-                },
-                [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT]: {path: ROUTES.SETTINGS_SUBSCRIPTION.route},
+                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION.route,
             },
         },
 
@@ -1769,9 +1767,12 @@ const normalizedConfigs = Object.keys(config.screens)
         ),
     )
     .flat()
-    .reduce((acc, route) => {
-        acc[route.screen as Screen] = route;
-        return acc;
-    }, {} as Record<Screen, RouteConfig>);
+    .reduce(
+        (acc, route) => {
+            acc[route.screen as Screen] = route;
+            return acc;
+        },
+        {} as Record<Screen, RouteConfig>,
+    );
 
 export {normalizedConfigs, config};

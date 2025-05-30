@@ -29,6 +29,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
+import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -123,6 +124,11 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
 
+    const pendingActionsOpacity = useMemo(() => {
+        const pendingAction = transactions.some(getTransactionPendingAction);
+        return pendingAction && styles.opacitySemiTransparent;
+    }, [styles.opacitySemiTransparent, transactions]);
+
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
@@ -200,7 +206,7 @@ function MoneyRequestReportTransactionList({
                                 if (selectedTransactionsID.length !== 0) {
                                     setSelectedTransactionsID([]);
                                 } else {
-                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                    setSelectedTransactionsID(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
@@ -267,6 +273,7 @@ function MoneyRequestReportTransactionList({
                                 setSelectedTransactionID(transaction.transactionID);
                                 setIsModalVisible(true);
                             }}
+                            disabled={isTransactionPendingDelete(transaction)}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
@@ -316,7 +323,7 @@ function MoneyRequestReportTransactionList({
                 </Animated.Text>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
-                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold]}>
+                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, pendingActionsOpacity]}>
                         {convertToDisplayString(totalDisplaySpend, report?.currency)}
                     </Text>
                 </View>

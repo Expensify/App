@@ -10,13 +10,12 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
-    searchName?: string;
 };
 
-function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight} = useSearchTypeMenu(queryJSON, searchName);
+    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight} = useSearchTypeMenu(queryJSON);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
