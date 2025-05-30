@@ -12,7 +12,6 @@ type IllustrationsType = {
     GenericCompanyCard: IconAsset;
     GenericCompanyCardLarge: IconAsset;
     GenericCSVCompanyCardLarge: IconAsset;
-    GenericPlaidCardLarge: IconAsset;
 };
 
 export default IllustrationsType;

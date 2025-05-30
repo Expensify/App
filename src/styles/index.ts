@@ -5122,6 +5122,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: 24,
             top: 24,
+            zIndex: 1,
         },
 
         plaidIconSmall: {

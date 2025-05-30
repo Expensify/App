@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import * as Illustrations from './Icon/Illustrations';
 import Image from './Image';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
@@ -38,7 +38,6 @@ type Props = {
 function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const illustrations = useThemeIllustrations();
 
     return (
         <PressableWithFeedback
@@ -54,10 +53,9 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
                         cachePolicy="memory-disk"
                     />
                     <Icon
-                        src={illustrations.GenericPlaidCardLarge}
+                        src={Illustrations.PlaidCompanyCardDetail}
                         height={variables.cardIconHeight}
                         width={variables.cardIconWidth}
-                        additionalStyles={styles.cardIcon}
                     />
                 </View>
             ) : (

@@ -34,6 +34,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
+import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -125,7 +126,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 />
                                 <ImageSVG
                                     contentFit="contain"
-                                    src={illustrations.GenericPlaidCardLarge}
+                                    src={Illustrations.PlaidCompanyCardDetailLarge}
                                     pointerEvents="none"
                                     height={variables.cardPreviewHeight}
                                     width={variables.cardPreviewWidth}

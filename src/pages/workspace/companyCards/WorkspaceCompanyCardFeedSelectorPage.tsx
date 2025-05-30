@@ -33,6 +33,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {updateSelectedFeed} from '@userActions/Card';
 import {clearAddNewCardFlow} from '@userActions/CompanyCards';
+import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -86,10 +87,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         cachePolicy="memory-disk"
                     />
                     <Icon
-                        src={illustrations.GenericPlaidCardLarge}
+                        src={Illustrations.PlaidCompanyCardDetail}
                         height={variables.cardIconHeight}
                         width={variables.cardIconWidth}
-                        additionalStyles={styles.cardIcon}
                     />
                 </View>
             ) : (
