@@ -189,9 +189,9 @@ function PolicyDistanceRatesPage({
         Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
     };
 
-    const openSettings = () => {
+    const openSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
-    };
+    }, [policyID]);
 
     const openRateDetails = (rate: RateForList) => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
@@ -311,6 +311,18 @@ function PolicyDistanceRatesPage({
 
     const isLoading = !isOffline && customUnit === undefined;
 
+    const secondaryActions = useMemo(
+        () => [
+            {
+                icon: Expensicons.Gear,
+                text: translate('common.settings'),
+                onSelected: openSettings,
+                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            },
+        ],
+        [openSettings, translate],
+    );
+
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
             {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
@@ -322,12 +334,14 @@ function PolicyDistanceRatesPage({
                         icon={Expensicons.Plus}
                         success
                     />
-
-                    <Button
-                        text={translate('workspace.common.settings')}
-                        onPress={openSettings}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
-                        icon={Expensicons.Gear}
+                    <ButtonWithDropdownMenu
+                        success={false}
+                        onPress={() => {}}
+                        shouldAlwaysShowDropdownMenu
+                        customText={translate('common.more')}
+                        options={secondaryActions}
+                        isSplitButton={false}
+                        wrapperStyle={styles.flexGrow0}
                     />
                 </>
             ) : (
