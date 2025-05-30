@@ -182,7 +182,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         if (!textInputRef.current || !shouldScrollRef.current) {
             return;
         }
-
         scrollToRight(textInputRef.current);
         shouldScrollRef.current = false;
     }, [textInputValue]);
@@ -192,9 +191,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
+            setTextInputValue(userQuery);
             const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
-            setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
@@ -208,7 +207,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
-        [autocompleteSubstitutions, setTextInputValue, textInputValue],
+        [autocompleteSubstitutions, textInputValue, setTextInputValue],
     );
 
     const submitSearch = useCallback(
@@ -234,7 +233,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         (text: string) => {
             setTextInputValue(text);
             shouldScrollRef.current = true;
-            setSelection({start: text.length, end: text.length});
+
+            InteractionManager.runAfterInteractions(() => {
+                setSelection({start: text.length, end: text.length});
+            });
         },
         [setSelection, setTextInputValue],
     );
@@ -259,8 +261,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                     const searchQuery = getContextualSearchQuery(item);
                     const newSearchQuery = `${searchQuery}\u00A0`;
+                    setTextAndUpdateSelection(newSearchQuery);
                     onSearchQueryChange(newSearchQuery, true);
-                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     const autocompleteKey = getContextualSearchAutocompleteKey(item);
                     if (autocompleteKey && item.autocompleteID) {
@@ -272,8 +274,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
                     const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                    setTextAndUpdateSelection(newSearchQuery);
                     onSearchQueryChange(newSearchQuery, true);
-                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
                         const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
@@ -296,7 +298,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 });
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
+        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue, setTextAndUpdateSelection],
     );
 
     const updateAutocompleteSubstitutions = useCallback(
