@@ -35,7 +35,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
     // This column is never displayed on Search
-    [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => true,
+    [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -80,11 +80,6 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
-        isColumnSortable: false,
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
-        translationKey: '',
         isColumnSortable: false,
     },
     {
