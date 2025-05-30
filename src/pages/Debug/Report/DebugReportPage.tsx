@@ -75,7 +75,7 @@ function DebugReportPage({
             DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, transactions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR, isReportArchived);
 
         return [
             {
