@@ -211,6 +211,7 @@ function FormWrapper({
             submitButtonText,
             submitFlexEnabled,
             shouldRenderFooterAboveSubmit,
+            shouldPreventDefaultFocusOnPressSubmit,
         ],
     );
 
