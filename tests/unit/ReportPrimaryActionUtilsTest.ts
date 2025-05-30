@@ -478,6 +478,13 @@ describe('getTransactionThreadPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe('');
+        expect(
+            getReportPrimaryAction({
+                report,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+            }),
+        ).toBe('');
     });
 });
