@@ -24,6 +24,7 @@ const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
+const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
@@ -99,6 +100,7 @@ const backendOnboardingChoices = {
     ADMIN: 'newDotAdmin',
     SUBMIT: 'newDotSubmit',
     TRACK_WORKSPACE: 'newDotTrackWorkspace',
+    TEST_DRIVE_RECEIVER: 'testDriveReceiver',
 } as const;
 
 const onboardingChoices = {
@@ -118,21 +120,27 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-const selfGuidedTourTask: OnboardingTask = {
-    type: 'viewTour',
-    autoCompleted: false,
-    mediaAttributes: {},
-    title: ({navatticURL}) => `Take a [2-minute tour](${navatticURL})`,
-    description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
-};
-
 const getTestDriveTaskName = (testDriveURL?: string) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive');
-const testDriveTask: OnboardingTask = {
+const testDriveAdminTask: OnboardingTask = {
     type: 'viewTour',
     autoCompleted: false,
     mediaAttributes: {},
     title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
     description: ({testDriveURL}) => `[Take a quick product tour](${testDriveURL}) to see why Expensify is the fastest way to do your expenses.`,
+};
+const testDriveEmployeeTask: OnboardingTask = {
+    type: 'viewTour',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
+    description: ({testDriveURL}) => `Take us for a [test drive](${testDriveURL}) and get your team *3 free months of Expensify!*`,
+};
+const createTestDriveAdminWorkspaceTask: OnboardingTask = {
+    type: 'createWorkspace',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,
+    description: 'Create a workspace and configure the settings with the help of your setup specialist!',
 };
 
 const createWorkspaceTask: OnboardingTask = {
@@ -178,7 +186,7 @@ const setupCategoriesTask: OnboardingTask = {
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     tasks: [
-        selfGuidedTourTask,
+        testDriveEmployeeTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -202,7 +210,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
     ...onboardingEmployerOrSubmitMessage,
     tasks: [
-        selfGuidedTourTask,
+        testDriveEmployeeTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -227,7 +235,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
 const onboardingPersonalSpendMessage: OnboardingMessage = {
     message: 'Here’s how to track your spend in a few clicks.',
     tasks: [
-        selfGuidedTourTask,
+        testDriveEmployeeTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -251,7 +259,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
-        selfGuidedTourTask,
+        testDriveEmployeeTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -303,6 +311,7 @@ type OnboardingTaskLinks = Partial<{
     workspaceMoreFeaturesLink: string;
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
+    workspaceConfirmationLink: string;
     navatticURL: string;
     testDriveURL: string;
     corporateCardLink: string;
@@ -408,9 +417,6 @@ const CONST = {
         horizontal: 12 + variables.navigationTabBarSize,
         vertical: 72,
     },
-    POPOVER_DROPDOWN_WIDTH: 336,
-    POPOVER_DROPDOWN_MIN_HEIGHT: 0,
-    POPOVER_DROPDOWN_MAX_HEIGHT: 476,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -561,6 +567,7 @@ const CONST = {
         RIGHT: 'right',
     },
 
+    ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -820,16 +827,16 @@ const CONST = {
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
-        RECEIPT_LINE_ITEMS: 'receiptLineItems',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         RETRACT_NEWDOT: 'retractNewDot',
-        PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        TRACK_FLOWS: 'trackFlows',
+        NEW_DOT_SPLITS: 'newDotSplits',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1055,6 +1062,7 @@ const CONST = {
     DEFAULT_NUMBER_ID,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
+    EXPENSIFY_MOBILE_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
@@ -1079,6 +1087,7 @@ const CONST = {
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+    PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
@@ -1113,8 +1122,9 @@ const CONST = {
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
+    CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
+    SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
-    DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
@@ -1217,9 +1227,12 @@ const CONST = {
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            RETRACT: 'retract',
             ADD_EXPENSE: 'addExpense',
+            SPLIT: 'split',
             REOPEN: 'reopen',
             MOVE_EXPENSE: 'moveExpense',
+            PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1247,6 +1260,7 @@ const CONST = {
         },
         TRANSACTION_SECONDARY_ACTIONS: {
             HOLD: 'hold',
+            SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
         },
@@ -1313,6 +1327,7 @@ const CONST = {
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
+                RETRACTED: 'RETRACTED',
                 REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -1397,6 +1412,7 @@ const CONST = {
                     UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
                     UPDATE_TAG_LIST: 'POLICYCHANGELOG_UPDATE_TAG_LIST',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
+                    UPDATE_TAG_LIST_REQUIRED: 'POLICYCHANGELOG_UPDATE_TAG_LIST_REQUIRED',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
@@ -1526,7 +1542,14 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
-        TRANSACTION_PREVIEW_WIDTH_WIDE: 303,
+        TRANSACTION_PREVIEW: {
+            CAROUSEL: {
+                WIDTH_WIDE: 303,
+            },
+            DUPLICATE: {
+                HEIGHT_WIDE: 347,
+            },
+        },
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
@@ -1559,6 +1582,7 @@ const CONST = {
             STOPWATCH: 'stopwatch',
         },
     },
+    UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
@@ -1639,6 +1663,7 @@ const CONST = {
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         SKELETON_ANIMATION_SPEED: 3,
+        SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2757,6 +2782,7 @@ const CONST = {
             SEND: 'send',
             PAY: 'pay',
             SPLIT: 'split',
+            SPLIT_EXPENSE: 'split-expense',
             REQUEST: 'request',
             INVOICE: 'invoice',
             SUBMIT: 'submit',
@@ -3193,6 +3219,10 @@ const CONST = {
         LARGE: 'large',
     },
 
+    QR_CODE_SIZE: {
+        APP_DOWNLOAD_LINKS: 172,
+    },
+
     AVATAR_SIZE: {
         X_LARGE: 'xlarge',
         LARGE: 'large',
@@ -3571,8 +3601,6 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
-        PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
-        POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
         SHORT_MENTION: new RegExp(
             // We are ensuring that the short mention is not inside a code block. So we check that the short mention
             // is either not preceded by an open code block or not followed by a backtick on the same line.
@@ -3702,6 +3730,10 @@ const CONST = {
         // This const defines the initial container size, before layout measurement.
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
+
+        // This constant sets a margin equal to the rotate button's height (medium-sized Button (40px)), which is the tallest element in the controls row.
+        // It ensures the controls row isn't cropped if the browser height is reduced too much.
+        CONTAINER_VERTICAL_MARGIN: variables.componentSizeNormal,
     },
     MICROSECONDS_PER_MS: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
@@ -5106,6 +5138,7 @@ const CONST = {
         ERR_SAML_DOMAIN_CONTROL: 'err_saml_domain_control',
         ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
         ERR_ACCOUNT_LOCKED: 'err_account_locked',
+        ERR_MERGE_SELF: 'err_merge_self',
         TOO_MANY_ATTEMPTS: 'too_many_attempts',
         ACCOUNT_UNVALIDATED: 'account_unvalidated',
     },
@@ -5159,11 +5192,12 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            SET_PARAMS: 'SET_PARAMS',
 
             /** These action types are custom for RootNavigator */
-            SWITCH_POLICY_ID: 'SWITCH_POLICY_ID',
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
+            SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
         },
     },
     TIME_PERIOD: {
@@ -5240,7 +5274,7 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
-        TEST_DRIVE_COVER_ASPECT_RATIO: 500 / 300,
+        TEST_DRIVE_COVER_ASPECT_RATIO: 1000 / 508,
     },
 
     /**
@@ -5435,10 +5469,7 @@ const CONST = {
 
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 
-    WORKSPACE_SWITCHER: {
-        NAME: 'Expensify',
-        SUBSCRIPT_ICON_SIZE: 8,
-    },
+    EXPENSIFY_ICON_NAME: 'Expensify',
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
@@ -5457,7 +5488,7 @@ const CONST = {
             message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
             tasks: [
                 createWorkspaceTask,
-                testDriveTask,
+                testDriveAdminTask,
                 {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
@@ -5608,7 +5639,7 @@ const CONST = {
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             tasks: [
-                selfGuidedTourTask,
+                testDriveEmployeeTask,
                 {
                     type: 'startChat',
                     autoCompleted: false,
@@ -5684,6 +5715,10 @@ const CONST = {
             message:
                 "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             tasks: [],
+        },
+        [onboardingChoices.TEST_DRIVE_RECEIVER]: {
+            message: "*You've got 3 months free! Get started below.*",
+            tasks: [testDriveAdminTask, createTestDriveAdminWorkspaceTask],
         },
     } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
@@ -6494,7 +6529,6 @@ const CONST = {
     },
 
     SEARCH: {
-        NEVER: 'never',
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
             EXPENSE: 'expense',
@@ -6591,6 +6625,7 @@ const CONST = {
             TAX_AMOUNT: 'taxAmount',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
             IN: 'in',
         },
         SYNTAX_OPERATORS: {
@@ -6619,8 +6654,6 @@ const CONST = {
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
-            PAYER: 'payer',
-            EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
             TAX_RATE: 'taxRate',
@@ -6636,6 +6669,7 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
@@ -6661,8 +6695,6 @@ const CONST = {
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
-            PAYER: 'payer',
-            EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
             TAX_RATE: 'tax-rate',
@@ -6678,13 +6710,13 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
+            CREATED_BY: 'created-by',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
-            ON: 'On',
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
@@ -7074,6 +7106,7 @@ const CONST = {
         GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
+        SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -7123,6 +7156,12 @@ const CONST = {
         ONBOARDING_TASK_NAME: getTestDriveTaskName(),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
+        EMPLOYEE_FAKE_RECEIPT: {
+            AMOUNT: 2000,
+            CURRENCY: 'USD',
+            DESCRIPTION: 'My test drive receipt!',
+            MERCHANT: "Tommy's Tires",
+        },
     },
 
     SCHEDULE_CALL_STATUS: {
@@ -7157,6 +7196,7 @@ export type {
     OnboardingInvite,
     OnboardingAccounting,
     IOUActionParams,
+    OnboardingMessage,
 };
 
 export {getTestDriveTaskName};
