@@ -4,8 +4,9 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZoneUI';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -1034,7 +1035,7 @@ function IOURequestStepConfirmation({
                     {PDFThumbnailView}
                     {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
                     {canUseMultiFilesDragAndDrop ? (
-                        <DropZoneUI
+                        <DragAndDropConsumer
                             onDrop={(e) => {
                                 const file = e?.dataTransfer?.files[0];
                                 if (file) {
@@ -1042,12 +1043,15 @@ function IOURequestStepConfirmation({
                                     setReceiptOnDrop(file);
                                 }
                             }}
-                            icon={Expensicons.ReplaceReceipt}
-                            dropStyles={styles.receiptDropOverlay}
-                            dropTitle={translate('dropzone.replaceReceipt')}
-                            dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
-                        />
+                        >
+                            <DropZoneUI
+                                icon={Expensicons.ReplaceReceipt}
+                                dropStyles={styles.receiptDropOverlay(true)}
+                                dropTitle={translate('dropzone.replaceReceipt')}
+                                dropTextStyles={styles.receiptDropText}
+                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                            />
+                        </DragAndDropConsumer>
                     ) : (
                         <ReceiptDropUI
                             onDrop={(e) => {
