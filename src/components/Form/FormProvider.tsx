@@ -90,6 +90,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Fires at most once per frame during scrolling. */
     onScroll?: () => void;
+
+    /** Use stricter HTML-like tag validation (e.g. blocks <✓>, <123>). */
+    shouldUseStrictHtmlTagValidation?: boolean;
 };
 
 function FormProvider(
@@ -105,6 +108,7 @@ function FormProvider(
         allowHTML = false,
         isLoading = false,
         shouldRenderFooterAboveSubmit = false,
+        shouldUseStrictHtmlTagValidation = false,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
@@ -138,7 +142,8 @@ function FormProvider(
                     if (!inputValue || typeof inputValue !== 'string') {
                         return;
                     }
-                    const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    const validateForHtmlTagRegex = shouldUseStrictHtmlTagValidation ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
+                    const foundHtmlTagIndex = inputValue.search(validateForHtmlTagRegex);
                     const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
 
                     // Return early if there are no HTML characters
@@ -146,7 +151,7 @@ function FormProvider(
                         return;
                     }
 
-                    const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    const matchedHtmlTags = inputValue.match(validateForHtmlTagRegex);
                     let isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(inputValue));
                     // Check for any matches that the original regex (foundHtmlTagIndex) matched
                     if (matchedHtmlTags) {

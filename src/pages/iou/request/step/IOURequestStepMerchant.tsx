@@ -119,6 +119,7 @@ function IOURequestStepMerchant({
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
+                shouldUseStrictHtmlTagValidation
             >
                 <View style={styles.mb4}>
                     <InputWrapper
