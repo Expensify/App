@@ -4876,6 +4876,13 @@ const styles = (theme: ThemeColors) =>
 
         expenseViewImage: {
             maxWidth: 360,
+            aspectRatio: 16 / 9,
+            height: 'auto',
+        },
+        expenseViewImageSmall: {
+            maxWidth: 440,
+            aspectRatio: 16 / 9,
+            height: 'auto',
         },
 
         pdfErrorPlaceholder: {
