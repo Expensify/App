@@ -4,6 +4,7 @@ import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/M
 import type {ListItem} from '@components/SelectionList/types';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
@@ -21,7 +22,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID} = route.params;
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
-
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
 
     const selectReport = (item: ReportListItem) => {
@@ -35,11 +35,21 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         Navigation.dismissModalWithReport({reportID: item.value});
     };
 
+    const removeFromReport = () => {
+        if (!transactionReport || selectedTransactionsID.length === 0) {
+            return;
+        }
+        changeTransactionsReport(selectedTransactionsID, CONST.REPORT.UNREPORTED_REPORT_ID);
+        Navigation.dismissModal();
+    };
+
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing
         />
     );
 }
