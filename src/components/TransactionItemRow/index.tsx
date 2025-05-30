@@ -13,16 +13,17 @@ import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMerchant, getCreated as getTransactionCreated, getTransactionPendingAction, isPartialMerchant} from '@libs/TransactionUtils';
+import {getCreated as getTransactionCreated, getTransactionPendingAction} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
-import MerchantCell from './DataCells/MerchantCell';
+import MerchantOrDescriptionCell, {getMerchantNameWithFallback} from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
@@ -46,6 +47,18 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** The personal details of the user paying the request */
     to?: SearchPersonalDetails;
+
+    /** formatted "to" value used for displaying and sorting on Reports page */
+    formattedTo?: string;
+
+    /** formatted "from" value used for displaying and sorting on Reports page */
+    formattedFrom?: string;
+
+    /** formatted "merchant" value used for displaying and sorting on Reports page */
+    formattedMerchant?: string;
+
+    /** information about whether to show merchant, that is provided on Reports page */
+    shouldShowMerchant?: boolean;
 
     /** Type of transaction */
     transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
@@ -87,6 +100,7 @@ function TransactionItemRow({
     shouldUseAnimatedHighlight = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const pendingAction = getTransactionPendingAction(transactionItem);
@@ -115,8 +129,7 @@ function TransactionItemRow({
         }
     }, [hovered, isParentHovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
 
-    const merchantName = getMerchant(transactionItem);
-    const isMerchantEmpty = isPartialMerchant(merchantName);
+    const merchantOrDescriptionName = getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout);
 
     useEffect(() => {
         if (!transactionItem.shouldBeHighlighted || !scrollToNewTransaction) {
@@ -190,11 +203,13 @@ function TransactionItemRow({
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
-                    <MerchantCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                        shouldUseNarrowLayout={false}
-                    />
+                    {!!merchantOrDescriptionName && (
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={merchantOrDescriptionName}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                        />
+                    )}
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
@@ -203,7 +218,7 @@ function TransactionItemRow({
                         <UserInfoCell
                             accountID={transactionItem.to.accountID}
                             avatar={transactionItem.to.avatar}
-                            displayName={transactionItem.to.displayName ?? ''}
+                            displayName={transactionItem.formattedTo ?? transactionItem.to.displayName ?? ''}
                         />
                     )}
                 </View>
@@ -214,7 +229,7 @@ function TransactionItemRow({
                         <UserInfoCell
                             accountID={transactionItem.from.accountID}
                             avatar={transactionItem.from.avatar}
-                            displayName={transactionItem.from.displayName ?? ''}
+                            displayName={transactionItem.formattedTo ?? transactionItem.from.displayName ?? ''}
                         />
                     )}
                 </View>
@@ -242,7 +257,19 @@ function TransactionItemRow({
                 </View>
             ),
         }),
-        [StyleUtils, createdAt, isActionLoading, isChildListItem, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
+        [
+            StyleUtils,
+            createdAt,
+            isActionLoading,
+            isChildListItem,
+            isDateColumnWide,
+            isSelected,
+            merchantOrDescriptionName,
+            onButtonPress,
+            shouldShowTooltip,
+            shouldUseNarrowLayout,
+            transactionItem,
+        ],
     );
     const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     return (
@@ -290,7 +317,7 @@ function TransactionItemRow({
                                             shouldShowTooltip={shouldShowTooltip}
                                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                                         />
-                                        {isMerchantEmpty && (
+                                        {!merchantOrDescriptionName && (
                                             <View style={[styles.mlAuto]}>
                                                 <TotalCell
                                                     transactionItem={transactionItem}
@@ -300,10 +327,10 @@ function TransactionItemRow({
                                             </View>
                                         )}
                                     </View>
-                                    {!isMerchantEmpty && (
+                                    {!!merchantOrDescriptionName && (
                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                            <MerchantCell
-                                                transactionItem={transactionItem}
+                                            <MerchantOrDescriptionCell
+                                                merchantOrDescription={merchantOrDescriptionName}
                                                 shouldShowTooltip={shouldShowTooltip}
                                                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                                             />

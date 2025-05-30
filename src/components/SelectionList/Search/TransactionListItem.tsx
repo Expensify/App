@@ -75,7 +75,6 @@ function TransactionListItem<TItem extends ListItem>({
                 ...(transactionItem?.shouldShowCategory ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] : []),
                 ...(transactionItem?.shouldShowTag ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] : []),
                 ...(transactionItem?.shouldShowTax ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX] : []),
-                CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
             ] as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>,
