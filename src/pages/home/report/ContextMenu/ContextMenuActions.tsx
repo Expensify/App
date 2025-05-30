@@ -25,6 +25,7 @@ import {
     getActionableMentionWhisperMessage,
     getCardIssuedMessage,
     getExportIntegrationMessageHTML,
+    getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getMemberChangeMessageFragment,
@@ -620,8 +621,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
                     setClipboardMessage(getReopenedMessage());
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-                    const {label, errorMessage} = getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
-                    setClipboardMessage(translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
+                    setClipboardMessage(getIntegrationSyncFailedMessage(reportAction));
                 } else if (isCardIssuedAction(reportAction)) {
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, card}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {

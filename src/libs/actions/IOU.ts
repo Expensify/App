@@ -637,6 +637,7 @@ type ReplaceReceipt = {
 type GetSearchOnyxUpdateParams = {
     transaction: OnyxTypes.Transaction;
     participant?: Participant;
+    iouReport?: OnyxEntry<OnyxTypes.Report>;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -1888,6 +1889,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
+        iouReport: shouldCreateNewMoneyRequestReport ? iou.report : undefined,
     });
 
     if (searchUpdate) {
@@ -2834,6 +2836,7 @@ function getDeleteTrackExpenseInformation(
     isMovingTransactionFromTrackExpense = false,
     actionableWhisperReportActionID = '',
     resolution = '',
+    shouldRemoveIOUTransaction = true,
 ) {
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
@@ -2867,7 +2870,7 @@ function getDeleteTrackExpenseInformation(
                 },
             ],
             originalMessage: {
-                IOUTransactionID: null,
+                IOUTransactionID: shouldRemoveIOUTransaction ? null : transactionID,
             },
             errors: undefined,
         },
@@ -2883,11 +2886,20 @@ function getDeleteTrackExpenseInformation(
     // STEP 4: Build Onyx data
     const optimisticData: OnyxUpdate[] = [];
 
-    if (shouldDeleteTransactionFromOnyx) {
+    if (shouldDeleteTransactionFromOnyx && shouldRemoveIOUTransaction) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: null,
+        });
+    }
+    if (!shouldRemoveIOUTransaction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            },
         });
     }
 
@@ -2965,11 +2977,20 @@ function getDeleteTrackExpenseInformation(
 
     const failureData: OnyxUpdate[] = [];
 
-    if (shouldDeleteTransactionFromOnyx) {
+    if (shouldDeleteTransactionFromOnyx && shouldRemoveIOUTransaction) {
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: transaction ?? null,
+        });
+    }
+    if (!shouldRemoveIOUTransaction) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+            },
         });
     }
 
@@ -7298,7 +7319,7 @@ function updateMoneyRequestAmountAndCurrency({
  * @param reportAction - The reportAction of the transaction in the IOU report
  * @return the url to navigate back once the money request is deleted
  */
-function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, shouldKeepIOUTransactionID = false) {
+function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, shouldRemoveIOUTransactionID = true) {
     // STEP 1: Get all collections we're updating
     const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
@@ -7335,7 +7356,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
                 },
             ],
             originalMessage: {
-                IOUTransactionID: shouldKeepIOUTransactionID ? transactionID : null,
+                IOUTransactionID: shouldRemoveIOUTransactionID ? null : transactionID,
             },
             errors: null,
         },
@@ -7515,7 +7536,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         chatReport,
         iouReport,
         reportPreviewAction,
-    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, Permissions.canUseTableReportView(betas));
+    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, !Permissions.canUseTableReportView(betas));
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
     // build Onyx data
@@ -7662,7 +7683,12 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, shouldRemoveIOUTransactionID = true) {
+function deleteMoneyRequest(
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    isSingleTransactionView = false,
+    shouldRemoveIOUTransactionID = !Permissions.canUseTableReportView(betas),
+) {
     if (!transactionID) {
         return;
     }
@@ -7991,7 +8017,13 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
     return urlToNavigateBack;
 }
 
-function deleteTrackExpense(chatReportID: string | undefined, transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteTrackExpense(
+    chatReportID: string | undefined,
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    isSingleTransactionView = false,
+    shouldRemoveIOUTransaction = !Permissions.canUseTableReportView(betas),
+) {
     if (!chatReportID || !transactionID) {
         return;
     }
@@ -8001,7 +8033,7 @@ function deleteTrackExpense(chatReportID: string | undefined, transactionID: str
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+        deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView, shouldRemoveIOUTransaction);
         return urlToNavigateBack;
     }
 
@@ -8015,6 +8047,7 @@ function deleteTrackExpense(chatReportID: string | undefined, transactionID: str
         undefined,
         actionableWhisperReportActionID,
         CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+        shouldRemoveIOUTransaction,
     );
 
     // STEP 6: Make the API request
@@ -10672,7 +10705,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, searchHash?: number) {
+function unholdRequest(transactionID: string, reportID: string) {
     const createdReportAction = buildOptimisticUnHoldReportAction();
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -10767,34 +10800,6 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
             },
         },
     ];
-
-    // If we are un-holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
-    if (searchHash) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                        canHold: true,
-                        canUnhold: false,
-                    },
-                },
-            } as Record<string, Record<string, Partial<SearchTransaction>>>,
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                        canHold: false,
-                        canUnhold: true,
-                    },
-                },
-            } as Record<string, Record<string, Partial<SearchTransaction>>>,
-        });
-    }
 
     API.write(
         'UnHoldRequest',
@@ -11203,7 +11208,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
 }
 
-function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdateParams): OnyxData | undefined {
+function getSearchOnyxUpdate({participant, transaction, iouReport}: GetSearchOnyxUpdateParams): OnyxData | undefined {
     const toAccountID = participant?.accountID;
     const fromAccountID = currentUserPersonalDetails?.accountID;
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
@@ -11234,6 +11239,7 @@ function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdatePara
                                 },
                             },
                         },
+                        ...(iouReport ? {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport} : {}),
                     },
                 });
             }
