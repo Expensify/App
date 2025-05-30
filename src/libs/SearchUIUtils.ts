@@ -2,8 +2,10 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import DotLottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -14,7 +16,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -31,14 +32,16 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
+import {createNewReport} from './actions/Report';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import interceptAnonymousUser from './interceptAnonymousUser';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {canSendInvoice, getPolicy} from './PolicyUtils';
+import {getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
@@ -46,7 +49,6 @@ import {
     getReportName,
     getReportOrDraftReport,
     getSearchReportName,
-    hasInvoiceReports,
     hasOnlyHeldExpenses,
     hasViolations,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
@@ -57,8 +59,9 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
+import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
@@ -82,7 +85,7 @@ const taskColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'description' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: 'formattedCreatedBy' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedCreatedBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: 'formattedAssignee' as const,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
 };
@@ -118,12 +121,33 @@ type SavedSearchMenuItem = MenuItemWithLink & {
     styles?: Array<ViewStyle | TextStyle>;
 };
 
+type SearchTypeMenuSection = {
+    translationPath: TranslationPaths;
+    menuItems: SearchTypeMenuItem[];
+};
+
 type SearchTypeMenuItem = {
     translationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: IconAsset;
-    getRoute: (policyID?: string) => Route;
+    emptyState?: {
+        headerMedia: DotLottieAnimation;
+        title: TranslationPaths;
+        subtitle: TranslationPaths;
+        buttons?: Array<{
+            buttonText: TranslationPaths;
+            buttonAction: () => void;
+            success?: boolean;
+            icon?: IconAsset;
+            isDisabled?: boolean;
+        }>;
+    };
+    getSearchQuery: (policyID?: string) => SearchQueryString;
 };
+
+type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
+
+type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
 /**
  * @private
@@ -982,69 +1006,228 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | null, email: string | undefined): SearchTypeMenuItem[] {
-    const typeMenuItems: SearchTypeMenuItem[] = [
+function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
+    const email = session?.email;
+
+    // Start building the sections by requiring the following sections to always be present
+    const typeMenuSections: SearchTypeMenuSection[] = [
         {
-            translationPath: 'common.expenses',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Receipt,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
-        },
-        {
-            translationPath: 'common.expenseReports',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Document,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
-        },
-        {
-            translationPath: 'common.chats',
-            type: CONST.SEARCH.DATA_TYPES.CHAT,
-            icon: Expensicons.ChatBubbles,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
-        },
-        {
-            translationPath: 'common.tasks',
-            type: CONST.SEARCH.DATA_TYPES.TASK,
-            icon: Expensicons.Task,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TASK, status: CONST.SEARCH.STATUS.TASK.ALL, policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
+            translationPath: 'common.explore',
+            menuItems: [
+                {
+                    translationPath: 'common.expenses',
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    icon: Expensicons.Receipt,
+                    getSearchQuery: (policyID?: string) => {
+                        const queryString = buildCannedSearchQuery({policyID});
+                        return queryString;
+                    },
+                },
+                {
+                    translationPath: 'common.reports',
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    icon: Expensicons.Document,
+                    getSearchQuery: (policyID?: string) => {
+                        const queryString = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, policyID});
+                        return queryString;
+                    },
+                },
+                {
+                    translationPath: 'common.chats',
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    icon: Expensicons.ChatBubbles,
+                    getSearchQuery: (policyID?: string) => {
+                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                        return queryString;
+                    },
+                },
+            ],
         },
     ];
 
-    if (canSendInvoice(allPolicies, email) || hasInvoiceReports()) {
-        typeMenuItems.push({
-            translationPath: 'workspace.common.invoices',
-            type: CONST.SEARCH.DATA_TYPES.INVOICE,
-            icon: Expensicons.InvoiceGeneric,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
-        });
+    // Begin adding conditional sections, based on the policies the user has access to
+    const showSubmitSuggestion = Object.values(policies).filter((p) => p?.type && p.type !== CONST.POLICY.TYPE.PERSONAL).length > 0;
+
+    const showApproveSuggestion =
+        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
+            if (!policy || !email || policy.type === CONST.POLICY.TYPE.PERSONAL) {
+                return false;
+            }
+
+            const isPolicyApprover = policy.approver === email;
+            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+                return employee.submitsTo === email;
+            });
+
+            return isPolicyApprover || isSubmittedTo;
+        }).length > 0;
+
+    // TODO: This option will be enabled soon (removing the && false). We are waiting on BE changes to support this
+    // feature, but lets keep the code here for simplicity
+    // https://github.com/Expensify/Expensify/issues/505932
+    const showPaySuggestion =
+        Object.values(policies).filter<OnyxTypes.Policy>(
+            (policy): policy is OnyxTypes.Policy =>
+                !!policy &&
+                policy.role === CONST.POLICY.ROLE.ADMIN &&
+                policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ||
+                    policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL),
+        ).length > 0 && false;
+
+    // TODO: This option will be enabled soon (removing the && false). We are waiting on changes to support this
+    // feature fully, but lets keep the code here for simplicity
+    // https://github.com/Expensify/Expensify/issues/505933
+    const showExportSuggestion =
+        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
+            if (!policy || !email) {
+                return false;
+            }
+
+            const isIntacctExporter = policy.connections?.intacct?.config?.export?.exporter === email;
+            const isNetSuiteExporter = policy.connections?.netsuite?.options?.config?.exporter === email;
+            const isQuickbooksDesktopExporter = policy.connections?.quickbooksDesktop?.config?.export?.exporter === email;
+            const isQuickbooksOnlineExporter = policy.connections?.quickbooksOnline?.config?.export?.exporter === email;
+            const isXeroExporter = policy.connections?.xero?.config?.export?.exporter === email;
+
+            return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
+        }).length > 0 && false;
+
+    // We suggest specific filters for users based on their access in specific policies. Show the todo section
+    // only if any of these items are available
+    const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
+
+    if (showTodoSection && session) {
+        const section: SearchTypeMenuSection = {
+            translationPath: 'common.todo',
+            menuItems: [],
+        };
+
+        if (showSubmitSuggestion) {
+            section.menuItems.push({
+                translationPath: 'common.submit',
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                icon: Expensicons.Pencil,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptySubmitResults.title',
+                    subtitle: 'search.searchResults.emptySubmitResults.subtitle',
+                    buttons: [
+                        {
+                            success: true,
+                            buttonText: 'report.newReport.createReport',
+                            buttonAction: () => {
+                                interceptAnonymousUser(() => {
+                                    const activePolicy = getActivePolicy();
+                                    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+                                    const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
+
+                                    let workspaceIDForReportCreation: string | undefined;
+
+                                    // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                        workspaceIDForReportCreation = activePolicy.id;
+                                    } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                        workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                    }
+
+                                    if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
+                                        const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                        Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                        });
+                                        return;
+                                    }
+
+                                    // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
+                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                });
+                            },
+                        },
+                    ],
+                },
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                        from: [`${session.accountID}`],
+                    });
+                    return queryString;
+                },
+            });
+        }
+
+        if (showApproveSuggestion) {
+            section.menuItems.push({
+                translationPath: 'search.bulkActions.approve',
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                icon: Expensicons.ThumbsUp,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptyApproveResults.title',
+                    subtitle: 'search.searchResults.emptyApproveResults.subtitle',
+                },
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                        to: [`${session.accountID}`],
+                    });
+                    return queryString;
+                },
+            });
+        }
+
+        if (showPaySuggestion) {
+            section.menuItems.push({
+                translationPath: 'search.bulkActions.pay',
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                icon: Expensicons.MoneyBag,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptyPayResults.title',
+                    subtitle: 'search.searchResults.emptyPayResults.subtitle',
+                },
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE],
+                        payer: session.accountID?.toString(),
+                    });
+                    return queryString;
+                },
+            });
+        }
+
+        if (showExportSuggestion) {
+            section.menuItems.push({
+                translationPath: 'common.export',
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                icon: Expensicons.CheckCircle,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptyExportResults.title',
+                    subtitle: 'search.searchResults.emptyExportResults.subtitle',
+                },
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        exporter: [`${session.accountID}`],
+                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
+                        exportedOn: CONST.SEARCH.NEVER,
+                    });
+                    return queryString;
+                },
+            });
+        }
+
+        typeMenuSections.push(section);
     }
 
-    typeMenuItems.push({
-        translationPath: 'travel.trips',
-        type: CONST.SEARCH.DATA_TYPES.TRIP,
-        icon: Expensicons.Suitcase,
-        getRoute: (policyID?: string) => {
-            const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
-            return ROUTES.SEARCH_ROOT.getRoute({query});
-        },
-    });
-
-    return typeMenuItems;
+    return typeMenuSections;
 }
 
 function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
@@ -1071,10 +1254,11 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
 function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const {status} = queryJSON ?? {};
+
     const isDataLoaded =
-        searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && Array.isArray(status)
-            ? searchResults?.search?.status === status.join(',')
-            : searchResults?.search?.status === status;
+        searchResults?.data !== undefined &&
+        searchResults?.search?.type === queryJSON?.type &&
+        (Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status);
 
     return isDataLoaded;
 }
@@ -1095,10 +1279,10 @@ export {
     isReportActionEntry,
     isTaskListItemType,
     getAction,
-    createTypeMenuItems,
+    createTypeMenuSections,
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuItem};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower};
