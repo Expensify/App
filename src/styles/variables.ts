@@ -218,7 +218,8 @@ export default {
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
-    onboardingModalWidth: 500,
+    featureTrainingModalWidth: 500,
+    onboardingModalWidth: 640,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
@@ -292,6 +293,8 @@ export default {
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
 
+    scrollToNewTransactionOffset: 300,
+
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 
@@ -315,4 +318,30 @@ export default {
     w96: 96,
     w184: 184,
     w191: 191,
+
+    // Transaction item row heights based on layout types
+    // Wide screen (desktop) layout
+    optionRowWideItemHeight: 64,
+
+    // Narrow screen with drawer layout
+    optionRowNarrowWithDrawerItemHeight: 96,
+    optionRowNarrowWithDrawerItemHeightWithButton: 104,
+
+    // Narrow screen without drawer (mobile-like) layout
+    optionRowNarrowWithoutDrawerItemHeight: 92,
+    optionRowNarrowWithoutDrawerItemHeightWithButton: 104,
+
+    optionRowListItemPadding: 8,
+    optionRowSearchHeaderHeight: 54,
+
+    // SearchList item heights
+    searchListItemHeightLargeScreen: 72,
+    searchListItemHeightSmallScreen: 96,
+    searchListItemHeightChat: 351,
+    searchListItemHeightChatCompact: 105,
+    searchOptionRowTransactionHeight: 52,
+    searchOptionRowBaseHeight: 52,
+    searchOptionRowSmallFooterHeight: 28,
+    searchOptionRowLargeFooterHeight: 17,
+    searchOptionRowMargin: 6,
 } as const;

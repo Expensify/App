@@ -63,7 +63,6 @@ const SCREENS = {
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
         ADVANCED_FILTERS_TITLE_RHP: 'Search_Advanced_Filters_Title_RHP',
         ADVANCED_FILTERS_ASSIGNEE_RHP: 'Search_Advanced_Filters_Assignee_RHP',
-        ADVANCED_FILTERS_CREATED_BY_RHP: 'Search_Advanced_Filters_Created_By_RHP',
         ADVANCED_FILTERS_REIMBURSABLE_RHP: 'Search_Advanced_Filters_Reimbursable_RHP',
         ADVANCED_FILTERS_BILLABLE_RHP: 'Search_Advanced_Filters_Billable_RHP',
         ADVANCED_FILTERS_WORKSPACE_RHP: 'Search_Advanced_Filters_Workspace_RHP',
@@ -148,6 +147,16 @@ const SCREENS = {
             ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
             MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
         },
+        SUBSCRIPTION: {
+            ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
+            SETTINGS_DETAILS: 'Settings_Subscription_Details',
+            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
+            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
+            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
+            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
+            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
+        },
     },
     TWO_FACTOR_AUTH: {
         ROOT: 'Settings_TwoFactorAuth_Root',
@@ -158,9 +167,6 @@ const SCREENS = {
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
-    },
-    LEFT_MODAL: {
-        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
@@ -257,6 +263,8 @@ const SCREENS = {
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
         STEP_REPORT: 'Money_Request_Report',
         EDIT_REPORT: 'Money_Request_Edit_Report',
+        SPLIT_EXPENSE: 'Money_Request_Split_Expense',
+        SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -355,21 +363,9 @@ const SCREENS = {
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
-    WORKSPACE_HUB: {
-        ROOT: 'Workspace_Hub_Root',
-        WORKSPACES: 'Workspace_List',
 
-        SUBSCRIPTION: {
-            ROOT: 'Settings_Subscription',
-            SIZE: 'Settings_Subscription_Size',
-            SETTINGS_DETAILS: 'Settings_Subscription_Details',
-            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
-            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
-            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
-            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
-            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
-        },
-    },
+    WORKSPACES_LIST: 'Workspaces_List',
+
     WORKSPACE: {
         ACCOUNTING: {
             ROOT: 'Policy_Accounting',

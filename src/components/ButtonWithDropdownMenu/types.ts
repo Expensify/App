@@ -39,7 +39,9 @@ type DropdownOption<TValueType> = {
     wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;
     subMenuItems?: PopoverMenuItem[];
+    backButtonText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+    shouldShow?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -129,6 +131,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** The second line text displays under the first line */
     secondLineText?: string;
+
+    /** Callback to execute when a dropdown submenu option is selected */
+    onSubItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Icon for main button */
     icon?: IconAsset;
