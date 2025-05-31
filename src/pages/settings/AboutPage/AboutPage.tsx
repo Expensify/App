@@ -173,13 +173,10 @@ function AboutPage() {
                         contentWidth={width}
                         source={{
                             html: translate('initialSettingsPage.readTheTermsAndPrivacy.full')
-                                .replace('<a>Terms of Service</a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">${translate('initialSettingsPage.readTheTermsAndPrivacy.full')}</a>`)
-                                .replace('<a>Privacy</a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">${translate('initialSettingsPage.readTheTermsAndPrivacy.full')}</a>`),
+                                .replace('<a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}" style="color: ${styles.link.color}; text-decoration: none;">`)
+                                .replace('<a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}" style="color: ${styles.link.color}; text-decoration: none;">`),
                         }}
                         baseStyle={styles.chatItemMessageHeaderTimestamp}
-                        tagsStyles={{
-                            a: {...styles.textMicroSupporting, ...styles.link},
-                        }}
                     />
                 </View>
             </ScrollView>
