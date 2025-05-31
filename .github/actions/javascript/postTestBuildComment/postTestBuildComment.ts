@@ -13,27 +13,30 @@ function getTestBuildMessage(appPr?: number, mobileExpensifyPr?: number): string
         [inputs[3]]: 'Web',
     };
 
-    const result = inputs.reduce((acc, platform) => {
-        const input = core.getInput(platform, {required: false});
+    const result = inputs.reduce(
+        (acc, platform) => {
+            const input = core.getInput(platform, {required: false});
 
-        if (!input) {
-            acc[platform] = {link: 'N/A', qrCode: 'N/A'};
+            if (!input) {
+                acc[platform] = {link: 'N/A', qrCode: 'N/A'};
+                return acc;
+            }
+
+            const isSuccess = input === 'success';
+
+            const link = isSuccess ? core.getInput(`${platform}_LINK`) : '❌ FAILED ❌';
+            const qrCode = isSuccess
+                ? `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`
+                : `The QR code can't be generated, because the ${names[platform]} build failed`;
+
+            acc[platform] = {
+                link,
+                qrCode,
+            };
             return acc;
-        }
-
-        const isSuccess = input === 'success';
-
-        const link = isSuccess ? core.getInput(`${platform}_LINK`) : '❌ FAILED ❌';
-        const qrCode = isSuccess
-            ? `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`
-            : `The QR code can't be generated, because the ${names[platform]} build failed`;
-
-        acc[platform] = {
-            link,
-            qrCode,
-        };
-        return acc;
-    }, {} as Record<TupleToUnion<typeof inputs>, {link: string; qrCode: string}>);
+        },
+        {} as Record<TupleToUnion<typeof inputs>, {link: string; qrCode: string}>,
+    );
 
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', Desktop, and Web' : ''}. Happy testing! :test_tube::test_tube:
 Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` and Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.

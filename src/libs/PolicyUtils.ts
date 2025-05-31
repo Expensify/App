@@ -526,19 +526,11 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
     return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
-function extractPolicyIDFromPath(path: string) {
-    return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
-}
-
 /**
  * Whether the policy has active accounting integration connections
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
     return !isEmptyObject(policy?.connections);
-}
-
-function getPathWithoutPolicyID(path: string) {
-    return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
 
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
@@ -550,7 +542,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
+    Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
 
 /** Get a tax with given ID from policy */
@@ -698,7 +690,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     const reimburserEmail = policy?.achAccount?.reimburser ?? '';
-    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1 : -1;
+    return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
 function getPersonalPolicy() {
@@ -1416,7 +1408,6 @@ function isUserInvitedToWorkspace(): boolean {
 
 export {
     canEditTaxRate,
-    extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
     getPerDiemCustomUnits,
@@ -1429,7 +1420,6 @@ export {
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
-    getPathWithoutPolicyID,
     getPersonalPolicy,
     getPolicy,
     getPolicyBrickRoadIndicatorStatus,
