@@ -27,9 +27,6 @@ type MoneyRequestPreviewProps = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
-    /** Callback for measuring child and running a defined callback/action later */
-    onShowContextMenu?: (callback: () => void) => void;
-
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
 
