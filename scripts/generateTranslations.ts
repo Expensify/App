@@ -1,7 +1,6 @@
 /*
  * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
  */
-import {execSync} from 'child_process';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 import OpenAI from 'openai';
@@ -9,6 +8,7 @@ import path from 'path';
 import type {StringLiteral, TemplateExpression} from 'typescript';
 import ts, {EmitHint} from 'typescript';
 import type Locale from '../src/types/onyx/Locale';
+import Prettier from './utils/Prettier';
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
@@ -97,14 +97,14 @@ class TranslationGenerator {
             const translatedCode = printer.printFile(transformedNode);
 
             // Write to file
-            const outputPath = `${this.languagesDir}/${targetLanguage}.ts`;
+            const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
             fs.writeFileSync(outputPath, translatedCode, 'utf8');
+
+            // Format the file with prettier
+            await Prettier.format(outputPath);
 
             console.log(`✅ Translated file created: ${outputPath}`);
         }
-
-        // Format the files using prettier
-        execSync(`npx prettier --write ${this.languagesDir}`);
     }
 
     /**
@@ -295,7 +295,7 @@ async function main(): Promise<void> {
     const enSourceFile = path.join(languagesDir, 'en.ts');
 
     const generator = new TranslationGenerator({
-        //     TODO: cast to "as Locale" will not be necessary once more locales are added
+        // TODO: cast to "as Locale" will not be necessary once more locales are added
         targetLanguages: ['it' as Locale],
         languagesDir,
         sourceFile: enSourceFile,

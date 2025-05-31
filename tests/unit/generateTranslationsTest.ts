@@ -22,9 +22,6 @@ describe('generateTranslations', () => {
         IT_PATH = path.join(LANGUAGES_DIR, 'it.ts');
         fs.mkdirSync(LANGUAGES_DIR, {recursive: true});
 
-        // Copy prettierrc to temp directory so it gets formatted correctly
-        fs.copyFileSync(path.join(__dirname, '../../.prettierrc.js'), path.join(tempDir, '.prettierrc.js'));
-
         // Patch env to redirect script to temp path
         process.env.LANGUAGES_DIR = LANGUAGES_DIR;
     });
