@@ -64,7 +64,6 @@ function LockAccountPage() {
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT);
                     setIsConfirmModalVisible(false);
 
                     setIsLoading(true);
