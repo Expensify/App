@@ -164,6 +164,7 @@ function ReportListItem<TItem extends ListItem>({
                                     isParentHovered={hovered}
                                     columnWrapperStyles={[styles.ph3, styles.pv1half]}
                                     isInReportRow
+                                    isInSingleTransactionReport={reportItem.transactions.length === 1}
                                 />
                             </View>
                         ))

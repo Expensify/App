@@ -65,6 +65,7 @@ function TransactionItemRow({
     columnWrapperStyles,
     scrollToNewTransaction,
     isInReportRow = false,
+    isInSingleTransactionReport = false,
 }: {
     transactionItem: TransactionWithOptionalSearchFields;
     shouldUseNarrowLayout: boolean;
@@ -79,6 +80,7 @@ function TransactionItemRow({
     columnWrapperStyles?: ViewStyle[];
     scrollToNewTransaction?: ((offset: number) => void) | undefined;
     isInReportRow?: boolean;
+    isInSingleTransactionReport?: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -216,7 +218,10 @@ function TransactionItemRow({
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
-                    <ChatBubbleCell transaction={transactionItem} />
+                    <ChatBubbleCell
+                        transaction={transactionItem}
+                        isInSingleTransactionReport={isInSingleTransactionReport}
+                    />
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: (
@@ -237,7 +242,7 @@ function TransactionItemRow({
                 </View>
             ),
         }),
-        [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
+        [StyleUtils, createdAt, isDateColumnWide, isInSingleTransactionReport, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
     );
     const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     return (
@@ -333,6 +338,7 @@ function TransactionItemRow({
                                 <ChatBubbleCell
                                     transaction={transactionItem}
                                     containerStyles={[styles.mt3]}
+                                    isInSingleTransactionReport={isInSingleTransactionReport}
                                 />
                             </View>
                         </View>
