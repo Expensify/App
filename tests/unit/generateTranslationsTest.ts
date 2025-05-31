@@ -72,8 +72,8 @@ describe('generateTranslations', () => {
                             nested: {
                                 str: '[it] nested string',
                                 fnc: ({destructuredArg}) => \`[it] My template string contains a single \${destructuredArg} argument\`,
-                            }
-                        }
+                            },
+                        },
                     };
                     export default strings;
             `),

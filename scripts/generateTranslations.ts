@@ -78,7 +78,7 @@ class TranslationGenerator {
 
             // Transform the template expressions to strings and add them to the map
             for (const [key, templateExpression] of templatesToTranslate) {
-                stringsToTranslate.set(key, templateExpression.getFullText());
+                stringsToTranslate.set(key, this.templateExpressionToString(templateExpression));
             }
 
             const translations = new Map<string, string>();
@@ -111,30 +111,30 @@ class TranslationGenerator {
      * Translate a single string to a target language.
      */
     private async translate(text: string, targetLang: string): Promise<string> {
-        if (!this.openai) {
-            return Promise.resolve(`[${targetLang}] ${text}`);
+        if (!text || text.trim().length === 0) {
+            return text;
         }
-
         try {
-            if (!text || text.trim().length === 0) {
-                return text;
+            console.log(`🧠Translating "${text}" to ${targetLang}`);
+            let result: string;
+            if (this.openai) {
+                const response = await this.openai.chat.completions.create({
+                    model: 'gpt-4',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript function that returns a template string. Preserve placeholders like \${username}, \${count}, \${someBoolean ? 'valueIfTrue' : 'valueIfFalse'} etc without modifying their contents or removing the brackets. The contents of the placeholders are descriptive of what they represent in the phrase, but may include ternary expressions or other TypeScript code. If it can't be translated, reply with the same text unchanged.`,
+                        },
+                        {role: 'user', content: text},
+                    ],
+                    temperature: 0.3,
+                });
+                result = response.choices.at(0)?.message?.content?.trim() ?? text;
+            } else {
+                result = `[${targetLang}] ${text}`;
             }
-            const response = await this.openai.chat.completions.create({
-                model: 'gpt-4',
-                messages: [
-                    {
-                        role: 'system',
-                        content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript function that returns a template string. Preserve placeholders like \${username}, \${count}, \${someBoolean ? 'valueIfTrue' : 'valueIfFalse'} etc without modifying their contents or removing the brackets. The contents of the placeholders are descriptive of what they represent in the phrase, but may include ternary expressions or other TypeScript code. If it can't be translated, reply with the same text unchanged.`,
-                    },
-                    {role: 'user', content: text},
-                ],
-                temperature: 0.3,
-            });
-
-            console.log(`Translating "${text}" to ${targetLang}`);
-            const translatedText = response.choices.at(0)?.message?.content?.trim() ?? text;
-            console.log(`   Translation: "${translatedText}"`);
-            return translatedText;
+            console.log(`✏️Translated "${text}" to ${targetLang}: "${result}"`);
+            return result;
         } catch (error) {
             console.error(`Error translating "${text}" to ${targetLang}:`, error);
             return text; // Fallback to English if translation fails
@@ -176,9 +176,16 @@ class TranslationGenerator {
      */
     private extractTemplateExpressions(node: ts.Node, templateExpressions: Map<string, TemplateExpression>) {
         if (this.isTemplateExpressionNode(node)) {
-            templateExpressions.set(node.getFullText(), node);
+            templateExpressions.set(this.templateExpressionToString(node), node);
         }
         node.forEachChild((child) => this.extractTemplateExpressions(child, templateExpressions));
+    }
+
+    /**
+     * Convert a template expression into a plain string representation, without the backticks.
+     */
+    private templateExpressionToString(expression: TemplateExpression): string {
+        return expression.getFullText().trim().slice(1, -1);
     }
 
     /**
@@ -238,7 +245,7 @@ class TranslationGenerator {
                     return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
                 }
                 if (this.isTemplateExpressionNode(node)) {
-                    const originalTemplateExpressionAsString = node.getFullText();
+                    const originalTemplateExpressionAsString = this.templateExpressionToString(node);
                     console.log(`🟡 Checking TemplateExpression: "${originalTemplateExpressionAsString}"`);
                     const translatedTemplate = translations.get(originalTemplateExpressionAsString);
                     if (translatedTemplate) {
