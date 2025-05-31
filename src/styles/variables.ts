@@ -123,7 +123,7 @@ export default {
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
-    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
+    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(17, 22),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
     checkboxLabelActiveOpacity: 0.7,
