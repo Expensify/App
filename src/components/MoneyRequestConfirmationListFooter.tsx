@@ -908,12 +908,12 @@ function MoneyRequestConfirmationListFooter({
                     <View style={styles.dividerLine} />
                 </>
             )}
-            {!shouldShowMap &&
+            {!shouldShowMap && (
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                (receiptImage || receiptThumbnail
-                    ? receiptThumbnailContent
-                    : shouldShowReceiptEmptyState && (
-                          <View style={styles.mv3}>
+                <View style={styles.mv3}>
+                    {receiptImage || receiptThumbnail
+                        ? receiptThumbnailContent
+                        : shouldShowReceiptEmptyState && (
                               <ReceiptEmptyState
                                   onPress={() => {
                                       if (!transactionID) {
@@ -922,10 +922,11 @@ function MoneyRequestConfirmationListFooter({
 
                                       Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                                   }}
-                                  style={[styles.expenseViewImageSmall, styles.mv0]}
+                                  style={styles.expenseViewImageSmall}
                               />
-                          </View>
-                      ))}
+                          )}
+                </View>
+            )}
             {primaryFields}
             {!shouldShowAllFields && (
                 <ShowMoreButton

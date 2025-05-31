@@ -557,7 +557,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             }}
                             isThumbnail={!canEditReceipt}
                             isInMoneyRequestView
-                            style={[receiptStyle, styles.mv0]}
+                            style={receiptStyle}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -582,6 +582,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             }
                         }}
                         dismissError={dismissReceiptError}
+                        style={styles.mv3}
                     >
                         {hasReceipt && (
                             <View style={[styles.moneyRequestViewImage, receiptStyle]}>
