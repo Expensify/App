@@ -909,22 +909,26 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {!shouldShowMap && (
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 <View style={styles.mv3}>
-                    {receiptImage || receiptThumbnail
-                        ? receiptThumbnailContent
-                        : shouldShowReceiptEmptyState && (
-                              <ReceiptEmptyState
-                                  onPress={() => {
-                                      if (!transactionID) {
-                                          return;
-                                      }
+                    {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        receiptImage || receiptThumbnail
+                            ? receiptThumbnailContent
+                            : shouldShowReceiptEmptyState && (
+                                  <ReceiptEmptyState
+                                      onPress={() => {
+                                          if (!transactionID) {
+                                              return;
+                                          }
 
-                                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
-                                  }}
-                                  style={styles.expenseViewImageSmall}
-                              />
-                          )}
+                                          Navigation.navigate(
+                                              ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()),
+                                          );
+                                      }}
+                                      style={styles.expenseViewImageSmall}
+                                  />
+                              )
+                    }
                 </View>
             )}
             {primaryFields}
