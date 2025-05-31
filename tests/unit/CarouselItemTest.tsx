@@ -10,8 +10,6 @@ import {ReportAttachmentsProvider} from '@pages/home/report/ReportAttachmentsCon
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 describe('CarouselItem', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
