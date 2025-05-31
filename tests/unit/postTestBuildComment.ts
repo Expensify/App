@@ -54,7 +54,7 @@ const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x1
 const webQRCode = `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
 
 const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
-Built from App PR Expensify/App#12 and Mobile-Expensify PR Expensify/Mobile-Expensify#13.
+Built from App PR Expensify/App#12 Mobile-Expensify PR Expensify/Mobile-Expensify#13.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${androidLink}  | ${iOSLink}  |

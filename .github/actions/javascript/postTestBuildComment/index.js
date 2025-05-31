@@ -11527,7 +11527,7 @@ function getTestBuildMessage(appPr, mobileExpensifyPr) {
         return acc;
     }, {});
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', Desktop, and Web' : ''}. Happy testing! :test_tube::test_tube:
-Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` and Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
+Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
