@@ -173,9 +173,39 @@ function hash(str: string, max: number = 2 ** 32): number {
 /**
  * Find the minimum indentation of any line in the string,
  * and remove that number of leading spaces from every line in the string.
+ *
+ * It also removes at most one leading newline, to reflect a common usage:
+ *
+ * ```
+ * StringUtils.dedent(`
+ *    const myIndentedStr = 'Hello, world!';
+ *    console.log(myIndentedStr);
+ * `)
+ * ```
+ *
+ * This implementation assumes you'd want that to be:
+ *
+ * ```
+ * const myIndentedStr = 'Hello, world!';
+ * console.log(myIndentedStr);
+ *
+ * ```
+ *
+ * Rather than:
+ *
+ * ```
+ *
+ * const myIndentedStr = 'Hello, world!';
+ * console.log(myIndentedStr);
+ *
+ * ```
  */
 function dedent(str: string): string {
-    const lines = str.replace(/\r\n/g, '\n').split('\n');
+    // Remove at most one leading newline
+    const stringWithoutLeadingNewlines = str.replace(/^\r?\n/, '');
+
+    // Split string by remaining newlines
+    const lines = stringWithoutLeadingNewlines.replace(/\r\n/g, '\n').split('\n');
 
     // Find the minimum indentation of non-empty lines
     let minIndent = Number.MAX_SAFE_INTEGER;

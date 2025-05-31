@@ -38,8 +38,7 @@ describe('StringUtils', () => {
               line 3
             `;
             expect(StringUtils.dedent(input)).toBe(
-                `
-line 1
+                `line 1
   line 2
 line 3
 `,
@@ -66,13 +65,10 @@ line 3
 
                 second
             `;
-            expect(StringUtils.dedent(input)).toBe(
-                `
-first
+            expect(StringUtils.dedent(input)).toBe(`first
 
 second
-`,
-            );
+`);
         });
     });
 });

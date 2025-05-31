@@ -27,7 +27,7 @@ describe('generateTranslations', () => {
     });
 
     afterEach(() => {
-        fs.rmdirSync(LANGUAGES_DIR);
+        fs.rmSync(LANGUAGES_DIR, {recursive: true, force: true});
         delete process.env.LANGUAGES_DIR;
         jest.clearAllMocks();
     });
