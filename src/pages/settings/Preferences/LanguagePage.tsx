@@ -1,6 +1,8 @@
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
+import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {Star} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -18,11 +20,18 @@ function LanguagePage() {
     const {translate, preferredLocale} = useLocalize();
     const isOptionSelected = useRef(false);
 
-    const localesToLanguages = CONST.LANGUAGES.map((language) => ({
+    const localesToLanguages: ListItem[] = CONST.LANGUAGES.map((language) => ({
         value: language,
         text: translate(`languagePage.languages.${language}.label`),
         keyForList: language,
         isSelected: preferredLocale === language,
+        shouldShowRightIcon: true,
+        rightElement: !['en', 'es'].includes(language) && (
+            <Badge
+                text={translate('common.ai')}
+                icon={Star}
+            />
+        ),
     }));
 
     const updateLanguage = (selectedLanguage: LanguageEntry) => {

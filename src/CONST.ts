@@ -841,6 +841,7 @@ const CONST = {
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
         NEW_DOT_SPLITS: 'newDotSplits',
+        STATIC_AI_TRANSLATIONS: 'staticAiTranslations',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2882,11 +2883,17 @@ const CONST = {
         ES: 'es',
         ES_ES: 'es-ES',
         ES_ES_ONFIDO: 'es_ES',
-
+        PT_BR: 'pt-BR',
+        IT: 'it',
+        DE: 'de',
+        FR: 'fr',
+        NL: 'nl',
+        JA: 'ja',
+        ZH_HANS: 'zh-hans',
         DEFAULT: 'en',
     },
 
-    LANGUAGES: ['en', 'es'],
+    LANGUAGES: ['en', 'es', 'pt-BR', 'it', 'de', 'fr', 'nl', 'ja', 'zh-hans'],
 
     PRONOUNS_LIST: [
         'coCos',
