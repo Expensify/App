@@ -95,30 +95,60 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
-    it('canApprove should return true for report being processed', async () => {
-        const report = {
-            ...createRandomReport(REPORT_ID),
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            managerID: CURRENT_USER_ACCOUNT_ID,
-            isWaitingOnBankAccount: false,
-        };
+    describe('canApprove', () => {
+        it('should return true for report being processed', async () => {
+            const report = {
+                ...createRandomReport(REPORT_ID),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
 
-        const policy = createRandomPolicy(0);
-        policy.type = CONST.POLICY.TYPE.CORPORATE;
-        policy.approver = CURRENT_USER_EMAIL;
-        policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
-        policy.preventSelfApproval = false;
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approver = CURRENT_USER_EMAIL;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+            policy.preventSelfApproval = false;
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
-            reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
 
-        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+            expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+        });
+
+        it('should return false for report with scanning expenses', async () => {
+            const report = {
+                ...createRandomReport(REPORT_ID),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approver = CURRENT_USER_EMAIL;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            } as unknown as Transaction;
+
+            expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], false)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
     });
 
     it('canPay should return true for expense report with payments enabled', async () => {

@@ -183,6 +183,30 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
+    it('does not include APPROVE option for report with transactions are being scanned', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            approver: EMPLOYEE_EMAIL,
+        } as unknown as Policy;
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            receipt: {
+                state: CONST.IOU.RECEIPT_STATE.SCANNING,
+            },
+        } as unknown as Transaction;
+
+        const result = getSecondaryReportActions(report, [transaction], {}, policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
+    });
+
     it('includes UNAPPROVE option', () => {
         const report = {
             reportID: REPORT_ID,
