@@ -5,7 +5,12 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
-type VideoWithOnFullScreenUpdate = Video & {_onFullscreenUpdate: (event: VideoFullscreenUpdateEvent) => void};
+type VideoWithOnFullScreenUpdate = Video & {
+    _onFullscreenUpdate: (event: VideoFullscreenUpdateEvent) => void;
+
+    /** Stores the playing state of the video player */
+    isPlay?: boolean;
+};
 
 type VideoPlayerProps = {
     url: string;
