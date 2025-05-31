@@ -90,6 +90,10 @@ function canUseNewDotSplits(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_SPLITS) || canUseAllBetas(betas);
 }
 
+function canUseStaticAiTranslations(betas: OnyxEntry<Beta[]>): boolean {
+    return true || !!betas?.includes(CONST.BETAS.STATIC_AI_TRANSLATIONS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -111,4 +115,5 @@ export default {
     canUseNewDotSplits,
     canUsePlaidCompanyCards,
     canUseTrackFlows,
+    canUseStaticAiTranslations,
 };

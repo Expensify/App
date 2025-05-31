@@ -2,6 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
@@ -29,7 +30,8 @@ function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const localesToLanguages = CONST.LANGUAGES.map((language) => ({
+    const {canUseStaticAiTranslations} = usePermissions();
+    const localesToLanguages = CONST.LANGUAGES.filter((language) => ['en', 'es'].includes(language) || canUseStaticAiTranslations).map((language) => ({
         value: language,
         label: translate(`languagePage.languages.${language}.label`),
         keyForList: language,
