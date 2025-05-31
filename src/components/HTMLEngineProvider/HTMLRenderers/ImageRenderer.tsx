@@ -12,7 +12,8 @@ import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {getAttachmentSource} from '@libs/actions/Attachment';
+import {getFileName, getFileType, isLocalFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -33,7 +34,6 @@ type ImageRendererProps = ImageRendererWithOnyxProps & CustomRendererProps<TBloc
 function ImageRenderer({tnode}: ImageRendererProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const htmlAttribs = tnode.attributes;
     const isDeleted = isDeletedNode(tnode);
 
@@ -57,7 +57,6 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const attachmentSourceAttribute =
         htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(htmlAttribs.src) ? htmlAttribs.src : null);
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
-    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
@@ -66,12 +65,13 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
     const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replace(/\.png\.(1024|320)\.jpg$/, '.png') : previewSource;
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
-
     const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
-
+    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
+    const imageSource = getAttachmentSource(attachmentID, previewSource) || processedPreviewSource;
+    const isAuthTokenRequired = isLocalFile(imageSource) ? false : isAttachmentOrReceipt;
     const fileType = getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Document : GalleryNotFound;
     const theme = useTheme();
@@ -81,13 +81,14 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     if (!fileInfo.fileExtension) {
         fileName = `${fileInfo?.fileName || CONST.DEFAULT_IMAGE_FILE_NAME}.jpg`;
     }
-
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={processedPreviewSource}
+            previewSourceURL={imageSource as string}
             style={styles.webViewStyles.tagStyles.img}
-            isAuthTokenRequired={isAttachmentOrReceipt}
+            isAuthTokenRequired={isAuthTokenRequired}
             fallbackIcon={fallbackIcon}
+            attachmentID={attachmentID}
+            fileName={fileName}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
             isDeleted={isDeleted}
@@ -107,12 +108,12 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                         <PressableWithoutFocus
                             style={[styles.noOutline]}
                             onPress={() => {
-                                if (!source || !type) {
+                                if (!imageSource || !type) {
                                     return;
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, attachmentID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, attachmentID, type, imageSource, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
