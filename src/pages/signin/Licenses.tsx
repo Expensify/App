@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useWindowDimensions} from 'react-native';
+import {Linking, useWindowDimensions} from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import LocalePicker from '@components/LocalePicker';
 import Text from '@components/Text';
@@ -14,16 +14,15 @@ function Licenses() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {width} = useWindowDimensions();
-    const termsHTML = translate('termsOfUse.full');
 
     return (
         <>
             <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>{`© ${currentYear} Expensify`}</Text>
             <RenderHtml
                 contentWidth={width}
-                source={{html: termsHTML}}
+                source={{html: translate('termsOfUse.full')}}
                 tagsStyles={{
-                    a: [styles.textExtraSmallSupporting, styles.link],
+                    a: {...styles.textExtraSmallSupporting, ...styles.link, textDecorationLine: 'none'},
                     p: styles.textExtraSmallSupporting,
                     body: styles.textExtraSmallSupporting,
                 }}
@@ -32,7 +31,7 @@ function Licenses() {
                     a: {
                         onPress: (_, href) => {
                             if (href.includes('licenses')) {
-                                window.open(CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL, '_blank');
+                                Linking.openURL(CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL);
                             }
                         },
                     },
