@@ -407,7 +407,7 @@ function MoneyRequestReportPreviewContent({
 
     // The button should expand up to transaction width
     const buttonMaxWidth =
-        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW_WIDTH_WIDE
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDTH_WIDE
             ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width}
             : {};
 
@@ -458,8 +458,8 @@ function MoneyRequestReportPreviewContent({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, reportActions);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions]);
+        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy);
+    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy]);
 
     const addExpenseDropdownOptions = useMemo(
         () => [
@@ -513,6 +513,7 @@ function MoneyRequestReportPreviewContent({
                 formattedAmount={getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)}
                 currency={iouReport?.currency}
                 chatReportID={chatReportID}
+                policyID={policy?.id}
                 iouReport={iouReport}
                 wrapperStyle={buttonMaxWidth}
                 onPress={confirmPayment}

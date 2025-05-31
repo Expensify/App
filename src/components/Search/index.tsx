@@ -1,6 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
@@ -22,7 +23,8 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {generateReportID} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
@@ -44,6 +46,7 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
@@ -53,13 +56,13 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: StyleProp<ViewStyle>;
+    contentContainerStyle?: ContentStyle;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
 };
 
-function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
+function mapTransactionItemToSelectedEntry(item: TransactionListItemType, reportActions: ReportAction[]): [string, SelectedTransactionInfo] {
     return [
         item.keyForList,
         {
@@ -68,6 +71,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [stri
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
+            canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
@@ -101,11 +105,11 @@ function mapToItemWithSelectionInfo(item: SearchListItem, selectedTransactions: 
               ...item,
               shouldAnimateInHighlight,
               transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
-              isSelected: item.transactions.length > 0 && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
+              isSelected: item?.transactions?.length > 0 && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
 
-function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
+function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, reportActions: ReportAction[]) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
@@ -120,6 +124,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
+            canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
@@ -143,7 +148,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         selectedTransactions,
         clearSelectedTransactions,
         shouldTurnOffSelectionMode,
-        setShouldShowStatusBarLoading,
+        setShouldShowFiltersBarLoading,
         lastSearchType,
         setShouldShowExportModeOption,
         isExportMode,
@@ -158,6 +163,13 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const previousReportActions = usePrevious(reportActions);
+    const reportActionsArray = useMemo(
+        () =>
+            Object.values(reportActions ?? {})
+                .filter((reportAction) => !!reportAction)
+                .flatMap((fillteredReportActions) => Object.values(fillteredReportActions ?? {})),
+        [reportActions],
+    );
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
@@ -174,10 +186,18 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
         if (selectedKeys.length === 0 && selectionMode?.isEnabled && shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
+
+        // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTransactions, selectionMode?.isEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
@@ -224,16 +244,16 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const data = useMemo(() => {
-        if (searchResults === undefined) {
+        if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
         return getSections(type, status, searchResults.data, searchResults.search, shouldGroupByReports);
-    }, [searchResults, type, status, shouldGroupByReports]);
+    }, [searchResults, isDataLoaded, type, status, shouldGroupByReports]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowStatusBarLoading(shouldShowLoadingState && lastSearchType !== type);
-    }, [lastSearchType, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
+        setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -256,6 +276,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     canHold: transaction.canHold,
                     isHeld: isOnHold(transaction),
                     canUnhold: transaction.canUnhold,
+                    canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
@@ -278,6 +299,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         canHold: transaction.canHold,
                         isHeld: isOnHold(transaction),
                         canUnhold: transaction.canUnhold,
+                        canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
@@ -344,7 +366,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     return;
                 }
 
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions), data);
+                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray), data);
                 return;
             }
 
@@ -362,12 +384,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             setSelectedTransactions(
                 {
                     ...selectedTransactions,
-                    ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
+                    ...Object.fromEntries(item.transactions.map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
                 },
                 data,
             );
         },
-        [data, selectedTransactions, setSelectedTransactions],
+        [data, reportActionsArray, selectedTransactions, setSelectedTransactions],
     );
 
     const openReport = useCallback(
@@ -499,7 +521,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
+                    hash={hash}
                     type={type}
+                    groupBy={groupBy}
                     hasResults={searchResults.search.hasResults}
                 />
             </View>
@@ -523,12 +547,20 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
 
         if (areItemsOfReportType) {
-            setSelectedTransactions(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))), data);
+            setSelectedTransactions(
+                Object.fromEntries(
+                    (data as ReportListItemType[]).flatMap((item) => item.transactions.map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+                ),
+                data,
+            );
 
             return;
         }
 
-        setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)), data);
+        setSelectedTransactions(
+            Object.fromEntries((data as TransactionListItemType[]).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+            data,
+        );
     };
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
@@ -565,7 +597,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         />
                     )
                 }
-                contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
                 containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 shouldGroupByReports={shouldGroupByReports}
@@ -581,6 +613,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     ) : undefined
                 }
                 queryJSONHash={hash}
+                queryJSONType={type}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />

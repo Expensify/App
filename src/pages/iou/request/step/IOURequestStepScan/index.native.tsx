@@ -2,7 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/core';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, Image, InteractionManager, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -33,6 +33,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
@@ -46,7 +47,6 @@ import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, 
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -127,7 +127,7 @@ function IOURequestStepScan({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
+        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
@@ -396,7 +396,6 @@ function IOURequestStepScan({
                         const splitReceipt: Receipt = firstReceiptFile.file;
                         splitReceipt.source = firstReceiptFile.source;
                         splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
-                        playSound(SOUNDS.DONE);
                         startSplitBill({
                             participants,
                             currentUserLogin: currentUserPersonalDetails?.login ?? '',
@@ -420,7 +419,6 @@ function IOURequestStepScan({
                     if (locationPermissionGranted) {
                         getCurrentPosition(
                             (successData) => {
-                                playSound(SOUNDS.DONE);
                                 const policyParams = {policy};
                                 const gpsPoints = {
                                     lat: successData.coords.latitude,
@@ -431,7 +429,6 @@ function IOURequestStepScan({
                             (errorData) => {
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                playSound(SOUNDS.DONE);
                                 createTransaction(files, participant);
                             },
                             {
@@ -441,7 +438,6 @@ function IOURequestStepScan({
                         );
                         return;
                     }
-                    playSound(SOUNDS.DONE);
                     createTransaction(files, participant);
                     return;
                 }
@@ -503,38 +499,14 @@ function IOURequestStepScan({
      * Sets a test receipt from CONST.TEST_RECEIPT_URL and navigates to the confirmation step
      */
     const setTestReceiptAndNavigate = useCallback(() => {
-        try {
-            const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
-            const path = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${filename}`;
-            const source = Image.resolveAssetSource(TestReceipt).uri;
+        setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
+            if (!file.uri) {
+                return;
+            }
 
-            ReactNativeBlobUtil.config({
-                fileCache: true,
-                appendExt: 'png',
-                path,
-            })
-                .fetch('GET', source)
-                .then(() => {
-                    const file: FileObject = {
-                        uri: `file://${path}`,
-                        name: filename,
-                        type: CONST.TEST_RECEIPT.FILE_TYPE,
-                        size: 0,
-                    };
-
-                    if (!file.uri) {
-                        return;
-                    }
-
-                    setMoneyRequestReceipt(initialTransactionID, file.uri, filename, !isEditing, file.type, true);
-                    navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
-                })
-                .catch((error) => {
-                    Log.warn('Error downloading test receipt:', {message: error});
-                });
-        } catch (error) {
-            Log.warn('Error in setTestReceiptAndNavigate:', {message: error});
-        }
+            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, file.type, true);
+            navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
+        });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(

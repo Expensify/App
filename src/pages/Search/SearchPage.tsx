@@ -14,12 +14,11 @@ import PDFThumbnail from '@components/PDFThumbnail';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
+import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -27,6 +26,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -66,7 +66,6 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
@@ -82,7 +81,7 @@ function SearchPage({route}: SearchPageProps) {
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
-    const {q, name} = route.params;
+    const {q} = route.params;
 
     const {canUseMultiFilesDragAndDrop} = usePermissions();
 
@@ -91,6 +90,10 @@ function SearchPage({route}: SearchPageProps) {
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+
+    useEffect(() => {
+        confirmReadyToOpenApp();
+    }, []);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -159,7 +162,6 @@ function SearchPage({route}: SearchPageProps) {
                         jsonQuery: JSON.stringify(queryJSON),
                         reportIDList,
                         transactionIDList: selectedTransactionsKeys,
-                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
                     },
                     () => {
                         setIsDownloadErrorModalVisible(true);
@@ -195,7 +197,7 @@ function SearchPage({route}: SearchPageProps) {
                     const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
-                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                        : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
@@ -324,6 +326,18 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+
+        if (canAllTransactionsBeMoved) {
+            options.push({
+                text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
+                icon: Expensicons.DocumentMerge,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
+            });
+        }
+
         const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
 
         if (shouldShowDeleteOption) {
@@ -371,7 +385,6 @@ function SearchPage({route}: SearchPageProps) {
         isOffline,
         selectedReports,
         queryJSON,
-        activeWorkspaceID,
         clearSelectedTransactions,
         lastPaymentMethods,
         theme.icon,
@@ -451,18 +464,14 @@ function SearchPage({route}: SearchPageProps) {
             jsonQuery: JSON.stringify(queryJSON),
             reportIDList,
             transactionIDList: selectedTransactionsKeys,
-            policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
         });
         setExportMode(false);
         clearSelectedTransactions();
-    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID, setExportMode, clearSelectedTransactions]);
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, setExportMode, clearSelectedTransactions]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
     const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
-
-    const isSearchNameModified = name === q;
-    const searchName = isSearchNameModified ? undefined : name;
 
     // TODO: to be refactored in step 3
     const PDFThumbnailView = pdfFile ? (
@@ -514,7 +523,6 @@ function SearchPage({route}: SearchPageProps) {
             <>
                 <SearchPageNarrow
                     queryJSON={queryJSON}
-                    searchName={searchName}
                     headerButtonsOptions={headerButtonsOptions}
                     lastNonEmptySearchResults={lastNonEmptySearchResults}
                     currentSearchResults={currentSearchResults}
@@ -584,7 +592,7 @@ function SearchPage({route}: SearchPageProps) {
                                     headerButtonsOptions={headerButtonsOptions}
                                     handleSearch={handleSearchAction}
                                 />
-                                <SearchStatusBar
+                                <SearchFiltersBar
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
                                 />

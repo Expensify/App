@@ -80,7 +80,7 @@ function ExpensifyCardPage({
     const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
     const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
-    const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle;
+    const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
 
     const [isNotFound, setIsNotFound] = useState(false);
@@ -160,7 +160,7 @@ function ExpensifyCardPage({
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
     const primaryLogin = account?.primaryLogin ?? '';
-    const isSignedInAsdelegate = !!account?.delegatedAccess?.delegate || false;
+    const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -236,7 +236,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardNumber}
                                             shouldShowRightComponent
                                             rightComponent={
-                                                !isSignedInAsdelegate ? (
+                                                !isSignedInAsDelegate ? (
                                                     <Button
                                                         text={translate('cardPage.cardDetails.revealDetails')}
                                                         onPress={() => openValidateCodeModal(card.cardID)}
@@ -253,7 +253,7 @@ function ExpensifyCardPage({
                                         />
                                     </>
                                 )}
-                                {!isSignedInAsdelegate && (
+                                {!isSignedInAsDelegate && (
                                     <MenuItemWithTopDescription
                                         title={translate('cardPage.reportFraud')}
                                         titleStyle={styles.walletCardMenuItem}
@@ -281,7 +281,7 @@ function ExpensifyCardPage({
                                                 titleStyle={styles.walletCardNumber}
                                                 shouldShowRightComponent
                                                 rightComponent={
-                                                    !isSignedInAsdelegate ? (
+                                                    !isSignedInAsDelegate ? (
                                                         <Button
                                                             text={translate('cardPage.cardDetails.revealCvv')}
                                                             onPress={() => openValidateCodeModal(card.cardID)}
@@ -298,7 +298,7 @@ function ExpensifyCardPage({
                                             />
                                         </>
                                     )}
-                                    {!isSignedInAsdelegate && (
+                                    {!isSignedInAsDelegate && (
                                         <MenuItemWithTopDescription
                                             title={translate('cardPage.reportTravelFraud')}
                                             titleStyle={styles.walletCardMenuItem}
