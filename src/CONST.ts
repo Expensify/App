@@ -456,6 +456,9 @@ const CONST = {
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
 
+    // Allowed extensions for text files that are used as spreadsheets
+    TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
+
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
