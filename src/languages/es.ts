@@ -1455,10 +1455,7 @@ const translations = {
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
-            phrase1: 'Leer los',
-            phrase2: 'Términos de Servicio',
-            phrase3: 'y',
-            phrase4: 'Privacidad',
+            full: 'Lee los <a>Términos del servicio</a> y la <a>Política de privacidad</a>',
         },
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
@@ -1999,12 +1996,7 @@ const translations = {
         chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
     },
     termsOfUse: {
-        phrase1: 'Al iniciar sesión, estás accediendo a los',
-        phrase2: 'Términos de Servicio',
-        phrase3: 'y',
-        phrase4: 'Privacidad',
-        phrase5: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus`,
-        phrase6: 'licencias',
+        full: `Al iniciar sesión, aceptas los <a>Términos del servicio</a> y la <a>Política de privacidad</a>. La transmisión de dinero es proporcionada por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) conforme a sus <a>licencias</a>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
@@ -2318,15 +2310,11 @@ const translations = {
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Tus números de ruta y de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         hasPhoneLoginError: {
-            phrase1: 'Para añadir una cuenta bancaria verificada,',
-            link: 'asegúrate de que tu nombre de usuario principal sea un correo electrónico válido',
-            phrase2: ' y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
+            full: 'Para conectar una cuenta bancaria, por favor <a>agrega un correo electrónico como tu inicio de sesión principal</a> e inténtalo de nuevo. Puedes agregar tu número de teléfono como un inicio de sesión secundario.',
         },
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         hasCurrencyError: {
-            phrase1: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a ',
-            link: 'la configuración del área de trabajo',
-            phrase2: ', configúrala en USD e inténtalo nuevamente.',
+            full: '¡Vaya! Parece que la moneda de tu espacio de trabajo está configurada en una moneda diferente al USD. Para continuar, ve a <a>la configuración de tu espacio de trabajo</a>, cámbiala a USD e inténtalo de nuevo.',
         },
         error: {
             youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar',
@@ -2939,9 +2927,7 @@ const translations = {
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
         phoneError: {
-            phrase1: 'Para reservar viajes,',
-            link: 'añade una dirección de correo electrónico de trabajo',
-            phrase2: '.',
+            full: 'Por favor, <a>agrega un correo electrónico de trabajo como tu inicio de sesión principal</a> para reservar viajes.',
         },
         domainSelector: {
             title: 'Dominio',
@@ -4814,8 +4800,9 @@ const translations = {
             changeOwnerPageTitle: 'Transferir la propiedad',
             addPaymentCardTitle: 'Ingrese tu tarjeta de pago para transferir la propiedad',
             addPaymentCardButtonText: 'Aceptar términos y agregar tarjeta de pago',
-            addPaymentCardReadAndAcceptTextPart1: 'Lea y acepte',
-            addPaymentCardReadAndAcceptTextPart2: 'para agregar tu tarjeta',
+            addPaymentCardReadAndAcceptText: {
+                full: 'Lee y acepta la política para añadir tu tarjeta',
+            },
             addPaymentCardTerms: 'los términos',
             addPaymentCardPrivacy: 'la política de privacidad',
             addPaymentCardAnd: 'y',
@@ -6276,12 +6263,10 @@ const translations = {
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chatea con tu especialista asignado en ',
-            phrase2: ' para obtener ayuda',
+            full: 'Chatea con tu especialista de configuración para obtener ayuda',
         },
         default: {
-            phrase1: 'Envía un correo electrónico a ',
-            phrase2: ' para obtener ayuda con la configuración',
+            full: 'Envía un mensaje para obtener ayuda con la configuración',
         },
     },
     violations: {
@@ -6542,12 +6527,10 @@ const translations = {
                 claimOffer: 'Solicitar oferta',
                 noThanks: 'No, gracias',
                 subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
-                    phrase2: `¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
+                    full: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año! Solo agrega una tarjeta de pago y comienza una suscripción anual.`,
                 },
                 onboardingChatTitle: {
-                    phrase1: 'Oferta por tiempo limitado:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
+                    full: ({discountType}: EarlyDiscountTitleParams) => `Oferta por tiempo limitado: ¡${discountType}% de descuento en tu primer año!`,
                 },
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Solicítala en ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
@@ -6566,9 +6549,7 @@ const translations = {
             authenticatePayment: 'Autenticar el pago',
             requestRefund: 'Solicitar reembolso',
             requestRefundModal: {
-                phrase1: 'Obtener un reembolso es fácil, simplemente baja tu cuenta de categoría antes de la próxima fecha de facturación y recibirás un reembolso.',
-                phrase2:
-                    'Atención: Bajar tu cuenta de categoría significa que tu(s) espacio(s) de trabajo será(n) eliminado(s). Esta acción no se puede deshacer, pero siempre puedes crear un nuevo espacio de trabajo si cambias de opinión.',
+                full: 'Obtener un reembolso es fácil: solo degrada tu cuenta antes de tu próxima fecha de facturación y recibirás un reembolso. Atención: degradar tu cuenta significa que se eliminarán tus espacios de trabajo. Esta acción no se puede deshacer, pero siempre puedes crear un nuevo espacio de trabajo si cambias de opinión.',
                 confirm: 'Eliminar y bajar de categoría',
             },
             viewPaymentHistory: 'Ver historial de pagos',
@@ -6678,10 +6659,7 @@ const translations = {
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Se renovará el ${date}.`,
             pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
             learnMore: {
-                part1: 'Obtén más información en nuestra ',
-                pricingPage: 'página de precios',
-                part2: ' o chatea con nuestro equipo en tu ',
-                adminsRoom: 'sala #admins.',
+                full: 'Obtén más información en nuestra <a> página de precios <a/> o chatea con nuestro equipo en tu sala <a> #admins </a>',
             },
             estimatedPrice: 'Precio estimado',
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
@@ -6694,23 +6672,17 @@ const translations = {
                 subtitle: 'Tu suscripción anual ha sido cancelada.',
                 info: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
                 preventFutureActivity: {
-                    part1: 'Si quieres evitar actividad y cargos futuros, debes ',
-                    link: 'eliminar tu(s) espacio(s) de trabajo.',
-                    part2: ' Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.',
+                    full: 'Si deseas evitar actividad y cargos futuros, debes <a> eliminar tu(s) espacio(s) de trabajo <a/>. Ten en cuenta que al eliminar tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendiente incurrida durante el mes calendario actual.',
                 },
             },
             requestSubmitted: {
                 title: 'Solicitud enviada',
                 subtitle: {
-                    part1: 'Gracias por hacernos saber que deseas cancelar tu suscripción. Estamos revisando tu solicitud y nos comunicaremos contigo en breve a través de tu chat con ',
-                    link: 'Concierge',
-                    part2: '.',
+                    full: 'Gracias por informarnos que estás interesado en cancelar tu suscripción. Estamos revisando tu solicitud y nos pondremos en contacto contigo pronto a través de tu chat con <a>Concierge</a>.',
                 },
             },
             acknowledgement: {
-                part1: 'Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las ',
-                link: 'Condiciones de Servicio',
-                part2: ' de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.',
+                full: 'Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud según los <a>Términos del Servicio</a> de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify conserva la plena discreción para conceder cualquier solicitud de este tipo.',
             },
         },
     },
@@ -6868,64 +6840,39 @@ const translations = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: {
-            part1: '¡Comienza',
-            part2: ' aquí!',
+            full: 'Comienza <strong>aquí</strong>.',
         },
         saveSearchTooltip: {
-            part1: 'Renombra tus búsquedas guardadas',
-            part2: ' aquí',
+            full: '<strong>Cambia el nombre de tus búsquedas guardadas</strong> aquí.',
         },
         bottomNavInboxTooltip: {
-            part1: 'Revisa lo que ',
-            part2: 'necesita tu atención',
-            part3: '\ny ',
-            part4: 'chatea sobre los gastos.',
+            full: 'Revisa lo que <strong>requiere tu atención</strong> \ny <strong>chatea sobre gastos</strong>.',
         },
         workspaceChatTooltip: {
-            part1: 'Chatea con ',
-            part2: 'los aprobadores',
+            full: 'Chatea con <strong>aprobadores</strong>',
         },
         globalCreateTooltip: {
-            part1: 'Crea gastos',
-            part2: ', empieza a chatear',
-            part3: '\ny más.',
-            part4: ' ¡Pruébalo!',
+            full: '<strong>Crea gastos</strong>, empieza a chatear,\ny mucho más. ¡Pruébalo!',
         },
         GBRRBRChat: {
-            part1: 'Verás 🟢 en ',
-            part2: 'acciones a realizar',
-            part3: ',\ny 🔴 en ',
-            part4: 'elementos para revisar.',
+            full: 'Verás 🟢 en las <strong>acciones a realizar</strong>\ny 🔴 en los <strong>elementos a revisar</strong>.',
         },
         accountSwitcher: {
-            part1: 'Accede a tus ',
-            part2: 'cuentas copiloto',
-            part3: ' aquí',
+            full: 'Accede a tus <strong>cuentas de Copilot</strong> aquí',
         },
         expenseReportsFilter: {
-            part1: '¡Bienvenido! Aquí encontrarás todos los',
-            part2: '\ninformes de tu empresa',
-            part3: '.',
+            full: '¡Bienvenido! Encuentra todos los <strong>informes de tu empresa</strong> aquí.',
         },
         scanTestTooltip: {
-            part1: '¿Quieres ver cómo funciona Escanear?',
-            part2: '¡Prueba con un recibo de prueba!',
-            part3: '¡Elige a',
-            part4: ' nuestro gerente',
-            part5: ' de prueba para probarlo!',
-            part6: 'Ahora,',
-            part7: ' envía tu gasto y',
-            part8: '\n¡observa cómo ocurre la magia!',
+            full: '¿Quieres ver cómo funciona Escanear? <strong>¡Prueba con un recibo de prueba!</strong> Elige nuestro <strong>gestor de prueba</strong> para intentarlo. Ahora, <strong>envía tu gasto</strong> y observa cómo ocurre la magia.',
             tryItOut: 'Prueba esto',
             noThanks: 'No, gracias',
         },
         outstandingFilter: {
-            part1: 'Filtra los gastos\nque ',
-            part2: 'necesitan aprobación',
+            full: 'Filtra los gastos\nque <strong>necesitan aprobación</strong>',
         },
         scanTestDriveTooltip: {
-            part1: '¡Envía este recibo para\n',
-            part2: 'completar la prueba!',
+            full: 'Envía este recibo para\n<strong>completar la prueba!</strong>',
         },
     },
     discardChangesConfirmation: {
