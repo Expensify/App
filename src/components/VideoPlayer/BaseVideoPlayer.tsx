@@ -30,31 +30,34 @@ import * as VideoUtils from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
-function BaseVideoPlayer({
-    url,
-    resizeMode = ResizeMode.CONTAIN,
-    onVideoLoaded,
-    isLooping = false,
-    style,
-    videoPlayerStyle,
-    videoStyle,
-    videoControlsStyle,
-    videoDuration = 0,
-    controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
-    shouldUseSharedVideoElement = false,
-    shouldUseSmallVideoControls = false,
-    onPlaybackStatusUpdate,
-    onFullscreenUpdate,
-    shouldPlay,
-    // TODO: investigate what is the root cause of the bug with unexpected video switching
-    // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
-    // but current workaround is just not to use it here for now. This causes not displaying the video controls when
-    // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isVideoHovered = false,
-    isPreview,
-    reportID,
-}: VideoPlayerProps & {reportID: string}) {
+function BaseVideoPlayer(
+    {
+        url,
+        resizeMode = ResizeMode.CONTAIN,
+        onVideoLoaded,
+        isLooping = false,
+        style,
+        videoPlayerStyle,
+        videoStyle,
+        videoControlsStyle,
+        videoDuration = 0,
+        controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
+        shouldUseSharedVideoElement = false,
+        shouldUseSmallVideoControls = false,
+        onPlaybackStatusUpdate,
+        onFullscreenUpdate,
+        shouldPlay,
+        // TODO: investigate what is the root cause of the bug with unexpected video switching
+        // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
+        // but current workaround is just not to use it here for now. This causes not displaying the video controls when
+        // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        isVideoHovered = false,
+        isPreview,
+        reportID,
+    }: VideoPlayerProps & {reportID: string},
+    forwardedRef: React.ForwardedRef<VideoWithOnFullScreenUpdate | null>,
+) {
     const styles = useThemeStyles();
     const {
         pauseVideo,
@@ -241,6 +244,11 @@ function BaseVideoPlayer({
 
             if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPosition) && !isEnded) {
                 videoPlayerRef.current?.setStatusAsync({positionMillis: 0, shouldPlay: true});
+            }
+
+            // Update play status
+            if (videoPlayerRef.current) {
+                videoPlayerRef.current.isPlay = isVideoPlaying;
             }
 
             preventPausingWhenExitingFullscreen(isVideoPlaying);
@@ -473,7 +481,19 @@ function BaseVideoPlayer({
                                         }}
                                     >
                                         <Video
-                                            ref={videoPlayerRef}
+                                            ref={(el: VideoWithOnFullScreenUpdate) => {
+                                                if (!el) {
+                                                    return;
+                                                }
+
+                                                videoPlayerRef.current = el;
+                                                if (typeof forwardedRef === 'function') {
+                                                    forwardedRef(el);
+                                                } else if (forwardedRef) {
+                                                    // eslint-disable-next-line no-param-reassign
+                                                    forwardedRef.current = el;
+                                                }
+                                            }}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             videoStyle={[styles.w100, styles.h100, videoStyle]}
                                             source={{
@@ -552,4 +572,4 @@ function BaseVideoPlayer({
 
 BaseVideoPlayer.displayName = 'BaseVideoPlayer';
 
-export default BaseVideoPlayer;
+export default React.forwardRef(BaseVideoPlayer);

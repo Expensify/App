@@ -1,20 +1,21 @@
 import {useNavigation} from '@react-navigation/native';
 import type {VideoReadyForDisplayEvent} from 'expo-av';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useSearchContext} from '@components/Search/SearchContext';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
+import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
-import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import ROUTES from '@src/ROUTES';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
@@ -55,6 +56,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID} = usePlaybackContext();
+    const videoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
 
     /* This needs to be isSmallScreenWidth because we want to be able to play video in chat (not in attachment modal) when preview is inside an RHP */
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -66,9 +68,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {isOnSearch} = useSearchContext();
     const navigation = useNavigation();
 
-    const didUserNavigateOutOfReportScreen = useCheckIfRouteHasRemainedUnchanged();
     // We want to play the video only when the user is on the page where it was rendered
-    const firstRenderRoute = useFirstRenderRoute(didUserNavigateOutOfReportScreen);
+    const isUserRemainOnReportScreen = useCheckIfRouteHasRemainedUnchanged(videoUrl);
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
@@ -77,6 +78,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     };
 
     const handleOnPress = () => {
+        setIsThumbnail(false);
         updateCurrentURLAndReportID(videoUrl, reportID);
         if (isSmallScreenWidth) {
             onShowModalPress();
@@ -84,15 +86,32 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     };
 
     useEffect(() => {
-        return navigation.addListener('blur', () => !isOnAttachmentRoute() && setIsThumbnail(true));
-    }, [navigation, firstRenderRoute]);
+        // We want to pause the video when the attachment modal is open and only keep playing when the modal is closed and the video is playing on it
+        return navigationRef.addListener('state', () => {
+            const {isFocused, isOnAttachModal} = isUserRemainOnReportScreen();
+            if (isFocused) {
+                // Resume video playback when navigating to it in the attachment modal or keep after closing the modal
+                if (!!videoPlayerRef.current?.isPlay || isOnAttachModal) {
+                    videoPlayerRef.current?.setStatusAsync({shouldPlay: true}).catch(() => {});
+                }
+                return;
+            }
+
+            videoPlayerRef.current?.setStatusAsync({shouldPlay: false}).catch(() => {});
+        });
+    }, [isUserRemainOnReportScreen]);
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || reportID !== currentRouteReportID || !firstRenderRoute.isFocused) {
+        return navigation.addListener('blur', () => !isOnAttachmentRoute() && setIsThumbnail(true));
+    }, [navigation]);
+
+    useEffect(() => {
+        const {isFocused} = isUserRemainOnReportScreen();
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentRouteReportID || !isFocused) {
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, firstRenderRoute, isOnSearch]);
+    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, isUserRemainOnReportScreen, isOnSearch]);
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
@@ -114,6 +133,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                         isPreview
                         videoPlayerStyle={styles.videoPlayerPreview}
                         reportID={reportID}
+                        ref={videoPlayerRef}
                     />
                     <View style={[styles.pAbsolute, styles.w100]}>
                         <IconButton
