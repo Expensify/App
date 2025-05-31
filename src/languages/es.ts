@@ -6827,7 +6827,7 @@ const translations = {
         },
         scanTestTooltip: {
             full: '¿Quieres ver cómo funciona Escanear? <strong>¡Prueba con un recibo de prueba!</strong> Elige nuestro <strong>gestor de prueba</strong> para intentarlo. Ahora, <strong>envía tu gasto</strong> y observa cómo ocurre la magia.',
-            tryItOut: 'Pruébalo',
+            tryItOut: 'Prueba esto',
             noThanks: 'No, gracias',
         },
         outstandingFilter: {
