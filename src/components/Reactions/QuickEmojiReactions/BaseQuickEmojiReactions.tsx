@@ -23,8 +23,8 @@ function BaseQuickEmojiReactions({
 }: BaseQuickEmojiReactionsProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
-    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {initialValue: {}});
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true, initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true, initialValue: {}});
 
     return (
         <View style={styles.quickReactionsContainer}>
