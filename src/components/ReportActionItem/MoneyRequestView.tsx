@@ -168,6 +168,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const isReceiptBeingScanned = hasReceipt && isReceiptBeingScannedTransactionUtils(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
+    /**
+     * We should only display the transaction amount if
+     * the amount can be calculated at the confirmation screen.
+     * For requests such as scan or distance without a route defined,
+     * we won't show the amount.
+     */
     let shouldDisplayTransactionAmount = false;
 
     if (transactionAmount !== undefined) {

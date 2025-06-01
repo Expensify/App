@@ -340,13 +340,13 @@ function MoneyRequestConfirmationList({
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-    const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
 
     let amountToBeUsed = iouAmount;
 
     if (shouldCalculateDistanceAmount) {
         amountToBeUsed = distanceRequestAmount;
     } else if (shouldCalculatePerDiemAmount) {
+        const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
         amountToBeUsed = perDiemRequestAmount;
     }
 
