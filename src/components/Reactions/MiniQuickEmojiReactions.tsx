@@ -36,8 +36,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const ref = useRef<View>(null);
-    const {translate} = useLocalize();
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {initialValue: CONST.LOCALES.DEFAULT});
+    const {translate, preferredLocale} = useLocalize();
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {initialValue: {}});
 
