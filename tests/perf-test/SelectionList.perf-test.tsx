@@ -19,6 +19,7 @@ jest.mock('@components/Icon/Expensicons');
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn(),
+        numberFormat: jest.fn(),
     })),
 );
 
