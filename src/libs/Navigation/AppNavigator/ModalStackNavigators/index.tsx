@@ -6,6 +6,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 import type {
     AddPersonalBankAccountNavigatorParamList,
     AddUnreportedExpensesParamList,
+    AssignCompanyCardNavigatorParamList,
     ConsoleNavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
@@ -243,6 +244,11 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
     [SCREENS.NEW_TASK.DETAILS]: () => require<ReactComponentModule>('../../../../pages/tasks/NewTaskDetailsPage').default,
     [SCREENS.NEW_TASK.TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/NewTaskTitlePage').default,
     [SCREENS.NEW_TASK.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/tasks/NewTaskDescriptionPage').default,
+});
+
+const AssignCompanyCardsModalStackNavigator = createModalStackNavigator<AssignCompanyCardNavigatorParamList>({
+    [SCREENS.COMPANY_CARDS_ASSIGN_CARD.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssignCardFeedPage').default,
+    [SCREENS.COMPANY_CARDS_ASSIGN_CARD.COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardSelectionStep').default,
 });
 
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
@@ -817,4 +823,5 @@ export {
     ConsoleModalStackNavigator,
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
+    AssignCompanyCardsModalStackNavigator
 };

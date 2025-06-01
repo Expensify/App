@@ -656,9 +656,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.route,
                         },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
-                        },
+                        // [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
+                        //     path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
+                        // },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.route,
                         },
@@ -1606,6 +1606,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.COMPANY_CARDS_ASSIGN_CARD]:{
+                    screens: {
+                        [SCREENS.COMPANY_CARDS_ASSIGN_CARD.ROOT]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
+                        },
+                        [SCREENS.COMPANY_CARDS_ASSIGN_CARD.COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD.route,
+                        }
+                    }
+                }
             },
         },
 

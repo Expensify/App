@@ -204,6 +204,7 @@ const SCREENS = {
         DEBUG: 'Debug',
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
+        COMPANY_CARDS_ASSIGN_CARD: 'AssignCompanyCard',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     ONBOARDING_MODAL: {
@@ -325,6 +326,11 @@ const SCREENS = {
         DETAILS: 'NewTask_Details',
         TITLE: 'NewTask_Title',
         DESCRIPTION: 'NewTask_Description',
+    },
+
+    COMPANY_CARDS_ASSIGN_CARD:{
+        ROOT: 'CompanyCards_AssignCard_Root',
+        COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD: 'CompanyCards_AssignCard_SelectCard',
     },
 
     TASK: {

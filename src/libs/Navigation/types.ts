@@ -1434,6 +1434,17 @@ type NewTaskNavigatorParamList = {
     };
 };
 
+type AssignCompanyCardNavigatorParamList = {
+    [SCREENS.COMPANY_CARDS_ASSIGN_CARD.ROOT]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.COMPANY_CARDS_ASSIGN_CARD.COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+}
+
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
@@ -1611,6 +1622,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
+    [SCREENS.RIGHT_MODAL.COMPANY_CARDS_ASSIGN_CARD]: NavigatorScreenParams<AssignCompanyCardNavigatorParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2135,4 +2147,5 @@ export type {
     TestDriveDemoNavigatorParamList,
     SetParamsAction,
     WorkspacesTabNavigatorName,
+    AssignCompanyCardNavigatorParamList,
 };

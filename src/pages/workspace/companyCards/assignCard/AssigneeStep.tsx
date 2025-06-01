@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import ROUTES from '@src/ROUTES';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
@@ -65,6 +66,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
                 isEditing: false,
             });
+            policy && Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD.getRoute(policy?.id, feed));
             return;
         }
 
@@ -99,6 +101,9 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
+            // policy && Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policy?.id, feed));
             return;
         }
         Navigation.goBack();

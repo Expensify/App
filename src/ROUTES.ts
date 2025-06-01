@@ -1648,6 +1648,11 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
         getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card`, backTo),
     },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD:{
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card/assignee',
+        getRoute: (policyID: string, feed: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card/assignee`, backTo),
+    },
     WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card/transaction-start-date',
         getRoute: (policyID: string, feed: string, backTo?: string) =>
