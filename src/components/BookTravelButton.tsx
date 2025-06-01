@@ -90,15 +90,21 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
             setErrorMessage(
                 <RenderHtml
                     contentWidth={width}
-                    source={{html: translate('travel.phoneError.full')}}
+                    source={{
+                        html: translate('travel.phoneError.full').replace('<a>', `<a style="color: ${styles.link.color}; text-decoration: none;">`),
+                    }}
                     tagsStyles={{
                         a: {...StyleUtils.getDotIndicatorTextStyles(true), ...styles.link},
                         p: {...styles.flexRow, ...StyleUtils.getDotIndicatorTextStyles(true)},
                         body: {...styles.flexRow, ...StyleUtils.getDotIndicatorTextStyles(true)},
                     }}
-                    enableExperimentalMarginCollapsing={true}
-                    defaultTextProps={{style: [StyleUtils.getDotIndicatorTextStyles(true)]}}
-                    onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
+                    renderersProps={{
+                        a: {
+                            onPress: (_event: any, href: string) => {
+                                Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()));
+                            },
+                        },
+                    }}
                 />,
             );
             return;
