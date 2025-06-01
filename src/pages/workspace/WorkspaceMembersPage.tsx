@@ -21,8 +21,7 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionList/type
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -71,9 +70,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
-    WithCurrentUserPersonalDetailsProps &
-    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert
@@ -85,7 +82,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({personalDetails, route, policy, currentUserPersonalDetails}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     const {policyMemberEmailsToAccountIDs, employeeListDetails} = useMemo(() => {
         const emailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, true);
         const details = Object.keys(policy?.employeeList ?? {}).reduce<Record<number, PolicyEmployee>>((acc, email) => {
@@ -99,6 +96,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         }, {});
         return {policyMemberEmailsToAccountIDs: emailsToAccountIDs, employeeListDetails: details};
     }, [policy?.employeeList]);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
@@ -112,7 +110,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
-    const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const filterEmployees = useCallback(
         (employee?: PolicyEmployee) => {
@@ -205,8 +203,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             newErrors[member] = translate('workspace.people.error.cannotRemove');
         });
         setErrors(newErrors);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [selectedEmployees, policy?.owner, session?.accountID]);
+    }, [selectedEmployees, policy?.ownerAccountID, session?.accountID, translate]);
 
     useEffect(() => {
         getWorkspaceMembers();
@@ -214,7 +211,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     useEffect(() => {
         validateSelection();
-    }, [preferredLocale, validateSelection]);
+    }, [validateSelection]);
 
     useEffect(() => {
         if (removeMembersConfirmModalVisible && !lodashIsEqual(accountIDs, prevAccountIDs)) {
@@ -812,4 +809,4 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
 WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 
-export default withCurrentUserPersonalDetails(withPolicyAndFullscreenLoading(WorkspaceMembersPage));
+export default withPolicyAndFullscreenLoading(WorkspaceMembersPage);

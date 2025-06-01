@@ -7,7 +7,6 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type {KeyboardStateContextValue} from '@components/withKeyboardState';
-import type {WithLocalizeProps} from '@components/withLocalize';
 import variables from '@styles/variables';
 
 type SelectionListWrapperProps = {
@@ -22,20 +21,6 @@ jest.mock('@hooks/useLocalize', () =>
         translate: jest.fn(),
     })),
 );
-
-jest.mock('@components/withLocalize', <TProps extends WithLocalizeProps>() => (Component: ComponentType<TProps>) => {
-    function WrappedComponent(props: Omit<TProps, keyof WithLocalizeProps>) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
-                translate={() => ''}
-            />
-        );
-    }
-    WrappedComponent.displayName = `WrappedComponent`;
-    return WrappedComponent;
-});
 
 jest.mock('@hooks/useNetwork', () =>
     jest.fn(() => ({
