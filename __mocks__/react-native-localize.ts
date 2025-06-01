@@ -1,6 +1,6 @@
 // use a provided translation, or return undefined to test your fallback
 const findBestAvailableLanguage = () => ({
-    languageTag: "en",
+    languageTag: 'en',
     isRTL: false,
 });
 
