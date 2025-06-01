@@ -1890,6 +1890,8 @@ const ROUTES = {
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     SHARE_ROOT: 'share/root',
+    SHARE_ROOT_SHARE: 'share/root/share',
+    SHARE_ROOT_SUBMIT: 'share/root/submit',
     SHARE_DETAILS: {
         route: 'share/share-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}` as const,
