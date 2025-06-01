@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchFilterKey, SingularSearchStatus} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -50,6 +50,16 @@ type SectionType = {
 };
 
 const baseFilterConfig = {
+    type: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.type' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
+    },
+    status: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.status' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
+    },
     date: {
         getTitle: getFilterDisplayTitle,
         description: 'common.date' as const,
@@ -183,7 +193,14 @@ const baseFilterConfig = {
  */
 const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+        ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -208,7 +225,14 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+        ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -230,7 +254,14 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+        ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -253,21 +284,25 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TASK]: [
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
         ],
     ],
@@ -409,6 +444,25 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
         const filterValue = filters[nonDateFilterKey];
         return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`) : undefined;
+    }
+
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
+        const filterValue = filters[nonDateFilterKey];
+        return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
+    }
+
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
+        let filterValue = filters[nonDateFilterKey];
+
+        if (!filterValue?.length) {
+            return undefined;
+        }
+
+        if (typeof filterValue === 'string') {
+            filterValue = filterValue.split(',');
+        }
+
+        return filterValue.map((value) => translate(`search.filters.${value as SingularSearchStatus}`)).join(', ');
     }
 
     const filterValue = filters[nonDateFilterKey];
@@ -617,7 +671,12 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
-                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
+                    } else if (
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
+                    ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
                         if (!shouldDisplayWorkspaceFilter) {
@@ -654,7 +713,7 @@ function AdvancedSearchFilters() {
     ];
 
     sections.forEach((section) => {
-        section.items.sort((a, b) => localeCompare(a.description, b.description));
+        section.items.sort((a, b) => (a.key === 'type' || b.key === 'type' ? 1 : localeCompare(a.description, b.description)));
     });
 
     return (
