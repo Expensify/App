@@ -20,7 +20,7 @@ import type {GenericTooltipProps} from './types';
 function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
-    maxWidth = variables.tooltipWidth,
+    maxWidth = variables.sideBarWidth - 2*variables.tooltipMargin,
     text = '',
     renderTooltipContent,
     renderTooltipContentKey = [],
