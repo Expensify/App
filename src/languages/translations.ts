@@ -1,6 +1,5 @@
 import en from './en';
 import es from './es';
-import esES from './es-ES';
 import type {FlatTranslationsObject, TranslationDeepObject} from './types';
 
 /**
@@ -45,6 +44,4 @@ export function flattenObject<TTranslations>(obj: TranslationDeepObject<TTransla
 export default {
     en: flattenObject(en),
     es: flattenObject(es),
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    'es-ES': flattenObject(esES),
 };
