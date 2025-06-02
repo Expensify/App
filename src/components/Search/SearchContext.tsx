@@ -18,13 +18,13 @@ const defaultSearchContext: SearchContext = {
     ...defaultSearchContextData,
     lastSearchType: undefined,
     isExportMode: false,
-    shouldShowStatusBarLoading: false,
     shouldShowExportModeOption: false,
+    shouldShowFiltersBarLoading: false,
     setLastSearchType: () => {},
     setCurrentSearchHash: () => {},
     setSelectedTransactions: () => {},
     clearSelectedTransactions: () => {},
-    setShouldShowStatusBarLoading: () => {},
+    setShouldShowFiltersBarLoading: () => {},
     setShouldShowExportModeOption: () => {},
     setExportMode: () => {},
 };
@@ -34,7 +34,7 @@ const Context = React.createContext<SearchContext>(defaultSearchContext);
 function SearchContextProvider({children}: ChildrenProps) {
     const [shouldShowExportModeOption, setShouldShowExportModeOption] = useState(false);
     const [isExportMode, setExportMode] = useState(false);
-    const [shouldShowStatusBarLoading, setShouldShowStatusBarLoading] = useState(false);
+    const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
 
@@ -110,8 +110,8 @@ function SearchContextProvider({children}: ChildrenProps) {
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
-            shouldShowStatusBarLoading,
-            setShouldShowStatusBarLoading,
+            shouldShowFiltersBarLoading,
+            setShouldShowFiltersBarLoading,
             lastSearchType,
             setLastSearchType,
             shouldShowExportModeOption,
@@ -124,7 +124,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
-            shouldShowStatusBarLoading,
+            shouldShowFiltersBarLoading,
             lastSearchType,
             shouldShowExportModeOption,
             setShouldShowExportModeOption,
