@@ -247,13 +247,6 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 }
 
 /**
- * Stores in Onyx the policy ID of the last workspace that was accessed by the user via workspace switcher
- */
-function updateLastAccessedWorkspaceSwitcher(policyID: OnyxEntry<string>) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID, policyID ?? null);
-}
-
-/**
  * Checks if the currency is supported for direct reimbursement
  * USD currency is the only one supported in NewDot for now
  */
@@ -1093,6 +1086,27 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 value: {
                     private_isArchived: false,
                 },
+            });
+            const currentTime = DateUtils.getDBTime();
+            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
+            Object.values(reportActions).forEach((action) => {
+                if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                    return;
+                }
+                workspaceMembersChats.onyxOptimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                    value: {
+                        private_isArchived: null,
+                    },
+                });
+                workspaceMembersChats.onyxFailureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                    value: {
+                        private_isArchived: currentTime,
+                    },
+                });
             });
             return;
         }
@@ -2104,7 +2118,12 @@ function buildPolicyData(
         companySize,
     };
 
-    if (introSelected !== undefined && !introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
+    if (
+        introSelected !== undefined &&
+        (introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !introSelected?.createWorkspace) &&
+        engagementChoice &&
+        shouldAddOnboardingTasks
+    ) {
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -3169,13 +3188,16 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     taxRates: {
                         ...defaultTaxRates,
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
-                                acc[taxKey] = {
-                                    ...defaultTaxRates.taxes[taxKey],
-                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                };
-                                return acc;
-                            }, {} as Record<string, TaxRate & {pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}>),
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (acc, taxKey) => {
+                                    acc[taxKey] = {
+                                        ...defaultTaxRates.taxes[taxKey],
+                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    };
+                                    return acc;
+                                },
+                                {} as Record<string, TaxRate & {pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}>,
+                            ),
                         },
                     },
                 },
@@ -3188,10 +3210,13 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
-                                acc[taxKey] = {pendingAction: null};
-                                return acc;
-                            }, {} as Record<string, {pendingAction: null}>),
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (acc, taxKey) => {
+                                    acc[taxKey] = {pendingAction: null};
+                                    return acc;
+                                },
+                                {} as Record<string, {pendingAction: null}>,
+                            ),
                         },
                     },
                 },
@@ -3224,7 +3249,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         },
     ];
-    optimisticData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []));
+    optimisticData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.optimisticData ?? []) : []));
 
     const successData: OnyxUpdate[] = [
         {
@@ -3237,7 +3262,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         },
     ];
-    successData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []));
+    successData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.successData ?? []) : []));
 
     const failureData: OnyxUpdate[] = [
         {
@@ -3253,7 +3278,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         },
     ];
-    failureData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []));
+    failureData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.failureData ?? []) : []));
 
     const onyxData: OnyxData = {
         optimisticData,
@@ -4325,6 +4350,57 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
     API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);
 }
 
+function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEnabled: boolean) {
+    const policy = getPolicy(policyID);
+
+    const originalIsAttendeeTrackingEnabled = !!policy?.isAttendeeTrackingEnabled;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isAttendeeTrackingEnabled,
+                    pendingFields: {
+                        isAttendeeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isAttendeeTrackingEnabled: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isAttendeeTrackingEnabled: originalIsAttendeeTrackingEnabled,
+                    pendingFields: {isAttendeeTrackingEnabled: null},
+                    errorFields: {isAttendeeTrackingEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        enabled: isAttendeeTrackingEnabled,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_ATTENDEE_TRACKING_ENABLED, parameters, onyxData);
+}
+
 function getAdminPolicies(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL);
 }
@@ -5275,7 +5351,7 @@ export {
     payAndDowngrade,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
-    updateLastAccessedWorkspaceSwitcher,
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
+    setPolicyAttendeeTrackingEnabled,
 };

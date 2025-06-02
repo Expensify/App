@@ -113,19 +113,19 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             };
         },
         [
-            allCards,
             hash,
             getOverflowMenu,
             shouldShowSavedSearchTooltip,
             hideSavedSearchTooltip,
+            renderSavedSearchTooltip,
             styles.alignItemsCenter,
             styles.mh4,
             styles.pv2,
             styles.productTrainingTooltipWrapper,
-            renderSavedSearchTooltip,
             personalDetails,
             reports,
             taxRates,
+            allCards,
             cardFeedNamesWithType,
             allPolicies,
         ],
@@ -154,11 +154,26 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const savedSearchesMenuItems = useMemo(() => {
+    const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {
+        let savedSearchFocused = false;
+
         if (!savedSearches) {
-            return [];
+            return {
+                isSavedSearchActive: false,
+                savedSearchesMenuItems: [],
+            };
         }
-        return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item, key, index));
+
+        const menuItems = Object.entries(savedSearches).map(([key, item], index) => {
+            const baseMenuItem = createSavedSearchMenuItem(item, key, index);
+            savedSearchFocused ||= !!baseMenuItem.focused;
+            return baseMenuItem;
+        });
+
+        return {
+            savedSearchesMenuItems: menuItems,
+            isSavedSearchActive: savedSearchFocused,
+        };
     }, [createSavedSearchMenuItem, savedSearches]);
 
     const renderSavedSearchesSection = useCallback(
@@ -178,13 +193,18 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     );
 
     const activeItemIndex = useMemo(() => {
+        // If we have a suggested search, then none of the menu items are active
+        if (isSavedSearchActive) {
+            return -1;
+        }
+
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
 
         return flattenedMenuItems.findIndex((item) => {
             const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
             return searchQueryJSON?.hash === hash;
         });
-    }, [hash, typeMenuSections]);
+    }, [hash, isSavedSearchActive, typeMenuSections]);
 
     return (
         <ScrollView
