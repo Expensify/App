@@ -712,6 +712,7 @@ function MoneyReportHeader({
         [CONST.REPORT.SECONDARY_ACTIONS.EXPORT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             text: translate('common.export'),
+            backButtonText: translate('common.export'),
             icon: Expensicons.Export,
             subMenuItems: secondaryExportActions.map((action) => exportDropdownOptions[action]),
         },
