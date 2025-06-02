@@ -1883,6 +1883,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.SUBMIT_EXPENSE]: undefined;
     [SCREENS.SIGN_OUT]: {
         redirectToClassic?: boolean;
+        accountID?: string;
     };
     [SCREENS.ATTACHMENTS]: {
         reportID: string;
