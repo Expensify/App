@@ -84,7 +84,7 @@ describe('Session', () => {
                 }),
             )
 
-            // The next call should be Authenticate since we are reauthenticating
+            // The next call should be Authenticate since we are re-authenticating
             .mockImplementationOnce(() =>
                 Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
@@ -234,7 +234,7 @@ describe('Session', () => {
 
         expect(asyncOpenURL).toHaveBeenCalledWith(
             expect.any(Promise),
-            `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}?clean=true&signedOutFromNewExpensify=true`,
+            `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}?clean=true&signedOutFromNewExpensify=true&accountID=1`,
             true,
             true,
         );
