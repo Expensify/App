@@ -44,8 +44,10 @@ on:
 
     outputs:
       ANDROID_LINK:
+        description: The link to the Android build.
         value: ${{ jobs.androidHybrid.outputs.S3_APK_PATH }}
       IOS_LINK:
+        description: The link to the iOS build.
         value: ${{ jobs.iosHybrid.outputs.IOS_PATH }}
 
 env:
