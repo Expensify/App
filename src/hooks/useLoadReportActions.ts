@@ -66,7 +66,7 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
                 }
                 // Oldest = last matching action we encounter
                 currentReportOldestAction = action;
-            } else if (targetReportID === transactionThreadReport?.reportID) {
+            } else if (!isEmptyObject(transactionThreadReport) && transactionThreadReport?.reportID === targetReportID) {
                 // Same logic for transaction thread
                 if (!transactionThreadNewestAction) {
                     transactionThreadNewestAction = action;
