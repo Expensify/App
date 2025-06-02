@@ -13,8 +13,10 @@ import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import SubmitButtonShadow from './SubmitButtonShadow';
 
@@ -27,14 +29,11 @@ type ReceiptPreviewsProps = {
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
 
-    /** Callback to open the receipt view modal */
-    onOpenModal: () => void;
-
     /** Method to disable swipe between tabs */
     setTabSwipeDisabled?: (isDisabled: boolean) => void;
 };
 
-function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled, onOpenModal}: ReceiptPreviewsProps) {
+function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -49,8 +48,8 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled, onOpe
     const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
             Object.values(items ?? {})
-                .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
-                .filter((receipt): receipt is ReceiptWithTransactionID => !!receipt),
+                .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID, reportID: transaction.reportID} : undefined))
+                .filter((receipt): receipt is ReceiptWithTransactionID & {reportID: string} => !!receipt),
         canBeMissing: true,
     });
     const receipts = useMemo(() => {
@@ -94,7 +93,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled, onOpe
                 accessible
                 accessibilityLabel={translate('common.receipt')}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                onPress={onOpenModal}
+                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.getRoute(item.transactionID, item.reportID))}
             >
                 <Image
                     source={{uri: item.source}}

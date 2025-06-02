@@ -79,7 +79,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import ReceiptPreviews from './ReceiptPreviews';
-import ReceiptViewModal from './ReceiptViewModal';
 import type IOURequestStepScanProps from './types';
 import type {ReceiptFile} from './types';
 
@@ -100,13 +99,6 @@ function IOURequestStepScan({
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
-    const [isReceiptModalVisible, setIsReceiptModalVisible] = useState(false);
-    const [currentSelectedIndex, setCurrentSelectedIndex] = useState(0);
-
-    const handleDeleteReceipt = useCallback((index: number) => {
-        // Delete the receipt at the specified index
-    }, []);
-
     const [elementTop, setElementTop] = useState(0);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const hasFlash = !!device?.hasFlash;
@@ -114,7 +106,8 @@ function IOURequestStepScan({
     const [flash, setFlash] = useState(false);
     // TODO: remove when multi-scan functionality is removed from beta
     const {canUseMultiScan: canUseMultiScanBeta} = usePermissions();
-    const canUseMultiScan = true;
+    const canUseMultiScan = canUseMultiScanBeta && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
+
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -916,10 +909,9 @@ function IOURequestStepScan({
                 </View>
 
                 <ReceiptPreviews
-                    isMultiScanEnabled
+                    isMultiScanEnabled={isMultiScanEnabled}
                     submit={submitReceipts}
                     setTabSwipeDisabled={setTabSwipeDisabled}
-                    onOpenModal={() => setIsReceiptModalVisible(true)}
                 />
 
                 {startLocationPermissionFlow && !!receiptFiles.length && (
@@ -933,13 +925,6 @@ function IOURequestStepScan({
                         }}
                     />
                 )}
-                <ReceiptViewModal
-                    sources={receiptFiles}
-                    isOpen={isReceiptModalVisible}
-                    selectedIndex={currentSelectedIndex}
-                    onClose={() => setIsReceiptModalVisible(false)}
-                    onDelete={handleDeleteReceipt}
-                />
             </View>
         </StepScreenWrapper>
     );
