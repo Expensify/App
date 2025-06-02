@@ -5,7 +5,7 @@ import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
-import type { Reservation } from './Transaction';
+import type {Reservation} from './Transaction';
 
 /** Types of join workspace resolutions */
 type JoinWorkspaceResolution = ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
@@ -503,7 +503,7 @@ type OriginalMessageTravelUpdate = Reservation & UpdateOperationType;
 
 /** Travel update operation type */
 type UpdateOperationType = {
-     /** Type of operation */
+    /** Type of operation */
     operation: ValueOf<typeof CONST.TRAVEL.UPDATE_OPERATION_TYPE>;
 };
 

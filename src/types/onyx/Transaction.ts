@@ -317,7 +317,7 @@ type Gate = {
 
     /** Specific gate number */
     gate: string;
-}
+};
 
 /** Model of trip reservation time details */
 type ReservationTimeDetails = {
