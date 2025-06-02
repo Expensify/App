@@ -100,11 +100,12 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
     const draftTransactionsSet = draftTransactions.reduce(
         (acc, item) => {
             if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                return acc;
+            }
+            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
             return acc;
-        }
-        acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
-        return acc;
-    }, {} as Record<string, null>,
+        },
+        {} as Record<string, null>,
     );
     Onyx.multiSet(draftTransactionsSet);
 }
