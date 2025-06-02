@@ -1,6 +1,7 @@
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
+import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import * as XLSX from 'xlsx';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +13,7 @@ import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from './AttachmentModal';
 import Button from './Button';
@@ -45,6 +47,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
     const panResponder = useRef(
         PanResponder.create({
@@ -96,7 +99,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
                 const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
 
-                setSpreadsheetData(formattedSpreadsheetData, fileURI)
+                setSpreadsheetData(formattedSpreadsheetData, fileURI, spreadsheet?.isImportingMultiLevelTags ?? false)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })
