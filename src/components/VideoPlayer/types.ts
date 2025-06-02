@@ -9,7 +9,7 @@ type VideoWithOnFullScreenUpdate = Video & {
     _onFullscreenUpdate: (event: VideoFullscreenUpdateEvent) => void;
 
     /** Stores the playing state of the video player */
-    isPlay?: boolean;
+    isPlaying?: boolean;
 };
 
 type VideoPlayerProps = {

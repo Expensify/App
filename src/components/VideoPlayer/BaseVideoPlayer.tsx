@@ -248,7 +248,7 @@ function BaseVideoPlayer(
 
             // Update play status
             if (videoPlayerRef.current) {
-                videoPlayerRef.current.isPlay = isVideoPlaying;
+                videoPlayerRef.current.isPlaying = isVideoPlaying;
             }
 
             preventPausingWhenExitingFullscreen(isVideoPlaying);

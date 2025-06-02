@@ -91,7 +91,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
             const {isFocused, isOnAttachModal} = isUserRemainOnReportScreen();
             if (isFocused) {
                 // Resume video playback when navigating to it in the attachment modal or keep after closing the modal
-                if (!!videoPlayerRef.current?.isPlay || isOnAttachModal) {
+                if (!!videoPlayerRef.current?.isPlaying || isOnAttachModal) {
                     videoPlayerRef.current?.setStatusAsync({shouldPlay: true}).catch(() => {});
                 }
                 return;
