@@ -86,6 +86,9 @@ type MenuItemBaseProps = {
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Styles to apply on the title wrapper */
+    titleWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Any additional styles to apply on the outer element */
     containerStyle?: StyleProp<ViewStyle>;
 
@@ -396,6 +399,7 @@ function MenuItem(
         badgeText,
         style,
         wrapperStyle,
+        titleWrapperStyle,
         outerWrapperStyle,
         containerStyle,
         titleStyle,
@@ -834,7 +838,7 @@ function MenuItem(
                                                             </Text>
                                                         )}
                                                         {(!!title || !!shouldShowTitleIcon) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />

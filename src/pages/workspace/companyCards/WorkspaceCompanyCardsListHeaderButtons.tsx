@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -30,6 +31,7 @@ import {
 } from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import CONST from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -81,6 +83,18 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, bankName, Navigation.getActiveRoute()));
     };
 
+    const secondaryActions = useMemo(
+        () => [
+            {
+                icon: Expensicons.Gear,
+                text: translate('common.settings'),
+                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID)),
+                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            },
+        ],
+        [policyID, translate],
+    );
+
     return (
         <View>
             <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
@@ -104,11 +118,14 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                             style={shouldChangeLayout && styles.flex1}
                         />
                     )}
-                    <Button
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID))}
-                        icon={Expensicons.Gear}
-                        text={translate('common.settings')}
-                        style={shouldChangeLayout && styles.flex1}
+                    <ButtonWithDropdownMenu
+                        success={false}
+                        onPress={() => {}}
+                        shouldAlwaysShowDropdownMenu
+                        customText={translate('common.more')}
+                        options={secondaryActions}
+                        isSplitButton={false}
+                        wrapperStyle={styles.flexGrow0}
                     />
                 </View>
             </View>
