@@ -643,7 +643,7 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
 
     return showChatPreviewLine && formattedLastMessageText
         ? formattedLastMessageTextWithPrefix
-        : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
+        : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
 }
 
 /**
@@ -785,7 +785,7 @@ function getLastMessageTextForReport(
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
         isMarkAsClosedAction(lastReportAction)
     ) {
-        const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? getOriginalMessage(lastReportAction)?.harvesting ?? false : false;
+        const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? (getOriginalMessage(lastReportAction)?.harvesting ?? false) : false;
         if (wasSubmittedViaHarvesting) {
             lastMessageTextFromReport = translateLocal('iou.automaticallySubmitted');
         } else {
@@ -922,7 +922,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
         result.allReportErrors = reportAttributesDerivedValue?.[report.reportID]?.reportErrors ?? {};
         result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
+        result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat) : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
@@ -948,7 +948,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         // lastActorAccountID can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const lastActorAccountID = report.lastActorAccountID || lastAction?.actorAccountID;
-        const lastActorDetails = lastActorAccountID ? personalDetails?.[lastActorAccountID] ?? null : null;
+        const lastActorDetails = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, reportNameValuePairs);
         let lastMessageText = lastMessageTextFromReport;
@@ -1153,7 +1153,7 @@ function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyT
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchTerm)));
-    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+    return parsedPhoneNumber.possible ? (parsedPhoneNumber.number?.e164 ?? '') : searchTerm.toLowerCase();
 }
 
 /**
@@ -1598,7 +1598,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 
             if (reportPreviewAction) {
                 const iouReportID = getIOUReportIDFromReportActionPreview(reportPreviewAction);
-                const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] ?? [] : [];
+                const iouReportActions = iouReportID ? (allSortedReportActions[iouReportID] ?? []) : [];
                 const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                 if (lastIOUAction) {
                     lastIOUCreationDate = lastIOUAction.lastModified;
