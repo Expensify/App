@@ -73,7 +73,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
             const newIDs = isChat ? reportActionsIDs : transactionsIDs;
             const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDs.includes(id));
-            
+
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
             if (!hasAGenuinelyNewID && existingSearchResultIDs.length > 0) {
