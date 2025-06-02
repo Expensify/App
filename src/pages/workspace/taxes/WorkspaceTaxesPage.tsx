@@ -32,6 +32,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -192,7 +193,7 @@ function WorkspaceTaxesPage({
         return taxes.sort((a, b) => {
             const aText = a.text ?? a.keyForList ?? '';
             const bText = b.text ?? b.keyForList ?? '';
-            return aText.localeCompare(bText);
+            return localeCompare(aText, bText);
         });
     }, []);
     const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);

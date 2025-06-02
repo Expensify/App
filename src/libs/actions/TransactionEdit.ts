@@ -96,10 +96,13 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
 
 function removeDraftTransactions() {
     const draftTransactions = getDraftTransactions();
-    const draftTransactionsSet = draftTransactions.reduce((acc, item) => {
-        acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
-        return acc;
-    }, {} as Record<string, null>);
+    const draftTransactionsSet = draftTransactions.reduce(
+        (acc, item) => {
+            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
+            return acc;
+        },
+        {} as Record<string, null>,
+    );
     Onyx.multiSet(draftTransactionsSet);
 }
 
