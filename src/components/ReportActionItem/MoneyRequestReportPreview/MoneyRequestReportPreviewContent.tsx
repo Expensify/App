@@ -484,7 +484,7 @@ function MoneyRequestReportPreviewContent({
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
                 onSelected: () => {
-                    if (policy && policy.id && shouldRestrictUserBillableActions(policy.id)) {
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                         return;
                     }
