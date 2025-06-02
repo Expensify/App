@@ -82,6 +82,14 @@ function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
 }
 
+function canUseTrackFlows(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.TRACK_FLOWS) || canUseAllBetas(betas);
+}
+
+function canUseNewDotSplits(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_SPLITS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -100,5 +108,7 @@ export default {
     canUseMultiLevelTags,
     canUseMultiFilesDragAndDrop,
     canUseMultiScan,
+    canUseNewDotSplits,
     canUsePlaidCompanyCards,
+    canUseTrackFlows,
 };
