@@ -2,7 +2,7 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import * as Localize from '@libs/Localize';
-import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {isFullScreenName, isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -11,9 +11,7 @@ import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
     handleOpenWorkspaceSplitAction,
-    handlePushReportSplitAction,
-    handlePushSearchPageAction,
-    handlePushSettingsSplitAction,
+    handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
@@ -81,18 +79,11 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
             }
 
-            if (isPushAction(action)) {
-                if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    return handlePushReportSplitAction(state, action, configOptions, stackRouter);
-                }
-
-                if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-                    return handlePushSearchPageAction(state, action, configOptions, stackRouter);
-                }
-
-                if (action.payload.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
-                    return handlePushSettingsSplitAction(state, action, configOptions, stackRouter);
-                }
+            // When navigating to a specific workspace from WorkspaceListPage there should be entering animation for its sidebar (only case where we want animation for sidebar)
+            // That's why we have a separate handler for opening it called handleOpenWorkspaceSplitAction
+            // options for WorkspaceSplitNavigator can be found in AuthScreens.tsx > getWorkspaceSplitNavigatorOptions
+            if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                return handlePushFullscreenAction(state, action, configOptions, stackRouter);
             }
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.

@@ -51,7 +51,7 @@ function TermsStep({onNext}: SubStepProps) {
 
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
 
-    const errorMessage = error ? translate('common.error.acceptTerms') : ErrorUtils.getLatestErrorMessage(walletTerms ?? {}) ?? '';
+    const errorMessage = error ? translate('common.error.acceptTerms') : (ErrorUtils.getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
