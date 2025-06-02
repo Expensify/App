@@ -14,7 +14,7 @@ type SignOutPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SC
 // This page is responsible for signing out the user when they navigate to the /sign-out route.
 // It will trigger the sign-out process and redirect to the sign-in page.
 function SignOutPage({route}: SignOutPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     useEffect(() => {
         // Extract parameters from route
