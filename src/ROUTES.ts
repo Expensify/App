@@ -2022,39 +2022,48 @@ const ROUTES = {
 
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
-        getRoute: (threadReportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
+        getRoute: (threadReportID: string | undefined, backTo?: string, isFromExpense?: boolean) =>
+            getUrlWithBackToParam(`r/${threadReportID}/duplicates/review?isFromExpense=${isFromExpense}` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
         route: 'r/:threadReportID/duplicates/review/merchant',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/merchant` as const, backTo),
+        getRoute: (threadReportID: string, backTo?: string, isFromExpense?: boolean) =>
+            getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/merchant?isFromExpense=${isFromExpense}` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE: {
         route: 'r/:threadReportID/duplicates/review/category',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/category` as const, backTo),
+        getRoute: (threadReportID: string, backTo?: string, isFromExpense?: boolean) =>
+            getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/category?isFromExpense=${isFromExpense}` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE: {
         route: 'r/:threadReportID/duplicates/review/tag',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tag` as const, backTo),
+        getRoute: (threadReportID: string, backTo?: string, isFromExpense?: boolean) =>
+            getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tag?isFromExpense=${isFromExpense}` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE: {
         route: 'r/:threadReportID/duplicates/review/tax-code',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tax-code` as const, backTo),
+        getRoute: (threadReportID: string, backTo?: string, isFromExpense?: boolean) =>
+            getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tax-code?isFromExpense=${isFromExpense}` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
         route: 'r/:threadReportID/duplicates/review/description',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/description` as const, backTo),
+        getRoute: (threadReportID: string, backTo?: string, isFromExpense?: boolean) =>
+            getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/description?isFromExpense=${isFromExpense}` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
         route: 'r/:threadReportID/duplicates/review/reimbursable',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/reimbursable` as const, backTo),
+        getRoute: (threadReportID: string, backTo?: string, isFromExpense?: boolean) =>
+            getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/reimbursable?isFromExpense=${isFromExpense}` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
         route: 'r/:threadReportID/duplicates/review/billable',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/billable` as const, backTo),
+        getRoute: (threadReportID: string, backTo?: string, isFromExpense?: boolean) =>
+            getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/billable?isFromExpense=${isFromExpense}` as const, backTo),
     },
     TRANSACTION_DUPLICATE_CONFIRMATION_PAGE: {
         route: 'r/:threadReportID/duplicates/confirm',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
+        getRoute: (threadReportID: string, backTo?: string, isFromExpense?: boolean) =>
+            getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm?isFromExpense=${isFromExpense}` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',

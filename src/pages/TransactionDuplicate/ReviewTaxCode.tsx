@@ -31,6 +31,7 @@ function ReviewTaxRate() {
         'taxCode',
         route.params.threadReportID ?? '',
         route.params.backTo,
+        route.params.isFromExpense,
     );
     const transaction = TransactionUtils.getTransaction(transactionID);
     const options = useMemo(

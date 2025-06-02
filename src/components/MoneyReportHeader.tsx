@@ -598,7 +598,7 @@ function MoneyReportHeader({
                     if (!threadID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
+                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID, undefined, true));
                 }}
             />
         ),

@@ -5,7 +5,7 @@ import ROUTES from '@src/ROUTES';
 
 type StepName = 'description' | 'merchant' | 'category' | 'billable' | 'tag' | 'taxCode' | 'reimbursable' | 'confirmation';
 
-function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: StepName, threadReportID: string, backTo?: string) {
+function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: StepName, threadReportID: string, backTo?: string, isFromExpense?: boolean) {
     const [nextScreen, setNextScreen] = useState<StepName>();
     const [prevScreen, setPrevScreen] = useState<StepName>();
     const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
@@ -27,28 +27,28 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     const goBack = () => {
         switch (prevScreen) {
             case 'merchant':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'category':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'tag':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'description':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'taxCode':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'reimbursable':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'billable':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             default:
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
         }
     };
@@ -56,28 +56,28 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     const navigateToNextScreen = () => {
         switch (nextScreen) {
             case 'merchant':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'category':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'tag':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'description':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'taxCode':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'reimbursable':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             case 'billable':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
             default:
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(threadReportID, backTo, isFromExpense));
                 break;
         }
     };

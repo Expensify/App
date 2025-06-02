@@ -26,6 +26,7 @@ function ReviewMerchant() {
         'merchant',
         route.params.threadReportID ?? '',
         route.params.backTo,
+        route.params.isFromExpense,
     );
     const options = useMemo(
         () =>
