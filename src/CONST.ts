@@ -38,6 +38,7 @@ const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
+const keyModifierShift = KeyCommand?.constants?.keyModifierShift ?? 'keyModifierShift';
 const keyModifierShiftControl = KeyCommand?.constants?.keyModifierShiftControl ?? 'keyModifierShiftControl';
 const keyModifierShiftCommand = KeyCommand?.constants?.keyModifierShiftCommand ?? 'keyModifierShiftCommand';
 const keyInputEscape = KeyCommand?.constants?.keyInputEscape ?? 'keyInputEscape';
@@ -417,6 +418,9 @@ const CONST = {
         horizontal: 12 + variables.navigationTabBarSize,
         vertical: 72,
     },
+    POPOVER_DROPDOWN_WIDTH: 336,
+    POPOVER_DROPDOWN_MIN_HEIGHT: 0,
+    POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -892,6 +896,14 @@ const CONST = {
         },
     },
     KEYBOARD_SHORTCUTS: {
+        MARK_ALL_MESSAGES_AS_READ: {
+            descriptionKey: 'markAllMessagesAsRead',
+            shortcutKey: 'Escape',
+            modifiers: ['SHIFT'],
+            trigger: {
+                DEFAULT: {input: keyInputEscape, modifierFlags: keyModifierShift},
+            },
+        },
         SEARCH: {
             descriptionKey: 'search',
             shortcutKey: 'K',
@@ -1629,6 +1641,8 @@ const CONST = {
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
+        OPEN_APP: 'open_app',
+        SPLASH_SCREEN: 'splash_screen',
         OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
@@ -3629,11 +3643,14 @@ const CONST = {
         SELF_SELECT: '__predefined_selfSelect',
     },
 
-    EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce((prev, [, email]) => {
-        // eslint-disable-next-line no-param-reassign
-        prev[email] = true;
-        return prev;
-    }, {} as Record<string, boolean>),
+    EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce(
+        (prev, [, email]) => {
+            // eslint-disable-next-line no-param-reassign
+            prev[email] = true;
+            return prev;
+        },
+        {} as Record<string, boolean>,
+    ),
     EXPENSIFY_EMAILS: [
         EMAIL.ACCOUNTING,
         EMAIL.ACCOUNTS_PAYABLE,
@@ -5493,15 +5510,9 @@ const CONST = {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
                     title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
                     description: ({integrationName, workspaceAccountingLink}) =>
@@ -6523,6 +6534,7 @@ const CONST = {
     },
 
     SEARCH: {
+        NEVER: 'never',
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
             EXPENSE: 'expense',
@@ -6619,7 +6631,6 @@ const CONST = {
             TAX_AMOUNT: 'taxAmount',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             IN: 'in',
         },
         SYNTAX_OPERATORS: {
@@ -6648,6 +6659,8 @@ const CONST = {
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
+            PAYER: 'payer',
+            EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
             TAX_RATE: 'taxRate',
@@ -6663,7 +6676,6 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
@@ -6689,6 +6701,8 @@ const CONST = {
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
+            PAYER: 'payer',
+            EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
             TAX_RATE: 'tax-rate',
@@ -6704,13 +6718,13 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'created-by',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
+            ON: 'On',
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
