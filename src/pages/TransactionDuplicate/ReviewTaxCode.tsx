@@ -33,6 +33,8 @@ function ReviewTaxRate() {
         route.params.backTo,
         route.params.isFromExpense,
     );
+    // Will be handled in this PR https://github.com/Expensify/App/pull/62434
+    // eslint-disable-next-line deprecation/deprecation
     const transaction = getTransaction(transactionID);
     const options = useMemo(
         () =>
