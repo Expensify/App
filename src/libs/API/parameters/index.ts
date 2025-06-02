@@ -99,6 +99,7 @@ export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdenti
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
 export type {default as AddCommentOrAttachmentParams} from './AddCommentOrAttachmentParams';
 export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
+export type {default as MarkAllMessagesAsReadParams} from './MarkAllMessagesAsReadParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
 export type {default as DeleteCommentParams} from './DeleteCommentParams';
