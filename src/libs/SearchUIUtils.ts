@@ -411,7 +411,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             accountID: transactionItem.accountID,
             managerID: transactionItem.managerID,
             reportID: transactionItem.reportID,
-            pendingAction: transactionItem.pendingAction,
+            ...(transactionItem.pendingAction ? {pendingAction: transactionItem.pendingAction}: {}),
             transactionThreadReportID: transactionItem.transactionThreadReportID,
             isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
             tag: transactionItem.tag,
