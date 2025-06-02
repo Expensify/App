@@ -44,7 +44,7 @@ All automatic report submissions occur in the evening Pacific Standard Time (PST
 
 ## What happens if Delay Submissions is enabled on both the Individual and Company Workspace?
 
-The Company Workspace settings override the Individual Workspace settings.
+The Company Workspace settings override the Individual Workspace settings. However, if your Company Workspace is configured to **Manually** submit reports, but an employee has Delay Submissions enabled on their **Individual Workspace** with a set frequency (like daily or weekly), their personal settings will control submission timing. Reports will be submitted automatically based on the frequency selected in their personal workspace.
 
 ## Does Delay Submissions automatically create separate reports for each of my credit cards?
 
@@ -53,9 +53,5 @@ No. All expenses are collected into a single report and submitted based on the s
 If you need reports separated by card:
 - Manually create reports for each card and assign expenses accordingly.
 - Use filters to group expenses by card before assigning them to reports.
-
-## Why does “Manually” Delay Submission still result in automatic submissions?
-
-If your Workspace is configured to **Manually** submit reports, but an employee has Delay Submissions enabled on their **Individual Workspace** with a set frequency (like daily or weekly), their personal settings will control submission timing. Reports will be submitted automatically based on the frequency selected in their personal workspace.
 
 </div>
