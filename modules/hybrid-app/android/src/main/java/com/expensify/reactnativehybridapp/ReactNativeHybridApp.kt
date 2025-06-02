@@ -36,4 +36,8 @@ class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
   override fun sendAuthToken(authToken: String?) {
     Log.d(NAME, "`sendAuthToken` should never be called in standalone `New Expensify` app")
   }
+
+  override fun allowSendingThroughLinking() {
+      Log.d(NAME, "`allowSendingThroughLinking` should never be called in standalone `New Expensify` app")
+    }
 }
