@@ -26,6 +26,7 @@ import Performance from './Performance';
 import {getCleanedTagName, getPolicy} from './PolicyUtils';
 import {
     getCardIssuedMessage,
+    getIntegrationSyncFailedMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
@@ -78,7 +79,6 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -538,6 +538,7 @@ function getOptionData({
     if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDetails) {
         lastActorDetails.accountID = lastAction.actorAccountID;
     }
+
     if (!lastActorDetails && lastAction) {
         const lastActorDisplayName = lastAction?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
@@ -613,6 +614,8 @@ function getOptionData({
             result.alternateText = translateLocal('workspaceActions.upgradedWorkspace');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
             result.alternateText = translateLocal('workspaceActions.downgradedWorkspace');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
+            result.alternateText = getIntegrationSyncFailedMessage(lastAction);
         } else if (
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
@@ -670,13 +673,13 @@ function getOptionData({
                     : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
 
             if (!result.alternateText) {
-                result.alternateText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
+                result.alternateText = formatReportLastMessageText(getWelcomeMessage(report, policy, !!result.private_isArchived).messageText ?? translateLocal('report.noActivityYet'));
             }
         }
         result.alternateText = prefix + result.alternateText;
     } else {
         if (!lastMessageText) {
-            lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
+            lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy, !!result.private_isArchived).messageText ?? translateLocal('report.noActivityYet'));
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isArchivedReport(reportNameValuePairs)) {
             result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
@@ -714,14 +717,14 @@ function getOptionData({
     return result;
 }
 
-function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): WelcomeMessage {
+function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
     if (isChatThread(report) || isTaskReport(report)) {
         return welcomeMessage;
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(report);
+        return getRoomWelcomeMessage(report, isReportArchived);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -779,7 +782,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
 /**
  * Get welcome message based on room type
  */
-function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
+function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = false): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
     const workspaceName = getPolicyName({report});
 
@@ -789,11 +792,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
-    if (isArchivedReport(reportNameValuePairs)) {
+    if (isReportArchived) {
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {
