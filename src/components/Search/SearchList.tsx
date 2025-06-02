@@ -381,6 +381,7 @@ function SearchList(
         ({item, index}: {item: SearchListItem; index: number}) => {
             const isItemFocused = focusedIndex === index;
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
+            const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
                 <ListItem
@@ -411,6 +412,7 @@ function SearchList(
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     queryJSONHash={queryJSONHash}
                     policies={policies}
+                    isDisabled={isDisabled}
                 />
             );
         },

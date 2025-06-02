@@ -27,7 +27,6 @@ function TransactionListItem<TItem extends ListItem>({
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
-    const isPendingDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash} = useSearchContext();
@@ -62,7 +61,7 @@ function TransactionListItem<TItem extends ListItem>({
             wrapperStyle={listItemWrapperStyle}
             containerStyle={[styles.mb2]}
             isFocused={isFocused}
-            isDisabled={isDisabled ?? isPendingDelete}
+            isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
@@ -81,7 +80,7 @@ function TransactionListItem<TItem extends ListItem>({
                     handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
                 }}
                 onCheckboxPress={() => onCheckboxPress?.(item)}
-                isDisabled={!!isDisabled || isPendingDelete}
+                isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
                 shouldShowTransactionCheckbox={false}
