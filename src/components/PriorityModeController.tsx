@@ -46,7 +46,12 @@ export default function PriorityModeController() {
 
     // Listen for state changes and trigger the #focus mode when appropriate
     useEffect(() => {
-        if (hasSwitched.current || !accountID || isLoadingReportData === true || isInFocusMode === true || hasTriedFocusMode === true) {
+        // Wait for Onyx state to fully load
+        if (isLoadingReportData !== false || isInFocusMode === undefined || hasTriedFocusMode === undefined || !accountID) {
+            return;
+        }
+
+        if (hasSwitched.current || isInFocusMode || hasTriedFocusMode) {
             return;
         }
 
