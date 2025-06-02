@@ -1,28 +1,38 @@
 ---
-title: Distance Requests
-description: How to create a distance request and request reimbursement for mileage
+title: Create Distance Requests
+description: Learn how to create a distance request in Expensify and request mileage reimbursement.
+keywords: [New Expensify, distance request, mileage reimbursement, create request, map route, add stops, calculate distance, workspace submission, request money]
 ---
-<!-- The lines above are required by Jekyll to process the .md file -->
+<div id="new-expensify" markdown="1">
 
-# Overview
+Expensify makes it easy to request mileage reimbursement using a built-in map. You can create and send a distance request directly from the web, desktop, or mobile app.
 
-Expensify allows you to request reimbursement for mileage by creating a distance request from a map. You can send a distance request in Expensify's mobile, desktop, or web app.
+---
 
+# Create and Send a Distance Request
 
-# How to create and send a distance request
+To submit a mileage-based expense:
 
-1. Click the green + button and select Request Money.
-2. Select Distance along the top row of the Request Money window.
-3. Enter the Start and Finish addresses then click Next. If there are multiple stops, you can add them before clicking Next.
-4. Choose who to send the request to by selecting your organization's workspace from the list of recent workspaces.
-5. On the confirmation page, confirm the amount, date, distance, and optionally add a description or category. Click the Request button.
-6. A workspace admin will receive your request and can reimburse you through Expensify or elsewhere!
+1. **From the left-hand menu**, click the green **+** button and select **Create expense**.
+2. Select **Distance** from the top row.
+3. Enter your **Start** and **Finish** locations.
+   - To include additional stops, click **Add stop**.
+4. Click **Next**.
+5. Choose a workspace from your recent options or search to select the correct one.
+6. On the confirmation screen, review and confirm:
+   - **Distance**
+   - **Amount**
+   - **Date**
+   - (Optional) Add a **description**, **category**, or **tag**
+7. Click **Create expense** to submit the mileage expense for approval.
 
+A Workspace Admin will be notified of the request and, depending on your workspace settings, can reimburse you through Expensify or another method.
 
+---
 
-{% include faq-begin.md %}
+# FAQ
 
 ## Is there an easy way to reuse recent locations?
+Yes! When selecting the **Start** and **Finish** addresses, recently used locations will appear for quick selection.
 
-Yes! We save your recently used locations and list them out on the page where you select the Start and Finish.
-{% include faq-end.md %}
+</div>
