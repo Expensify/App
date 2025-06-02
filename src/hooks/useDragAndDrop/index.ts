@@ -20,7 +20,7 @@ const useDragAndDrop: UseDragAndDrop = ({
     isDisabled = false,
     shouldAcceptDrop = () => true,
     shouldHandleDragEvent = true,
-    shouldPropagate = true,
+    shouldStopPropagation = true,
 }) => {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -69,7 +69,7 @@ const useDragAndDrop: UseDragAndDrop = ({
             }
 
             event.preventDefault();
-            if (shouldPropagate) {
+            if (shouldStopPropagation) {
                 event.stopPropagation();
             }
 
@@ -104,7 +104,7 @@ const useDragAndDrop: UseDragAndDrop = ({
                     break;
             }
         },
-        [isFocused, isDisabled, shouldAcceptDrop, shouldPropagate, handleDragEvent, isDraggingOver, onDrop],
+        [isFocused, isDisabled, shouldAcceptDrop, shouldStopPropagation, handleDragEvent, isDraggingOver, onDrop],
     );
 
     useEffect(() => {

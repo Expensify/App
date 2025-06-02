@@ -4,7 +4,7 @@ type DragAndDropParams = {
     shouldAllowDrop?: boolean;
     isDisabled?: boolean;
     shouldAcceptDrop?: (event: DragEvent) => boolean;
-    shouldPropagate?: boolean;
+    shouldStopPropagation?: boolean;
     shouldHandleDragEvent?: boolean;
 };
 

@@ -21,7 +21,7 @@ function DropZoneWrapper({onDrop, children}: DropZoneWrapperProps) {
     const {isDraggingOver} = useDragAndDrop({
         shouldAcceptDrop: (event) => !!event.dataTransfer?.types.some((type) => type === 'Files'),
         onDrop,
-        shouldPropagate: false,
+        shouldStopPropagation: false,
         shouldHandleDragEvent: false,
         dropZone: htmlDivElementRef(dropZone),
     });
