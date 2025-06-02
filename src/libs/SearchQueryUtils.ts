@@ -743,6 +743,19 @@ function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
 }
 
 /**
+ * Always show `No category` and `No tag` as the first option
+ */
+const sortOptionsWithEmptyValue = (a: string, b: string) => {
+    if (a === CONST.SEARCH.CATEGORY_EMPTY_VALUE || a === CONST.SEARCH.TAG_EMPTY_VALUE) {
+        return -1;
+    }
+    if (b === CONST.SEARCH.CATEGORY_EMPTY_VALUE || b === CONST.SEARCH.TAG_EMPTY_VALUE) {
+        return 1;
+    }
+    return localeCompare(a, b);
+};
+
+/**
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
 function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => string | string[]) {
@@ -874,5 +887,6 @@ export {
     getQueryWithoutFilters,
     getUserFriendlyKey,
     isDefaultExpensesQuery,
+    sortOptionsWithEmptyValue,
     shouldHighlight,
 };
