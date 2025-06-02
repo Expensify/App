@@ -33,7 +33,7 @@ import {
     getMostRecentlyVisitedReport,
     getParticipantsList,
     getPolicyExpenseChat,
-    getPreviewName,
+    getMoneyReportPreviewName,
     getQuickActionDetails,
     getReportIDFromLink,
     getReportName,
@@ -2797,7 +2797,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getPreviewName', () => {
+    describe('getMoneyReportPreviewName', () => {
         it('should return the report name if present', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
@@ -2807,7 +2807,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 reportName: 'Test Report',
             };
-            const result = getPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe('Test Report');
         });
 
@@ -2821,7 +2821,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 reportName: '',
             };
-            const result = getPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe('Child Report');
         });
     });

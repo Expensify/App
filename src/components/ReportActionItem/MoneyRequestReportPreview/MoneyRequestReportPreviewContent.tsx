@@ -44,7 +44,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
-    getPreviewName,
+    getMoneyReportPreviewName,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -642,7 +642,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getPreviewName(action, iouReport, isInvoice)}
+                                                            {getMoneyReportPreviewName(action, iouReport, isInvoice)}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
                                                     </Text>
