@@ -2006,6 +2006,7 @@ const translations = {
                 label: '中文 (简体)', // @dont-translate
             },
         },
+        aiLanguageHelperText: 'Las traducciones para este idioma se generan automáticamente y pueden contener errores.',
     },
     themePage: {
         theme: 'Tema',

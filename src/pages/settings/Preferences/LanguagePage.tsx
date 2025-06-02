@@ -1,8 +1,6 @@
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
-import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Star} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
@@ -28,12 +26,6 @@ function LanguagePage() {
         keyForList: language,
         isSelected: preferredLocale === language,
         shouldShowRightIcon: true,
-        rightElement: !['en', 'es'].includes(language) && (
-            <Badge
-                text={translate('common.ai')}
-                icon={Star}
-            />
-        ),
     }));
 
     const updateLanguage = (selectedLanguage: LanguageEntry) => {
