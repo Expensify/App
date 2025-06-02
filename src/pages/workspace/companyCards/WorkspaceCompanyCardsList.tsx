@@ -87,24 +87,36 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
         [cardsList, customCardNames, personalDetails, policyID, styles],
     );
 
-    const renderListHeader = useCallback(
-        () => (
-            <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textMicroSupporting, styles.lh16]}
-                >
-                    {translate('common.name')}
-                </Text>
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textMicroSupporting, styles.lh16]}
-                >
-                    {translate('workspace.expensifyCard.lastFour')}
-                </Text>
-            </View>
-        ),
-        [styles, translate],
+    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
+
+    const renderListHeader = (
+        <>
+            {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.companyCards.findCard')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={isSearchEmpty}
+                    style={[styles.mt5]}
+                />
+            )}
+            {!isSearchEmpty && (
+                <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, styles.lh16]}
+                    >
+                        {translate('common.name')}
+                    </Text>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, styles.lh16]}
+                    >
+                        {translate('workspace.expensifyCard.lastFour')}
+                    </Text>
+                </View>
+            )}
+        </>
     );
 
     if (allCards.length === 0) {
@@ -116,27 +128,13 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
         );
     }
 
-    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
-
     return (
-        <>
-            {allCards.length > 0 && (
-                <SearchBar
-                    label={translate('workspace.companyCards.findCard')}
-                    inputValue={inputValue}
-                    onChangeText={setInputValue}
-                    shouldShowEmptyState={isSearchEmpty}
-                    style={[styles.mt5]}
-                />
-            )}
-            <FlatList
-                contentContainerStyle={styles.flexGrow1}
-                data={filteredSortedCards}
-                renderItem={renderItem}
-                ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
-                stickyHeaderIndices={[0]}
-            />
-        </>
+        <FlatList
+            contentContainerStyle={styles.flexGrow1}
+            data={filteredSortedCards}
+            renderItem={renderItem}
+            ListHeaderComponent={renderListHeader}
+        />
     );
 }
 

@@ -58,7 +58,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         if (!isSuccessful) {
             return;
         }
-        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        }
+
         clearIssueNewCardFlow(policyID);
     }, [backTo, policyID, isSuccessful]);
 
@@ -143,7 +148,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     handleSubmitForm={submit}
                     isLoading={issueNewCard?.isLoading}
                     sendValidateCode={requestValidateCodeAction}
-                    validateCodeActionErrorField="createAdminIssuedVirtualCard"
+                    validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
                     validateError={validateError}
                     clearError={() => clearIssueNewCardError(policyID)}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}

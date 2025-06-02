@@ -11,10 +11,10 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
+import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -28,6 +28,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
+import {searchInServer} from '@userActions/Report';
+import {search} from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
@@ -38,13 +40,12 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    searchName?: string;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
 };
 
-function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -107,6 +108,14 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
         Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     }, [searchRouterListVisible]);
 
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search(value);
+        }
+    }, []);
+
     if (!queryJSON) {
         return (
             <ScreenWrapper
@@ -161,15 +170,13 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
                                             setSearchRouterListVisible(true);
                                         }}
                                         headerButtonsOptions={headerButtonsOptions}
+                                        handleSearch={handleSearchAction}
                                     />
                                 </View>
                                 <View style={[styles.appBG]}>
                                     {!searchRouterListVisible && (
-                                        <SearchStatusBar
+                                        <SearchFiltersBar
                                             queryJSON={queryJSON}
-                                            onStatusChange={() => {
-                                                topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
-                                            }}
                                             headerButtonsOptions={headerButtonsOptions}
                                         />
                                     )}
@@ -189,8 +196,8 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
                         />
                         <SearchPageHeader
                             queryJSON={queryJSON}
-                            searchName={searchName}
                             headerButtonsOptions={headerButtonsOptions}
+                            handleSearch={handleSearchAction}
                         />
                     </>
                 )}
@@ -203,6 +210,7 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
                             contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
+                            handleSearch={handleSearchAction}
                         />
                     </View>
                 )}

@@ -13,34 +13,43 @@ import type TransactionDataCellProps from './TransactionDataCellProps';
 // If there is no credit card name, it means it couldn't be a card transaction,
 // so we assume it's cash. Any other type is treated as a card transaction.
 // same in getTypeText
+const getType = (cardName?: string) => {
+    if (!cardName || cardName.includes(CONST.EXPENSE.TYPE.CASH_CARD_NAME)) {
+        return CONST.SEARCH.TRANSACTION_TYPE.CASH;
+    }
+    return CONST.SEARCH.TRANSACTION_TYPE.CARD;
+};
 
 const getTypeIcon = (type?: string) => {
     switch (type) {
-        case CONST.EXPENSE.TYPE.CASH_CARD_NAME:
-            return Expensicons.Cash;
-        case undefined:
-            return Expensicons.Cash;
-        default:
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
             return Expensicons.CreditCard;
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return Expensicons.Car;
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+        default:
+            return Expensicons.Cash;
     }
 };
 
 const getTypeText = (type?: string): TranslationPaths => {
     switch (type) {
-        case CONST.EXPENSE.TYPE.CASH_CARD_NAME:
-            return 'iou.cash';
-        case undefined:
-            return 'iou.cash';
-        default:
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return 'common.distance';
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
             return 'iou.card';
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+        default:
+            return 'iou.cash';
     }
 };
 
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.cardName);
-    const typeText = getTypeText(transactionItem.cardName);
+    const type = transactionItem.transactionType ?? getType(transactionItem.cardName);
+    const typeIcon = getTypeIcon(type);
+    const typeText = getTypeText(type);
     const styles = useThemeStyles();
 
     return shouldUseNarrowLayout ? (

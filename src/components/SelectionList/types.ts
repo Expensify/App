@@ -23,7 +23,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -354,6 +354,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Styles applied for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -372,6 +375,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldDisplayRBR?: boolean;
     /** Test ID of the component. Used to locate this view in end-to-end tests. */
     testID?: string;
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -385,11 +390,46 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
+type SplitListItemType = ListItem &
+    SplitExpense & {
+        /** Item header text */
+        headerText: string;
+
+        /** Merchant or vendor name */
+        merchant: string;
+
+        /** Currency code */
+        currency: string;
+
+        /** ID of split expense */
+        transactionID: string;
+
+        /** Currency symbol */
+        currencySymbol: string;
+
+        /** Original amount before split */
+        originalAmount: number;
+
+        /** Indicates whether a split was opened through this transaction */
+        isTransactionLinked: boolean;
+
+        /** Function for updating amount */
+        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+    };
+
+type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
+type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -451,6 +491,12 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
+
+    /** List of selected items */
+    selectedItems?: string[];
+
+    /** Whether the item is selected */
+    isSelected?: (item: TItem) => boolean;
 
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
@@ -613,6 +659,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
+    /** Whether we should clear the search input when an item is selected */
+    shouldClearInputOnSelect?: boolean;
+
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
 
@@ -711,6 +760,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to scroll to the focused index */
     shouldScrollToFocusedIndex?: boolean;
 
+    /** Whether the layout is narrow */
+    isSmallScreenWidth?: boolean;
+
     /** Called when scrollable content view of the ScrollView changes */
     onContentSizeChange?: (w: number, h: number) => void;
 
@@ -734,6 +786,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Error text to display */
     errorText?: string;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -784,6 +839,8 @@ export type {
     ListItemProps,
     ListItemFocusEventHandler,
     RadioListItemProps,
+    SingleSelectListItemProps,
+    MultiSelectListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
@@ -797,8 +854,11 @@ export type {
     TransactionListItemType,
     TransactionSelectionListItem,
     UserListItemProps,
+    UserSelectionListItemProps,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
+    SplitListItemProps,
+    SplitListItemType,
     SearchListItem,
 };

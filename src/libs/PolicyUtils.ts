@@ -32,11 +32,10 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {hasSynchronizationErrorMessage} from './actions/connections';
+import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
-import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -75,12 +74,6 @@ Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
     callback: (value) => (isLoadingReportData = value ?? false),
-});
-
-let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val ?? null),
 });
 
 /**
@@ -241,7 +234,7 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
 }
 
 function getPolicyNameByID(policyID: string): string {
-    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? policyID;
+    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '';
 }
 
 /**
@@ -425,8 +418,20 @@ function escapeTagName(tag: string) {
 /**
  * Gets a count of enabled tags of a policy
  */
-function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
+function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
+    if (!policyTags) {
+        return 0;
+    }
     return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
+}
+/**
+ * Gets count of required tag lists of a policy
+ */
+function getCountOfRequiredTagLists(policyTagLists: OnyxEntry<PolicyTagLists>): number {
+    if (!policyTagLists) {
+        return 0;
+    }
+    return Object.values(policyTagLists).filter((tagList) => tagList.required).length;
 }
 
 /**
@@ -485,7 +490,7 @@ function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy> | SearchPolicy)
  *
  * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
  */
-function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
+function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy> | SearchPolicy): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
     if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE) {
         return policy?.autoReportingFrequency;
     }
@@ -514,19 +519,11 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
     return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
-function extractPolicyIDFromPath(path: string) {
-    return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
-}
-
 /**
  * Whether the policy has active accounting integration connections
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
     return !isEmptyObject(policy?.connections);
-}
-
-function getPathWithoutPolicyID(path: string) {
-    return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
 
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
@@ -538,7 +535,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
+    Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
 
 /** Get a tax with given ID from policy */
@@ -596,7 +593,7 @@ function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
 }
 
 function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
-    const categoryAppovers: string[] = [];
+    const categoryApprovers: string[] = [];
     const tagApprovers: string[] = [];
     const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
 
@@ -606,10 +603,10 @@ function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseRepor
         const transaction = allReportTransactions.at(i);
         const tag = getTag(transaction);
         const category = getCategory(transaction);
-        const categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
+        const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
         const tagApprover = getTagApproverRule(policy, tag)?.approver;
-        if (categoryAppover) {
-            categoryAppovers.push(categoryAppover);
+        if (categoryApprover) {
+            categoryApprovers.push(categoryApprover);
         }
 
         if (tagApprover) {
@@ -617,10 +614,10 @@ function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseRepor
         }
     }
 
-    return [...categoryAppovers, ...tagApprovers];
+    return [...categoryApprovers, ...tagApprovers];
 }
 
-function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
+function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
     const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
@@ -686,7 +683,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     const reimburserEmail = policy?.achAccount?.reimburser ?? '';
-    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1 : -1;
+    return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
 function getPersonalPolicy() {
@@ -761,6 +758,13 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
         return false;
     }
     return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+}
+
+function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
+    if (!policy?.hasMultipleTagLists) {
+        return false;
+    }
+    return Object.values(policyTagList ?? {}).every((tagList) => Object.values(tagList.tags).every((tag) => !tag.rules?.parentTagsFilter && !tag.parentTagsFilter));
 }
 
 /** Get the Xero organizations connected to the policy */
@@ -1032,7 +1036,11 @@ function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList |
     return fieldsAllowedToEdit.includes(fieldKey);
 }
 
-function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections], connectionSyncProgress?: PolicyConnectionSyncProgress) {
+function getIntegrationLastSuccessfulDate(
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+    connection?: Connections[keyof Connections],
+    connectionSyncProgress?: PolicyConnectionSyncProgress,
+) {
     let syncSuccessfulDate;
     if (!connection) {
         return undefined;
@@ -1043,13 +1051,13 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
         syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
     }
 
-    const connectionSyncTimeStamp = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, connectionSyncProgress?.timestamp).toISOString();
+    const connectionSyncTimeStamp = getLocalDateFromDatetime(connectionSyncProgress?.timestamp).toISOString();
 
     if (
         connectionSyncProgress &&
         connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
         syncSuccessfulDate &&
-        connectionSyncTimeStamp > DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, syncSuccessfulDate).toISOString()
+        connectionSyncTimeStamp > getLocalDateFromDatetime(syncSuccessfulDate).toISOString()
     ) {
         syncSuccessfulDate = connectionSyncTimeStamp;
     }
@@ -1149,6 +1157,12 @@ function getConnectedIntegration(policy: Policy | undefined, accountingIntegrati
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
 
+function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
+        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
+    );
+}
+
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
     return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
@@ -1224,10 +1238,6 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
 
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
-}
-
-function getAllPolicies() {
-    return Object.values(allPolicies ?? {}).filter((p) => !!p);
 }
 
 function getActivePolicy(): OnyxEntry<Policy> {
@@ -1370,7 +1380,7 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-function isPrefferedExporter(policy: Policy) {
+function isPreferredExporter(policy: Policy) {
     const user = getCurrentUserEmail();
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
@@ -1395,19 +1405,18 @@ function isUserInvitedToWorkspace(): boolean {
 
 export {
     canEditTaxRate,
-    extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
     getPerDiemCustomUnits,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
+    getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
-    getPathWithoutPolicyID,
     getPersonalPolicy,
     getPolicy,
     getPolicyBrickRoadIndicatorStatus,
@@ -1518,7 +1527,6 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
-    getAllPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
@@ -1532,11 +1540,13 @@ export {
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
-    isPrefferedExporter,
+    isPreferredExporter,
     areAllGroupPoliciesExpenseChatDisabled,
+    getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
     getPolicyRole,
+    hasIndependentTags,
 };
 
 export type {MemberEmailsToAccountIDs};

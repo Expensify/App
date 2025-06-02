@@ -25,7 +25,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         const isReceiptPDF = Str.isPDF(filename);
-        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
+        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? (receiptURIs.thumbnail ?? '') : (receiptURIs.image ?? ''));
     }
 
     return (
@@ -48,6 +48,8 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
+                loadingIconSize="small"
+                loadingIndicatorStyles={styles.bgTransparent}
                 transactionItem={transactionItem}
             />
         </View>

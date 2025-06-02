@@ -16,7 +16,7 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -51,6 +51,7 @@ import {
     getBillable,
     getDescription,
     getDistanceInMeters,
+    getOriginalTransactionWithSplitInfo,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -109,8 +110,8 @@ const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {canUseTableReportView} = usePermissions();
     const {translate, toLocaleDigit} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const policyID = report?.policyID;
@@ -170,7 +171,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!transactionAmount) && transactionAmount !== undefined;
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const formattedPerAttendeeAmount =
-        shouldDisplayTransactionAmount && !isReceiptBeingScanned && didReceiptScanSucceed
+        shouldDisplayTransactionAmount && ((hasReceipt && !isReceiptBeingScanned && didReceiptScanSucceed) || !isPerDiemRequest)
             ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency)
             : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
@@ -205,8 +206,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const canEditDistanceRate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
     const canEditReport = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
 
-    // A flag for verifying that the current report is a sub-report of a workspace chat
-    // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
+    // A flag for verifying that the current report is a sub-report of a expense chat
+    // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
 
     const policyTagLists = useMemo(() => getTagLists(policyTagList), [policyTagList]);
@@ -266,7 +267,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         return getDescription(updatedTransaction ?? null);
     }, [updatedTransaction]);
     const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : updatedTransaction?.modifiedMerchant ?? merchantTitle;
+    const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
 
     const saveBillable = useCallback(
         (newBillable: boolean) => {
@@ -292,6 +293,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     } else {
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
+        }
+        if (getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
@@ -521,6 +525,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
     }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
 
+    const receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -534,7 +540,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReceiptEmptyState && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('receipt')}
+                        style={styles.mv3}
+                    >
                         <ReceiptEmptyState
                             hasError={hasErrors}
                             disabled={!canEditReceipt}
@@ -548,6 +557,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             }}
                             isThumbnail={!canEditReceipt}
                             isInMoneyRequestView
+                            style={[receiptStyle, styles.mv0]}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -574,7 +584,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         dismissError={dismissReceiptError}
                     >
                         {hasReceipt && (
-                            <View style={[styles.moneyRequestViewImage, styles.expenseViewImage]}>
+                            <View style={[styles.moneyRequestViewImage, receiptStyle]}>
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
                                     fileExtension={receiptURIs?.fileExtension}
@@ -759,11 +769,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
                             key="attendees"
-                            shouldShowRightIcon
                             title={Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : ''}
                             description={`${translate('iou.attendees')} ${
                                 Array.isArray(transactionAttendees) && transactionAttendees.length > 1 && formattedPerAttendeeAmount
-                                    ? `${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
+                                    ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
                                     : ''
                             }`}
                             style={[styles.moneyRequestMenuItem]}
@@ -774,12 +783,13 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID));
                             }}
-                            interactive
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
                         />
                     </OfflineWithFeedback>
                 )}
-                {!!parentReportID && !!canUseTableReportView && (
+                {!!parentReportID && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}

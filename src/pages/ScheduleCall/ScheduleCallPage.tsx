@@ -17,6 +17,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
+import DateUtils from '@libs/DateUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AvailableBookingDay from './AvailableBookingDay';
 
@@ -42,7 +42,7 @@ function ScheduleCallPage() {
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
+    const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
     const reportID = route.params?.reportID;
@@ -76,9 +76,9 @@ function ScheduleCallPage() {
         if (!calendlySchedule?.data) {
             return {};
         }
-        const guides = Object.keys(calendlySchedule?.data);
+        const guides = Object.keys(calendlySchedule.data);
 
-        const allTimeSlots = guides?.reduce((allSlots, guideAccountID) => {
+        const allTimeSlots = guides.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
             guideSchedule?.timeSlots.forEach((timeSlot) => {
                 allSlots.push({
@@ -91,23 +91,30 @@ function ScheduleCallPage() {
             return allSlots;
         }, [] as TimeSlot[]);
 
+        // Group timeslots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         allTimeSlots.forEach((timeSlot) => {
-            const timeSlotDate = format(new Date(timeSlot?.startTime), CONST.DATE.FNS_FORMAT_STRING);
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
             timeSlotMap[timeSlotDate].push(timeSlot);
         });
+
+        // Sort time slots within each date array to have in chronological order
+        Object.values(timeSlotMap).forEach((slots) => {
+            slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+        });
+
         return timeSlotMap;
-    }, [calendlySchedule]);
+    }, [calendlySchedule?.data, userTimezone]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
     const lastDate = selectableDates.at(selectableDates.length - 1);
     const minDate = firstDate ? parse(firstDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
     const maxDate = lastDate ? parse(lastDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
-    const timeSlotsForSelectedData = scheduleCallDraft?.date ? timeSlotDateMap?.[scheduleCallDraft?.date] ?? [] : [];
+    const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -157,7 +164,7 @@ function ScheduleCallPage() {
                                     value={scheduleCallDraft?.date}
                                     minDate={minDate}
                                     maxDate={maxDate}
-                                    selectedableDates={Object.keys(timeSlotDateMap)}
+                                    selectableDates={Object.keys(timeSlotDateMap)}
                                     DayComponent={AvailableBookingDay}
                                     onSelected={loadTimeSlotsAndSaveDate}
                                 />
@@ -165,14 +172,14 @@ function ScheduleCallPage() {
                         </View>
                         <MenuItemWithTopDescription
                             interactive={false}
-                            title={timezone.selected}
+                            title={userTimezone}
                             description={translate('timezonePage.timezone')}
                             style={[styles.mt3, styles.mb3]}
                         />
                         {!isEmptyObject(adminReportNameValuePairs?.calendlySchedule?.errors) && (
                             <DotIndicatorMessage
                                 type="error"
-                                style={[styles.mt6, styles.flex0]}
+                                style={[styles.ph5, styles.mt6, styles.flex0]}
                                 messages={getLatestError(adminReportNameValuePairs?.calendlySchedule?.errors)}
                             />
                         )}
@@ -187,7 +194,7 @@ function ScheduleCallPage() {
                                         <Button
                                             key={`time-slot-${timeSlot.startTime}`}
                                             large
-                                            success={scheduleCallDraft?.timeSlot === timeSlot?.startTime}
+                                            success={scheduleCallDraft?.timeSlot === timeSlot.startTime}
                                             onPress={() => {
                                                 saveBookingDraft({
                                                     timeSlot: timeSlot.startTime,
@@ -198,11 +205,11 @@ function ScheduleCallPage() {
                                                     },
                                                     reportID,
                                                 });
-                                                Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATON.getRoute(reportID));
+                                                Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATION.getRoute(reportID));
                                             }}
                                             shouldEnableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
-                                            text={format(timeSlot.startTime, 'p')}
+                                            text={DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)}
                                         />
                                     ))}
                                     {timeFillerItem}

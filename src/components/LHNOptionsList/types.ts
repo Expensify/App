@@ -18,7 +18,7 @@ type CustomLHNOptionsListProps = {
     contentContainerStyles?: StyleProp<ContentStyle>;
 
     /** Sections for the section list */
-    data: string[];
+    data: Report[];
 
     /** Callback to fire when a row is selected */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
@@ -36,8 +36,8 @@ type CustomLHNOptionsListProps = {
 type LHNOptionsListProps = CustomLHNOptionsListProps;
 
 type OptionRowLHNDataProps = {
-    /** Whether row should be focused */
-    isFocused?: boolean;
+    /** Whether option should be focused */
+    isOptionFocused?: boolean;
 
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
@@ -109,6 +109,9 @@ type OptionRowLHNDataProps = {
 
     /** Whether to show the educational tooltip for the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
+
+    /** Whether the screen is focused */
+    isScreenFocused: boolean;
 };
 
 type OptionRowLHNProps = {
@@ -116,7 +119,7 @@ type OptionRowLHNProps = {
     reportID: string;
 
     /** Whether this option is currently in focus so we can modify its style */
-    isFocused?: boolean;
+    isOptionFocused?: boolean;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
@@ -137,8 +140,11 @@ type OptionRowLHNProps = {
 
     /** Whether to show the educational tooltip on the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
+
+    /** Whether the screen is focused */
+    isScreenFocused: boolean;
 };
 
-type RenderItemProps = {item: string};
+type RenderItemProps = {item: Report};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};
