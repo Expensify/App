@@ -1631,7 +1631,7 @@ function generateDefaultWorkspaceName(email = ''): string {
     }
     const username = emailParts.at(0) ?? '';
     const domain = emailParts.at(1) ?? '';
-    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
+    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email || sessionEmail);
     const displayName = userDetails?.displayName?.trim();
     let displayNameForWorkspace = '';
 
