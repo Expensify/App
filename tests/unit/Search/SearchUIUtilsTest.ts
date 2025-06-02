@@ -7,7 +7,6 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -24,6 +23,7 @@ const policyID = 'A1B2C3';
 const reportID = '123456789';
 const reportID2 = '11111';
 const reportID3 = '99999';
+const reportID4 = '6155022250251839';
 const transactionID = '1';
 const transactionID2 = '2';
 const transactionID3 = '3';
@@ -60,7 +60,10 @@ const searchResults: OnyxTypes.SearchResults = {
             },
             autoReimbursementLimit: 0,
             autoReporting: true,
-            autoReportingFrequency: 'instant',
+            autoReportingFrequency: 'immediate',
+            harvesting: {
+                enabled: false,
+            },
             preventSelfApproval: false,
             owner: adminEmail,
             reimbursementChoice: 'reimburseManual',
@@ -196,6 +199,14 @@ const searchResults: OnyxTypes.SearchResults = {
             total: 4400,
             type: 'iou',
             unheldTotal: 4400,
+        },
+        [`report_${reportID4}`]: {
+            accountID: adminAccountID,
+            reportID: reportID4,
+            chatReportID: '',
+            chatType: 'policyExpenseChat',
+            created: '2025-03-05 16:34:27',
+            type: 'chat',
         },
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
@@ -372,14 +383,14 @@ const reportActionListItems = [
         ],
         reportActionID: 'Admin',
         reportID: '123456789',
-        reportName: 'Unavailable workspace owes $50.00',
+        reportName: 'Expense Report #123',
     },
 ] as ReportActionListItemType[];
 
 const transactionsListItems = [
     {
         accountID: 18439984,
-        action: 'pay',
+        action: 'submit',
         amount: -5000,
         canDelete: true,
         canHold: true,
@@ -389,7 +400,6 @@ const transactionsListItems = [
         created: '2024-12-21',
         currency: 'USD',
         date: '2024-12-21',
-        description: '',
         formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
         formattedTo: '',
@@ -401,7 +411,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        hasViolation: false,
         isFromOneTransactionReport: true,
         keyForList: '1',
         managerID: 18439984,
@@ -442,7 +451,6 @@ const transactionsListItems = [
         created: '2024-12-21',
         currency: 'USD',
         date: '2024-12-21',
-        description: '',
         formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
         formattedTo: 'Admin',
@@ -454,7 +462,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        hasViolation: true,
         isFromOneTransactionReport: true,
         keyForList: '2',
         managerID: 18439984,
@@ -590,7 +597,7 @@ const transactionsListItems = [
 const reportsListItems = [
     {
         accountID: 18439984,
-        action: 'pay',
+        action: 'submit',
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -622,7 +629,7 @@ const reportsListItems = [
         transactions: [
             {
                 accountID: 18439984,
-                action: 'pay',
+                action: 'submit',
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
@@ -809,15 +816,15 @@ const reportsListItems = [
 
 describe('SearchUIUtils', () => {
     describe('Test getAction', () => {
-        test('Should return `Pay` action for transaction on policy with no approvals and no violations', () => {
+        test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
             let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID}`);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
             action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID}`);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
-        test('Should return `Review` action for transaction on policy with no approvals and with violations', () => {
+        test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
             let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID2}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
 
@@ -901,7 +908,7 @@ describe('SearchUIUtils', () => {
                     ],
                     reportActionID: 'Admin',
                     reportID: '123456789',
-                    reportName: 'Unavailable workspace owes $50.00',
+                    reportName: 'Expense Report #123',
                 },
             ]);
         });
@@ -925,8 +932,11 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuItems(null, undefined);
-            expect(menuItems).toHaveLength(5);
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, {})
+                .map((section) => section.menuItems)
+                .flat();
+
+            expect(menuItems).toHaveLength(3);
             expect(menuItems).toStrictEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
@@ -935,7 +945,7 @@ describe('SearchUIUtils', () => {
                         icon: Expensicons.Receipt,
                     }),
                     expect.objectContaining({
-                        translationPath: 'common.expenseReports',
+                        translationPath: 'common.reports',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         icon: Expensicons.Document,
                     }),
@@ -944,33 +954,23 @@ describe('SearchUIUtils', () => {
                         type: CONST.SEARCH.DATA_TYPES.CHAT,
                         icon: Expensicons.ChatBubbles,
                     }),
-                    expect.objectContaining({
-                        translationPath: 'common.tasks',
-                        type: CONST.SEARCH.DATA_TYPES.TASK,
-                        icon: Expensicons.Task,
-                    }),
-                    expect.objectContaining({
-                        translationPath: 'travel.trips',
-                        type: CONST.SEARCH.DATA_TYPES.TRIP,
-                        icon: Expensicons.Suitcase,
-                    }),
                 ]),
             );
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuItems(null, undefined);
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, {})
+                .map((section) => section.menuItems)
+                .flat();
 
-            const expectedRoutes = [
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc groupBy:reports'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:chat status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:task status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:trip status:all sortBy:date sortOrder:desc'}),
+            const expectedQueries = [
+                'type:expense status:all sortBy:date sortOrder:desc',
+                'type:expense status:all sortBy:date sortOrder:desc groupBy:reports',
+                'type:chat status:all sortBy:date sortOrder:desc',
             ];
 
             menuItems.forEach((item, index) => {
-                expect(item.getRoute()).toStrictEqual(expectedRoutes.at(index));
+                expect(item.getSearchQuery()).toStrictEqual(expectedQueries.at(index));
             });
         });
     });
@@ -990,7 +990,7 @@ describe('SearchUIUtils', () => {
     test('Should return true if the search result has valid type', () => {
         expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults.search.type)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
-        const inValidSearchType: SearchDataTypes = 'expensse' as SearchDataTypes;
+        const inValidSearchType: SearchDataTypes = 'expensify' as SearchDataTypes;
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchType)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults.search.type)).toBe(false);
     });

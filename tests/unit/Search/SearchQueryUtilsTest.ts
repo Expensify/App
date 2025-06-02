@@ -66,6 +66,14 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 hello test`);
         });
+
+        test('returns query with updated groupBy', () => {
+            const userQuery = 'from:johndoe@example.com groupBy:reports';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
+        });
     });
 
     describe('buildQueryStringFromFilterFormValues', () => {
@@ -179,6 +187,7 @@ describe('SearchQueryUtils', () => {
         });
 
         it('matches with special characters', () => {
+            // cspell:disable-next-line
             expect(shouldHighlight('Explore the #%tự đặc biệt!', '#%tự')).toBe(true);
         });
 

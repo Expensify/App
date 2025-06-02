@@ -14,6 +14,9 @@ type SelectedTransactionInfo = {
     /** If the transaction can be put on hold */
     canHold: boolean;
 
+    /** If the transaction can be moved to other report */
+    canChangeReport: boolean;
+
     /** Whether the transaction is currently held */
     isHeld: boolean;
 
@@ -58,13 +61,8 @@ type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
-type SearchStatus =
-    | ExpenseSearchStatus
-    | InvoiceSearchStatus
-    | TripSearchStatus
-    | ChatSearchStatus
-    | TaskSearchStatus
-    | Array<ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | TaskSearchStatus>;
+type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | TaskSearchStatus;
+type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 
@@ -76,8 +74,8 @@ type SearchContext = {
     setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]) => void;
     clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
     shouldTurnOffSelectionMode: boolean;
-    shouldShowStatusBarLoading: boolean;
-    setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
+    shouldShowFiltersBarLoading: boolean;
+    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
     shouldShowExportModeOption: boolean;
@@ -154,6 +152,11 @@ type SearchAutocompleteQueryRange = {
     value: string;
 };
 
+type SearchParams = {
+    queryJSON: SearchQueryJSON;
+    offset: number;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -178,6 +181,8 @@ export type {
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
+    SearchParams,
     TableColumnSize,
     SearchGroupBy,
+    SingularSearchStatus,
 };

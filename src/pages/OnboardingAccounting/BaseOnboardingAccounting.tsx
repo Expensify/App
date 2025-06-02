@@ -16,7 +16,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -29,9 +28,10 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
-import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
+import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
@@ -110,7 +110,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const {canUseDefaultRooms} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
@@ -122,7 +121,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
 
-    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signups
+    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
         if (!paidGroupPolicy || onboardingPolicyID) {
             return;
@@ -132,12 +131,18 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     useEffect(() => {
-        if (!!isLoading || !prevIsLoading || !CONFIG.IS_HYBRID_APP) {
+        if (!!isLoading || !prevIsLoading) {
             return;
         }
 
-        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-        setRootStatusBarEnabled(false);
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            setRootStatusBarEnabled(false);
+            return;
+        }
+        waitForIdle().then(() => {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        });
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
@@ -188,8 +193,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         return [...integrations.map(createAccountingOption), othersAccountingOption, noneAccountingOption];
     }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.icon, translate, userReportedIntegration]);
 
-    const supportedIntegrationsInNewDot = useMemo(() => ['quickbooksOnline', 'quickbooksDesktop', 'xero', 'netsuite', 'intacct', 'other'] as OnboardingAccounting[], []);
-
     const handleContinue = useCallback(() => {
         if (userReportedIntegration === undefined) {
             setError(translate('onboarding.errorSelection'));
@@ -222,9 +225,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             userReportedIntegration,
         });
 
-        const isSupportedIntegration = supportedIntegrationsInNewDot.includes(userReportedIntegration) || userReportedIntegration === null;
-        const shouldRedirectToOldDot = getPlatform() !== CONST.PLATFORM.DESKTOP && (!isSupportedIntegration || onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO);
-        if (shouldRedirectToOldDot) {
+        if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration)) {
             if (CONFIG.IS_HYBRID_APP) {
                 return;
             }
@@ -240,11 +241,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         // We need to wait the policy is created before navigating out the onboarding flow
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             navigateAfterOnboarding(
-                onboardingPurposeSelected,
                 isSmallScreenWidth,
                 canUseDefaultRooms,
                 policyID,
-                activeWorkspaceID,
                 adminsChatReportID,
                 // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
                 // See https://github.com/Expensify/App/issues/57167 for more details
@@ -252,7 +251,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             );
         });
     }, [
-        activeWorkspaceID,
         canUseDefaultRooms,
         isSmallScreenWidth,
         onboardingAdminsChatReportID,
@@ -261,7 +259,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         onboardingPurposeSelected,
         paidGroupPolicy,
         session?.email,
-        supportedIntegrationsInNewDot,
         translate,
         userReportedIntegration,
     ]);
@@ -339,7 +336,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     text={translate('common.continue')}
                     onPress={handleContinue}
                     isLoading={isLoading}
-                    isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                    isDisabled={isOffline && shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration)}
                     pressOnEnter
                 />
             </FixedFooter>

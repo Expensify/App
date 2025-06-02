@@ -89,7 +89,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
     );
 
-    // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
+    // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we push SOME_TAG_LEVELS_REQUIRED in Onyx.
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
@@ -228,17 +228,50 @@ const ViolationsUtils = {
         const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
         const inputDate = new Date(updatedTransaction.modifiedCreated ?? updatedTransaction.created);
         const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
-        const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
-        const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
+        const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
+        const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
+        const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+        const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
+        const canCalculateAmountViolations = policy.outputCurrency === currency;
+
+        const categoryName = updatedTransaction.category;
+        const categoryMaxAmountNoReceipt = policyCategories[categoryName ?? '']?.maxAmountNoReceipt;
+        const maxAmountNoReceipt = policy.maxExpenseAmountNoReceipt;
+
+        // The category maxExpenseAmountNoReceipt and maxExpenseAmount settings override the respective policy settings.
         const shouldShowReceiptRequiredViolation =
+            canCalculateAmountViolations &&
             !isInvoiceTransaction &&
-            policy.maxExpenseAmountNoReceipt &&
-            Math.abs(amount) > policy.maxExpenseAmountNoReceipt &&
+            typeof categoryMaxAmountNoReceipt !== 'number' &&
+            typeof maxAmountNoReceipt === 'number' &&
+            Math.abs(amount) > maxAmountNoReceipt &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
-        const shouldShowOverLimitViolation = !isInvoiceTransaction && policy.maxExpenseAmount && Math.abs(amount) > policy.maxExpenseAmount && isControlPolicy;
+        const shouldShowCategoryReceiptRequiredViolation =
+            canCalculateAmountViolations &&
+            !isInvoiceTransaction &&
+            typeof categoryMaxAmountNoReceipt === 'number' &&
+            Math.abs(amount) > categoryMaxAmountNoReceipt &&
+            !TransactionUtils.hasReceipt(updatedTransaction) &&
+            isControlPolicy;
+
+        const overLimitAmount = policy.maxExpenseAmount;
+        const categoryOverLimit = policyCategories[categoryName ?? '']?.maxExpenseAmount;
+        const shouldShowOverLimitViolation =
+            canCalculateAmountViolations &&
+            !isInvoiceTransaction &&
+            typeof categoryOverLimit !== 'number' &&
+            typeof overLimitAmount === 'number' &&
+            Math.abs(amount) > overLimitAmount &&
+            isControlPolicy;
+        const shouldCategoryShowOverLimitViolation =
+            canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && Math.abs(amount) > categoryOverLimit && isControlPolicy;
+        const shouldShowMissingComment = !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy;
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
         if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
@@ -250,34 +283,59 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
         }
 
-        if (!hasReceiptRequiredViolation && shouldShowReceiptRequiredViolation) {
-            newTransactionViolations.push({
-                name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
-                data: {
-                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency),
-                },
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-                showInReview: true,
-            });
-        }
-
-        if (hasReceiptRequiredViolation && !shouldShowReceiptRequiredViolation) {
+        if (
+            canCalculateAmountViolations &&
+            ((hasReceiptRequiredViolation && !shouldShowReceiptRequiredViolation) || (hasCategoryReceiptRequiredViolation && !shouldShowCategoryReceiptRequiredViolation))
+        ) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
         }
 
-        if (!hasOverLimitViolation && shouldShowOverLimitViolation) {
+        if (
+            canCalculateAmountViolations &&
+            ((!hasReceiptRequiredViolation && !!shouldShowReceiptRequiredViolation) || (!hasCategoryReceiptRequiredViolation && shouldShowCategoryReceiptRequiredViolation))
+        ) {
             newTransactionViolations.push({
-                name: CONST.VIOLATIONS.OVER_LIMIT,
+                name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+                data:
+                    shouldShowCategoryReceiptRequiredViolation || !policy.maxExpenseAmountNoReceipt
+                        ? undefined
+                        : {
+                              formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency),
+                          },
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
+
+        if (canCalculateAmountViolations && hasOverLimitViolation && !shouldShowOverLimitViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
+        }
+
+        if (canCalculateAmountViolations && hasCategoryOverLimitViolation && !shouldCategoryShowOverLimitViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT});
+        }
+
+        if (canCalculateAmountViolations && ((!hasOverLimitViolation && !!shouldShowOverLimitViolation) || (!hasCategoryOverLimitViolation && shouldCategoryShowOverLimitViolation))) {
+            newTransactionViolations.push({
+                name: shouldCategoryShowOverLimitViolation ? CONST.VIOLATIONS.OVER_CATEGORY_LIMIT : CONST.VIOLATIONS.OVER_LIMIT,
                 data: {
-                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmount, policy.outputCurrency),
+                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(shouldCategoryShowOverLimitViolation ? categoryOverLimit : policy.maxExpenseAmount, policy.outputCurrency),
                 },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
             });
         }
 
-        if (hasOverLimitViolation && !shouldShowOverLimitViolation) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
+        if (!hasMissingCommentViolation && shouldShowMissingComment) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.MISSING_COMMENT,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
+
+        if (hasMissingCommentViolation && !shouldShowMissingComment) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
         return {

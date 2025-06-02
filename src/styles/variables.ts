@@ -39,6 +39,7 @@ export default {
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,
     avatarSizeSmallNormal: 32,
+    avatarSizeLargeNormal: 48,
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
@@ -278,12 +279,9 @@ export default {
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
     navigationTabBarInboxTooltipShiftHorizontal: 36,
-    navigationTabBarSettingsTooltipShiftHorizontal: -36,
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
-    workspacesSettingsTooltipShiftHorizontal: 8,
-    workspacesSettingsTooltipShiftVertical: -8,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -294,6 +292,8 @@ export default {
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
+
+    scrollToNewTransactionOffset: 300,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
@@ -318,4 +318,30 @@ export default {
     w96: 96,
     w184: 184,
     w191: 191,
+
+    // Transaction item row heights based on layout types
+    // Wide screen (desktop) layout
+    optionRowWideItemHeight: 64,
+
+    // Narrow screen with drawer layout
+    optionRowNarrowWithDrawerItemHeight: 96,
+    optionRowNarrowWithDrawerItemHeightWithButton: 104,
+
+    // Narrow screen without drawer (mobile-like) layout
+    optionRowNarrowWithoutDrawerItemHeight: 92,
+    optionRowNarrowWithoutDrawerItemHeightWithButton: 104,
+
+    optionRowListItemPadding: 8,
+    optionRowSearchHeaderHeight: 54,
+
+    // SearchList item heights
+    searchListItemHeightLargeScreen: 72,
+    searchListItemHeightSmallScreen: 96,
+    searchListItemHeightChat: 351,
+    searchListItemHeightChatCompact: 105,
+    searchOptionRowTransactionHeight: 52,
+    searchOptionRowBaseHeight: 52,
+    searchOptionRowSmallFooterHeight: 28,
+    searchOptionRowLargeFooterHeight: 17,
+    searchOptionRowMargin: 6,
 } as const;

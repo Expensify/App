@@ -46,7 +46,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         if (!assignCard?.isAssigned) {
             return;
         }
-        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        }
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID]);
 
@@ -128,6 +133,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                             isLoading={assignCard?.isAssigning}
                             style={styles.w100}
                             onPress={submit}
+                            testID={CONST.ASSIGN_CARD_BUTTON_TEST_ID}
                             text={translate('workspace.companyCards.assignCard')}
                         />
                     </OfflineWithFeedback>
