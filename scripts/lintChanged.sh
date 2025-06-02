@@ -32,14 +32,10 @@ if ! GIT_DIFF_OUTPUT="$(git diff --diff-filter=AMR --name-only "$MERGE_BASE_SHA_
     exit 1
 fi
 
-# Populate an array with changed files to handle large number of changes.
-DIFF_FILES=()
-# Use a here-string to pass the output into the function
-read_lines_into_array DIFF_FILES <<< "$GIT_DIFF_OUTPUT"
-
 # Run eslint on the changed files
-if [ "${#DIFF_FILES[@]}" -gt 0 ]; then
-  eslint --max-warnings=0 --config ./.eslintrc.changed.js "${DIFF_FILES[@]}"
+if [[ -n "$GIT_DIFF_OUTPUT" ]] ; then
+    # shellcheck disable=SC2086 # For multiple files in variable
+    eslint --max-warnings=0 --config ./.eslintrc.changed.js $GIT_DIFF_OUTPUT
 else
-  info "No TypeScript files changed"
+    info "No TypeScript files changed"
 fi
