@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+if [ -f .env ]; then export $(grep -v '^#' .env | xargs); fi
+
 IOS_MODE="DebugDevelopment"
 ANDROID_MODE="developmentDebug"
 SCHEME="New Expensify Dev"
