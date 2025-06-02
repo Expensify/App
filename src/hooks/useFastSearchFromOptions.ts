@@ -1,11 +1,14 @@
 import deburr from 'lodash/deburr';
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import CONST from '@src/CONST';
 
 type Options = {
     includeUserToInvite: boolean;
@@ -38,9 +41,18 @@ function useFastSearchFromOptions(
 ): {search: (searchInput: string) => OptionsListType; isInitialized: boolean} {
     const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
+    const prevOptionsRef = useRef<typeof options | null>(null);
+    const prevFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+
     useEffect(() => {
         let newFastSearch: ReturnType<typeof FastSearch.createFastSearch<OptionData>>;
+        const prevOptions = prevOptionsRef.current;
+        if (prevOptions && shallowCompareOptions(prevOptions, options)) {
+            return;
+        }
         InteractionManager.runAfterInteractions(() => {
+            prevOptionsRef.current = options;
+            prevFastSearchRef.current?.dispose();
             newFastSearch = FastSearch.createFastSearch([
                 {
                     data: options.personalDetails,
@@ -70,11 +82,14 @@ function useFastSearchFromOptions(
                 },
             ]);
             setFastSearch(newFastSearch);
+            prevFastSearchRef.current = newFastSearch;
             setIsInitialized(true);
         });
 
         return () => newFastSearch?.dispose();
     }, [options]);
+
+    useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
 
     const findInSearchTree = useCallback(
         (searchInput: string): OptionsListType => {
@@ -127,6 +142,42 @@ function useFastSearchFromOptions(
     );
 
     return {search: findInSearchTree, isInitialized};
+}
+
+/**
+ * Compares two ReportAndPersonalDetailOptions objects shallowly.
+ * @returns true if the options are shallowly equal, false otherwise.
+ */
+function shallowCompareOptions(prev: ReportAndPersonalDetailOptions, next: ReportAndPersonalDetailOptions): boolean {
+    if (!prev || !next) {
+        return false;
+    }
+
+    // Compare lengths first
+    if (prev.personalDetails.length !== next.personalDetails.length || prev.recentReports.length !== next.recentReports.length) {
+        return false;
+    }
+    Timing.start(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+    Performance.markStart(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+
+    for (let i = 0; i < prev.personalDetails.length; i++) {
+        if (prev.personalDetails.at(i)?.keyForList !== next.personalDetails.at(i)?.keyForList) {
+            Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            return false;
+        }
+    }
+
+    for (let i = 0; i < prev.recentReports.length; i++) {
+        if (prev.recentReports.at(i)?.keyForList !== next.recentReports.at(i)?.keyForList) {
+            Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            return false;
+        }
+    }
+    Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+    Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+    return true;
 }
 
 export default useFastSearchFromOptions;
