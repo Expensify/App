@@ -34,6 +34,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -151,6 +152,7 @@ function IOURequestStepScan({
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();
+    const prevIsTabActive = usePrevious(isTabActive);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -239,6 +241,14 @@ function IOURequestStepScan({
                 setCameraPermissionState('denied');
             });
     }, []);
+
+    useEffect(() => {
+        const shouldSetMultiScanValue = isTabActive && !prevIsTabActive;
+        if (!shouldSetMultiScanValue) {
+            return;
+        }
+        setIsMultiScanEnabled(transactions.length > 1);
+    }, [isTabActive, prevIsTabActive, transactions.length]);
 
     useEffect(() => {
         if (!isMobile() || !isTabActive) {

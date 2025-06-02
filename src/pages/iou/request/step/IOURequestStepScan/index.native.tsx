@@ -1,7 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/core';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -32,6 +32,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
@@ -122,6 +123,7 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const isTabActive = useIsFocused();
+    const prevIsTabActive = usePrevious(isTabActive);
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -143,6 +145,14 @@ function IOURequestStepScan({
     const blinkStyle = useAnimatedStyle(() => ({
         opacity: blinkOpacity.get(),
     }));
+
+    useEffect(() => {
+        const shouldSetMultiScanValue = isTabActive && !prevIsTabActive;
+        if (!shouldSetMultiScanValue) {
+            return;
+        }
+        setIsMultiScanEnabled(transactions.length > 1);
+    }, [isTabActive, prevIsTabActive, transactions.length]);
 
     const showBlink = useCallback(() => {
         blinkOpacity.set(
