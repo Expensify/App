@@ -288,7 +288,6 @@ function ReportFieldsListValuesPage({
                 <ButtonWithDropdownMenu
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedValuesArray.length})}
                     options={options}
