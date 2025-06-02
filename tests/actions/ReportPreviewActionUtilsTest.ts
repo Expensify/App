@@ -121,7 +121,7 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
     });
 
-    it('canApprove should return true for the current report manager regardless of whether they\'re in the current approval workflow', async () => {
+    it("canApprove should return true for the current report manager regardless of whether they're in the current approval workflow", async () => {
         const report = {
             ...createRandomReport(REPORT_ID),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -145,7 +145,7 @@ describe('getReportPreviewAction', () => {
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
-    })
+    });
 
     it('canPay should return true for expense report with payments enabled', async () => {
         const report = {
