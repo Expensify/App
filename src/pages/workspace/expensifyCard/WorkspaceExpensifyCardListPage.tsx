@@ -1,21 +1,23 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
-import {FlatList, ScrollView, View} from 'react-native';
+import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Button from '@components/Button';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FeedSelector from '@components/FeedSelector';
-import Text from '@components/Text';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Gear, Plus} from '@components/Icon/Expensicons';
 import {HandCard} from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
@@ -23,6 +25,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -35,8 +38,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListLabels from './WorkspaceCardListLabels';
@@ -65,7 +66,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`, {canBeMissing: true});
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`, {canBeMissing: false});
     const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
-
 
     const shouldShowSelector = Object.keys(allExpensifyCardFeeds ?? {}).length > 1;
 
@@ -211,15 +211,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
                 <ScrollView>
-                <View style={{height: windowHeight - headerHeight}}>
-                    <FlatList
-                        data={filteredSortedCards}
-                        renderItem={renderItem}
-                        ListHeaderComponent={renderListHeader}
-                        contentContainerStyle={bottomSafeAreaPaddingStyle}
-                    />
-                </View>
-                <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+                    <View style={{height: windowHeight - headerHeight}}>
+                        <FlatList
+                            data={filteredSortedCards}
+                            renderItem={renderItem}
+                            ListHeaderComponent={renderListHeader}
+                            contentContainerStyle={bottomSafeAreaPaddingStyle}
+                        />
+                    </View>
+                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
                 </ScrollView>
             )}
             <DelegateNoAccessModal
