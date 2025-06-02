@@ -204,6 +204,7 @@ import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
 import Table from '@assets/images/table.svg';
 import Tag from '@assets/images/tag.svg';
+import MultiTag from '@assets/images/multi-tag.svg';
 import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
@@ -320,6 +321,7 @@ export {
     Fullscreen,
     Folder,
     Tag,
+    MultiTag,
     Coins,
     Thread,
     Gallery,
