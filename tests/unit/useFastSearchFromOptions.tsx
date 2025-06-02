@@ -1,7 +1,6 @@
-import { renderHook } from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
-import type { Options } from '@libs/OptionsListUtils';
-
+import type {Options} from '@libs/OptionsListUtils';
 
 const nonLatinOptions = {
     currentUserOption: null,
