@@ -8,8 +8,8 @@ import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation'
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getCleanedTagName} from '@libs/PolicyUtils';
+import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {FieldItemType} from './ReviewFields';
@@ -18,15 +18,15 @@ import ReviewFields from './ReviewFields';
 function ReviewTag() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
     const {translate} = useLocalize();
-    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
+    const transactionID = getTransactionID(route.params.threadReportID);
 
-    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');
+    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
+    const compareResult = compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
         Object.keys(compareResult.change ?? {}),
         'tag',
-        route.params.threadReportID ?? '',
+        route.params.threadReportID,
         route.params.backTo,
         route.params.isFromExpense,
     );
@@ -36,7 +36,7 @@ function ReviewTag() {
                 !tag
                     ? {text: translate('violations.none'), value: ''}
                     : {
-                          text: PolicyUtils.getCleanedTagName(tag),
+                          text: getCleanedTagName(tag),
                           value: tag,
                       },
             ),
