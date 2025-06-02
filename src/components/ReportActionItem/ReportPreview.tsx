@@ -530,7 +530,7 @@ function ReportPreview({
                 },
             },
         ],
-        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, translate],
+        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, translate],
     );
 
     const reportPreviewAction = useMemo(() => {
