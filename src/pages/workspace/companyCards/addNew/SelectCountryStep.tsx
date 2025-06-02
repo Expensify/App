@@ -35,10 +35,24 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     const policy = usePolicy(policyID);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [currentCountry, setCurrentCountry] = useState<string | undefined>('');
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+
+    const getCountry = useCallback(() => {
+        if (addNewCard?.data?.selectedCountry) {
+            return addNewCard.data.selectedCountry;
+        }
+        const selectedCurrency = policy?.outputCurrency ? currencyList?.[policy.outputCurrency] : null;
+        const countries = selectedCurrency?.countries;
+
+        if (policy?.outputCurrency === CONST.CURRENCY.EUR && countryByIp && countries?.includes(countryByIp)) {
+            return countryByIp;
+        }
+        const country = countries?.[0];
+        return country ?? '';
+    }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
+    const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
 
     const submit = () => {
@@ -59,23 +73,8 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     };
 
     useEffect(() => {
-        if (addNewCard?.data?.selectedCountry) {
-            setCurrentCountry(addNewCard.data.selectedCountry);
-            return;
-        }
-        const selectedCurrency = policy?.outputCurrency ? currencyList?.[policy.outputCurrency] : null;
-        const countries = selectedCurrency?.countries;
-
-        if (policy?.outputCurrency === CONST.CURRENCY.EUR && countryByIp && countries?.includes(countryByIp)) {
-            setCurrentCountry(countryByIp);
-            return;
-        }
-        const country = countries?.[0];
-
-        if (country) {
-            setCurrentCountry(country);
-        }
-    }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
+        setCurrentCountry(getCountry());
+    }, [getCountry]);
 
     const handleBackButtonPress = () => {
         if (route?.params?.backTo) {
