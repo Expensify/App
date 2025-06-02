@@ -12,8 +12,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import NavigationTabBarDummy from '@components/Navigation/NavigationTabBar/NavigationTabBarDummy';
 import TopBar from '@components/Navigation/TopBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -434,11 +434,11 @@ function WorkspacesListPage() {
                     action: () => navigateToWorkspace(policy.id),
                     brickRoadIndicator: !isPolicyAdmin(policy)
                         ? undefined
-                        : (reimbursementAccountBrickRoadIndicator ??
+                        : reimbursementAccountBrickRoadIndicator ??
                           getPolicyBrickRoadIndicatorStatus(
                               policy,
                               isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                          )),
+                          ),
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
@@ -482,7 +482,7 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                bottomContent={shouldUseNarrowLayout && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <TopBar breadcrumbLabel={translate('common.workspaces')} />
@@ -509,7 +509,7 @@ function WorkspacesListPage() {
                         </View>
                     </ScrollView>
                 )}
-                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                {shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </ScreenWrapper>
         );
     }
@@ -520,7 +520,7 @@ function WorkspacesListPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={shouldUseNarrowLayout && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
@@ -546,7 +546,7 @@ function WorkspacesListPage() {
                 isModalOpen={isSupportalActionRestrictedModalOpen}
                 hideSupportalModal={hideSupportalModal}
             />
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            {shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
     );
 }

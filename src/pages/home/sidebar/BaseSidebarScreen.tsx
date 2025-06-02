@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import NavigationTabBarDummy from '@components/Navigation/NavigationTabBar/NavigationTabBarDummy';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -27,7 +27,7 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
+            bottomContent={!shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.HOME} />}
         >
             {({insets}) => (
                 <>
@@ -39,7 +39,7 @@ function BaseSidebarScreen() {
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />
                     </View>
-                    {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
+                    {shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.HOME} />}
                 </>
             )}
         </ScreenWrapper>

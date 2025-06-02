@@ -13,8 +13,8 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import NavigationTabBarDummy from '@components/Navigation/NavigationTabBar/NavigationTabBarDummy';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -419,7 +419,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+            bottomContent={!shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
             {headerContent}
@@ -443,7 +443,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     onCancel={() => toggleSignoutConfirmModal(false)}
                 />
             </ScrollView>
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+            {shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.SETTINGS} />}
         </ScreenWrapper>
     );
 }
