@@ -25,8 +25,6 @@ type TransactionItemRowRBRProps = {
 
     /** Styles for the RBR messages container */
     containerStyles?: ViewStyle[];
-
-    shouldUseNarrowLayout: boolean;
 };
 
 /**
@@ -66,7 +64,7 @@ const extractErrorMessages = (errors: Errors | ReceiptErrors, errorActions: Repo
     return Array.from(uniqueMessages);
 };
 
-function TransactionItemRowRBR({transaction, containerStyles, shouldUseNarrowLayout}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBR({transaction, containerStyles}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const {translate} = useLocalize();
@@ -102,7 +100,7 @@ function TransactionItemRowRBR({transaction, containerStyles, shouldUseNarrowLay
                     width={variables.iconSizeExtraSmall}
                 />
                 <View style={[styles.pre, styles.flexShrink1, {color: theme.danger}]}>
-                    <RenderHTML html={`<rbr shouldShowEllipsis="1" ${shouldUseNarrowLayout ? 'issmall' : ''} >${RBRMessages}</rbr>`} />
+                    <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${RBRMessages}</rbr>`} />
                 </View>
             </View>
         )

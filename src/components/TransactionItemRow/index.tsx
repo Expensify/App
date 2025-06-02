@@ -361,7 +361,6 @@ function TransactionItemRow({
                                     <TransactionItemRowRBR
                                         transaction={transactionItem}
                                         containerStyles={[styles.mt3]}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
                                 <ChatBubbleCell
@@ -387,10 +386,7 @@ function TransactionItemRow({
                                 </View>
                                 {columns?.map((column) => columnComponent[column])}
                             </View>
-                            <TransactionItemRowRBR
-                                transaction={transactionItem}
-                                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            />
+                            <TransactionItemRowRBR transaction={transactionItem} />
                         </View>
                     </Animated.View>
                 )}
