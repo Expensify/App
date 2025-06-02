@@ -114,7 +114,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
 
     return (
         <Animated.View style={slideInStyle}>
-            <View style={styles.ph4}>
+            <View style={styles.pr4}>
                 <FlatList
                     ref={flatListRef}
                     data={receipts}
@@ -127,7 +127,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                     style={styles.pv2}
                     scrollEnabled={isScrollEnabled}
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{paddingRight: styles.singleAvatarMedium.width}}
+                    contentContainerStyle={[{paddingRight: styles.singleAvatarMedium.width}, styles.pl4]}
                 />
                 <SubmitButtonShadow>
                     <Button
