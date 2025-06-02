@@ -79,24 +79,9 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import ReceiptPreviews from './ReceiptPreviews';
+import ReceiptViewModal from './ReceiptViewModal';
 import type IOURequestStepScanProps from './types';
 import type {ReceiptFile} from './types';
-
-// TODO: remove this
-const mockAttachments = [
-    {
-        source: 'https://picsum.photos/200/300',
-        receiptID: 1,
-    },
-    {
-        source: 'https://picsum.photos/200/300',
-        receiptID: 2,
-    },
-    {
-        source: 'https://picsum.photos/200/300',
-        receiptID: 3,
-    },
-];
 
 function IOURequestStepScan({
     report,
@@ -129,7 +114,7 @@ function IOURequestStepScan({
     const [flash, setFlash] = useState(false);
     // TODO: remove when multi-scan functionality is removed from beta
     const {canUseMultiScan: canUseMultiScanBeta} = usePermissions();
-    const canUseMultiScan = canUseMultiScanBeta && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
+    const canUseMultiScan = true;
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -931,9 +916,10 @@ function IOURequestStepScan({
                 </View>
 
                 <ReceiptPreviews
-                    isMultiScanEnabled={isMultiScanEnabled}
+                    isMultiScanEnabled
                     submit={submitReceipts}
                     setTabSwipeDisabled={setTabSwipeDisabled}
+                    onOpenModal={() => setIsReceiptModalVisible(true)}
                 />
 
                 {startLocationPermissionFlow && !!receiptFiles.length && (
@@ -948,15 +934,11 @@ function IOURequestStepScan({
                     />
                 )}
                 <ReceiptViewModal
-                    sources={mockAttachments}
+                    sources={receiptFiles}
                     isOpen={isReceiptModalVisible}
                     selectedIndex={currentSelectedIndex}
                     onClose={() => setIsReceiptModalVisible(false)}
                     onDelete={handleDeleteReceipt}
-                />
-                <Button
-                    onPress={() => setIsReceiptModalVisible(true)}
-                    text="PRESS"
                 />
             </View>
         </StepScreenWrapper>

@@ -27,11 +27,14 @@ type ReceiptPreviewsProps = {
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
 
+    /** Callback to open the receipt view modal */
+    onOpenModal: () => void;
+
     /** Method to disable swipe between tabs */
     setTabSwipeDisabled?: (isDisabled: boolean) => void;
 };
 
-function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: ReceiptPreviewsProps) {
+function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled, onOpenModal}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -91,8 +94,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                 accessible
                 accessibilityLabel={translate('common.receipt')}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                // TODO: open ReceiptViewModal when implemented https://github.com/Expensify/App/issues/61182
-                onPress={() => {}}
+                onPress={onOpenModal}
             >
                 <Image
                     source={{uri: item.source}}

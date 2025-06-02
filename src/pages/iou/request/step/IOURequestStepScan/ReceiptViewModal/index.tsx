@@ -12,15 +12,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
-type ReceiptSource = Receipt & {
+type ReceiptWithSource = Receipt & {
     source: AttachmentSource;
-    receiptID: number;
 };
 
 type ReceiptViewModalProps = {
+    /** Whether the modal is open or not */
     isOpen: boolean;
     /** An array of receipt image source URLs to display in the modal. */
-    sources: ReceiptSource[];
+    sources: ReceiptWithSource[];
     /** The index of the currently selected receipt in the sources array. */
     selectedIndex: number;
     /** Callback to delete a receipt */
@@ -40,13 +40,8 @@ function ReceiptViewModal({sources, isOpen, selectedIndex, onDelete, onClose}: R
 
     const handleDelete = useCallback(() => {
         onDelete(page);
-
-        if (!sources.length) {
-            onClose();
-        } else if (page >= sources.length - 1) {
-            setPage(page - 1);
-        }
-    }, [onDelete, onClose, sources.length, page]);
+        onClose();
+    }, [onDelete, onClose, page]);
 
     const updatePage = useCallback(
         (newPageIndex: number) => {
