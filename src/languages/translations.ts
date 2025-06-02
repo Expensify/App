@@ -47,15 +47,4 @@ export default {
     es: flattenObject(es),
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'es-ES': flattenObject(esES),
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    es_ES: {} as FlatTranslationsObject,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    'pt-BR': {} as FlatTranslationsObject,
-    it: {} as FlatTranslationsObject,
-    de: {} as FlatTranslationsObject,
-    fr: {} as FlatTranslationsObject,
-    nl: {} as FlatTranslationsObject,
-    ja: {} as FlatTranslationsObject,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    'zh-hans': {} as FlatTranslationsObject,
 };

@@ -6,7 +6,7 @@ import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement'
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
-import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
+import type {FlatTranslationsObject, PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -65,7 +65,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     fallbackLanguage: 'en' | 'es' | null,
     ...parameters: TranslationParameters<TKey>
 ): string | null {
-    const translatedPhrase = translations?.[language]?.[phraseKey];
+    const translatedPhrase = (translations as Record<string, FlatTranslationsObject>)?.[language]?.[phraseKey];
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
