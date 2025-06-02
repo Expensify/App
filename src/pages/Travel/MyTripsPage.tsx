@@ -1,8 +1,8 @@
 import React from 'react';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import ManageTrips from './ManageTrips';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 function MyTripsPage() {
     const {translate} = useLocalize();
@@ -16,9 +16,9 @@ function MyTripsPage() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                    title={translate('travel.header')}
-                    shouldShowBackButton
-                />
+                title={translate('travel.header')}
+                shouldShowBackButton
+            />
             <ManageTrips />
         </ScreenWrapper>
     );

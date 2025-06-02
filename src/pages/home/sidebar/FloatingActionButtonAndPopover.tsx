@@ -471,14 +471,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   },
               ]
             : []),
-            ...([
-                {
-                    icon: Expensicons.Suitcase,
-                    text: translate('travel.bookTravel'),
-                    rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
-                    onSelected: () => interceptAnonymousUser(() => openTravel()),
-                },
-            ]),
+        ...[
+            {
+                icon: Expensicons.Suitcase,
+                text: translate('travel.bookTravel'),
+                rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
+                onSelected: () => interceptAnonymousUser(() => openTravel()),
+            },
+        ],
         ...(!hasSeenTour
             ? [
                   {
