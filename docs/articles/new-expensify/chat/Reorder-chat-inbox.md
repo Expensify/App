@@ -1,49 +1,43 @@
 ---
-title: Reorder chat inbox
-description: Change how your chats are displayed in your inbox
+title: Reorder Chat Inbox
+description: Learn how to customize the order of your chats using pinning and message priority settings in Expensify.
+keywords: [New Expensify, chat inbox, reorder chats, pinned messages, focus mode, priority mode, chat display]
 ---
 <div id="new-expensify" markdown="1">
 
-You can customize the order of the chat messages in your inbox by pinning them to the top and/or changing your message priority to Most Recent or #focus:
-- **Pin**: Bumps a specific chat up to the top of your inbox list.  
-- **Message priority**: Determines the order that messages are sorted and displayed: 
-   - **Most Recent**: Displays all chats by default sorted by the most recent, and keep your pinned chats at the top of the list.
-   - **#focus**: Displays only unread and pinned chats sorted alphabetically. 
+Customize your Expensify chat inbox to stay focused on what matters most. To organize your messages, you can pin key conversations to the top and choose between two display modes.
 
-# Pin a message
+---
 
-{% include selector.html values="desktop, mobile" %}
+# Ways to Organize Your Inbox
 
-{% include option.html value="desktop" %}
-Right-click a chat in your inbox and select **Pin**. The chat will now be pinned to the top of your inbox above all of the others. 
+- **Pin**: Keep important chats at the top of your inbox for quick access.
+- **Priority Mode**: Choose how your chats are sorted:
+  - **Most Recent** – Displays all chats sorted by the most recent activity. Pinned chats remain at the top.
+  - **#focus** – Displays only unread and pinned chats, sorted alphabetically.
 
-To unpin a chat, repeat this process to click the pin icon again to remove it.
-{% include end-option.html %}
+---
 
-{% include option.html value="mobile" %}
-Press and hold a chat in your inbox and select **Pin**. The chat will now be pinned to the top of your inbox above all of the others. 
+# Pin or Unpin a Chat
 
-To unpin a chat, repeat this process to tap the pin icon again to remove it.
-{% include end-option.html %}
+**To pin a chat:**
+- Right-click the chat in your inbox and select **Pin**.
+- Or, you can click into the chat, click on the member's profile image, and select **Pin**.
 
-{% include end-selector.html %}
+To unpin a chat, repeat the same action and select **Unpin**.
 
-# Change message priority
+📌 **Note:** Pinned chats always appear at the top of your inbox.
 
-{% include selector.html values="desktop, mobile" %}
+---
 
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu. 
-2. Click the **Preferences** tab on the left. 
-3. Click **Priority Mode** to select either #focus or Most recent.
-{% include end-option.html %}
+# Change Priority Mode
 
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon in the bottom menu. 
-2. Tap the **Preferences** tab. 
-3. Tap **Priority Mode** to select either #focus or Most recent.
-{% include end-option.html %}
+To adjust how chats are sorted in your inbox:
 
-{% include end-selector.html %}
+1. In the left-hand menu, go to **Account > Preferences**.
+2. Click or tap **Priority Mode**.
+3. Select either **#focus** or **Most Recent**.
+
+🧠 **Note:** Choose **#focus** for a distraction-free inbox with only unread and pinned chats, or stick with **Most Recent** to see everything chronologically.
 
 </div>
