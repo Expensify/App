@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import {Linking} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -7,7 +8,6 @@ import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {Linking} from 'react-native';
 
 type SignOutPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.SIGN_OUT>;
 
