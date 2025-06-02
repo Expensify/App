@@ -1,15 +1,13 @@
 ---
-title: Getting-Started-with-the-Reports-Page.md
+title: Getting Started with the Reports Page
 description: Learn how to use the Reports page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
 keywords: [New Expensify, reports page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions]
 ---
 <div id="new-expensify" markdown="1">
 
-**Location:** Home > Reports
-
 Get familiar with the Reports page in New Expensify. This guide walks you through using report previews, tables, filters, and smart suggestions to streamline your expense-tracking workflow.
 
-The **Reports page** shows a full list of your reports and related expenses. While the Inbox highlights what needs attention, this page helps you explore, filter, and export your data.
+The **Reports page** shows a full list of your reports and related expenses. While the Inbox highlights what needs attention, this page helps you explore, filter, and export your expense data.
 
 ---
 
@@ -20,10 +18,10 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
 ## Visibility of Report Previews
 - Visible to **all members** in the workspace chat  
 - Only the **creator** sees interactive options like **Add expense**  
-- **Workspace admins** can approve and pay the report
+- **Workspace admins** can approve and pay a report
 
 ## Preview Details
-- Report title and status (e.g. Approved, Paid)  
+- Report title and status (e.g., Approved, Paid)  
 - Up to 10 expense previews with:
   - Date, category, tag
   - Merchant or description
@@ -36,7 +34,7 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
 Previews update **in real time** as expenses are added. If a report is deleted, the preview is removed from the workspace chat
 
 **When someone comments on a report:**
-- A **Comments** section will appear and the layout will adjust to include room for the discussion.
+- A **Comments** section will appear, and the layout will adjust to include room for the discussion.
 
 ---
 
@@ -78,7 +76,7 @@ Each row represents an expense and includes:
 
 # Filters
 
-Filters help you quickly find specific expenses or reports—especially helpful for large datasets.
+Filters help you quickly find specific expenses or reports, especially helpful for large datasets.
 
 ## Filter Placement
 
@@ -87,14 +85,14 @@ Filters help you quickly find specific expenses or reports—especially helpful 
 
 ## Filter Controls
 
-1. Use filters to show a specific set of expenses (e.g. unreported expenses)  
+1. Use filters to show a specific set of expenses (e.g., unreported expenses)  
 2. Use controls to sort expenses by:
    - Date Range
    - Category
    - Merchant
    - Workspace
    - Tags (if enabled)
-   - Status (e.g. pending, reimbursed)
+   - Status (e.g., pending, reimbursed)
 
 **Filter controls may appear as:**
 - Dropdowns  
@@ -108,7 +106,7 @@ Filters help you quickly find specific expenses or reports—especially helpful 
 
 ## Default Filter Behavior
 - Without filters, you'll see your **most recent unreported expenses**  
-- Combine **search + filter** to narrow results (e.g. “Uber in March”)
+- Combine **search + filter** to narrow results (e.g., “Uber in March”)
 
 ---
 
