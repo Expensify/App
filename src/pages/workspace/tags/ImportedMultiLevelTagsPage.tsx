@@ -65,6 +65,7 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}
                 shouldShowColumnHeader={false}
                 shouldShowDropdownMenu={false}
+                customHeaderText={translate('workspace.tags.importMultiLevelTagsSupportingText')}
             />
 
             <ConfirmModal

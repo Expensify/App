@@ -4304,6 +4304,7 @@ const translations = {
             approverDescription: 'Aprobador',
             importTags: 'Importar categorías',
             importTagsSupportingText: 'Clasifica tus gastos con un tipo de etiqueta o con varios.',
+            configureMultiLevelTags: 'Configura etiquetas multinivel',
             importMultiLevelTagsSupportingText: `Aquí tienes una vista previa de tus etiquetas. Si todo se ve bien, haz clic abajo para importarlas.`,
             importMultiLevelTags: {
                 firstRowTitle: 'La primera fila es el título de cada lista de etiquetas',

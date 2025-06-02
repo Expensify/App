@@ -44,6 +44,8 @@ type ImportSpreadsheetColumnsProps = {
 
     // An optional boolean indicating whether to show the dropdown menu.
     shouldShowDropdownMenu?: boolean;
+
+    customHeaderText?: string;
 };
 
 function ImportSpreadsheetColumns({
@@ -56,6 +58,7 @@ function ImportSpreadsheetColumns({
     learnMoreLink,
     shouldShowColumnHeader = true,
     shouldShowDropdownMenu = true,
+    customHeaderText,
 }: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -68,8 +71,12 @@ function ImportSpreadsheetColumns({
             <ScrollView>
                 <View style={styles.mh5}>
                     <Text>
-                        {translate('spreadsheet.importDescription')}
-                        <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
+                        {customHeaderText ?? (
+                            <>
+                                {translate('spreadsheet.importDescription')}
+                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
+                            </>
+                        )}
                     </Text>
                     {shouldShowColumnHeader && (
                         <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>

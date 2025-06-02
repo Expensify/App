@@ -89,7 +89,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <FullPageOfflineBlockingView>
-                    <Text style={[styles.textSupporting, styles.textNormal, styles.ph5]}>{translate('workspace.tags.importMultiLevelTagsSupportingText')}</Text>
+                    <Text style={[styles.textSupporting, styles.textNormal, styles.ph5]}>{translate('workspace.tags.configureMultiLevelTags')}</Text>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Text style={[styles.textNormal]}>{translate('workspace.tags.importMultiLevelTags.firstRowTitle')}</Text>
