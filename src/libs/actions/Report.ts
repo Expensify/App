@@ -107,7 +107,6 @@ import {
     buildOptimisticGroupChatReport,
     buildOptimisticIOUReportAction,
     buildOptimisticRenamedRoomReportAction,
-    buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
     buildOptimisticSelfDMReport,
     buildOptimisticUnreportedTransactionAction,
@@ -5350,24 +5349,6 @@ function dismissChangePolicyModal() {
 }
 
 /**
- * @private
- * Builds a map of parentReportID to child report IDs for efficient traversal.
- */
-function buildReportIDToThreadsReportIDsMap(): Record<string, string[]> {
-    const reportIDToThreadsReportIDsMap: Record<string, string[]> = {};
-    Object.values(allReports ?? {}).forEach((report) => {
-        if (!report?.parentReportID) {
-            return;
-        }
-        if (!reportIDToThreadsReportIDsMap[report.parentReportID]) {
-            reportIDToThreadsReportIDsMap[report.parentReportID] = [];
-        }
-        reportIDToThreadsReportIDsMap[report.parentReportID].push(report.reportID);
-    });
-    return reportIDToThreadsReportIDsMap;
-}
-
-/**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
 function changeReportPolicy(report: Report, policyID: string) {
@@ -5407,7 +5388,12 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         return;
     }
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
-    const {optimisticData, successData, failureData, membersChats} = buildAddMembersToWorkspaceOnyxData({[submitterEmail]: report.ownerAccountID}, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER);
+    const {optimisticData, successData, failureData, membersChats} = buildAddMembersToWorkspaceOnyxData(
+        {[submitterEmail]: report.ownerAccountID},
+        policyID,
+        policyMemberAccountIDs,
+        CONST.POLICY.ROLE.USER,
+    );
     const optimisticPolicyExpenseChatReport = membersChats.reportCreationData[submitterEmail].report;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
 
@@ -5415,7 +5401,13 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         return;
     }
 
-    const {optimisticData: optimisticChangePolicyData, successData: successChangePolicyData, failureData: failureChangePolicyData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(report, policyID, optimisticPolicyExpenseChatReport);
+    const {
+        optimisticData: optimisticChangePolicyData,
+        successData: successChangePolicyData,
+        failureData: failureChangePolicyData,
+        optimisticReportPreviewAction,
+        optimisticMovedReportAction,
+    } = buildOptimisticChangePolicyData(report, policyID, optimisticPolicyExpenseChatReport);
     optimisticData.push(...optimisticChangePolicyData);
     successData.push(...successChangePolicyData);
     failureData.push(...failureChangePolicyData);
