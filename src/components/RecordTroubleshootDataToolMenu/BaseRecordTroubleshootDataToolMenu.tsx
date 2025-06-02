@@ -89,20 +89,13 @@ function BaseRecordTroubleshootDataToolMenu({
     const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
     const [filePath, setFilePath] = useState('');
     const [sharePath, setSharePath] = useState('');
-    const [totalMemory, setTotalMemory] = useState(0);
-    const [usedMemory, setUsedMemory] = useState(0);
-    const [memoizeStats, setMemoizeStats] = useState<ReturnType<typeof Memoize.stopMonitoring>>();
 
     // eslint-disable-next-line @lwc/lwc/no-async-await
     const stop = useCallback(async () => {
-        const path = await stopProfiling(getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.WEB, newFileName);
+        // const path = await stopProfiling(getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.WEB, newFileName);
+        const path = await stopProfiling(true, newFileName);
         setFilePath(path);
 
-        const amountOfTotalMemory = await DeviceInfo.getTotalMemory();
-        const amountOfUsedMemory = await DeviceInfo.getUsedMemory();
-        setTotalMemory(amountOfTotalMemory);
-        setUsedMemory(amountOfUsedMemory);
-        setMemoizeStats(Memoize.stopMonitoring());
         Performance.disableMonitoring();
     }, []);
 
@@ -121,19 +114,19 @@ function BaseRecordTroubleshootDataToolMenu({
         };
     }, [isProfilingInProgress, stop]);
 
-    const getAppInfo = useCallback(
-        () =>
-            JSON.stringify({
+    const getAppInfo = useCallback(() => {
+        return Promise.all([DeviceInfo.getTotalMemory(), DeviceInfo.getUsedMemory()]).then(([totalMemory, usedMemory]) => {
+            return JSON.stringify({
                 appVersion: pkg.version,
                 environment: CONFIG.ENVIRONMENT,
                 platform: getPlatform(),
                 totalMemory: formatBytes(totalMemory, 2),
                 usedMemory: formatBytes(usedMemory, 2),
-                memoizeStats,
+                memoizeStats: Memoize.stopMonitoring(),
                 performance: Performance.getPerformanceMeasures(),
-            }),
-        [memoizeStats, totalMemory, usedMemory],
-    );
+            });
+        });
+    }, []);
 
     const onToggle = () => {
         onToggleProfiling();
@@ -159,11 +152,13 @@ function BaseRecordTroubleshootDataToolMenu({
         const logsWithParsedMessages = parseStringifiedMessages(logs);
 
         const infoFileName = `App_Info_${pkg.version}.json`;
-        zipRef.current.file(infoFileName, getAppInfo());
+        getAppInfo().then((appInfo) => {
+            zipRef.current.file(infoFileName, appInfo);
 
-        onDisableLogging(logsWithParsedMessages);
-        Console.disableLoggingAndFlushLogs();
-        Troubleshoot.setShouldRecordTroubleshootData(false);
+            onDisableLogging(logsWithParsedMessages);
+            Console.disableLoggingAndFlushLogs();
+            Troubleshoot.setShouldRecordTroubleshootData(false);
+        });
     };
 
     useEffect(() => {
@@ -205,13 +200,8 @@ function BaseRecordTroubleshootDataToolMenu({
         // eslint-disable-next-line @lwc/lwc/no-async-await
         const shareFiles = async () => {
             try {
-                // Define new filename and path for the app info file
-                const infoFileName = `App_Info_${pkg.version}.json`;
-                const infoFilePath = `${RNFS.DocumentDirectoryPath}/${infoFileName}`;
-                const actualInfoFile = `file://${infoFilePath}`;
-
                 const shareOptions = {
-                    urls: [`file://${sharePath}`, actualInfoFile],
+                    url: `file://${sharePath}`,
                 };
 
                 await Share.open(shareOptions);
