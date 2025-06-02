@@ -387,9 +387,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 {
                     ...selectedTransactions,
                     ...Object.fromEntries(
-                        item.transactions
-                            .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
+                        item.transactions.filter((t) => !isTransactionPendingDelete(t)).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
                     ),
                 },
                 data,
