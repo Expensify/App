@@ -18,18 +18,18 @@ fi
 git fetch origin main --no-tags
 
 MERGE_BASE_SHA_HASH="$(git merge-base origin/main HEAD)"
+readonly MERGE_BASE_SHA_HASH
+
 # Check if output is empty or malformed
 if [[ -z "$MERGE_BASE_SHA_HASH" ]] || ! [[ "$MERGE_BASE_SHA_HASH" =~ ^[a-fA-F0-9]{40}$ ]]; then
-    error "git merge-base returned unexpected output"
+    error "git merge-base returned unexpected output: $MERGE_BASE_SHA_HASH"
     exit 1
 fi
 
 # Get the diff output and check status
-GIT_DIFF_OUTPUT="$(git diff --diff-filter=AMR --name-only "$MERGE_BASE_SHA_HASH" HEAD -- '*.ts' '*.tsx')"
-# shellcheck disable=SC2181
-if [[ $? -ne 0 ]]; then
-  error "git diff failed"
-  exit 1
+if ! GIT_DIFF_OUTPUT="$(git diff --diff-filter=AMR --name-only "$MERGE_BASE_SHA_HASH" HEAD -- '*.ts' '*.tsx')"; then
+    error "git diff failed - output: $GIT_DIFF_OUTPUT"
+    exit 1
 fi
 
 # Populate an array with changed files to handle large number of changes.
