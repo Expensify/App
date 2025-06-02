@@ -1,4 +1,3 @@
-import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -152,7 +151,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         if (!policyTagList) {
             return undefined;
         }
-        return (policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)
+        return ((policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction))
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
             : undefined;
     };
@@ -241,7 +240,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const normalizeSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return tagText.includes(normalizeSearchInput) || tagValue.includes(normalizeSearchInput);
     }, []);
-    const sortTags = useCallback((tags: TagListItem[]) => lodashSortBy(tags, 'value', localeCompare) as TagListItem[], []);
+    const sortTags = useCallback((tags: TagListItem[]) => tags.sort((a, b) => localeCompare(a.value, b.value)), []);
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
     const filteredTagListKeyedByName = useMemo(
@@ -406,7 +405,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             <ButtonWithDropdownMenu
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
-                pressOnEnter
                 isSplitButton={false}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTags.length})}
@@ -538,6 +536,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         {!shouldUseNarrowLayout && getHeaderButtons()}
                     </HeaderWithBackButton>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {(!hasVisibleTags || isLoading) && headerContent}
                     {isLoading && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
