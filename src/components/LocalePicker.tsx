@@ -1,6 +1,5 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
@@ -9,27 +8,21 @@ import AccountUtils from '@libs/AccountUtils';
 import {setLocale} from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, Locale} from '@src/types/onyx';
 import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
 
-type LocalePickerOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
-
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: OnyxEntry<Locale>;
-};
-
-type LocalePickerProps = LocalePickerOnyxProps & {
+type LocalePickerProps = {
     /** Indicates size of a picker component and whether to render the label or not */
     size?: PickerSize;
 };
 
-function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 'normal'}: LocalePickerProps) {
+function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [preferredLocale = CONST.LOCALES.DEFAULT] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+
     const {canUseStaticAiTranslations} = usePermissions();
     const localesToLanguages = CONST.LANGUAGES.filter((language) => ['en', 'es'].includes(language) || canUseStaticAiTranslations).map((language) => ({
         value: language,
@@ -63,11 +56,4 @@ function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 
 
 LocalePicker.displayName = 'LocalePicker';
 
-export default withOnyx<LocalePickerProps, LocalePickerOnyxProps>({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(LocalePicker);
+export default LocalePicker;
