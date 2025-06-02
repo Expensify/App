@@ -542,7 +542,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
+    Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
 
 /** Get a tax with given ID from policy */
@@ -690,7 +690,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     const reimburserEmail = policy?.achAccount?.reimburser ?? '';
-    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1 : -1;
+    return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
 function getPersonalPolicy() {

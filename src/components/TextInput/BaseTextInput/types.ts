@@ -177,9 +177,6 @@ type CustomBaseTextInputProps = {
 
     /** Callback when the input is cleared using the clear button */
     onClearInput?: () => void;
-
-    /** Whether the input should be enforced to take full height of conatiner. Default is `false` */
-    shouldUseFullInputHeight?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
