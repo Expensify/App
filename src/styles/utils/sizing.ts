@@ -135,10 +135,6 @@ export default {
         maxWidth: '75%',
     },
 
-    mw95: {
-        maxWidth: '95%',
-    },
-
     mw100: {
         maxWidth: '100%',
     },
