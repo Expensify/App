@@ -33,7 +33,7 @@ jobs:
         id: count
         run: |
           COMMIT_COUNT="$(gh api "repos/$REPO/compare/${BASE}...main" \
-            --jq '.total_commits')"
+            | jq -r '.total_commits')"
           echo "count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
