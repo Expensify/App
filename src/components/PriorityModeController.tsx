@@ -19,7 +19,7 @@ import SCREENS from '@src/SCREENS';
  *  - Priority mode NVP (that dictates the ordering/filtering logic of the LHN)
  *  - Reports to load (in ReconnectApp or OpenApp). As we check the count of the reports to determine whether the
  *    user is eligible to be automatically switched.
- *      
+ *
  */
 export default function PriorityModeController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
