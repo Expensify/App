@@ -8,7 +8,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import TransactionListItemRow from './TransactionListItemRow';
 
 function TransactionListItem<TItem extends ListItem>({
