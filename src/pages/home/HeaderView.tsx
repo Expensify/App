@@ -173,7 +173,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && !!account?.guideDetails?.calendarLink && isAdminRoom(report) && !!canUserPerformWriteAction(report) && !isChatThread;
+    const shouldShowGuideBooking = !!account && account?.guideDetails?.email !== CONST.EMAIL.CONCIERGE && !!account?.guideDetails?.calendarLink && isAdminRoom(report) && !!canUserPerformWriteAction(report) && !isChatThread;
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
