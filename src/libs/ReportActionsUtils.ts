@@ -1751,7 +1751,7 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
 }
 
 function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.mentionedAccountIDs ?? [] : [];
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? (getOriginalMessage(reportAction)?.mentionedAccountIDs ?? []) : [];
 }
 
 function getMentionedEmailsFromMessage(message: string) {
@@ -1981,7 +1981,7 @@ function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useNa
     if (!!originalMessage && !originalMessage.email) {
         originalMessage.email = personalDetails?.login;
     }
-    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : originalMessage?.email ?? '';
+    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : (originalMessage?.email ?? '');
     const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
     return translateLocal('report.actions.type.leftWorkspace', {nameOrEmail: formattedNameOrEmail});
 }
@@ -2360,7 +2360,7 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card)
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
     const policy = getPolicy(getOriginalMessage(reportAction)?.policyID);
     const userDetail = getPersonalDetailByEmail(getOriginalMessage(reportAction)?.email ?? '');
-    const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : userDetail?.login ?? getOriginalMessage(reportAction)?.email;
+    const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : (userDetail?.login ?? getOriginalMessage(reportAction)?.email);
     return translateLocal('workspace.inviteMessage.joinRequest', {user: userName ?? '', workspaceName: policy?.name ?? ''});
 }
 

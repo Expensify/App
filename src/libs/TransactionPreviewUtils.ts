@@ -258,7 +258,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         displayAmountText = {translationPath: 'iou.fieldPending'};
     }
 
-    const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? getOriginalMessage(action) ?? undefined : undefined;
+    const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? (getOriginalMessage(action) ?? undefined) : undefined;
     const displayDeleteAmountText: TranslationPathOrText = {text: convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency)};
 
     return {

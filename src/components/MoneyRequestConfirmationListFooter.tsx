@@ -750,7 +750,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={styles.moneyRequestImage}>
+            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -813,6 +813,7 @@ function MoneyRequestConfirmationListFooter({
         ),
         [
             styles.moneyRequestImage,
+            styles.expenseViewImageSmall,
             styles.cursorDefault,
             styles.h100,
             styles.flex1,
@@ -912,15 +913,18 @@ function MoneyRequestConfirmationListFooter({
                 (receiptImage || receiptThumbnail
                     ? receiptThumbnailContent
                     : shouldShowReceiptEmptyState && (
-                          <ReceiptEmptyState
-                              onPress={() => {
-                                  if (!transactionID) {
-                                      return;
-                                  }
+                          <View style={styles.mv3}>
+                              <ReceiptEmptyState
+                                  onPress={() => {
+                                      if (!transactionID) {
+                                          return;
+                                      }
 
-                                  Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
-                              }}
-                          />
+                                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                                  }}
+                                  style={[styles.expenseViewImageSmall, styles.mv0]}
+                              />
+                          </View>
                       ))}
             {primaryFields}
             {!shouldShowAllFields && (
