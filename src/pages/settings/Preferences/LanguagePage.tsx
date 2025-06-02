@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Star} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +22,7 @@ function LanguagePage() {
     const isOptionSelected = useRef(false);
     const {canUseStaticAiTranslations} = usePermissions();
 
-    const localesToLanguages: ListItem[] = CONST.LANGUAGES.filter((language) => ['en', 'es'].includes(language) || canUseStaticAiTranslations).map((language) => ({
+    const localesToLanguages: LanguageEntry[] = CONST.LANGUAGES.filter((language) => ['en', 'es'].includes(language) || canUseStaticAiTranslations).map((language) => ({
         value: language,
         text: translate(`languagePage.languages.${language}.label`),
         keyForList: language,
@@ -55,7 +55,7 @@ function LanguagePage() {
             />
             <SelectionList
                 sections={[{data: localesToLanguages}]}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={updateLanguage}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={localesToLanguages.find((locale) => locale.isSelected)?.keyForList}
