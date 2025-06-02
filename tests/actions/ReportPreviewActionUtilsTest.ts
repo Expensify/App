@@ -121,6 +121,32 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
     });
 
+    it('canApprove should return true for the current report manager regardless of whether they\'re in the current approval workflow', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.approver = `another+${CURRENT_USER_EMAIL}`;
+        policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+        policy.preventSelfApproval = false;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+    })
+
     it('canPay should return true for expense report with payments enabled', async () => {
         const report = {
             ...createRandomReport(REPORT_ID),
