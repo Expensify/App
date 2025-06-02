@@ -524,7 +524,7 @@ function WorkspacesListPage() {
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{getHeaderButton()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt3]}>{getHeaderButton()}</View>}
                 <FlatList
                     data={workspaces}
                     renderItem={getMenuItem}
