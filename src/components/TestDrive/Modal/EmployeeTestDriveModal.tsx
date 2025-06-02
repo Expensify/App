@@ -83,6 +83,9 @@ function EmployeeTestDriveModal() {
                     setFormError(translate('testDrive.modal.employee.error'));
                 },
             );
+        }).catch(() => {
+            setIsLoading(false);
+            setFormError(translate('testDrive.modal.employee.error'));
         });
     };
 
