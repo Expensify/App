@@ -1,6 +1,7 @@
-import {renderHook} from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
-import type {Options} from '@libs/OptionsListUtils';
+import type { Options } from '@libs/OptionsListUtils';
+
 
 const nonLatinOptions = {
     currentUserOption: null,
@@ -59,7 +60,7 @@ describe('useFastSearchFromOptions', () => {
             ],
         } as Options;
         const {result} = renderHook(() => useFastSearchFromOptions(options));
-        const search = result.current;
+        const {search} = result.current;
 
         const {personalDetails, recentReports} = search('Ah Ga');
 
@@ -68,7 +69,7 @@ describe('useFastSearchFromOptions', () => {
     });
     it('should return reports/personalDetails with non-latin characters', () => {
         const {result} = renderHook(() => useFastSearchFromOptions(nonLatinOptions));
-        const search = result.current;
+        const {search} = result.current;
 
         const {personalDetails, recentReports} = search('Fabio');
 
@@ -77,7 +78,7 @@ describe('useFastSearchFromOptions', () => {
     });
     it('should return reports/personalDetails with multiple word query and non-latin character', () => {
         const {result} = renderHook(() => useFastSearchFromOptions(nonLatinOptions));
-        const search = result.current;
+        const {search} = result.current;
 
         const {recentReports, personalDetails} = search('John Fabio');
 
