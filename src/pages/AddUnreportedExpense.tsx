@@ -38,7 +38,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
-    const showUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
+    const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
     function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
         if (!transactions) {
             return [];
@@ -177,7 +177,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 }}
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
-                listFooterContent={showUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
+                listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
             >
                 {!!errorMessage && (
                     <FormHelpMessage
