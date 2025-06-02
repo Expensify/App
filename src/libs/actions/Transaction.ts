@@ -733,10 +733,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         // 2. Keep track of the new report totals
         const transactionAmount = getAmount(transaction);
         if (oldReportID) {
-            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : oldReport?.total ?? 0) + transactionAmount;
+            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
         }
         if (reportID && newReport) {
-            updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : newReport.total ?? 0) - transactionAmount;
+            updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : (newReport.total ?? 0)) - transactionAmount;
         }
 
         // 3. Optimistically update the IOU action reportID
@@ -751,7 +751,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         };
 
         if (oldIOUAction) {
-            const targetReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? existingSelfDMReportID ?? selfDMReport.reportID : reportID;
+            const targetReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport.reportID) : reportID;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
