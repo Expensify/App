@@ -5409,8 +5409,16 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
     const {optimisticData, successData, failureData, membersChats} = buildAddMembersToWorkspaceOnyxData({[submitterEmail]: report.ownerAccountID}, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER);
     const optimisticPolicyExpenseChatReport = membersChats.reportCreationData[submitterEmail].report;
+    const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
 
-    const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(report, policyID, optimisticPolicyExpenseChatReport);
+    if (!optimisticPolicyExpenseChatReport || !optimisticPolicyExpenseChatCreatedReportActionID) {
+        return;
+    }
+
+    const {optimisticData: optimisticChangePolicyData, successData: successChangePolicyData, failureData: failureChangePolicyData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(report, policyID, optimisticPolicyExpenseChatReport);
+    optimisticData.push(...optimisticChangePolicyData);
+    successData.push(...successChangePolicyData);
+    failureData.push(...failureChangePolicyData);
 
     // Call the ChangeReportPolicy API endpoint
     const params = {
@@ -5418,16 +5426,15 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         policyID,
         reportPreviewReportActionID: optimisticReportPreviewAction.reportActionID,
         changePolicyReportActionID: optimisticMovedReportAction.reportActionID,
-        policyExpenseChatReportID: newPolicyExpenseChatReportID,
-        policyExpenseCreatedReportActionID: membersChats.reportCreationData[submitterEmail].reportActionID,
+        policyExpenseChatReportID: optimisticPolicyExpenseChatReport.reportID,
+        policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID,
     };
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params);
 
-    // 5. If the dismissedProductTraining.changeReportModal is not set,
-    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    // if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
-    //     Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportToMove.reportID)));
-    // }
+    // 5. If the dismissedProductTraining.changeReportModal is not set, navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
+    if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
+        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
+    }
 }
 
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
