@@ -16,6 +16,7 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -111,6 +112,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const policyID = report?.policyID;
@@ -280,7 +282,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         return getDescription(updatedTransaction ?? null);
     }, [updatedTransaction]);
     const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : updatedTransaction?.modifiedMerchant ?? merchantTitle;
+    const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
 
     const saveBillable = useCallback(
         (newBillable: boolean) => {
@@ -538,6 +540,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
     }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
 
+    const receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -551,7 +555,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReceiptEmptyState && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('receipt')}
+                        style={styles.mv3}
+                    >
                         <ReceiptEmptyState
                             hasError={hasErrors}
                             disabled={!canEditReceipt}
@@ -565,6 +572,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             }}
                             isThumbnail={!canEditReceipt}
                             isInMoneyRequestView
+                            style={[receiptStyle, styles.mv0]}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -591,7 +599,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         dismissError={dismissReceiptError}
                     >
                         {hasReceipt && (
-                            <View style={[styles.moneyRequestViewImage, styles.expenseViewImage]}>
+                            <View style={[styles.moneyRequestViewImage, receiptStyle]}>
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
                                     fileExtension={receiptURIs?.fileExtension}
