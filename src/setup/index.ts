@@ -7,8 +7,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
 import platformSetup from './platformSetup';
+import telemetry from './telemetry';
 
 export default function () {
+    telemetry();
+
     /*
      * Initialize the Onyx store when the app loads for the first time.
      *
