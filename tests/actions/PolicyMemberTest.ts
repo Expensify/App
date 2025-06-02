@@ -392,7 +392,7 @@ describe('actions/PolicyMember', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the member workspace expense chat and expense report should be unarchived optimistically
+            // Then the member workspace expense chat and expense report should be unarchive optimistically
             const isWorkspaceChatArchived = await new Promise<boolean>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
