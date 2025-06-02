@@ -106,6 +106,7 @@ const lightTheme = {
     transparentWhite: `${colors.white}51`,
     emptyFolderBG: colors.yellow600,
     travelBG: colors.blue600,
+    todoBG: colors.blue800,
     trialTimer: colors.green600,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
