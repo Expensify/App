@@ -15,7 +15,7 @@ You can add attendees to an expense to indicate who participated in a meal, meet
 2. Open the expense and click the **Attendees** caret to expand attendee options.
 3. Select participants from your **Recents**, **Contacts**, or use the **Search bar** to find someone by name or email.
 4. To add someone new, manually enter their name or email. They’ll be saved to your Contacts for future use.
-5. Click on each attendee to add them. A ✅ checkmark will show who’s been selected.
+5. Click on each attendee to add them. A checkmark (✅) will show who’s been selected.
 6. Click **Save**.
 
 ---
