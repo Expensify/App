@@ -69,11 +69,9 @@ function ProfilePage({route}: ProfilePageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled, canBeMissing: true});
-    const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => account?.guideCalendarLink,
-        canBeMissing: true,
-    });
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isDebugModeEnabled = !!account?.isDebugModeEnabled;
+    const guideCalendarLink = account?.guideCalendarLink ?? '';
 
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;
@@ -149,13 +147,15 @@ function ProfilePage({route}: ProfilePageProps) {
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
+    const isConcierge = isConciergeChatReport(report);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (isValidAccountRoute(accountID) && !loginParams) {
+        // Concierge's profile page information is already available in CONST.ts
+        if (isValidAccountRoute(accountID) && !loginParams && !isConcierge) {
             openPublicProfilePage(accountID);
         }
-    }, [accountID, loginParams]);
+    }, [accountID, loginParams, isConcierge]);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -169,8 +169,6 @@ function ProfilePage({route}: ProfilePageProps) {
         }
         return result;
     }, [accountID, isCurrentUser, loginParams, report]);
-
-    const isConcierge = isConciergeChatReport(report);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>

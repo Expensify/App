@@ -76,7 +76,7 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             }
                             description={translate('workspace.qbo.accountingMethods.label')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.getRoute(policyID, backTo))}
                         />
                     </OfflineWithFeedback>
                 )}

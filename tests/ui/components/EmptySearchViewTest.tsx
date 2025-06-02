@@ -3,11 +3,10 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
+import {translateLocal} from '@libs/Localize';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-jest.mock('@components/ConfirmedRoute.tsx');
 
 // Wrapper component with OnyxProvider
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -30,36 +29,38 @@ describe('EmptySearchView', () => {
     describe('type is Expense', () => {
         const dataType = CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-        it('should display correct buttons and subtitle when user has not clicked on "Take a tour"', async () => {
-            // Given user hasn't clicked on "Take a tour" yet
+        it('should display correct buttons and subtitle when user has not clicked on "Take a test drive"', async () => {
+            // Given user hasn't clicked on "Take a test drive" yet
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: false});
 
             // Render component
             render(
                 <Wrapper>
                     <EmptySearchView
+                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
                 </Wrapper>,
             );
 
-            // Then it should display create expenses and take a tour buttons
-            expect(await screen.findByText('Create expense')).toBeVisible();
-            expect(await screen.findByText('Take a tour')).toBeVisible();
+            // Then it should display create expenses and take a test drive buttons
+            expect(await screen.findByText(translateLocal('iou.createExpense'))).toBeVisible();
+            expect(await screen.findByText(translateLocal('emptySearchView.takeATestDrive'))).toBeVisible();
 
             // And correct modal subtitle
-            expect(screen.getByText('Create an expense or take a tour of Expensify to learn more.')).toBeVisible();
+            expect(screen.getByText(translateLocal('search.searchResults.emptyExpenseResults.subtitle'))).toBeVisible();
         });
 
-        it('should display correct buttons and subtitle when user already did "Take a tour"', async () => {
-            // Given user clicked on "Take a tour"
+        it('should display correct buttons and subtitle when user already did "Take a test drive"', async () => {
+            // Given user clicked on "Take a test drive"
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
 
             // Render component
             render(
                 <Wrapper>
                     <EmptySearchView
+                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -67,47 +68,49 @@ describe('EmptySearchView', () => {
             );
 
             // Then it should display create expenses button
-            expect(await screen.findByText('Create expense')).toBeVisible();
-            expect(screen.queryByText('Take a tour')).not.toBeOnTheScreen();
+            expect(await screen.findByText(translateLocal('iou.createExpense'))).toBeVisible();
+            expect(screen.queryByText(translateLocal('emptySearchView.takeATestDrive'))).not.toBeOnTheScreen();
 
             // And correct modal subtitle
-            expect(screen.getByText('Use the green button below to create an expense.')).toBeVisible();
+            expect(screen.getByText(translateLocal('search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton'))).toBeVisible();
         });
     });
 
     describe('type is Invoice', () => {
         const dataType = CONST.SEARCH.DATA_TYPES.INVOICE;
 
-        it('should display correct buttons and subtitle when user has not clicked on "Take a tour"', async () => {
-            // Given user hasn't clicked on "Take a tour" yet
+        it('should display correct buttons and subtitle when user has not clicked on "Take a test drive"', async () => {
+            // Given user hasn't clicked on "Take a test drive" yet
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: false});
 
             // Render component
             render(
                 <Wrapper>
                     <EmptySearchView
+                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
                 </Wrapper>,
             );
 
-            // Then it should display send invoice and take a tour buttons
-            expect(await screen.findByText('Send invoice')).toBeVisible();
-            expect(await screen.findByText('Take a tour')).toBeVisible();
+            // Then it should display send invoice and take a test drive buttons
+            expect(await screen.findByText(translateLocal('workspace.invoices.sendInvoice'))).toBeVisible();
+            expect(await screen.findByText(translateLocal('emptySearchView.takeATestDrive'))).toBeVisible();
 
             // And correct modal subtitle
-            expect(screen.getByText('Send an invoice or take a tour of Expensify to learn more.')).toBeVisible();
+            expect(screen.getByText(translateLocal('search.searchResults.emptyInvoiceResults.subtitle'))).toBeVisible();
         });
 
-        it('should display correct buttons and subtitle when user already did "Take a tour"', async () => {
-            // Given user clicked on "Take a tour"
+        it('should display correct buttons and subtitle when user already did "Take a test drive"', async () => {
+            // Given user clicked on "Take a test drive"
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
 
             // Render component
             render(
                 <Wrapper>
                     <EmptySearchView
+                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -115,11 +118,11 @@ describe('EmptySearchView', () => {
             );
 
             // Then it should display Send invoice button
-            expect(await screen.findByText('Send invoice')).toBeVisible();
-            expect(screen.queryByText('Take a tour')).not.toBeOnTheScreen();
+            expect(await screen.findByText(translateLocal('workspace.invoices.sendInvoice'))).toBeVisible();
+            expect(screen.queryByText(translateLocal('emptySearchView.takeATestDrive'))).not.toBeOnTheScreen();
 
             // And correct modal subtitle
-            expect(screen.getByText('Use the green button below to send an invoice.')).toBeVisible();
+            expect(screen.getByText(translateLocal('search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton'))).toBeVisible();
         });
     });
 });

@@ -5,20 +5,13 @@ import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, RootNavigatorParamList, State} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction as isTrackExpenseReportReportActionsUtils} from '@libs/ReportActionsUtils';
-import {
-    canEditFieldOfMoneyRequest,
-    isMoneyRequestReport,
-    isOneTransactionThread as isOneTransactionThreadReportUtils,
-    isTrackExpenseReport as isTrackExpenseReportReportUtils,
-} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport as isTrackExpenseReportReportUtils} from '@libs/ReportUtils';
 import {getRequestType, hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -29,10 +22,10 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const reportID = route.params.reportID;
     const transactionID = route.params.transactionID;
     const action = route.params.action;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
 
     const isDraftTransaction = !!action;
     const transaction = isDraftTransaction ? transactionDraft : transactionMain;
@@ -93,30 +86,12 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [receiptPath]);
 
-    const onModalClose = () => {
-        // Receipt Page can be opened either from Reports or from Search RHP view
-        // We have to handle going back to correct screens, if it was opened from RHP just close the modal, otherwise go to Report Page
-        const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-        const secondToLastRoute = rootState.routes.at(-2);
-        if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || isDraftTransaction) {
-            Navigation.dismissModal();
-        } else {
-            const isOneTransactionThread = isOneTransactionThreadReportUtils(report?.reportID, report?.parentReportID, parentReportAction);
-            const dismissModalReportID = isOneTransactionThread ? report?.parentReportID : report?.reportID;
-            if (!dismissModalReportID) {
-                Navigation.dismissModal();
-                return;
-            }
-            Navigation.dismissModalWithReport({reportID: dismissModalReportID});
-        }
-    };
-
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReport = isTrackExpenseReportReportUtils(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isTrackExpenseReport || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates
+        isTrackExpenseReport || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || isFromReviewDuplicates
             ? !transaction
             : moneyRequestReportID !== transaction?.reportID;
 
@@ -126,8 +101,8 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             isAuthTokenRequired={!isLocalFile && !isDraftTransaction}
             report={report}
             isReceiptAttachment
-            canEditReceipt={(canEditReceipt && !readonly) || isDraftTransaction}
-            canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction}
+            canEditReceipt={((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt}
+            canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt}
             allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={isDraftTransaction ? transaction?.filename : receiptURIs?.filename}
@@ -135,7 +110,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             iouAction={action}
             iouType={iouType}
             draftTransactionID={isDraftTransaction ? transactionID : undefined}
-            onModalClose={onModalClose}
+            onModalClose={Navigation.dismissModal}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         />

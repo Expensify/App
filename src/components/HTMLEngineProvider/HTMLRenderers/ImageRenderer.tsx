@@ -19,13 +19,13 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {User} from '@src/types/onyx';
+import type {Account} from '@src/types/onyx';
 
 type ImageRendererWithOnyxProps = {
-    /** Current user */
+    /** Current user account */
     // Following line is disabled because the onyx prop is only being used on the memo HOC
     // eslint-disable-next-line react/no-unused-prop-types
-    user: OnyxEntry<User>;
+    account: OnyxEntry<Account>;
 };
 
 type ImageRendererProps = ImageRendererWithOnyxProps & CustomRendererProps<TBlock>;
@@ -41,7 +41,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //
     //     - Chat Attachment images
     //
-    //           Images uploaded by the user via the app or email.
+    //           Images uploaded by the user account via the app or email.
     //           These have a full-sized image `htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]`
     //           and a thumbnail `htmlAttribs.src`. Both of these URLs need to have
     //           an authToken added to them in order to control who
@@ -101,7 +101,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
+            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -119,7 +119,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 if (isDisabled || !shouldDisplayContextMenu) {
                                     return;
                                 }
-                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
+                                return onShowContextMenu(() =>
+                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs)),
+                                );
                             }}
                             isNested
                             shouldUseHapticsOnLongPress
@@ -139,16 +141,16 @@ ImageRenderer.displayName = 'ImageRenderer';
 
 const ImageRendererMemorize = memo(
     ImageRenderer,
-    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
+    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.account?.shouldUseStagingServer === nextProps.account?.shouldUseStagingServer,
 );
 
 function ImageRendererWrapper(props: CustomRendererProps<TBlock>) {
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     return (
         <ImageRendererMemorize
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            user={user}
+            account={account}
         />
     );
 }

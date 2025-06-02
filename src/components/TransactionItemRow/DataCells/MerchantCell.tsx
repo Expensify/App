@@ -5,7 +5,7 @@ import {getMerchant} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function MerchantCell({transactionItem, shouldShowTooltip}: TransactionDataCellProps) {
+function MerchantCell({transactionItem, shouldShowTooltip, shouldUseNarrowLayout}: TransactionDataCellProps) {
     const styles = useThemeStyles();
 
     const merchantName = getMerchant(transactionItem);
@@ -15,7 +15,7 @@ function MerchantCell({transactionItem, shouldShowTooltip}: TransactionDataCellP
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={merchantToDisplay}
-            style={[styles.pre, styles.justifyContentCenter]}
+            style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
 }

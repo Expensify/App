@@ -124,6 +124,27 @@ type Split = {
     taxAmount?: number;
 };
 
+/** Model for one portion of a shared expense */
+type SplitExpense = {
+    /** Unique identifier of this split expense */
+    transactionID: string;
+
+    /** Amount allocated to this split */
+    amount: number;
+
+    /** Description of this split */
+    description?: string;
+
+    /** Category assigned to this split */
+    category?: string;
+
+    /** Tags associated with this split */
+    tags?: string[];
+
+    /** Timestamp when this split was created */
+    created: string;
+};
+
 /** Model of IOU request */
 type IOU = {
     /** ID of the IOU request */
@@ -202,5 +223,14 @@ type Attendee = {
     reportID?: string;
 };
 
+/** Model of IOU accountant */
+type Accountant = {
+    /** Account ID */
+    accountID?: number;
+
+    /** Account login */
+    login?: string;
+};
+
 export default IOU;
-export type {Participant, Split, Attendee};
+export type {Participant, Split, Attendee, Accountant, SplitExpense};

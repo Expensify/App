@@ -36,7 +36,6 @@ import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -154,7 +153,7 @@ type MoneyRequestConfirmationListProps = {
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
 
-    /** A flag for verifying that the current report is a sub-report of a workspace chat */
+    /** A flag for verifying that the current report is a sub-report of a expense chat */
     isPolicyExpenseChat?: boolean;
 
     /** Whether smart scan failed */
@@ -165,9 +164,6 @@ type MoneyRequestConfirmationListProps = {
 
     /** The action to take */
     action?: IOUAction;
-
-    /** Should play sound on confirmation */
-    shouldPlaySound?: boolean;
 
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
@@ -219,31 +215,39 @@ function MoneyRequestConfirmationList({
     reportActionID,
     action = CONST.IOU.ACTION.CREATE,
     shouldDisplayReceipt = false,
-    shouldPlaySound = true,
     isConfirmed,
     isConfirming,
     onPDFLoadError,
     onPDFPassword,
 }: MoneyRequestConfirmationListProps) {
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
     const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
         selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        canBeMissing: true,
     });
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const isTestReceipt = useMemo(() => {
         return transaction?.receipt?.isTestReceipt ?? false;
     }, [transaction?.receipt?.isTestReceipt]);
 
+    const isTestDriveReceipt = useMemo(() => {
+        return transaction?.receipt?.isTestDriveReceipt ?? false;
+    }, [transaction?.receipt?.isTestDriveReceipt]);
+
+    const isManagerMcTestReceipt = useMemo(() => {
+        return Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
+    }, [betas, selectedParticipantsProp]);
+
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
-        Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login)),
+        isTestDriveReceipt ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
+        isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
     const policy = policyReal ?? policyDraft;
@@ -259,7 +263,7 @@ function MoneyRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
-    const isCreateExpenseFlow = transaction?.isFromGlobalCreate && !isPerDiemRequest;
+    const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -328,16 +332,18 @@ function MoneyRequestConfirmationList({
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
+
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
-    const formattedAmountPerAttendee = isDistanceRequestWithPendingRoute
-        ? ''
-        : convertToDisplayString(
-              (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
-              isDistanceRequest ? currency : iouCurrencyCode,
-          );
+    const formattedAmountPerAttendee =
+        isDistanceRequestWithPendingRoute || isScanRequest || isPerDiemRequest
+            ? ''
+            : convertToDisplayString(
+                  (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
+                  isDistanceRequest ? currency : iouCurrencyCode,
+              );
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
@@ -385,7 +391,7 @@ function MoneyRequestConfirmationList({
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
-        // We want this effect to run only when the transaction is moving from Self DM to a workspace chat
+        // We want this effect to run only when the transaction is moving from Self DM to a expense chat
         if (!transactionID || !isDistanceRequest || !isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
             return;
         }
@@ -885,9 +891,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -897,9 +900,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onSendMoney?.(paymentMethod);
             }
         },
@@ -921,7 +921,6 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             onConfirm,
-            shouldPlaySound,
             transactionID,
             reportID,
             policy,

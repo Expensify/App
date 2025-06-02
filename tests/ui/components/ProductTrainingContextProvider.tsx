@@ -25,7 +25,6 @@ jest.mock('@libs/Fullstory', () => ({
     },
     parseFSAttributes: jest.fn(),
 }));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     shouldUseNarrowLayout: true,
@@ -93,7 +92,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should not show
@@ -105,7 +104,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should not show
@@ -117,7 +116,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should show
@@ -125,7 +124,7 @@ describe('ProductTrainingContextProvider', () => {
         });
 
         it('should keep tooltip visible when another tooltip with shouldShow=false is unmounted', async () => {
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const ref = createRef<ProductTrainingRef>();
 
             // When multiple tooltips with the same name but different shouldShow values are rendered
@@ -178,7 +177,7 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then tooltips should not show
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Expect tooltip to be hidden
@@ -197,7 +196,7 @@ describe('ProductTrainingContextProvider', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should show
@@ -210,7 +209,7 @@ describe('ProductTrainingContextProvider', () => {
             // When a tooltip has been dismissed
             const date = new Date();
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
                     timestamp: DateUtils.getDBTime(date.valueOf()),
@@ -237,7 +236,7 @@ describe('ProductTrainingContextProvider', () => {
                 },
             });
             await waitForBatchedUpdatesWithAct();
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
             // When the user dismiss the tooltip
             result.current.hideProductTrainingTooltip();
@@ -295,8 +294,8 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then only highest priority tooltip should show
-            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
 
             const {result} = renderHook(
                 () => ({
@@ -315,8 +314,8 @@ describe('ProductTrainingContextProvider', () => {
             // When higher priority tooltip is dismissed
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
-            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
 
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
@@ -353,8 +352,8 @@ describe('ProductTrainingContextProvider', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
 
             const {result} = renderHook(
                 () => ({

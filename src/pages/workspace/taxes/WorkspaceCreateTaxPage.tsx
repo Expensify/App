@@ -20,6 +20,7 @@ import {hasAccountingConnections} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -36,7 +37,7 @@ function WorkspaceCreateTaxPage({
 }: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
     const submitForm = useCallback(
         ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
@@ -112,11 +113,14 @@ function WorkspaceCreateTaxPage({
                                     description={translate('workspace.taxes.value')}
                                     rightLabel={translate('common.required')}
                                     hideCurrencySymbol
-                                    // The default currency uses 2 decimal places, so we substract it
+                                    // The default currency uses 2 decimal places, so we subtract it
                                     extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
                                     // We increase the amount max length to support the extra decimals.
                                     amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
                                     extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                                    autoGrowExtraSpace={variables.w80}
+                                    autoGrowMarginSide="left"
+                                    style={[styles.iouAmountTextInput, styles.textAlignRight]}
                                 />
                             </View>
                         </FormProvider>

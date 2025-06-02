@@ -39,6 +39,7 @@ export default {
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,
     avatarSizeSmallNormal: 32,
+    avatarSizeLargeNormal: 48,
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
@@ -97,10 +98,10 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
-    sideBarWithLHBWidth: 344,
+    sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
     pdfPageMaxWidth: 992,
-    tooltipzIndex: 10050,
+    tooltipZIndex: 10050,
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
@@ -113,8 +114,8 @@ export default {
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
     lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
     lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
-    lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
-    lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
+    lineHeightSizeH1: getValueUsingPixelRatio(28, 32),
+    lineHeightSizeH2: getValueUsingPixelRatio(24, 28),
     lineHeighTaskTitle: getValueUsingPixelRatio(26, 30),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
@@ -217,7 +218,8 @@ export default {
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
-    onboardingModalWidth: 500,
+    featureTrainingModalWidth: 500,
+    onboardingModalWidth: 640,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
@@ -277,6 +279,8 @@ export default {
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
     navigationTabBarInboxTooltipShiftHorizontal: 36,
+    accountSwitcherTooltipShiftVertical: 7,
+    accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
 
     inlineImagePreviewMinSize: 64,
@@ -288,6 +292,8 @@ export default {
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
+
+    scrollToNewTransactionOffset: 300,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
@@ -312,4 +318,30 @@ export default {
     w96: 96,
     w184: 184,
     w191: 191,
+
+    // Transaction item row heights based on layout types
+    // Wide screen (desktop) layout
+    optionRowWideItemHeight: 64,
+
+    // Narrow screen with drawer layout
+    optionRowNarrowWithDrawerItemHeight: 96,
+    optionRowNarrowWithDrawerItemHeightWithButton: 104,
+
+    // Narrow screen without drawer (mobile-like) layout
+    optionRowNarrowWithoutDrawerItemHeight: 92,
+    optionRowNarrowWithoutDrawerItemHeightWithButton: 104,
+
+    optionRowListItemPadding: 8,
+    optionRowSearchHeaderHeight: 54,
+
+    // SearchList item heights
+    searchListItemHeightLargeScreen: 72,
+    searchListItemHeightSmallScreen: 96,
+    searchListItemHeightChat: 351,
+    searchListItemHeightChatCompact: 105,
+    searchOptionRowTransactionHeight: 52,
+    searchOptionRowBaseHeight: 52,
+    searchOptionRowSmallFooterHeight: 28,
+    searchOptionRowLargeFooterHeight: 17,
+    searchOptionRowMargin: 6,
 } as const;

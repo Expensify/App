@@ -1,6 +1,7 @@
 import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,18 +17,19 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@src/libs/Permissions');
 jest.mock('@src/components/Icon/Expensicons');
 jest.mock('@src/hooks/useRootNavigationState');
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'email1@test.com';
 
 describe('Sidebar', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+
+        initOnyxDerivedValues();
+    });
 
     beforeEach(() => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates

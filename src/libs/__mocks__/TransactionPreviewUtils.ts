@@ -30,5 +30,11 @@ function getIOUData(
     return undefined;
 }
 
-export {getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals, getReviewNavigationRoute, getOriginalTransactionIfBillIsSplit} from '../TransactionPreviewUtils';
+export {
+    getTransactionPreviewTextAndTranslationPaths,
+    createTransactionPreviewConditionals,
+    getReviewNavigationRoute,
+    getViolationTranslatePath,
+    getUniqueActionErrors,
+} from '../TransactionPreviewUtils';
 export {getIOUData};

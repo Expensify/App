@@ -10,7 +10,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getOwnerDetailsAndOwnerFilesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getOwnerDetailsAndOwnerFilesForBeneficialOwners';
 import {clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners, saveCorpayOnboardingBeneficialOwners} from '@userActions/BankAccounts';
-import {setDraftValues} from '@userActions/FormActions';
+import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -152,6 +152,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     const beneficialOwnerAddressCountryValue = reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID] ?? '';
 
     const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;

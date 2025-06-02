@@ -33,7 +33,7 @@ describe('ReportDetailsPage', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
     });
 
@@ -42,6 +42,8 @@ describe('ReportDetailsPage', () => {
     });
 
     it('self DM track options should disappear when report moved to workspace', async () => {
+        await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TRACK_FLOWS]);
+
         const selfDMReportID = '1';
         const trackExpenseReportID = '2';
         const trackExpenseActionID = '123';

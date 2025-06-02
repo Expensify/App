@@ -5,11 +5,9 @@ import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
-import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -21,12 +19,13 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import createCollection from '../utils/collections/createCollection';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -53,7 +52,6 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
         didScreenTransitionEnd: true,
     }),
 }));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
@@ -68,6 +66,7 @@ describe('actions/Report', () => {
     beforeEach(() => {
         HttpUtils.xhr = originalXHR;
         const promise = Onyx.clear().then(jest.useRealTimers);
+
         if (getIsUsingFakeTimers()) {
             // flushing pending timers
             // Onyx.clear() promise is resolved in batch which happens after the current microtasks cycle
@@ -706,7 +705,7 @@ describe('actions/Report', () => {
                 reportAction = Object.values(reportActions).at(0);
 
                 if (reportAction) {
-                    // Add the same reaction to the same report action with a different skintone
+                    // Add the same reaction to the same report action with a different skin tone
                     Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 }
                 return waitForBatchedUpdates()
@@ -733,7 +732,7 @@ describe('actions/Report', () => {
                         const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
                         expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
-                        // Expect two different skintone reactions
+                        // Expect two different skin tone reactions
                         const reportActionReactionEmojiUserSkinTones = reportActionReactionEmoji?.users[TEST_USER_ACCOUNT_ID].skinTones;
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('-1');
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('2');
@@ -991,7 +990,7 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
-    it('should send DeleteComment request after AddComment is rollbacked', async () => {
+    it('should send DeleteComment request after AddComment is rollback', async () => {
         global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
         const mockedXhr = jest.fn();
@@ -1008,7 +1007,7 @@ describe('actions/Report', () => {
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.isRollbacked).toBeTruthy();
+        expect(PersistedRequests.getAll().at(0)?.isRollback).toBeTruthy();
         const newComment = PersistedRequests.getAll().at(1);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
@@ -1578,32 +1577,122 @@ describe('actions/Report', () => {
             });
         });
     });
-    describe('isConciergeChatReport', () => {
-        const accountID = 2;
-        const conciergeChatReport1 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
-        const conciergeChatReport2 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
 
-        beforeAll(async () => {
-            Onyx.init({keys: ONYXKEYS});
+    describe('completeOnboarding', () => {
+        const TEST_USER_LOGIN = 'test@gmail.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        it('should set "isOptimisticAction" to false/null for all actions in admins report after completing onboarding setup', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
-        });
 
-        beforeEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdates();
-        });
+            const adminsChatReportID = '7957055873634067';
+            const onboardingPolicyID = 'A70D00C752416807';
+            const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
 
-        it('should not return archived Concierge chat report', async () => {
-            initOnyxDerivedValues();
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport1.reportID}`, conciergeChatReport1);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport2.reportID}`, conciergeChatReport2);
-
-            // Set First conciergeChatReport1 to archived state
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${conciergeChatReport1.reportID}`, {
-                private_isArchived: new Date().toString(),
+            Report.completeOnboarding({
+                engagementChoice,
+                onboardingMessage: CONST.ONBOARDING_MESSAGES[engagementChoice],
+                adminsChatReportID,
+                onboardingPolicyID,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: null,
             });
-            const derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
-            expect(derivedConciergeChatReportID).toBe(conciergeChatReport2.reportID);
+
+            await waitForBatchedUpdates();
+
+            const reportActions: OnyxEntry<OnyxTypes.ReportActions> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                    callback: (id) => {
+                        Onyx.disconnect(connection);
+                        resolve(id);
+                    },
+                });
+            });
+            expect(reportActions).not.toBeNull();
+            expect(reportActions).not.toBeUndefined();
+            Object.values(reportActions ?? {}).forEach((action) => {
+                expect(action.isOptimisticAction).toBeFalsy();
+            });
+        });
+    });
+
+    describe('markAllMessagesAsRead', () => {
+        it('should mark all unread reports as read', async () => {
+            // Given a collection of 10 unread and read reports, where even-index report is unread
+            const currentTime = DateUtils.getDBTime();
+            const reportCollections: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, OnyxTypes.Report> = createCollection<OnyxTypes.Report>(
+                (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+                (index) => {
+                    if (index % 2 === 0) {
+                        return {
+                            ...createRandomReport(index),
+                            lastMessageText: 'test',
+                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1),
+                            lastVisibleActionCreated: currentTime,
+                        };
+                    }
+                    return createRandomReport(index);
+                },
+                10,
+            );
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
+
+            // When mark all reports as read
+            Report.markAllMessagesAsRead();
+
+            await waitForBatchedUpdates();
+
+            // Then all report should be read
+            const isUnreadCollection = await Promise.all(
+                Object.values(reportCollections).map((report) => {
+                    return new Promise<boolean>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                            callback: (reportVal) => {
+                                Onyx.disconnect(connection);
+                                resolve(ReportUtils.isUnread(reportVal, undefined));
+                            },
+                        });
+                    });
+                }),
+            );
+            expect(isUnreadCollection.some(Boolean)).toBe(false);
+        });
+    });
+
+    describe('updateDescription', () => {
+        it('should not call UpdateRoomDescription API if the description is not changed', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            Report.updateDescription('1', '<h1>test</h1>', '# test');
+
+            await waitForBatchedUpdates();
+
+            expect(global.fetch).toHaveBeenCalledTimes(0);
+        });
+
+        it('should revert to correct previous description if UpdateRoomDescription API fails', async () => {
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                description: '<h1>test</h1>',
+            };
+            const mockFetch = fetch as MockFetch;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            mockFetch?.fail?.();
+            Report.updateDescription('1', '<h1>test</h1>', '# test1');
+
+            await waitForBatchedUpdates();
+            let updateReport: OnyxEntry<OnyxTypes.Report>;
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                callback: (val) => (updateReport = val),
+            });
+            expect(updateReport?.description).toBe('<h1>test</h1>');
         });
     });
 });

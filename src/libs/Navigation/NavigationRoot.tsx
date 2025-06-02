@@ -1,4 +1,4 @@
-import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
+import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
@@ -24,10 +25,9 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import {saveSettingsTabPathToSessionStorage} from './helpers/getLastVisitedWorkspace';
-import {isSettingsTabScreenName} from './helpers/isNavigatorName';
+import {isWorkspacesTabScreenName} from './helpers/isNavigatorName';
+import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -53,7 +53,7 @@ function parseAndLogRoute(state: NavigationState) {
         return;
     }
 
-    const currentPath = customGetPathFromState(state, linkingConfig.config);
+    const currentPath = getPathFromState(state, linkingConfig.config);
 
     const focusedRoute = findFocusedRoute(state);
 
@@ -72,7 +72,9 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     Navigation.setIsNavigationReady();
-    if (isSettingsTabScreenName(state.routes.at(-1)?.name)) {
+    if (isWorkspacesTabScreenName(state.routes.at(-1)?.name)) {
+        saveWorkspacesTabPathToSessionStorage(currentPath);
+    } else if (state.routes.at(-1)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
         saveSettingsTabPathToSessionStorage(currentPath);
     }
 
@@ -91,7 +93,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const currentReportIDValue = useCurrentReportID();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -108,11 +109,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) && lastVisitedPath && isOnboardingCompleted && authenticated) {
+        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
+            });
+
             return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 
-        if (!user || user.isFromPublicDomain) {
+        if (!account || account.isFromPublicDomain) {
             return;
         }
 
@@ -126,12 +131,18 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
+            return getAdaptedStateFromPath(
+                getOnboardingInitialPath({
+                    isUserFromPublicDomain: !!account.isFromPublicDomain,
+                    hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
+                }),
+                linkingConfig.config,
+            );
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
         // The same applies to HybridApp, as we always define the route to which we want to transition.
-        if (!lastVisitedPath || CONFIG.IS_HYBRID_APP) {
+        if (!shouldOpenLastVisitedPath(lastVisitedPath) || CONFIG.IS_HYBRID_APP) {
             return undefined;
         }
 
@@ -170,14 +181,14 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // After resizing the screen from wide to narrow, if we have visited multiple central screens, we want to go back to the LHN screen, so we set shouldPopAllStateOnUP to true.
+        // After resizing the screen from wide to narrow, if we have visited multiple central screens, we want to go back to the LHN screen, so we set shouldPopToSidebar to true.
         // Now when this value is true, Navigation.goBack with the option {shouldPopToTop: true} will remove all visited central screens in the given tab from the navigation stack and go back to the LHN.
         // More context here: https://github.com/Expensify/App/pull/59300
         if (!shouldUseNarrowLayout) {
             return;
         }
 
-        Navigation.setShouldPopAllStateOnUP(true);
+        Navigation.setShouldPopToSidebar(true);
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {

@@ -50,6 +50,8 @@ import {
 } from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
+import {getViolationTranslatePath} from '@libs/TransactionPreviewUtils';
 import {
     compareDuplicateTransactionFields,
     hasMissingSmartscanFields,
@@ -92,6 +94,7 @@ function MoneyRequestPreviewContent({
     onPreviewPressed,
     containerStyles,
     checkIfContextMenuActive = () => {},
+    onShowContextMenu = () => {},
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
@@ -123,7 +126,7 @@ function MoneyRequestPreviewContent({
     const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
 
-    const participantAccountIDs = isMoneyRequestActionReportActionsUtils(action) && isBillSplit ? getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    const participantAccountIDs = isMoneyRequestActionReportActionsUtils(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && isBillSplit) {
@@ -140,7 +143,7 @@ function MoneyRequestPreviewContent({
         merchant,
         tag,
         category,
-    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
 
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -184,7 +187,7 @@ function MoneyRequestPreviewContent({
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = isMoneyRequestActionReportActionsUtils(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
@@ -219,8 +222,10 @@ function MoneyRequestPreviewContent({
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
+        onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive));
     };
+
+    const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
     const getPreviewHeaderText = (): string => {
         let message = showCashOrCard;
@@ -256,11 +261,9 @@ function MoneyRequestPreviewContent({
             if (firstViolation) {
                 const canEdit = isMoneyRequestAction && canEditMoneyRequest(action, transaction);
                 const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
-                const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
-                const isTooLong = violationsCount > 1 || violationMessage.length > 15;
-                const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                const translationPath = getViolationTranslatePath(violations, hasFieldErrors, violationMessage, isOnHold);
+                return `${message} ${CONST.DOT_SEPARATOR} ${getTranslatedText(translationPath)}`;
             }
             if (hasFieldErrors) {
                 const isMerchantMissing = isMerchantMissingTransactionUtils(transaction);
@@ -308,7 +311,7 @@ function MoneyRequestPreviewContent({
     };
 
     const getDisplayDeleteAmountText = (): string => {
-        const iouOriginalMessage: OnyxEntry<OriginalMessageIOU> = isMoneyRequestActionReportActionsUtils(action) ? getOriginalMessage(action) ?? undefined : undefined;
+        const iouOriginalMessage: OnyxEntry<OriginalMessageIOU> = isMoneyRequestActionReportActionsUtils(action) ? (getOriginalMessage(action) ?? undefined) : undefined;
         return convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
     };
 
@@ -320,8 +323,8 @@ function MoneyRequestPreviewContent({
     const splitShare = useMemo(
         () =>
             shouldShowSplitShare
-                ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                  calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)
+                ? (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
+                  calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID))
                 : 0,
         [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
     );

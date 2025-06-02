@@ -1,32 +1,30 @@
+import {PortalHost} from '@gorhom/portal';
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {selectAllTransactionsForReport, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -34,7 +32,6 @@ import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
-import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 
 type MoneyRequestReportViewProps = {
     /** The report */
@@ -53,7 +50,7 @@ type MoneyRequestReportViewProps = {
     backToRoute: Route | undefined;
 };
 
-function goBackFromSearchMoneyRequest(policyID: string | undefined) {
+function goBackFromSearchMoneyRequest() {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
 
@@ -67,8 +64,7 @@ function goBackFromSearchMoneyRequest(policyID: string | undefined) {
         return;
     }
 
-    const query = buildCannedSearchQuery({policyID});
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query}));
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 }
 
 function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
@@ -92,21 +88,33 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID} = useActiveWorkspace();
-    const {translate} = useLocalize();
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false, canBeMissing: true});
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
 
-    const {reportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
+    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 
-    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
         canBeMissing: true,
     });
+
+    const prevTransactions = usePrevious(transactions);
+
+    const newTransactions = useMemo(() => {
+        if (!prevTransactions || !transactions || transactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
+        return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+        // Depending only on transactions is enough because prevTransactions is a helper object.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactions]);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -118,18 +126,25 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
 
     const dismissReportCreationError = useCallback(() => {
-        goBackFromSearchMoneyRequest(activeWorkspaceID);
+        goBackFromSearchMoneyRequest();
         InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
-    }, [activeWorkspaceID, reportID]);
-
-    const {selectionMode} = useMobileSelectionMode();
-
-    const {setSelectedTransactionsID} = useMoneyRequestReportContext();
+    }, [reportID]);
 
     // Special case handling a report that is a transaction thread
     // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
-    const shouldDisplayMoneyRequestActionsList = shouldDisplayReportTableView(report, transactions);
+
+    // Prevent flash by ensuring transaction data is fully loaded before deciding which view to render
+    // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
+    const isTransactionDataReady = transactions !== undefined;
+    const isStillLoadingData = !!isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
+    const shouldWaitForData =
+        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
+        !isTransactionThreadView &&
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    const isEmptyTransactionReport = transactions && transactions.length === 0 && transactionThreadReportID === undefined;
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, transactions ?? []);
 
     const reportHeaderView = useMemo(
         () =>
@@ -140,7 +155,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     parentReportAction={parentReportAction}
                     onBackButtonPress={() => {
                         if (!backToRoute) {
-                            goBackFromSearchMoneyRequest(activeWorkspaceID);
+                            goBackFromSearchMoneyRequest();
                             return;
                         }
                         Navigation.goBack(backToRoute);
@@ -152,20 +167,21 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     policy={policy}
                     reportActions={reportActions}
                     transactionThreadReportID={transactionThreadReportID}
+                    isLoadingInitialReportActions={isLoadingInitialReportActions}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
-                            goBackFromSearchMoneyRequest(activeWorkspaceID);
+                            goBackFromSearchMoneyRequest();
                             return;
                         }
                         Navigation.goBack(backToRoute);
                     }}
                 />
             ),
-        [activeWorkspaceID, backToRoute, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
-    if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {
+    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForData) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 
@@ -209,26 +225,18 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 errorRowStyles={[styles.ph5, styles.mv2]}
             >
                 <HeaderGap />
-                {selectionMode?.isEnabled ? (
-                    <HeaderWithBackButton
-                        title={translate('common.selectMultiple')}
-                        onBackButtonPress={() => {
-                            setSelectedTransactionsID([]);
-                            turnOffMobileSelectionMode();
-                        }}
-                    />
-                ) : (
-                    reportHeaderView
-                )}
+                {reportHeaderView}
                 <View style={[styles.overflowHidden, styles.flex1]}>
                     {shouldDisplayMoneyRequestActionsList ? (
                         <MoneyRequestReportActionsList
                             report={report}
                             policy={policy}
                             transactions={transactions}
+                            newTransactions={newTransactions}
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
+                            isLoadingInitialReportActions={isLoadingInitialReportActions}
                         />
                     ) : (
                         <ReportActionsView
@@ -242,14 +250,17 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         />
                     )}
                     {shouldDisplayReportFooter ? (
-                        <ReportFooter
-                            report={report}
-                            reportMetadata={reportMetadata}
-                            policy={policy}
-                            pendingAction={reportPendingAction}
-                            isComposerFullSize={!!isComposerFullSize}
-                            lastReportAction={lastReportAction}
-                        />
+                        <>
+                            <ReportFooter
+                                report={report}
+                                reportMetadata={reportMetadata}
+                                policy={policy}
+                                pendingAction={reportPendingAction}
+                                isComposerFullSize={!!isComposerFullSize}
+                                lastReportAction={lastReportAction}
+                            />
+                            <PortalHost name="suggestions" />
+                        </>
                     ) : null}
                 </View>
             </OfflineWithFeedback>

@@ -5,6 +5,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withT
 import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -20,11 +21,14 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openUnreportedExpense} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -55,16 +59,19 @@ import {
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
-import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import shouldAdjustScroll from '@libs/shouldAdjustScroll';
+import {hasPendingUI, isCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, startMoneyRequest, submitReport} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
 type WebLayoutNativeEvent = {
@@ -99,7 +106,8 @@ function MoneyRequestReportPreviewContent({
     lastTransactionViolations,
     isDelegateAccessRestricted,
     renderTransactionItem,
-    onLayout,
+    onCarouselLayout,
+    onWrapperLayout,
     currentWidth,
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
@@ -108,7 +116,7 @@ function MoneyRequestReportPreviewContent({
     onPress,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
-    const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
+    const shouldShowEmptyPlaceholder = transactions.length === 0;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -133,6 +141,7 @@ function MoneyRequestReportPreviewContent({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const isIouReportArchived = useReportIsArchived(iouReportID);
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -172,25 +181,15 @@ function MoneyRequestReportPreviewContent({
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
-    const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, iouReport, policy, violations);
     const shouldShowOnlyPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
 
-    let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : undefined;
-
-    if (isPartialMerchant(formattedMerchant ?? '')) {
-        formattedMerchant = undefined;
-    }
-
-    const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
-
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
-
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {canBeMissing: true});
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type) {
@@ -225,10 +224,6 @@ function MoneyRequestReportPreviewContent({
             approveMoneyRequest(iouReport, true);
         }
     };
-
-    const shouldShowApproveButton = useMemo(() => canApproveIOU(iouReport, policy), [iouReport, policy]) || isApprovedAnimationRunning;
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
-    const shouldShowSettlementButton = !shouldShowSubmitButton && (shouldShowPayButton || shouldShowApproveButton) && !shouldShowRTERViolationMessage && !shouldShowBrokenConnectionViolation;
 
     const previewMessage = useMemo(() => {
         if (isScanning) {
@@ -336,11 +331,19 @@ function MoneyRequestReportPreviewContent({
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const carouselTransactions = transactions.slice(0, 11);
+    const prevCarouselTransactionLength = useRef(0);
+
+    useEffect(() => {
+        return () => {
+            prevCarouselTransactionLength.current = carouselTransactions.length;
+        };
+    }, [carouselTransactions.length]);
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const [currentVisibleItems, setCurrentVisibleItems] = useState([0]);
     const [footerWidth, setFooterWidth] = useState(0);
     // optimisticIndex - value for index we are scrolling to with an arrow button or undefined after scroll is completed
-    // value ensures that disabled state is applied instantly and not overriden by onViewableItemsChanged when scrolling
+    // value ensures that disabled state is applied instantly and not overridden by onViewableItemsChanged when scrolling
     // undefined makes arrow buttons react on currentIndex changes when scrolling manually
     const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
     const carouselRef = useRef<FlatList<Transaction> | null>(null);
@@ -403,7 +406,10 @@ function MoneyRequestReportPreviewContent({
     };
 
     // The button should expand up to transaction width
-    const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
+    const buttonMaxWidth =
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDTH_WIDE
+            ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width}
+            : {};
 
     const approvedOrSettledIcon = (iouSettled || isApproved) && (
         <ImageSVG
@@ -444,12 +450,43 @@ function MoneyRequestReportPreviewContent({
         }
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
-        return getReportPreviewAction(violations, iouReport, policy, transactions);
-    }, [iouReport, policy, violations, transactions]);
+        // It's necessary to allow payment animation to finish before button is changed
+        if (isPaidAnimationRunning) {
+            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+        }
+        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy);
+    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy]);
+
+    const addExpenseDropdownOptions = useMemo(
+        () => [
+            {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+                text: translate('iou.createNewExpense'),
+                icon: Expensicons.Plus,
+                onSelected: () => {
+                    if (!iouReport?.reportID) {
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReport?.reportID, undefined, false, chatReportID);
+                },
+            },
+            {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
+                text: translate('iou.addUnreportedExpense'),
+                icon: Expensicons.ReceiptPlus,
+                onSelected: () => {
+                    openUnreportedExpense(iouReport?.reportID, iouReport?.parentReportID);
+                },
+            },
+        ],
+        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, translate],
+    );
+
+    const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
@@ -461,7 +498,7 @@ function MoneyRequestReportPreviewContent({
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
             <Button
-                text={translate('iou.approve')}
+                text={translate('iou.approve', {formattedAmount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
                 success
                 onPress={() => confirmApproval()}
             />
@@ -476,6 +513,7 @@ function MoneyRequestReportPreviewContent({
                 formattedAmount={getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)}
                 currency={iouReport?.currency}
                 chatReportID={chatReportID}
+                policyID={policy?.id}
                 iouReport={iouReport}
                 wrapperStyle={buttonMaxWidth}
                 onPress={confirmPayment}
@@ -499,7 +537,6 @@ function MoneyRequestReportPreviewContent({
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: connectedIntegration ? (
             <ExportWithDropdownMenu
-                policy={policy}
                 report={iouReport}
                 connectionName={connectedIntegration}
                 wrapperStyle={styles.flexReset}
@@ -515,7 +552,7 @@ function MoneyRequestReportPreviewContent({
                 iconFill={theme.danger}
                 iconHoverFill={theme.danger}
                 text={translate('common.review', {
-                    amount: shouldShowSettlementButton ? getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction) : '',
+                    amount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction),
                 })}
                 onPress={() => openReportFromPreview()}
             />
@@ -528,10 +565,35 @@ function MoneyRequestReportPreviewContent({
                 }}
             />
         ),
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE]: (
+            <ButtonWithDropdownMenu
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('iou.addExpense')}
+                options={addExpenseDropdownOptions}
+                isSplitButton={false}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
+            />
+        ),
     };
 
+    const adjustScroll = useCallback(() => {
+        // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
+        // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
+        // To fix this, we detect when onEndReached is triggered due to an item deletion,
+        // and programmatically scroll to the end to fill the space.
+        if (carouselTransactions.length >= prevCarouselTransactionLength.current || !shouldAdjustScroll) {
+            return;
+        }
+        prevCarouselTransactionLength.current = carouselTransactions.length;
+        carouselRef.current?.scrollToEnd();
+    }, [carouselTransactions.length]);
+
     return (
-        transactions.length > 0 && (
+        <View onLayout={onWrapperLayout}>
             <OfflineWithFeedback
                 pendingAction={iouReport?.pendingFields?.preview}
                 shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
@@ -539,8 +601,8 @@ function MoneyRequestReportPreviewContent({
                 style={styles.mt1}
             >
                 <View
-                    style={[styles.chatItemMessage, containerStyles]}
-                    onLayout={onLayout}
+                    style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}
+                    onLayout={onCarouselLayout}
                 >
                     <PressableWithoutFeedback
                         onPress={onPress}
@@ -558,6 +620,7 @@ function MoneyRequestReportPreviewContent({
                             styles.justifyContentBetween,
                             StyleUtils.getBackgroundColorStyle(theme.cardBG),
                             shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                            isReportDeleted && styles.pointerEventsNone,
                         ]}
                         role={getButtonRole(true)}
                         isNested
@@ -657,10 +720,12 @@ function MoneyRequestReportPreviewContent({
                                             showsHorizontalScrollIndicator={false}
                                             renderItem={renderFlatlistItem}
                                             onViewableItemsChanged={onViewableItemsChanged}
+                                            onEndReached={adjustScroll}
                                             viewabilityConfig={viewabilityConfig}
                                             ListFooterComponent={<View style={styles.pl2} />}
                                             ListHeaderComponent={<View style={styles.pr2} />}
                                         />
+                                        {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview emptyReportPreviewAction={reportPreviewActions[reportPreviewAction]} />}
                                     </View>
                                     {shouldUseNarrowLayout && transactions.length > 1 && (
                                         <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
@@ -675,7 +740,8 @@ function MoneyRequestReportPreviewContent({
                                             ))}
                                         </View>
                                     )}
-                                    <View style={[buttonMaxWidth]}>{reportPreviewActions[reportPreviewAction]}</View>
+                                    {/* height is needed to avoid flickering on animation */}
+                                    {!shouldShowEmptyPlaceholder && <View style={[buttonMaxWidth, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>}
                                 </View>
                             </View>
                         </View>
@@ -706,7 +772,7 @@ function MoneyRequestReportPreviewContent({
                     />
                 )}
             </OfflineWithFeedback>
-        )
+        </View>
     );
 }
 

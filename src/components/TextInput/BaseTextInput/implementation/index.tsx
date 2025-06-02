@@ -330,6 +330,9 @@ function BaseTextInput(
                                 <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         onLayout={(event) => {
+                                            if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
+                                                return;
+                                            }
                                             setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
                                             setIsPrefixCharacterPaddingCalculated(true);
                                         }}
@@ -420,6 +423,7 @@ function BaseTextInput(
                                     }}
                                 >
                                     <TextInputClearButton
+                                        style={styles.mt4}
                                         onPressButton={() => {
                                             setValue('');
                                             onClearInput?.();

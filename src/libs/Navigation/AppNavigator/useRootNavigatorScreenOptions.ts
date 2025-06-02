@@ -4,15 +4,16 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import variables from '@styles/variables';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
 type RootNavigatorScreenOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
     basicModalNavigator: PlatformStackNavigationOptions;
-    leftModalNavigator: PlatformStackNavigationOptions;
     splitNavigator: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
+    workspacesListPage: PlatformStackNavigationOptions;
 };
 
 const commonScreenOptions: PlatformStackNavigationOptions = {
@@ -23,8 +24,8 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return {
         rightModalNavigator: {
@@ -53,25 +54,6 @@ const useRootNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isOnboardingModal: true}),
             },
         },
-        leftModalNavigator: {
-            ...commonScreenOptions,
-            animation: Animations.SLIDE_FROM_LEFT,
-            animationTypeForReplace: 'pop',
-            native: {
-                customAnimationOnGesture: true,
-            },
-            web: {
-                presentation: Presentation.TRANSPARENT_MODAL,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
-                // We want pop in LHP since there are some flows that would work weird otherwise
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-
-                    // This is necessary to cover translated sidebar with overlay.
-                    width: shouldUseNarrowLayout ? '100%' : '200%',
-                },
-            },
-        },
         splitNavigator: {
             ...commonScreenOptions,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
@@ -89,7 +71,19 @@ const useRootNavigatorScreenOptions = () => {
                 cardStyle: {
                     height: '100%',
                 },
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
+            },
+        },
+        workspacesListPage: {
+            ...commonScreenOptions,
+            // We need to turn off animation for the full screen to avoid delay when closing screens.
+            animation: Animations.NONE,
+            web: {
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
+                cardStyle: {
+                    ...StyleUtils.getNavigationModalCardStyle(),
+                    paddingLeft: shouldUseNarrowLayout ? 0 : variables.navigationTabBarSize,
+                },
             },
         },
     } satisfies RootNavigatorScreenOptions;

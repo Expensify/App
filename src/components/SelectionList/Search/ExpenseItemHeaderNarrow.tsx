@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
-import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
@@ -52,8 +52,8 @@ function ExpenseItemHeaderNarrow({
     const theme = useTheme();
 
     // It might happen that we are missing display names for `From` or `To`, we only display arrow icon if both names exist
-    const shouldDisplayArrowIcon = isCorrectSearchUserName(participantFromDisplayName) && isCorrectSearchUserName(participantToDisplayName);
-
+    const shouldShowToRecipient = isCorrectSearchUserName(participantFromDisplayName) && isCorrectSearchUserName(participantToDisplayName) && !!participantTo?.accountID;
+    const shouldShowAction = useMemo(() => action !== CONST.SEARCH.ACTION_TYPES.VIEW && action !== CONST.SEARCH.ACTION_TYPES.REVIEW, [action]);
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb3, styles.gap2, containerStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex1]}>
@@ -77,23 +77,28 @@ function ExpenseItemHeaderNarrow({
                         </View>
                     </PressableWithFeedback>
                 )}
-                <UserInfoCellsWithArrow
-                    shouldDisplayArrowIcon={!!shouldDisplayArrowIcon}
-                    participantFrom={participantFrom}
-                    participantFromDisplayName={participantFromDisplayName}
-                    participantTo={participantTo}
-                    participantToDisplayName={participantToDisplayName}
-                />
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                    <UserInfoCellsWithArrow
+                        shouldShowToRecipient={!!shouldShowToRecipient}
+                        participantFrom={participantFrom}
+                        participantFromDisplayName={participantFromDisplayName}
+                        participantTo={participantTo}
+                        participantToDisplayName={participantToDisplayName}
+                        fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                    />
+                </View>
             </View>
-            <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
-                <ActionCell
-                    action={action}
-                    goToItem={onButtonPress}
-                    isLargeScreenWidth={false}
-                    isSelected={isSelected}
-                    isLoading={isLoading}
-                />
-            </View>
+            {shouldShowAction && (
+                <View>
+                    <ActionCell
+                        action={action}
+                        goToItem={onButtonPress}
+                        isLargeScreenWidth={false}
+                        isSelected={isSelected}
+                        isLoading={isLoading}
+                    />
+                </View>
+            )}
         </View>
     );
 }

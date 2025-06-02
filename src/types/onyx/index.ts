@@ -12,13 +12,13 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
+import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
-import type CorpayOnboardingFields from './CorpayOnboardingFields';
+import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -91,6 +91,7 @@ import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
+import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
@@ -107,7 +108,6 @@ import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
-import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
@@ -132,6 +132,7 @@ export type {
     Card,
     CardList,
     CardOnWaitlist,
+    ProvisioningCardData,
     Credentials,
     CorpayOnboardingFields,
     Currency,
@@ -210,7 +211,6 @@ export type {
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
-    User,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -260,6 +260,7 @@ export type {
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     TalkToAISales,
+    ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
 };
