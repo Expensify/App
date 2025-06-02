@@ -4201,7 +4201,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
             color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
-            marginRight: 20
+            marginRight: variables.tooltipMargin
         },
 
         quickReactionsContainer: {
