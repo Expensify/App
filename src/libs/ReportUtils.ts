@@ -5633,12 +5633,12 @@ function buildOptimisticInvoiceReport(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyReport: boolean = false) {
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyOptimisticReport = false) {
     const isInstantSubmitEnabledLocal = isInstantSubmitEnabled(policy);
     const isSubmitAndCloseLocal = isSubmitAndClose(policy);
     const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
-    if (isInstantSubmitEnabledLocal && arePaymentsDisabled && isSubmitAndCloseLocal && !isEmptyReport) {
+    if (isInstantSubmitEnabledLocal && arePaymentsDisabled && isSubmitAndCloseLocal && !isEmptyOptimisticReport) {
         return {
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
