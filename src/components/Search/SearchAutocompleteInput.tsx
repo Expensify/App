@@ -101,9 +101,12 @@ function SearchAutocompleteInput(
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const needsMarkdown = !!value;
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
+    const currencyAutocompleteList = useMemo(() => {
+        return Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
+    }, [currencyList]);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
@@ -119,7 +122,9 @@ function SearchAutocompleteInput(
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
-    const emailList = Object.keys(loginList ?? {});
+    const emailList = useMemo(() => {
+        return Object.keys(loginList ?? {});
+    }, [loginList]);
     const emailListSharedValue = useSharedValue(emailList);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
@@ -127,40 +132,56 @@ function SearchAutocompleteInput(
     // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
     const focusedSharedValue = useSharedValue(false);
     const wrapperAnimatedStyle = useAnimatedStyle(() => {
-        return focusedSharedValue.get() ? wrapperFocusedStyle : (wrapperStyle ?? {});
+        return focusedSharedValue.get() ? wrapperFocusedStyle : wrapperStyle ?? {};
     });
 
     useEffect(() => {
+        if (!needsMarkdown) {
+            return;
+        }
+
         runOnLiveMarkdownRuntime(() => {
             'worklet';
 
             emailListSharedValue.set(emailList);
         })();
-    }, [emailList, emailListSharedValue]);
+    }, [emailList, emailListSharedValue, needsMarkdown]);
 
     useEffect(() => {
+        if (!needsMarkdown) {
+            return;
+        }
+
         runOnLiveMarkdownRuntime(() => {
             'worklet';
 
             currencySharedValue.set(currencyAutocompleteList);
         })();
-    }, [currencyAutocompleteList, currencySharedValue]);
+    }, [currencyAutocompleteList, currencySharedValue, needsMarkdown]);
 
     useEffect(() => {
+        if (!needsMarkdown) {
+            return;
+        }
+
         runOnLiveMarkdownRuntime(() => {
             'worklet';
 
             categorySharedValue.set(categoryAutocompleteList);
         })();
-    }, [categorySharedValue, categoryAutocompleteList]);
+    }, [categorySharedValue, categoryAutocompleteList, needsMarkdown]);
 
     useEffect(() => {
+        if (!needsMarkdown) {
+            return;
+        }
+
         runOnLiveMarkdownRuntime(() => {
             'worklet';
 
             tagSharedValue.set(tagAutocompleteList);
         })();
-    }, [tagSharedValue, tagAutocompleteList]);
+    }, [tagSharedValue, tagAutocompleteList, needsMarkdown]);
 
     const parser = useCallback(
         (input: string) => {
@@ -227,9 +248,9 @@ function SearchAutocompleteInput(
                         }}
                         isLoading={isSearchingForReports}
                         ref={ref}
-                        type="markdown"
+                        type={needsMarkdown ? 'markdown' : 'default'}
                         multiline={false}
-                        parser={parser}
+                        parser={needsMarkdown ? parser : undefined}
                         selection={selection}
                     />
                 </View>
