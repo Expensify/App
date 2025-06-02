@@ -72,10 +72,13 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
     const excludedUsers = useMemo(() => {
         const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvitees.reduce((acc, login) => {
-            acc[login] = true;
-            return acc;
-        }, {} as Record<string, boolean>);
+        return ineligibleInvitees.reduce(
+            (acc, login) => {
+                acc[login] = true;
+                return acc;
+            },
+            {} as Record<string, boolean>,
+        );
     }, [policy?.employeeList]);
 
     const defaultOptions = useMemo(() => {

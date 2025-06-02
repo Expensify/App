@@ -116,7 +116,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         return (
                             <View
                                 key={item.titleTranslationKey}
-                                style={[styles.mt2, styles.mb3]}
+                                style={[styles.mt2, styles.mb3, styles.flexRow]}
                             >
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                                     <Icon
