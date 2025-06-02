@@ -71,7 +71,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // If there is one transaction thread that has not yet been created, we should create it.
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && currentUserEmail) {
             const optimisticTransactionThreadReportID = generateReportID();
-            const transactions = getReportTransactions(reportID);
+            const transactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             const oneTransactionID = transactions.at(0)?.transactionID;
             const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
             const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
