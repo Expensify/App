@@ -57,12 +57,12 @@ function ScheduleCallConfirmationPage() {
     const guideDetails: PersonalDetails | null = useMemo(
         () =>
             scheduleCallDraft?.guide?.accountID
-                ? personalDetails?.[scheduleCallDraft.guide.accountID] ?? {
+                ? (personalDetails?.[scheduleCallDraft.guide.accountID] ?? {
                       accountID: scheduleCallDraft.guide.accountID,
                       login: scheduleCallDraft.guide.email,
                       displayName: scheduleCallDraft.guide.email,
                       avatar: getDefaultAvatarURL(scheduleCallDraft.guide.accountID),
-                  }
+                  })
                 : null,
         [personalDetails, scheduleCallDraft?.guide?.accountID, scheduleCallDraft?.guide?.email],
     );
