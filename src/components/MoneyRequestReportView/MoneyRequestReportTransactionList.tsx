@@ -190,6 +190,7 @@ function MoneyRequestReportTransactionList({
         }
 
         const lastRoute = lastFullScreenRoute?.state?.routes?.at(-1);
+        // Only setActiveTransactionThreadIDs if the last route is a Report screen and reportID matches the current report
         if (!lastRoute?.params || !('reportID' in lastRoute.params)) {
             return;
         }
