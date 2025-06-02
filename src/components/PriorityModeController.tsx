@@ -1,15 +1,26 @@
+import {useNavigation} from '@react-navigation/native';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {setFocusModeNotification} from '@libs/actions/PriorityMode';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Log from '@libs/Log';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import Log from '@libs/Log';
-import navigationRef from "@libs/Navigation/navigationRef";
-import { useNavigation } from "@react-navigation/native";
 
+/**
+ * This component is used to automatically switch a user into #focus mode when they exceed a certain number of reports.
+ * We do this primarily for performance reasons. Similar to the "Welcome action" we must wait for a number of things to
+ * happen when the user signs in or refreshes the page:
+ *
+ *  - NVP that tracks whether they have already been switched over. We only do this once.
+ *  - Priority mode NVP (that dictates the ordering/filtering logic of the LHN)
+ *  - Reports to load (in ReconnectApp or OpenApp). As we check the count of the reports to determine whether the
+ *    user is eligible to be automatically switched.
+ *      
+ */
 export default function PriorityModeController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
@@ -44,7 +55,7 @@ export default function PriorityModeController() {
             return;
         }
 
-        // We wait for the user to navigate back to the homescreen before triggering this switch 
+        // We wait for the user to navigate back to the homescreen before triggering this switch
         const isNarrowLayout = getIsNarrowLayout();
         if ((isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
             Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the homescreen", false, {validReportCount, currentRouteName});
@@ -59,6 +70,9 @@ export default function PriorityModeController() {
     return null;
 }
 
+/**
+ * A funky but reliable way to subscribe to screen changes.
+ */
 function useCurrentRouteName() {
     const navigation = useNavigation();
     const [currentRouteName, setCurrentRouteName] = useState<string | undefined>('');
