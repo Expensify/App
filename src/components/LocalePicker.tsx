@@ -6,7 +6,7 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
-import * as App from '@userActions/App';
+import {setLocale} from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Locale} from '@src/types/onyx';
@@ -47,7 +47,7 @@ function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 
                     return;
                 }
 
-                App.setLocale(locale);
+                setLocale(locale);
             }}
             isDisabled={shouldDisablePicker}
             items={localesToLanguages}
