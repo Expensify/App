@@ -252,7 +252,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     const amount = isBillSplit ? getOriginalTransactionWithSplitInfo(transaction).originalTransaction?.amount : requestAmount;
-    let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
+    let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
     }
