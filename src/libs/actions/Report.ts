@@ -98,6 +98,7 @@ import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParam
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
+    buildOptimisticChangePolicyData,
     buildOptimisticChangePolicyReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -5378,19 +5379,10 @@ function changeReportPolicy(reportID: string, policyID: string) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(reportToMove, policyID);
 
-    const {optimisticData, successData, failureData} = buildOptimisticChangePolicyData(reportToMove, policyID);
-
-    // 1. Optimistically set the policyID on the report (and all its threads)
-
-    // Preprocess reports to create a map of pa
-
-    // Call the ChangeReportPolicy API endpoint
     const params = {
-        reportID: reportToMove.reportID,
+        reportID,
         policyID,
         reportPreviewReportActionID: optimisticReportPreviewAction.reportActionID,
         changePolicyReportActionID: optimisticMovedReportAction.reportActionID,

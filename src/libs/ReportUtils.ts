@@ -9768,7 +9768,7 @@ function updatePolicyIdForReportAndThreads(
     });
 }
 
-function buildOptimisticChangePolicyData(report: Report, policyID: string, optimisticPolicyExpenseChat: Report | undefined) {
+function buildOptimisticChangePolicyData(report: Report, policyID: string, optimisticPolicyExpenseChat?: Report | undefined) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -9922,7 +9922,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, optim
         },
     });
 
-    return {optimisticData, successData, failureData};
+    return {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction};
 }
 
 /**
