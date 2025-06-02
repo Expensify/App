@@ -233,6 +233,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
+    const policyHasAccountingConnections = hasAccountingConnections(policy);
+
     const secondaryActions = useMemo(() => {
         const menuItems = [];
         menuItems.push({
@@ -241,7 +243,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             onSelected: navigateToCategoriesSettings,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
         });
-        if (!hasAccountingConnections(policy)) {
+        if (!policyHasAccountingConnections) {
             menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
@@ -279,7 +281,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToCategoriesSettings, policy, hasVisibleCategories, isOffline, isQuickSettingsFlow, policyId, backTo]);
+    }, [translate, navigateToCategoriesSettings, policyHasAccountingConnections, hasVisibleCategories, isOffline, isQuickSettingsFlow, policyId, backTo]);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
@@ -366,7 +368,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             );
         }
 
-        const policyHasAccountingConnections = hasAccountingConnections(policy);
         return (
             <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                 {!policyHasAccountingConnections && (
