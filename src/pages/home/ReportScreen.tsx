@@ -336,7 +336,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
-        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
+        if (backTo === SCREENS.SEARCH.REPORT_RHP) {
+            Navigation.goBack();
+            return;
+        }
+        if (isInNarrowPaneModal) {
             Navigation.dismissModal();
             return;
         }

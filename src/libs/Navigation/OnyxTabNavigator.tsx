@@ -2,7 +2,7 @@ import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import type {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import onTabSelectHandler from './onTabSelectHandler';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorProps = ChildrenProps & {
@@ -51,6 +52,9 @@ type OnyxTabNavigatorProps = ChildrenProps & {
 
     /** Whether to lazy load the tab screens */
     lazyLoadScreens?: boolean;
+
+    /** Callback to handle the Pager's internal onPageSelected event callback */
+    onTabSelect?: ({index}: {index: number}) => void;
 };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -75,11 +79,13 @@ function OnyxTabNavigator({
     shouldShowLabelWhenInactive = true,
     disableSwipe = false,
     lazyLoadScreens = false,
+    onTabSelect,
     ...rest
 }: OnyxTabNavigatorProps) {
+    const isFirstMount = useRef(true);
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`, {canBeMissing: false});
 
     const LazyPlaceholder = useCallback(() => {
         return <FullScreenLoadingIndicator />;
@@ -135,12 +141,19 @@ function OnyxTabNavigator({
                 backBehavior="initialRoute"
                 keyboardDismissMode="none"
                 tabBar={TabBarWithFocusTrapInclusion}
+                onTabSelect={onTabSelect}
                 screenListeners={{
                     state: (e) => {
                         const event = e as unknown as EventMapCore<NavigationState>['state'];
                         const state = event.data.state;
                         const index = state.index;
                         const routeNames = state.routeNames;
+                        // For web-based platforms we need to focus the selected tab input once on first mount as well as
+                        // when the tab selection is changed via internal Pager onPageSelected (passed to the navigator)
+                        if (isFirstMount.current) {
+                            onTabSelectHandler(index, onTabSelect);
+                            isFirstMount.current = false;
+                        }
                         const newSelectedTab = routeNames.at(index);
                         if (selectedTab === newSelectedTab) {
                             return;
