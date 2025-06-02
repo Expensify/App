@@ -132,7 +132,7 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const {canUseTableReportView} = usePermissions();
+    const {canUseTableReportView, canUseMultiFilesDragAndDrop} = usePermissions();
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -276,7 +276,10 @@ function AttachmentPickerWithMenuItems({
     const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
 
     return (
-        <AttachmentPicker>
+        <AttachmentPicker
+            allowMultiple={canUseMultiFilesDragAndDrop}
+            fileLimit={canUseMultiFilesDragAndDrop ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
+        >
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
@@ -405,7 +408,10 @@ function AttachmentPickerWithMenuItems({
                                 }
                             }}
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
                             menuItems={menuItems}
                             withoutOverlay
                             anchorRef={actionButtonRef}
