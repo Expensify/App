@@ -255,6 +255,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        ai: 'AI',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
         yes: 'Yes',
@@ -1979,7 +1980,31 @@ const translations = {
             es: {
                 label: 'Spanish',
             },
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'pt-BR': {
+                label: 'Português (BR)', // @dont-translate
+            },
+            it: {
+                label: 'Italiano', // @dont-translate
+            },
+            de: {
+                label: 'Deutsch', // @dont-translate
+            },
+            fr: {
+                label: 'Français', // @dont-translate
+            },
+            nl: {
+                label: 'Nederlands', // @dont-translate
+            },
+            ja: {
+                label: '日本語', // @dont-translate
+            },
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'zh-hans': {
+                label: '中文 (简体)', // @dont-translate
+            },
         },
+        aiLanguageHelperText: 'The translations for this language are generated automatically and may contain errors.',
     },
     themePage: {
         theme: 'Theme',

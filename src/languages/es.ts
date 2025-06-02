@@ -246,6 +246,7 @@ import type {TranslationDeepObject} from './types';
 /* eslint-disable max-len */
 const translations = {
     common: {
+        ai: 'IA',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
         yes: 'Sí',
@@ -1981,7 +1982,31 @@ const translations = {
             es: {
                 label: 'Español',
             },
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'pt-BR': {
+                label: 'Português (BR)', // @dont-translate
+            },
+            it: {
+                label: 'Italiano', // @dont-translate
+            },
+            de: {
+                label: 'Deutsch', // @dont-translate
+            },
+            fr: {
+                label: 'Français', // @dont-translate
+            },
+            nl: {
+                label: 'Nederlands', // @dont-translate
+            },
+            ja: {
+                label: '日本語', // @dont-translate
+            },
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'zh-hans': {
+                label: '中文 (简体)', // @dont-translate
+            },
         },
+        aiLanguageHelperText: 'Las traducciones para este idioma se generan automáticamente y pueden contener errores.',
     },
     themePage: {
         theme: 'Tema',
