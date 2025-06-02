@@ -5007,6 +5007,7 @@ const translations = {
                 customNameInputLabel: 'Name',
                 customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
                 customNameStartDateExample: 'Report start date: {report:startdate}',
+                // cspell:disable-next-line
                 customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
                 customNameReportIDExample: 'Report ID: {report:id}',
                 customNameTotalExample: 'Total: {report:total}.',

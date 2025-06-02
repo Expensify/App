@@ -32,8 +32,8 @@ type TaxSection = {
  * Sorts tax rates alphabetically by name.
  */
 function sortTaxRates(taxRates: TaxRates): TaxRate[] {
-    const sortedtaxRates = Object.values(taxRates).sort((a, b) => localeCompare(a.name, b.name));
-    return sortedtaxRates;
+    const sortedTaxRates = Object.values(taxRates).sort((a, b) => localeCompare(a.name, b.name));
+    return sortedTaxRates;
 }
 
 /**
