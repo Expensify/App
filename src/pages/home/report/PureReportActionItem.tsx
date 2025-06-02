@@ -988,7 +988,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
-            const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
+            const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? getOriginalMessage(action)?.harvesting ?? false : false;
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
@@ -1008,6 +1008,17 @@ function PureReportActionItem({
                 );
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
+            }
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+            const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
+            if (wasAutoPaid) {
+                children = (
+                    <ReportActionItemBasicMessage>
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyPaidWithExpensify')}</muted-text></comment>`} />
+                    </ReportActionItemBasicMessage>
+                );
+            } else {
+                children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
             }
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
@@ -1444,10 +1455,10 @@ function PureReportActionItem({
                                 dismissError={dismissError}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
-                                    draftMessage !== undefined ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
+                                    draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
                                 shouldHideOnDelete={!isDeletedParentAction}
-                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
+                                errors={linkedTransactionRouteError ?? !isOnSearch ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough
