@@ -52,7 +52,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
-    const bankName = feed ? getBankName(feed) : bankNameFromRoute ?? addNewCard?.data?.plaidConnectedBank ?? selectedBank;
+    const bankName = feed ? getBankName(feed) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedBank ?? selectedBank);
     const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
     const {isOffline} = useNetwork();
     const {canUsePlaidCompanyCards} = usePermissions();

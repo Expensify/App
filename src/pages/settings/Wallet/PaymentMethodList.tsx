@@ -212,7 +212,7 @@ function PaymentMethodList({
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
-            const assignedCards = Object.values(isLoadingCardList ? {} : cardList ?? {})
+            const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
                 // Filter by active cards associated with a domain
                 .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
             const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !isExpensifyCard(card.cardID));
@@ -318,7 +318,7 @@ function PaymentMethodList({
         // const paymentCardList = fundList ?? {};
         // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         const filteredCardList = {};
-        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : bankAccountList ?? {}, filteredCardList, styles);
+        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : (bankAccountList ?? {}), filteredCardList, styles);
 
         if (filterType !== '') {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterType);

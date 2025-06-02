@@ -24,6 +24,7 @@ const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
+const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
@@ -37,6 +38,7 @@ const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
+const keyModifierShift = KeyCommand?.constants?.keyModifierShift ?? 'keyModifierShift';
 const keyModifierShiftControl = KeyCommand?.constants?.keyModifierShiftControl ?? 'keyModifierShiftControl';
 const keyModifierShiftCommand = KeyCommand?.constants?.keyModifierShiftCommand ?? 'keyModifierShiftCommand';
 const keyInputEscape = KeyCommand?.constants?.keyInputEscape ?? 'keyInputEscape';
@@ -416,6 +418,9 @@ const CONST = {
         horizontal: 12 + variables.navigationTabBarSize,
         vertical: 72,
     },
+    POPOVER_DROPDOWN_WIDTH: 336,
+    POPOVER_DROPDOWN_MIN_HEIGHT: 0,
+    POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -834,6 +839,8 @@ const CONST = {
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        TRACK_FLOWS: 'trackFlows',
+        NEW_DOT_SPLITS: 'newDotSplits',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -889,6 +896,14 @@ const CONST = {
         },
     },
     KEYBOARD_SHORTCUTS: {
+        MARK_ALL_MESSAGES_AS_READ: {
+            descriptionKey: 'markAllMessagesAsRead',
+            shortcutKey: 'Escape',
+            modifiers: ['SHIFT'],
+            trigger: {
+                DEFAULT: {input: keyInputEscape, modifierFlags: keyModifierShift},
+            },
+        },
         SEARCH: {
             descriptionKey: 'search',
             shortcutKey: 'K',
@@ -1059,6 +1074,7 @@ const CONST = {
     DEFAULT_NUMBER_ID,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
+    EXPENSIFY_MOBILE_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
@@ -1084,6 +1100,7 @@ const CONST = {
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+    PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
@@ -1225,6 +1242,7 @@ const CONST = {
             DELETE: 'delete',
             RETRACT: 'retract',
             ADD_EXPENSE: 'addExpense',
+            SPLIT: 'split',
             REOPEN: 'reopen',
             MOVE_EXPENSE: 'moveExpense',
             PAY: 'pay',
@@ -1255,6 +1273,7 @@ const CONST = {
         },
         TRANSACTION_SECONDARY_ACTIONS: {
             HOLD: 'hold',
+            SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
         },
@@ -1406,6 +1425,7 @@ const CONST = {
                     UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
                     UPDATE_TAG_LIST: 'POLICYCHANGELOG_UPDATE_TAG_LIST',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
+                    UPDATE_TAG_LIST_REQUIRED: 'POLICYCHANGELOG_UPDATE_TAG_LIST_REQUIRED',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
@@ -1622,6 +1642,8 @@ const CONST = {
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
+        OPEN_APP: 'open_app',
+        SPLASH_SCREEN: 'splash_screen',
         OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
@@ -1656,6 +1678,7 @@ const CONST = {
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         SKELETON_ANIMATION_SPEED: 3,
+        SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2774,6 +2797,7 @@ const CONST = {
             SEND: 'send',
             PAY: 'pay',
             SPLIT: 'split',
+            SPLIT_EXPENSE: 'split-expense',
             REQUEST: 'request',
             INVOICE: 'invoice',
             SUBMIT: 'submit',
@@ -3211,6 +3235,10 @@ const CONST = {
         LARGE: 'large',
     },
 
+    QR_CODE_SIZE: {
+        APP_DOWNLOAD_LINKS: 172,
+    },
+
     AVATAR_SIZE: {
         X_LARGE: 'xlarge',
         LARGE: 'large',
@@ -3557,7 +3585,6 @@ const CONST = {
         EMPTY_COMMENT: /^(\s)*$/,
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
         FIRST_SPACE: /.+?(?=\s)/,
-        SPECIAL_CHAR_MENTION_BREAKER: /[,/?"{}[\]()&^%;`$=<>!*]/g,
 
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
@@ -3570,7 +3597,7 @@ const CONST = {
         // Define the regular expression pattern to find a potential end of a mention suggestion:
         // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
         get MENTION_BREAKER() {
-            return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR_MENTION_BREAKER.source}|${this.EMOJI.source}`, 'gu');
+            return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
         },
 
         get ALL_EMOJIS() {
@@ -3619,11 +3646,14 @@ const CONST = {
         SELF_SELECT: '__predefined_selfSelect',
     },
 
-    EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce((prev, [, email]) => {
-        // eslint-disable-next-line no-param-reassign
-        prev[email] = true;
-        return prev;
-    }, {} as Record<string, boolean>),
+    EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce(
+        (prev, [, email]) => {
+            // eslint-disable-next-line no-param-reassign
+            prev[email] = true;
+            return prev;
+        },
+        {} as Record<string, boolean>,
+    ),
     EXPENSIFY_EMAILS: [
         EMAIL.ACCOUNTING,
         EMAIL.ACCOUNTS_PAYABLE,
@@ -5483,15 +5513,9 @@ const CONST = {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
                     title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
                     description: ({integrationName, workspaceAccountingLink}) =>
@@ -6519,6 +6543,7 @@ const CONST = {
     },
 
     SEARCH: {
+        NEVER: 'never',
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
             EXPENSE: 'expense',
@@ -6615,7 +6640,6 @@ const CONST = {
             TAX_AMOUNT: 'taxAmount',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             IN: 'in',
         },
         SYNTAX_OPERATORS: {
@@ -6644,6 +6668,8 @@ const CONST = {
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
+            PAYER: 'payer',
+            EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
             TAX_RATE: 'taxRate',
@@ -6659,7 +6685,6 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
@@ -6685,6 +6710,8 @@ const CONST = {
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
+            PAYER: 'payer',
+            EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
             TAX_RATE: 'tax-rate',
@@ -6700,13 +6727,13 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'created-by',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
+            ON: 'On',
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,

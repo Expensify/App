@@ -51,7 +51,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const selectedBank = addNewCard?.data?.selectedBank;
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const bankName = feed ? getBankName(feed) : bankNameFromRoute ?? addNewCard?.data?.plaidConnectedBank ?? selectedBank;
+    const bankName = feed ? getBankName(feed) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedBank ?? selectedBank);
     const {canUsePlaidCompanyCards} = usePermissions();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
     const plaidFeed = addNewCard?.data?.plaidConnectedBank ?? assignCard?.data?.institutionId;

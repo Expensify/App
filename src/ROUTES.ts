@@ -73,7 +73,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
     SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
-    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -571,6 +570,24 @@ const ROUTES = {
                 Log.warn('Invalid reportID is used to build the ROOM_INVITE route');
             }
             return getUrlWithBackToParam(`r/${reportID}/invite` as const, backTo);
+        },
+    },
+    SPLIT_EXPENSE: {
+        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
+        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
+            if (!reportID || !originalTransactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE route`);
+            }
+            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
+        },
+    },
+    SPLIT_EXPENSE_EDIT: {
+        route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
+        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
+            if (!reportID || !originalTransactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
+            }
+            return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {
@@ -1873,6 +1890,8 @@ const ROUTES = {
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     SHARE_ROOT: 'share/root',
+    SHARE_ROOT_SHARE: 'share/root/share',
+    SHARE_ROOT_SUBMIT: 'share/root/submit',
     SHARE_DETAILS: {
         route: 'share/share-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}` as const,

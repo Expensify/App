@@ -42,6 +42,14 @@ Onyx.connect({
     },
 });
 
+let customCardNames: OnyxEntry<Record<string, string>> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
+    callback: (value) => {
+        customCardNames = value;
+    },
+});
+
 /**
  * @returns string with a month in MM format
  */
@@ -265,8 +273,8 @@ function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, poli
 
 function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
-        const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
-        const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
+        const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
+        const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
         const aName = getDisplayNameOrDefault(userA);
         const bName = getDisplayNameOrDefault(userB);
         return localeCompare(aName, bName);
@@ -661,6 +669,10 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
+function getCustomCardName(cardID: string) {
+    return customCardNames?.[cardID];
+}
+
 export {
     isExpensifyCard,
     getDomainCards,
@@ -709,4 +721,5 @@ export {
     getPlaidInstitutionLink,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
+    getCustomCardName,
 };
