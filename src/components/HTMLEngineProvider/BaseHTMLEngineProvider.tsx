@@ -50,7 +50,13 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             rbr: HTMLElementModel.fromCustomModel({
                 tagName: 'rbr',
-                mixedUAStyles: {...styles.formError, ...styles.mb0},
+                // mixedUAStyles: {...styles.formError, ...styles.mb0},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.formError, ...styles.mb0};
+                    }
+                    return {...styles.formError, ...styles.mb0, ...styles.textMicro};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             'muted-text': HTMLElementModel.fromCustomModel({

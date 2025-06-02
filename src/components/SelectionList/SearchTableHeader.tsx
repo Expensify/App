@@ -33,8 +33,6 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
-    // This column is never displayed on Search
-    [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -179,9 +177,6 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl4]}
             onSortPress={(columnName, order) => {
-                if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
-                    return;
-                }
                 onSortPress(columnName, order);
             }}
         />

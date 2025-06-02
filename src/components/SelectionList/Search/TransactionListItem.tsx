@@ -9,7 +9,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
-import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -59,8 +58,7 @@ function TransactionListItem<TItem extends ListItem>({
     });
 
     const dateColumnSize = useMemo(() => {
-        const shouldShowYearForSomeTransaction = shouldShowTransactionYear(transactionItem);
-        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+        return transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [transactionItem]);
 
     const columns = useMemo(

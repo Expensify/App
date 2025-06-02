@@ -283,7 +283,7 @@ function TransactionItemRow({
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldUseNarrowLayout ? (
                     <Animated.View style={[shouldUseAnimatedHighlight ? animatedHighlightStyle : {}]}>
-                        <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
+                        <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, styles.pt2, bgActiveStyles]}>
                             <View style={[styles.flexRow]}>
                                 {shouldShowCheckbox && (
                                     <View style={[styles.mr3, styles.justifyContentCenter]}>
@@ -361,6 +361,7 @@ function TransactionItemRow({
                                     <TransactionItemRowRBR
                                         transaction={transactionItem}
                                         containerStyles={[styles.mt3]}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
                                 <ChatBubbleCell
@@ -386,7 +387,10 @@ function TransactionItemRow({
                                 </View>
                                 {columns?.map((column) => columnComponent[column])}
                             </View>
-                            <TransactionItemRowRBR transaction={transactionItem} />
+                            <TransactionItemRowRBR
+                                transaction={transactionItem}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
                         </View>
                     </Animated.View>
                 )}

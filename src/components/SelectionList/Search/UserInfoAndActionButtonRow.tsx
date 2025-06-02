@@ -41,7 +41,7 @@ function UserInfoAndActionButtonRow({
                     />
                 )}
             </View>
-            <View>
+            <View style={[{width: 80}, styles.alignItemsEnd]}>
                 <ActionCell
                     action={item.action}
                     goToItem={handleActionButtonPress}

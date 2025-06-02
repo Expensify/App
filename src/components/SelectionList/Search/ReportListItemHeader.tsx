@@ -121,7 +121,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), reportItem.isDisabledCheckbox && styles.cursorDisabled]}
                     />
                 )}
-                <View style={{flexShrink: 1, flexGrow: 1, minWidth: 0}}>
+                <View style={[{flexShrink: 1, flexGrow: 1, minWidth: 0}, styles.mr2]}>
                     <ReportSearchHeader
                         report={reportItem}
                         policy={policy}
