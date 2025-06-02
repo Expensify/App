@@ -253,9 +253,21 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
  */
 function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = false, shouldKeepPublicRooms = false): OnyxData {
     const result: OnyxData = {
-        optimisticData: [],
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: true,
+            },
+        ],
         successData: [],
-        finallyData: [],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            },
+        ],
         queueFlushedData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
