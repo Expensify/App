@@ -70,14 +70,6 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ---
 
-## Delete an Expense
-
-1. From the left-hand menu, head to **Reports > Expenses**.
-2. Check the box next to the expense(s).
-3. Click the green **Selected** button and choose **Delete**. 
-
----
-
 # Next Steps for Individual Expenses
 
 - Expenses created and submitted to an individual are sent immediately.
