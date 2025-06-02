@@ -156,11 +156,12 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     if (!Array.isArray(message)) {
         return message?.html === '' || !!message?.deleted;
     }
+    const originalMessage = getOriginalMessage(reportAction);
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
     const isLegacyDeletedComment = message.length === 0 || message.at(0)?.html === '';
 
-    return isLegacyDeletedComment || !!message.at(0)?.deleted;
+    return isLegacyDeletedComment || !!message.at(0)?.deleted || (!!originalMessage && 'deleted' in originalMessage && !!originalMessage?.deleted);
 }
 
 /**
@@ -378,6 +379,10 @@ function isClosedAction(reportAction: OnyxEntry<ReportAction>): reportAction is 
 
 function isRenamedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RENAMED);
+}
+
+function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REOPENED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED);
 }
 
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
@@ -1715,7 +1720,7 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
 }
 
 function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.mentionedAccountIDs ?? [] : [];
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? (getOriginalMessage(reportAction)?.mentionedAccountIDs ?? []) : [];
 }
 
 function getMentionedEmailsFromMessage(message: string) {
@@ -1945,7 +1950,7 @@ function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useNa
     if (!!originalMessage && !originalMessage.email) {
         originalMessage.email = personalDetails?.login;
     }
-    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : originalMessage?.email ?? '';
+    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : (originalMessage?.email ?? '');
     const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
     return translateLocal('report.actions.type.leftWorkspace', {nameOrEmail: formattedNameOrEmail});
 }
@@ -2324,7 +2329,7 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card)
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
     const policy = getPolicy(getOriginalMessage(reportAction)?.policyID);
     const userDetail = getPersonalDetailByEmail(getOriginalMessage(reportAction)?.email ?? '');
-    const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : userDetail?.login ?? getOriginalMessage(reportAction)?.email;
+    const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : (userDetail?.login ?? getOriginalMessage(reportAction)?.email);
     return translateLocal('workspace.inviteMessage.joinRequest', {user: userName ?? '', workspaceName: policy?.name ?? ''});
 }
 
@@ -2581,6 +2586,7 @@ export {
     getLeaveRoomMessage,
     getRetractedMessage,
     getReportActionFromExpensifyCard,
+    isReopenedAction,
     getIntegrationSyncFailedMessage,
 };
 

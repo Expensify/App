@@ -558,8 +558,21 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        explore: 'Explore',
+        todo: 'To-do',
+        invoice: 'Invoice',
+        expense: 'Expense',
+        chat: 'Chat',
+        task: 'Task',
+        trip: 'Trip',
+        apply: 'Apply',
+        status: 'Status',
+        on: 'On',
+        before: 'Before',
+        after: 'After',
         reschedule: 'Reschedule',
         general: 'General',
+        never: 'Never',
         workspacesTabTitle: 'Workspaces',
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',
@@ -664,6 +677,7 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
+        searchForSomeone: 'Search for someone',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -4971,6 +4985,8 @@ const translations = {
                 eReceipts: 'eReceipts',
                 eReceiptsHint: 'eReceipts are auto-created',
                 eReceiptsHintLink: 'for most USD credit transactions',
+                attendeeTracking: 'Attendee tracking',
+                attendeeTrackingHint: 'Track the per-person cost for every expense.',
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
@@ -4991,7 +5007,7 @@ const translations = {
                 customNameInputLabel: 'Name',
                 customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
                 customNameStartDateExample: 'Report start date: {report:startdate}',
-                customNameWorkspaceNameExample: 'Workspace name: {report:policyname}',
+                customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
                 customNameReportIDExample: 'Report ID: {report:id}',
                 customNameTotalExample: 'Total: {report:total}.',
                 preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
@@ -5247,6 +5263,7 @@ const translations = {
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
+            markAllMessagesAsRead: 'Mark all messages as read',
             escape: 'Escape dialogs',
             search: 'Open search dialog',
             newChat: 'New chat screen',
@@ -5272,6 +5289,11 @@ const translations = {
                 subtitle: 'Create an expense or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to create an expense.',
             },
+            emptyReportResults: {
+                title: "You haven't created any reports yet",
+                subtitle: 'Create a report or take a test drive of Expensify to learn more.',
+                subtitleWithOnlyCreateButton: 'Use the green button below to create a report.',
+            },
             emptyInvoiceResults: {
                 title: "You haven't created any \ninvoices yet",
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
@@ -5281,6 +5303,23 @@ const translations = {
                 title: 'No trips to display',
                 subtitle: 'Get started by booking your first trip below.',
                 buttonText: 'Book a trip',
+            },
+            emptySubmitResults: {
+                title: 'No expenses to submit',
+                subtitle: "You're all clear. Take a victory lap!",
+                buttonText: 'Create report',
+            },
+            emptyApproveResults: {
+                title: 'No expenses to approve',
+                subtitle: 'Zero expenses. Maximum chill. Well done!',
+            },
+            emptyPayResults: {
+                title: 'No expenses to pay',
+                subtitle: 'Congrats! You crossed the finish line.',
+            },
+            emptyExportResults: {
+                title: 'No expenses to export',
+                subtitle: 'Time to take it easy, nice work.',
             },
         },
         saveSearch: 'Save search',
@@ -5302,6 +5341,7 @@ const translations = {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
+                on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
             },
             status: 'Status',
             keyword: 'Keyword',
@@ -6399,8 +6439,7 @@ const translations = {
             confirmText: 'Start test drive',
             helpText: 'Skip',
             employee: {
-                description:
-                    '<muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and we’ll walk you through sending them a scanned test expense — no more manual entry.</muted-text>',
+                description: '<muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and send them a test expense.</muted-text>',
                 email: "Enter your boss's email",
                 error: 'That member owns a workspace, please input a new member to test.',
             },
