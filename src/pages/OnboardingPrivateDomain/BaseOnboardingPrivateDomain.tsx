@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -71,28 +72,30 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
-                contentContainerStyle={[styles.flexGrow1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                contentContainerStyle={styles.flexGrow1}
             >
-                <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
-                <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
-                <ValidateCodeForm
-                    validateCodeActionErrorField="getAccessiblePolicies"
-                    handleSubmitForm={(code) => {
-                        getAccessiblePolicies(code);
-                        setHasMagicCodeBeenSent(false);
-                    }}
-                    sendValidateCode={() => {
-                        sendValidateCode();
-                        setHasMagicCodeBeenSent(true);
-                    }}
-                    clearError={() => clearGetAccessiblePoliciesErrors()}
-                    validateError={getAccessiblePoliciesAction?.errors}
-                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    shouldShowSkipButton
-                    handleSkipButtonPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
-                    buttonStyles={[styles.flex2, styles.justifyContentEnd]}
-                    isLoading={getAccessiblePoliciesAction?.loading}
-                />
+                <View style={[styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.flex1]}>
+                    <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
+                    <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
+                    <ValidateCodeForm
+                        validateCodeActionErrorField="getAccessiblePolicies"
+                        handleSubmitForm={(code) => {
+                            getAccessiblePolicies(code);
+                            setHasMagicCodeBeenSent(false);
+                        }}
+                        sendValidateCode={() => {
+                            sendValidateCode();
+                            setHasMagicCodeBeenSent(true);
+                        }}
+                        clearError={() => clearGetAccessiblePoliciesErrors()}
+                        validateError={getAccessiblePoliciesAction?.errors}
+                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        shouldShowSkipButton
+                        handleSkipButtonPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
+                        buttonStyles={[styles.flex2, styles.justifyContentEnd]}
+                        isLoading={getAccessiblePoliciesAction?.loading}
+                    />
+                </View>
             </ScrollView>
         </ScreenWrapper>
     );
