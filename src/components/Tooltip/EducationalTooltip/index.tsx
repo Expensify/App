@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import type {TooltipExtendedProps} from '@components/Tooltip/types';
 import BaseEducationalTooltip from './BaseEducationalTooltip';
 
@@ -15,4 +15,4 @@ function EducationalTooltip({children, ...props}: TooltipExtendedProps) {
 
 EducationalTooltip.displayName = 'EducationalTooltip';
 
-export default EducationalTooltip;
+export default memo(EducationalTooltip);

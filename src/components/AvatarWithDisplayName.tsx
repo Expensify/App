@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -235,73 +235,109 @@ function AvatarWithDisplayName({
         }
     }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
-    const avatar = (
-        <View accessibilityLabel={title}>
-            {shouldShowSubscriptAvatar ? (
-                <SubscriptAvatar
-                    backgroundColor={avatarBorderColor}
-                    mainAvatar={icons.at(0) ?? fallbackIcon}
-                    secondaryAvatar={icons.at(1)}
-                    size={size}
-                />
-            ) : (
-                <MultipleAvatars
-                    icons={icons}
-                    size={size}
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                />
-            )}
-        </View>
+    const avatar = useMemo(
+        () => (
+            <View accessibilityLabel={title}>
+                {shouldShowSubscriptAvatar ? (
+                    <SubscriptAvatar
+                        backgroundColor={avatarBorderColor}
+                        mainAvatar={icons.at(0) ?? fallbackIcon}
+                        secondaryAvatar={icons.at(1)}
+                        size={size}
+                    />
+                ) : (
+                    <MultipleAvatars
+                        icons={icons}
+                        size={size}
+                        secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+                    />
+                )}
+            </View>
+        ),
+        [title, shouldShowSubscriptAvatar, avatarBorderColor, icons, size, StyleUtils],
     );
-    const headerView = (
-        <View style={[styles.appContentHeaderTitle, styles.flex1]}>
-            {!!report && !!title && (
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {shouldEnableAvatarNavigation ? (
-                        <PressableWithoutFeedback
-                            onPress={showActorDetails}
-                            accessibilityLabel={title}
-                            role={getButtonRole(true)}
-                        >
-                            {avatar}
-                        </PressableWithoutFeedback>
-                    ) : (
-                        avatar
-                    )}
-                    <View style={[styles.flex1, styles.flexColumn]}>
-                        {getCustomDisplayName(
-                            shouldUseCustomSearchTitleName,
-                            report,
-                            title,
-                            displayNamesWithTooltips,
-                            transactions,
-                            shouldUseFullTitle,
-                            [styles.headerText, styles.pre],
-                            [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
-                            isAnonymous,
-                            isMoneyRequestOrReport,
-                        )}
-                        {Object.keys(parentNavigationSubtitleData).length > 0 && (
-                            <ParentNavigationSubtitle
-                                parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                parentReportID={report?.parentReportID}
-                                parentReportActionID={report?.parentReportActionID}
-                                pressableStyles={[styles.alignSelfStart, styles.mw100]}
-                                openParentReportInCurrentTab={openParentReportInCurrentTab}
-                            />
-                        )}
-                        {!!subtitle && (
-                            <Text
-                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
-                                numberOfLines={1}
+
+    const headerView = useMemo(
+        () => (
+            <View style={[styles.appContentHeaderTitle, styles.flex1]}>
+                {!!report && !!title && (
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        {shouldEnableAvatarNavigation ? (
+                            <PressableWithoutFeedback
+                                onPress={showActorDetails}
+                                accessibilityLabel={title}
+                                role={getButtonRole(true)}
                             >
-                                {subtitle}
-                            </Text>
+                                {avatar}
+                            </PressableWithoutFeedback>
+                        ) : (
+                            avatar
                         )}
+                        <View style={[styles.flex1, styles.flexColumn]}>
+                            {getCustomDisplayName(
+                                shouldUseCustomSearchTitleName,
+                                report,
+                                title,
+                                displayNamesWithTooltips,
+                                transactions,
+                                shouldUseFullTitle,
+                                [styles.headerText, styles.pre],
+                                [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
+                                isAnonymous,
+                                isMoneyRequestOrReport,
+                            )}
+                            {Object.keys(parentNavigationSubtitleData).length > 0 && (
+                                <ParentNavigationSubtitle
+                                    parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                    parentReportID={report?.parentReportID}
+                                    parentReportActionID={report?.parentReportActionID}
+                                    pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                                    openParentReportInCurrentTab={openParentReportInCurrentTab}
+                                />
+                            )}
+                            {!!subtitle && (
+                                <Text
+                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                                    numberOfLines={1}
+                                >
+                                    {subtitle}
+                                </Text>
+                            )}
+                        </View>
                     </View>
-                </View>
-            )}
-        </View>
+                )}
+            </View>
+        ),
+        [
+            avatar,
+            displayNamesWithTooltips,
+            isAnonymous,
+            isMoneyRequestOrReport,
+            openParentReportInCurrentTab,
+            parentNavigationSubtitleData,
+            report,
+            shouldEnableAvatarNavigation,
+            shouldUseCustomSearchTitleName,
+            shouldUseFullTitle,
+            showActorDetails,
+            styles.alignItemsCenter,
+            styles.alignSelfStart,
+            styles.appContentHeaderTitle,
+            styles.flex1,
+            styles.flexColumn,
+            styles.flexRow,
+            styles.headerAnonymousFooter,
+            styles.headerText,
+            styles.justifyContentBetween,
+            styles.mw100,
+            styles.optionAlternateText,
+            styles.pre,
+            styles.sidebarLinkText,
+            styles.textLabelSupporting,
+            subtitle,
+            title,
+            transactions,
+        ],
     );
 
     if (!shouldEnableDetailPageNavigation) {

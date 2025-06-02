@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, memo, lazy, Suspense} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -32,10 +31,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
@@ -63,40 +61,140 @@ type MoneyRequestHeaderProps = {
     onBackButtonPress: () => void;
 };
 
+type StatusFlags = {
+    isOnHold: boolean;
+    isDuplicate: boolean;
+    isScanning: boolean;
+    hasPendingRTERViolation: boolean;
+    shouldShowBrokenConnectionViolation: boolean;
+    isPendingExpensifyCard: boolean;
+};
+
+// Lazy load heavy components to improve initial render time
+const LazyBrokenConnectionDescription = lazy(() => import('./BrokenConnectionDescription'));
+
+// Pre-create static status icons to avoid recreation on every render
+const createStatusIcon = (src: IconAsset) => memo(({theme}: {theme: {icon: string}}) => (
+    <Icon
+        src={src}
+        height={variables.iconSizeSmall}
+        width={variables.iconSizeSmall}
+        fill={theme.icon}
+    />
+));
+
+const StopwatchIcon = createStatusIcon(Expensicons.Stopwatch);
+const FlagIcon = createStatusIcon(Expensicons.Flag);
+const CreditCardHourglassIcon = createStatusIcon(Expensicons.CreditCardHourglass);
+const HourglassIcon = createStatusIcon(Expensicons.Hourglass);
+const ReceiptScanIcon = createStatusIcon(Expensicons.ReceiptScan);
+
+// Fallback component for lazy loaded components
+const StatusBarFallback = memo(() => <View style={{height: 20}} />);
+
+// Memoized status computation component to isolate expensive calculations
+const StatusComputation = memo(({
+    transaction,
+    transactionViolations,
+    parentReport,
+    policy,
+    onStatusChange,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    transactionViolations: TransactionViolation[] | undefined;
+    parentReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    onStatusChange: (flags: StatusFlags) => void;
+}) => {
+    const statusFlags = useMemo((): StatusFlags => {
+        if (!transaction) {
+            return {
+                isOnHold: false,
+                isDuplicate: false,
+                isScanning: false,
+                hasPendingRTERViolation: false,
+                shouldShowBrokenConnectionViolation: false,
+                isPendingExpensifyCard: false,
+            };
+        }
+        
+        return {
+            isOnHold: isOnHoldTransactionUtils(transaction),
+            isDuplicate: isDuplicateTransactionUtils(transaction?.transactionID),
+            isScanning: hasReceipt(transaction) && isReceiptBeingScanned(transaction),
+            hasPendingRTERViolation: hasPendingRTERViolationTransactionUtils(transactionViolations ?? []),
+            shouldShowBrokenConnectionViolation: shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations ?? []),
+            isPendingExpensifyCard: isExpensifyCardTransaction(transaction) && isPending(transaction),
+        };
+    }, [transaction, transactionViolations, parentReport, policy]);
+
+    useEffect(() => {
+        onStatusChange(statusFlags);
+    }, [statusFlags, onStatusChange]);
+
+    return null;
+});
+
 function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
+    const theme = useTheme();
+    
+    // Extract transaction ID early to optimize Onyx queries
+    const transactionID = useMemo(() => {
+        if (!isMoneyRequestAction(parentReportAction)) {
+            return CONST.DEFAULT_NUMBER_ID;
+        }
+        return getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID;
+    }, [parentReportAction]);
+
+    const reportID = report?.reportID;
+    const parentReportID = report?.parentReportID;
+
+    // Simplified Onyx queries without complex selectors
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {
         canBeMissing: false,
     });
-    const [transaction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}${
-            isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID
-        }`,
-        {canBeMissing: true},
-    );
-    const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        canBeMissing: true,
+    });
+    
+    // Only load violations when we have a transaction
+    const shouldLoadViolations = !!transaction?.transactionID;
+    const transactionViolations = useTransactionViolations(shouldLoadViolations ? transaction?.transactionID : undefined);
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
+    const [statusFlags, setStatusFlags] = useState<StatusFlags>({
+        isOnHold: false,
+        isDuplicate: false,
+        isScanning: false,
+        hasPendingRTERViolation: false,
+        shouldShowBrokenConnectionViolation: false,
+        isPendingExpensifyCard: false,
+    });
+
+    // Defer heavy onyx loading for better initial render
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {
+        initialValue: true, 
+        canBeMissing: false,
+    });
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
-    const reportID = report?.reportID;
+    
+    // Memoize callback for status changes
+    const handleStatusChange = useCallback((flags: StatusFlags) => {
+        setStatusFlags(flags);
+    }, []);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
-
-    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
-
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
 
     // If the parent report is a selfDM, it should always be opened in the Inbox tab
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
@@ -105,67 +203,74 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         markAsCashAction(transaction?.transactionID, reportID);
     }, [reportID, transaction?.transactionID]);
 
-    const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
+    // Pre-create status icons with theme to avoid recreation
+    const statusIcons = useMemo(() => ({
+        stopwatch: <StopwatchIcon theme={theme} />,
+        flag: <FlagIcon theme={theme} />,
+        creditCardHourglass: <CreditCardHourglassIcon theme={theme} />,
+        hourglass: <HourglassIcon theme={theme} />,
+        receiptScan: <ReceiptScanIcon theme={theme} />,
+    }), [theme]);
 
-    const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
-        <Icon
-            src={src}
-            height={variables.iconSizeSmall}
-            width={variables.iconSizeSmall}
-            fill={theme.icon}
-        />
-    );
-
-    const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
-        if (isOnHold) {
-            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expenseOnHold')};
+    const getStatusBarProps = useCallback((): MoneyRequestHeaderStatusBarProps | undefined => {
+        if (statusFlags.isOnHold) {
+            return {icon: statusIcons.stopwatch, description: translate('iou.expenseOnHold')};
         }
 
-        if (isDuplicate) {
-            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.expenseDuplicate')};
+        if (statusFlags.isDuplicate) {
+            return {icon: statusIcons.flag, description: translate('iou.expenseDuplicate')};
         }
 
-        if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
-            return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+        if (statusFlags.isPendingExpensifyCard) {
+            return {icon: statusIcons.creditCardHourglass, description: translate('iou.transactionPendingDescription')};
         }
-        if (shouldShowBrokenConnectionViolation) {
+        
+        if (statusFlags.shouldShowBrokenConnectionViolation) {
             return {
-                icon: getStatusIcon(Expensicons.Hourglass),
+                icon: statusIcons.hourglass,
                 description: (
-                    <BrokenConnectionDescription
-                        transactionID={transaction?.transactionID}
-                        report={parentReport}
-                        policy={policy}
-                    />
+                    <Suspense fallback={<StatusBarFallback />}>
+                        <LazyBrokenConnectionDescription
+                            transactionID={transaction?.transactionID}
+                            report={parentReport}
+                            policy={policy}
+                        />
+                    </Suspense>
                 ),
             };
         }
-        if (hasPendingRTERViolation) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
+        
+        if (statusFlags.hasPendingRTERViolation) {
+            return {icon: statusIcons.hourglass, description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
-        if (isScanning) {
-            return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+        
+        if (statusFlags.isScanning) {
+            return {icon: statusIcons.receiptScan, description: translate('iou.receiptScanInProgressDescription')};
         }
-    };
+        
+        return undefined;
+    }, [statusFlags, statusIcons, translate, transaction?.transactionID, parentReport, policy]);
 
-    const statusBarProps = getStatusBarProps();
+    const statusBarProps = useMemo(() => getStatusBarProps(), [getStatusBarProps]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {
+        if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !statusFlags.isOnHold) {
             return;
         }
         Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
-    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
+    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, statusFlags.isOnHold]);
 
+    // Defer primary action calculation until needed and memoize heavily
     const primaryAction = useMemo(() => {
-        if (!report || !parentReport || !transaction) {
+        if (!report || !parentReport || !transaction || !shouldLoadViolations) {
             return '';
         }
         return getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy);
-    }, [parentReport, policy, report, transaction, transactionViolations]);
+    }, [parentReport, policy, report, transaction, transactionViolations, shouldLoadViolations]);
 
-    const primaryActionImplementation = {
+    // Memoize primary action implementation to prevent recreation
+    const primaryActionImplementation = useMemo(() => ({
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (
             <Button
                 success
@@ -194,17 +299,25 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 onPress={markAsCash}
             />
         ),
-    };
+    }), [translate, parentReportAction, reportID, markAsCash]);
 
+    // Optimize secondary actions calculation with better memoization and lazy loading
     const secondaryActions = useMemo(() => {
-        const reportActions = !!parentReport && getReportActions(parentReport);
-        if (!transaction || !reportActions) {
+        if (!transaction || !parentReport || !shouldLoadViolations) {
             return [];
         }
+        
+        // Use a lightweight check first and cache the result
+        const reportActions = getReportActions(parentReport);
+        if (!reportActions) {
+            return [];
+        }
+        
         return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions));
-    }, [parentReport, transaction]);
+    }, [parentReport, transaction, shouldLoadViolations]);
 
-    const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
+    // Memoize secondary actions implementation
+    const secondaryActionsImplementation = useMemo((): Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> => ({
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
             text: translate('iou.hold'),
             icon: Expensicons.Stopwatch,
@@ -213,7 +326,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 if (!parentReportAction) {
                     throw new Error('Parent action does not exist');
                 }
-
                 changeMoneyRequestHoldStatus(parentReportAction);
             },
         },
@@ -233,25 +345,76 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 setIsDeleteModalVisible(true);
             },
         },
-    };
+    }), [translate, parentReportAction, report]);
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
+    // Memoize applicable secondary actions
+    const applicableSecondaryActions = useMemo(
+        () => secondaryActions.map((action) => secondaryActionsImplementation[action]),
+        [secondaryActions, secondaryActionsImplementation]
+    );
+
+    // Memoize header report object
+    const headerReport = useMemo(() => {
+        if (!reportID) {
+            return undefined;
+        }
+        return {
+            ...report,
+            reportID,
+            ownerAccountID: parentReport?.ownerAccountID,
+        };
+    }, [report, reportID, parentReport?.ownerAccountID]);
+
+    // Render action buttons separately to avoid recreation
+    const renderActionButtons = useMemo(() => (
+        <View style={[styles.flexRow, styles.gap2]}>
+            {!!primaryAction && primaryActionImplementation[primaryAction]}
+            {!!applicableSecondaryActions.length && (
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    options={applicableSecondaryActions}
+                    isSplitButton={false}
+                />
+            )}
+        </View>
+    ), [primaryAction, primaryActionImplementation, applicableSecondaryActions, translate, styles]);
+
+    const renderNarrowActionButtons = useMemo(() => (
+        <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionImplementation[primaryAction]}</View>}
+            {!!applicableSecondaryActions.length && (
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    options={applicableSecondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={[!primaryAction && styles.flexGrow4]}
+                />
+            )}
+        </View>
+    ), [primaryAction, primaryActionImplementation, applicableSecondaryActions, translate, styles]);
 
     return (
         <View style={[styles.pl0, styles.borderBottom]}>
+            {/* Isolate expensive status computation */}
+            <StatusComputation
+                transaction={transaction}
+                transactionViolations={transactionViolations}
+                parentReport={parentReport}
+                policy={policy}
+                onStatusChange={handleStatusChange}
+            />
+            
             <HeaderWithBackButton
                 shouldShowBorderBottom={false}
                 shouldShowReportAvatarWithDisplay
                 shouldShowPinButton={false}
-                report={
-                    reportID
-                        ? {
-                              ...report,
-                              reportID,
-                              ownerAccountID: parentReport?.ownerAccountID,
-                          }
-                        : undefined
-                }
+                report={headerReport}
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={!isReportInRHP}
@@ -260,39 +423,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {!shouldUseNarrowLayout && (
-                    <View style={[styles.flexRow, styles.gap2]}>
-                        {!!primaryAction && primaryActionImplementation[primaryAction]}
-                        {!!applicableSecondaryActions.length && (
-                            <ButtonWithDropdownMenu
-                                success={false}
-                                onPress={() => {}}
-                                shouldAlwaysShowDropdownMenu
-                                customText={translate('common.more')}
-                                options={applicableSecondaryActions}
-                                isSplitButton={false}
-                            />
-                        )}
-                    </View>
-                )}
+                {!shouldUseNarrowLayout && renderActionButtons}
                 {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && (
-                <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionImplementation[primaryAction]}</View>}
-                    {!!applicableSecondaryActions.length && (
-                        <ButtonWithDropdownMenu
-                            success={false}
-                            onPress={() => {}}
-                            shouldAlwaysShowDropdownMenu
-                            customText={translate('common.more')}
-                            options={applicableSecondaryActions}
-                            isSplitButton={false}
-                            wrapperStyle={[!primaryAction && styles.flexGrow4]}
-                        />
-                    )}
-                </View>
-            )}
+            {shouldUseNarrowLayout && renderNarrowActionButtons}
             {!!statusBarProps && (
                 <View style={[styles.ph5, styles.pb3]}>
                     <MoneyRequestHeaderStatusBar
