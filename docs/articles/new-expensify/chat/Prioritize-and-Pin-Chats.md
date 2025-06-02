@@ -1,5 +1,5 @@
 ---
-title: Reorder Chat Inbox
+title: Prioritize and Pin Chats
 description: Learn how to customize the order of your chats using pinning and message priority settings in Expensify.
 keywords: [New Expensify, chat inbox, reorder chats, pinned messages, focus mode, priority mode, chat display]
 ---
