@@ -34,6 +34,13 @@ const receiptRequiredViolation = {
     },
 };
 
+const categoryReceiptRequiredViolation = {
+    name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: undefined,
+};
+
 const overLimitViolation = {
     name: CONST.VIOLATIONS.OVER_LIMIT,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -41,6 +48,21 @@ const overLimitViolation = {
     data: {
         formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
     },
+};
+
+const categoryOverLimitViolation = {
+    name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {
+        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+    },
+};
+
+const categoryMissingCommentViolation = {
+    name: CONST.VIOLATIONS.MISSING_COMMENT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
 };
 
 const customUnitOutOfPolicyViolation = {
@@ -83,7 +105,7 @@ describe('getViolationsOnyxData', () => {
             comment: {attendees: [{email: 'text@expensify.com', displayName: 'Test User', avatarUrl: ''}]},
             created: '2023-07-24 13:46:20',
             merchant: 'United Airlines',
-            currency: 'USD',
+            currency: CONST.CURRENCY.USD,
         };
         transactionViolations = [];
         policy = {requiresTag: false, requiresCategory: false} as Policy;
@@ -155,6 +177,7 @@ describe('getViolationsOnyxData', () => {
     describe('controlPolicyViolations', () => {
         beforeEach(() => {
             policy.type = 'corporate';
+            policy.outputCurrency = CONST.CURRENCY.USD;
         });
 
         it('should not add futureDate violation if the policy is not corporate', () => {
@@ -185,11 +208,51 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([receiptRequiredViolation, ...transactionViolations]));
         });
 
+        it('should not add receiptRequired violation if the transaction has different currency than the workspace currency', () => {
+            transaction.amount = 1000000;
+            transaction.modifiedCurrency = CONST.CURRENCY.CAD;
+            policy.maxExpenseAmountNoReceipt = 2500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
+        });
+
         it('should add overLimit violation if the transaction amount is over the policy limit', () => {
             transaction.amount = 1000000;
             policy.maxExpenseAmount = 200000;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([overLimitViolation, ...transactionViolations]));
+        });
+
+        it('should not add overLimit violation if the transaction currency is different from the workspace currency', () => {
+            transaction.amount = 1000000;
+            transaction.modifiedCurrency = CONST.CURRENCY.NZD;
+            policy.maxExpenseAmount = 200000;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
+        });
+    });
+
+    describe('policyCategoryRules', () => {
+        beforeEach(() => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            policyCategories = {
+                Food: {
+                    name: 'Food',
+                    enabled: true,
+                    areCommentsRequired: true,
+                    maxAmountNoReceipt: 0,
+                    maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+                },
+            };
+            transaction.category = 'Food';
+            transaction.amount = CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT + 1;
+            transaction.comment = {comment: ''};
+        });
+
+        it('should add category specific violations', () => {
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([categoryOverLimitViolation, categoryReceiptRequiredViolation, categoryMissingCommentViolation, ...transactionViolations]));
         });
     });
 

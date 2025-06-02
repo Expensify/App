@@ -112,9 +112,16 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
+            selectedOptions: attendees.map((attendee) => ({
+                ...attendee,
+                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+                selected: true,
+                login: attendee.email,
+                ...getPersonalDetailByEmail(attendee.email),
+            })),
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy]);
+    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -210,7 +217,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
                 const iconSource = option.icons?.[0]?.source;
-                const icon = typeof iconSource === 'function' ? '' : iconSource?.toString() ?? '';
+                const icon = typeof iconSource === 'function' ? '' : (iconSource?.toString() ?? '');
                 newSelectedOptions = [
                     ...attendees,
                     {

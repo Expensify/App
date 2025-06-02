@@ -21,17 +21,17 @@ type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? typeof ChatListItem
     : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? typeof TransactionListItem
-    : typeof ReportListItem;
+      ? typeof TransactionListItem
+      : typeof ReportListItem;
 
 /** Model of search list item data type */
 type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? ReportActionListItemType[]
     : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
-    ? TaskListItemType[]
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? TransactionListItemType[]
-    : ReportListItemType[];
+      ? TaskListItemType[]
+      : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
+        ? TransactionListItemType[]
+        : ReportListItemType[];
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
@@ -179,6 +179,9 @@ type SearchReport = {
 
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
+
+    /** The ID of the chat report associated with this report item, if any */
+    childReportID?: string;
 };
 
 /** Model of report action search result */
@@ -234,6 +237,12 @@ type SearchPolicy = {
     /** Whether the rules feature is enabled */
     areRulesEnabled?: boolean;
 
+    /** Scheduled submit data */
+    harvesting?: {
+        /** Whether the scheduled submit is enabled */
+        enabled: boolean;
+    };
+
     /**
      * The scheduled submit frequency set up on this policy.
      * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
@@ -274,12 +283,12 @@ type SearchPolicy = {
     /** The approver of the policy */
     approver?: string;
 
-    /** A set of rules related to the workpsace */
+    /** A set of rules related to the workspace */
     rules?: {
-        /** A set of rules related to the workpsace approvals */
+        /** A set of rules related to the workspace approvals */
         approvalRules?: ApprovalRule[];
 
-        /** A set of rules related to the workpsace expenses */
+        /** A set of rules related to the workspace expenses */
         expenseRules?: ExpenseRule[];
     };
 };

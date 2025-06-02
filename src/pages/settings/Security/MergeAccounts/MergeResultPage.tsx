@@ -1,6 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useMemo} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
@@ -23,7 +24,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 function MergeResultPage() {
     const styles = useThemeStyles();
@@ -225,8 +226,29 @@ function MergeResultPage() {
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.LockClosedOrange,
             },
+            [CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF]: {
+                heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
+                description: translate('mergeAccountsPage.mergeFailureSelfMerge.description'),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                illustration: Illustrations.LockClosedOrange,
+            },
         };
     }, [setRootStatusBarEnabled, login, translate, userEmailOrPhone, styles]);
+
+    useEffect(() => {
+        /**
+         * If the result is success, we need to remove the initial screen from the navigation state
+         * so that the back button closes the modal instead of going back to the initial screen.
+         */
+        if (result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS) {
+            return;
+        }
+
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
+        });
+    }, [result]);
 
     const {
         heading,
@@ -253,7 +275,7 @@ function MergeResultPage() {
                 title={translate('mergeAccountsPage.mergeAccount')}
                 shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute(login));
+                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
                 shouldDisplayHelpButton={false}
             />

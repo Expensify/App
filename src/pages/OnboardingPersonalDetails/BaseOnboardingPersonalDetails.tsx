@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -48,10 +47,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const {canUseDefaultRooms, canUsePrivateDomainOnboarding} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const {canUseDefaultRooms} = usePermissions();
 
-    const isPrivateDomainAndHasAccesiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList);
 
     useEffect(() => {
@@ -76,9 +74,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
 
-            navigateAfterOnboarding(onboardingPurposeSelected, isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, mergedAccountConciergeReportID);
+            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, mergedAccountConciergeReportID);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth, mergedAccountConciergeReportID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, canUseDefaultRooms, isSmallScreenWidth, mergedAccountConciergeReportID],
     );
 
     const handleSubmit = useCallback(
@@ -90,7 +88,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
 
-            if (isPrivateDomainAndHasAccesiblePolicies && !onboardingPurposeSelected) {
+            if (isPrivateDomainAndHasAccessiblePolicies && !onboardingPurposeSelected) {
                 const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
                 Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
                 return;
@@ -98,7 +96,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             completeOnboarding(firstName, lastName);
         },
-        [isPrivateDomainAndHasAccesiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding],
+        [isPrivateDomainAndHasAccessiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -142,8 +140,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton={!isPrivateDomainAndHasAccesiblePolicies}
-                progressBarPercentage={isPrivateDomainAndHasAccesiblePolicies ? 20 : 80}
+                shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
+                progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 20 : 80}
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
