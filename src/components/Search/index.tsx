@@ -39,7 +39,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {isOnHold} from '@libs/TransactionUtils';
+import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -365,7 +365,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 if (!item.keyForList) {
                     return;
                 }
-
+                if (isTransactionPendingDelete(item)) {
+                    return;
+                }
                 setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray), data);
                 return;
             }
@@ -549,7 +551,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         if (areItemsOfReportType) {
             setSelectedTransactions(
                 Object.fromEntries(
-                    (data as ReportListItemType[]).flatMap((item) => item.transactions.map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+                    (data as ReportListItemType[]).flatMap((item) =>
+                        item.transactions.filter((t) => !isTransactionPendingDelete(t)).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
+                    ),
                 ),
                 data,
             );
@@ -558,7 +562,11 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
 
         setSelectedTransactions(
-            Object.fromEntries((data as TransactionListItemType[]).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+            Object.fromEntries(
+                (data as TransactionListItemType[])
+                    .filter((t) => !isTransactionPendingDelete(t))
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
+            ),
             data,
         );
     };

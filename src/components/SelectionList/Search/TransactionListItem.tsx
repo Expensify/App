@@ -8,6 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import TransactionListItemRow from './TransactionListItemRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -26,6 +27,7 @@ function TransactionListItem<TItem extends ListItem>({
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
+    const isPendingDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash} = useSearchContext();
@@ -60,7 +62,7 @@ function TransactionListItem<TItem extends ListItem>({
             wrapperStyle={listItemWrapperStyle}
             containerStyle={[styles.mb2]}
             isFocused={isFocused}
-            isDisabled={isDisabled}
+            isDisabled={isDisabled ?? isPendingDelete}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
@@ -79,7 +81,7 @@ function TransactionListItem<TItem extends ListItem>({
                     handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
                 }}
                 onCheckboxPress={() => onCheckboxPress?.(item)}
-                isDisabled={!!isDisabled}
+                isDisabled={!!isDisabled || isPendingDelete}
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
                 shouldShowTransactionCheckbox={false}
