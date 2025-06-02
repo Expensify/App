@@ -147,11 +147,12 @@ function IOURequestStepScan({
     }));
 
     useEffect(() => {
-        const shouldSetMultiScanValue = isTabActive && !prevIsTabActive;
-        if (!shouldSetMultiScanValue) {
-            return;
+        if (isTabActive && !prevIsTabActive) {
+            setIsMultiScanEnabled(transactions.length > 1);
         }
-        setIsMultiScanEnabled(transactions.length > 1);
+        if (!isTabActive && prevIsTabActive) {
+            setIsMultiScanEnabled(false);
+        }
     }, [isTabActive, prevIsTabActive, transactions.length]);
 
     const showBlink = useCallback(() => {
