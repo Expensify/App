@@ -83,7 +83,7 @@ function SearchFiltersStatusPage() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('common.type')}
+                title={translate('common.status')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
