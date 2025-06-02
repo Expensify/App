@@ -39,10 +39,10 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const beneficialOwnerCountry = String(reimbursementAccountDraft?.[beneficialOwnerCountryInputID] ?? '');
     const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerCountry);
     const defaultValues: Record<string, FileObject[]> = {
-        [proofOfOwnershipInputID]: Array.isArray(reimbursementAccountDraft?.[proofOfOwnershipInputID]) ? (reimbursementAccountDraft?.[proofOfOwnershipInputID] as FileObject[]) ?? [] : [],
-        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] as FileObject[]) ?? [] : [],
-        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? (reimbursementAccountDraft?.[addressProofInputID] as FileObject[]) ?? [] : [],
-        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? (reimbursementAccountDraft?.[codiceFiscaleInputID] as FileObject[]) ?? [] : [],
+        [proofOfOwnershipInputID]: Array.isArray(reimbursementAccountDraft?.[proofOfOwnershipInputID]) ? ((reimbursementAccountDraft?.[proofOfOwnershipInputID] as FileObject[]) ?? []) : [],
+        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? ((reimbursementAccountDraft?.[copyOfIDInputID] as FileObject[]) ?? []) : [],
+        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? ((reimbursementAccountDraft?.[addressProofInputID] as FileObject[]) ?? []) : [],
+        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? ((reimbursementAccountDraft?.[codiceFiscaleInputID] as FileObject[]) ?? []) : [],
     };
 
     const [uploadedProofOfOwnership, setUploadedProofOfOwnership] = useState<FileObject[]>(defaultValues[proofOfOwnershipInputID]);
