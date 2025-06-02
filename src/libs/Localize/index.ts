@@ -60,7 +60,7 @@ function init() {
  * the translated value.
  */
 function getTranslatedPhrase<TKey extends TranslationPaths>(
-    language: 'en' | 'es' | 'es-ES',
+    language: Locale,
     phraseKey: TKey,
     fallbackLanguage: 'en' | 'es' | null,
     ...parameters: TranslationParameters<TKey>
@@ -140,7 +140,7 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
  * @param [desiredLanguage] eg 'en', 'es-ES'
  * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', path: TPath, ...parameters: TranslationParameters<TPath>): string {
+function translate<TPath extends TranslationPaths>(desiredLanguage: Locale, path: TPath, ...parameters: TranslationParameters<TPath>): string {
     // Search phrase in full locale e.g. es-ES
     const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
     // Phrase is not found in full locale, search it in fallback language e.g. es
