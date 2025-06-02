@@ -1584,26 +1584,6 @@ describe('actions/IOU', () => {
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
-
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
-            requestMoney({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
-                participantParams: {
-                    payeeEmail: RORY_EMAIL,
-                    payeeAccountID: RORY_ACCOUNT_ID,
-                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                },
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                },
-            });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
     });
 
     describe('createDistanceRequest', () => {
@@ -1629,23 +1609,6 @@ describe('actions/IOU', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
             createDistanceRequest({
                 report: {reportID: '123'},
-                participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-            });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
-            createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
                 transactionParams: {
                     amount: 1,
