@@ -9768,7 +9768,7 @@ function updatePolicyIdForReportAndThreads(
     });
 }
 
-function buildOptimisticChangePolicyData(report: Report, policyID: string, optimisticPolicyExpenseChat?: Report | undefined) {
+function buildOptimisticChangePolicyData(report: Report, policyID: string, optimisticPolicyExpenseChatReport?: Report | undefined) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -9843,7 +9843,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, optim
 
     // 3. Optimistically create a new REPORT_PREVIEW reportAction with the newReportPreviewActionID
     // and set it as a parent of the moved report
-    const newPolicyExpenseChatReport = optimisticPolicyExpenseChat ?? getPolicyExpenseChat(currentUserAccountID, policyID);
+    const newPolicyExpenseChatReport = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(currentUserAccountID, policyID);
     const optimisticReportPreviewAction = buildOptimisticReportPreview(newPolicyExpenseChatReport, report);
 
     if (newPolicyExpenseChatReport) {

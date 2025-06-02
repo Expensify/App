@@ -111,6 +111,7 @@ type ReportCreationData = Record<
     {
         reportID: string;
         reportActionID?: string;
+        report?: Report;
     }
 >;
 
@@ -1119,6 +1120,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
+            report: optimisticReport,
             reportID: optimisticReport.reportID,
             reportActionID: optimisticCreatedAction.reportActionID,
         };
