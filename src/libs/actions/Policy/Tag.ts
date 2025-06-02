@@ -717,6 +717,27 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         return;
     }
 
+    const onyxData: OnyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                },
+            },
+        ],
+    };
+
     fetch(spreadsheet?.fileURI ?? '').then((res) => {
         if (!res.ok && Platform.OS !== 'android') {
             throw Error(res.statusText);
@@ -733,7 +754,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 file,
             };
 
-            API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters);
+            API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
         });
     });
 }

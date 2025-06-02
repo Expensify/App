@@ -152,7 +152,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         if (!policyTagList) {
             return undefined;
         }
-        return ((policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction))
+        return (policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
             : undefined;
     };
@@ -522,7 +522,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </>
     );
 
-
     const subtitleText = useMemo(
         () => (
             <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
@@ -613,33 +612,33 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     )}
                     {!hasVisibleTags && !isLoading && (
                         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                           <EmptyStateComponent
-                                    SkeletonComponent={TableListItemSkeleton}
-                                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                                    headerMedia={LottieAnimations.GenericEmptyState}
-                                    title={translate('workspace.tags.emptyTags.title')}
-                                    subtitleText={subtitleText}
-                                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                                    lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                                    headerContentStyles={styles.emptyStateFolderWebStyles}
-                                    buttons={[
-                                        {
-                                            buttonText: translate('spreadsheet.importSpreadsheet'),
-                                            success: true,
-                                            buttonAction: () => {
-                                                if (isOffline) {
-                                                    close(() => setIsOfflineModalVisible(true));
-                                                    return;
-                                                }
-                                                Navigation.navigate(
-                                                    isQuickSettingsFlow
-                                                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                                        : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
-                                                );
-                                            },
+                            <EmptyStateComponent
+                                SkeletonComponent={TableListItemSkeleton}
+                                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                                headerMedia={LottieAnimations.GenericEmptyState}
+                                title={translate('workspace.tags.emptyTags.title')}
+                                subtitleText={subtitleText}
+                                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                                headerContentStyles={styles.emptyStateFolderWebStyles}
+                                buttons={[
+                                    {
+                                        buttonText: translate('spreadsheet.importSpreadsheet'),
+                                        success: true,
+                                        buttonAction: () => {
+                                            if (isOffline) {
+                                                close(() => setIsOfflineModalVisible(true));
+                                                return;
+                                            }
+                                            Navigation.navigate(
+                                                isQuickSettingsFlow
+                                                    ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                                    : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
+                                            );
                                         },
-                                    ]}
-                                />
+                                    },
+                                ]}
+                            />
                         </ScrollView>
                     )}
                 </ScreenWrapper>

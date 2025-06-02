@@ -1,14 +1,16 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,7 +45,8 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
+    const [isImportingTags, setIsImportingTags] = useState(false);
+    const {setIsClosing} = useCloseImportPage();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
     useEffect(() => {
@@ -60,6 +63,15 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         return;
     }
 
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingTags(false);
+        Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    };
+
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
+        return;
+    }
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -122,13 +134,25 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                                 if (spreadsheet?.isImportingIndependentMultiLevelTags) {
                                     Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID));
                                 } else {
+                                    setIsImportingTags(true);
                                     importMultiLevelTags(policyID, spreadsheet);
                                 }
                             }}
+                            isLoading={isImportingTags}
                             success
                             large
                         />
                     </FixedFooter>
+                    <ConfirmModal
+                        isVisible={spreadsheet?.shouldFinalModalBeOpened ?? false}
+                        title={translate('spreadsheet.importSuccessfulTitle')}
+                        prompt={translate('spreadsheet.importMultiLevelTagsSuccessfulDescription')}
+                        onConfirm={closeImportPageAndModal}
+                        onCancel={closeImportPageAndModal}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
+                        shouldHandleNavigationBack
+                    />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
