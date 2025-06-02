@@ -6006,12 +6006,12 @@ function getTravelUpdateMessage(action: ReportAction, formatDate: (datetime: str
             });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TRIP_UPDATED:
-            if (details.type === CONST.TRAVEL.RESERVATION_TYPE.CAR || details.type === CONST.TRAVEL.RESERVATION_TYPE.HOTEL) {
+            if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
                 return translateLocal('travel.updates.defaultUpdate', {
                     type: details.type,
                 });
             }
-            if (details.type === CONST.TRAVEL.RESERVATION_TYPE.TRAIN) {
+            if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
                 return translateLocal('travel.updates.railTicketUpdate', {
                     origin: details.start.cityName ?? details.start.shortName ?? '',
                     destination: details.end.cityName ?? details.end.shortName ?? '',
@@ -6025,12 +6025,12 @@ function getTravelUpdateMessage(action: ReportAction, formatDate: (datetime: str
                 startDate: formattedStartDate,
             });
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_OTHER_UPDATE:
-            if (details.type === CONST.TRAVEL.RESERVATION_TYPE.CAR || details.type === CONST.TRAVEL.RESERVATION_TYPE.HOTEL) {
+            if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
                 return translateLocal('travel.updates.defaultUpdate', {
                     type: details.type,
                 });
             }
-            if (details.type === CONST.TRAVEL.RESERVATION_TYPE.TRAIN) {
+            if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
                 return translateLocal('travel.updates.railTicketUpdate', {
                     origin: details.start.cityName ?? details.start.shortName ?? '',
                     destination: details.end.cityName ?? details.end.shortName ?? '',

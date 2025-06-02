@@ -7133,12 +7133,6 @@ const CONST = {
             REFUND: 'REFUND',
             EXCHANGE: 'EXCHANGE',
         },
-        RESERVATION_TYPE: {
-            TRAIN: 'train',
-            FLIGHT: 'flight',
-            CAR: 'car',
-            HOTEL: 'hotel',
-        },
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
