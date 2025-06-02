@@ -340,9 +340,7 @@ function MoneyRequestConfirmationListFooter({
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
 
-    // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
-    // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
-    const classifiedFields = [
+    const fields = [
         {
             item: (
                 <MenuItemWithTopDescription
@@ -888,7 +886,7 @@ function MoneyRequestConfirmationListFooter({
                               }}
                           />
                       ))}
-            {classifiedFields.filter((field) => field.shouldShow).map((field) => field.item)}
+            {fields.filter((field) => field.shouldShow).map((field) => field.item)}
             <View style={[styles.mb5]} />
         </>
     );
