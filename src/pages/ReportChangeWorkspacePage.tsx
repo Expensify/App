@@ -50,12 +50,13 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
             } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {
                 moveIOUReportToPolicy(reportID, policyID);
             } else if (isExpenseReport(report) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
-                changeReportPolicyAndInviteSubmitter(reportID, policyID);
+                const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
+                changeReportPolicyAndInviteSubmitter(report, policyID, employeeList);
             } else {
                 changeReportPolicy(reportID, policyID);
             }
         },
-        [session?.email, report, reportID],
+        [session?.email, report, reportID, policies],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
