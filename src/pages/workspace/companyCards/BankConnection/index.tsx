@@ -53,7 +53,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(feed) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedBank ?? selectedBank);
-    const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
+    const {isNewFeedConnected, newFeed} = useMemo(
+        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}, addNewCard?.data?.plaidConnectedBank),
+        [addNewCard?.data?.plaidConnectedBank, cardFeeds?.settings?.oAuthAccountDetails, prevFeedsData],
+    );
     const {isOffline} = useNetwork();
     const {canUsePlaidCompanyCards} = usePermissions();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
@@ -99,7 +102,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
 
     const CustomSubtitle = (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-            {bankName && translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, {bankName})}
+            {bankName &&
+                translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, {
+                    bankName: addNewCard?.data?.plaidConnectedBankName ?? bankName,
+                })}
             <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>
         </Text>
     );
