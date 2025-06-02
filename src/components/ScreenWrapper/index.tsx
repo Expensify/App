@@ -430,7 +430,7 @@ function ScreenWrapper(
 
         return {
             // Allows for individual screens to disable the offline indicator safe area padding for the screen and all nested ScreenWrapper components.
-            addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? newAddSafeAreaPadding ?? true : !disableOfflineIndicatorSafeAreaPadding,
+            addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? (newAddSafeAreaPadding ?? true) : !disableOfflineIndicatorSafeAreaPadding,
             // Prevent any nested ScreenWrapper components from rendering another offline indicator.
             showOnSmallScreens: false,
             showOnWideScreens: false,
