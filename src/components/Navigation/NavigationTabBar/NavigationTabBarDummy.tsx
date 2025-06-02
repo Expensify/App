@@ -294,4 +294,4 @@ function NavigationTabBarDummy({selectedTab}: {selectedTab: ValueOf<typeof NAVIG
     return <NavigationTabBarWideDummy selectedTab={selectedTab} />;
 }
 
-export default NavigationTabBarDummy;
+export default memo(NavigationTabBarDummy);
