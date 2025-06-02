@@ -4056,6 +4056,13 @@ const styles = (theme: ThemeColors) =>
             ],
         },
 
+        buttonShadowContainer: {
+            height: 52,
+            width: 52,
+            borderTopLeftRadius: 26,
+            borderBottomLeftRadius: 26,
+        },
+
         receiptsSubmitButton: {
             position: 'absolute',
             right: 16,
