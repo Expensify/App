@@ -230,7 +230,7 @@ function TransactionItemRow({
                         <UserInfoCell
                             accountID={transactionItem.from.accountID}
                             avatar={transactionItem.from.avatar}
-                            displayName={transactionItem.formattedTo ?? transactionItem.from.displayName ?? ''}
+                            displayName={transactionItem.formattedFrom ?? transactionItem.from.displayName ?? ''}
                         />
                     )}
                 </View>
