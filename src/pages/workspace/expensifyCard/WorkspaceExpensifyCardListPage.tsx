@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -98,6 +99,18 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     };
 
+    const secondaryActions = useMemo(
+        () => [
+            {
+                icon: Gear,
+                text: translate('common.settings'),
+                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID)),
+                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            },
+        ],
+        [policyID, translate],
+    );
+
     const getHeaderButtons = () => (
         <View style={[styles.flexRow, styles.gap2, shouldChangeLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
             <Button
@@ -107,11 +120,14 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 text={translate('workspace.expensifyCard.issueCard')}
                 style={shouldChangeLayout && styles.flex1}
             />
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
-                icon={Gear}
-                text={translate('common.settings')}
-                style={shouldChangeLayout && styles.flex1}
+            <ButtonWithDropdownMenu
+                success={false}
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.more')}
+                options={secondaryActions}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow0}
             />
         </View>
     );
