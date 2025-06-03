@@ -56,6 +56,7 @@ function OptionRowLHN({
     onSelectRow = () => {},
     optionItem,
     viewMode = 'default',
+    activePolicyID,
     style,
     onLayout = () => {},
     hasDraftComment,
@@ -68,7 +69,6 @@ function OptionRowLHN({
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
     const session = useSession();

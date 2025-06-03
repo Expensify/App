@@ -81,6 +81,9 @@ type OptionRowLHNDataProps = {
     /** Array of report actions for this report */
     reportActions: OnyxEntry<ReportActions>;
 
+    /** The active policy ID */
+    activePolicyID?: string;
+
     /**
      * Array of report actions for the IOU report related to the last action of this report.
      * If the last action is a report action preview, the last message of the report depends on
@@ -132,6 +135,9 @@ type OptionRowLHNProps = {
 
     /** The item that should be rendered */
     optionItem?: OptionData;
+
+    /** The active policy ID */
+    activePolicyID?: string;
 
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
