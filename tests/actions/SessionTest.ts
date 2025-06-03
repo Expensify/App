@@ -30,6 +30,13 @@ jest.mock('@libs/Notification/PushNotification');
 // Mocked to check SignOutAndRedirectToSignIn behavior
 jest.mock('@libs/asyncOpenURL');
 
+// Mock the afterSignOutRedirect module to use the index.ts implementation instead of the native no-op
+jest.mock('@libs/actions/Session/afterSignOutRedirect', () => {
+    // Import the actual index.ts implementation
+    const actual = jest.requireActual('@libs/actions/Session/afterSignOutRedirect/index.ts');
+    return actual;
+});
+
 Onyx.init({
     keys: ONYXKEYS,
 });
