@@ -5421,7 +5421,7 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         policyExpenseChatReportID: optimisticPolicyExpenseChatReport.reportID,
         policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID,
     };
-    API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params);
+    API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params, {optimisticData, successData, failureData});
 
     // 5. If the dismissedProductTraining.changeReportModal is not set, navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
     if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
