@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FloatingActionButton from '@components/FloatingActionButton';
@@ -9,13 +9,19 @@ import ImageSVG from '@components/ImageSVG';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 const noop = () => undefined;
@@ -23,8 +29,18 @@ const noop = () => undefined;
 function NavigationTabBarWideDummy({selectedTab}: {selectedTab: ValueOf<typeof NAVIGATION_TABS>}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+    const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
+    const {orderedReports} = useSidebarOrderedReports();
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+
+    useEffect(() => {
+        setChatTabBrickRoad(getChatTabBrickRoad(orderedReports));
+        // We need to get a new brick road state when report attributes are updated, otherwise we'll be showing an outdated brick road.
+        // That's why reportAttributes is added as a dependency here
+    }, [orderedReports, reportAttributes]);
 
     return (
         <View style={styles.leftNavigationTabBarContainer}>
@@ -56,6 +72,9 @@ function NavigationTabBarWideDummy({selectedTab}: {selectedTab: ValueOf<typeof N
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
+                        {!!chatTabBrickRoad && (
+                            <View style={styles.navigationTabBarStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                        )}
                     </View>
                     <Text
                         style={[
@@ -108,6 +127,7 @@ function NavigationTabBarWideDummy({selectedTab}: {selectedTab: ValueOf<typeof N
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
+                        {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
                     </View>
                     <Text
                         style={[
@@ -144,6 +164,16 @@ function NavigationTabBarNarrowDummy({selectedTab}: {selectedTab: ValueOf<typeof
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
+    const {orderedReports} = useSidebarOrderedReports();
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+
+    useEffect(() => {
+        setChatTabBrickRoad(getChatTabBrickRoad(orderedReports));
+        // We need to get a new brick road state when report attributes are updated, otherwise we'll be showing an outdated brick road.
+        // That's why reportAttributes is added as a dependency here
+    }, [orderedReports, reportAttributes]);
 
     return (
         <View style={styles.navigationTabBarContainer}>
@@ -161,6 +191,9 @@ function NavigationTabBarNarrowDummy({selectedTab}: {selectedTab: ValueOf<typeof
                         width={variables.iconBottomBar}
                         height={variables.iconBottomBar}
                     />
+                    {!!chatTabBrickRoad && (
+                        <View style={styles.navigationTabBarStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                    )}
                 </View>
                 <Text
                     style={[
@@ -224,6 +257,7 @@ function NavigationTabBarNarrowDummy({selectedTab}: {selectedTab: ValueOf<typeof
                         width={variables.iconBottomBar}
                         height={variables.iconBottomBar}
                     />
+                    {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
                 </View>
                 <Text
                     style={[
