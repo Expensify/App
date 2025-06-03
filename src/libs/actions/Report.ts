@@ -357,6 +357,9 @@ Linking.getInitialURL().then((url) => {
     reportIDDeeplinkedFromOldDot = processReportIDDeeplink(url ?? '');
 });
 
+// Track pending read requests to prevent duplicates
+const pendingReadRequests = new Set<string>();
+
 let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
@@ -1586,6 +1589,13 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         return;
     }
 
+    // Prevent duplicate API calls for the same report
+    if (pendingReadRequests.has(reportID)) {
+        return;
+    }
+
+    pendingReadRequests.add(reportID);
+
     const lastReadTime = DateUtils.getDBTimeWithSkew();
 
     const optimisticData: OnyxUpdate[] = [
@@ -1604,6 +1614,12 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
     };
 
     API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
+
+    // Clear the pending request after a short delay to allow for completion
+    setTimeout(() => {
+        pendingReadRequests.delete(reportID);
+    }, 1000);
+
     if (shouldResetUnreadMarker) {
         DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
     }
