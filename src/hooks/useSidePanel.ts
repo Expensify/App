@@ -10,6 +10,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
+import useLocalize from './useLocalize';
+import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -18,8 +20,8 @@ import useWindowDimensions from './useWindowDimensions';
  */
 function useSidePanelDisplayStatus() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {preferredLocale} = useLocalize();
     const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL, {canBeMissing: true});
-    const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
         canBeMissing: true,
         selector: (modal) =>
@@ -29,7 +31,7 @@ function useSidePanelDisplayStatus() {
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED,
     });
 
-    const isLanguageUnsupported = language !== CONST.LOCALES.EN;
+    const isLanguageUnsupported = preferredLocale !== CONST.LOCALES.EN;
     const isSidePanelVisible = isExtraLargeScreenWidth ? sidePanelNVP?.open : sidePanelNVP?.openNarrowScreen;
 
     // The Side Panel is hidden when:
@@ -63,15 +65,21 @@ function useSidePanel() {
     const {windowWidth} = useWindowDimensions();
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
-    const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(false);
+    const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
+    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
 
     useEffect(() => {
+        if (shouldHideSidePanel && prevShouldHideSidePanel) {
+            sidePanelTranslateX.current.setValue(sidePanelWidth);
+            sidePanelOffset.current.setValue(shouldApplySidePanelOffset ? variables.sideBarWidth : 0);
+            return;
+        }
         setIsSidePanelTransitionEnded(false);
 
         Animated.parallel([
@@ -86,7 +94,7 @@ function useSidePanel() {
                 useNativeDriver: true,
             }),
         ]).start(() => setIsSidePanelTransitionEnded(true));
-    }, [shouldHideSidePanel, shouldApplySidePanelOffset, sidePanelWidth]);
+    }, [shouldHideSidePanel, shouldApplySidePanelOffset, sidePanelWidth, prevShouldHideSidePanel]);
 
     const openSidePanel = useCallback(() => {
         setIsSidePanelTransitionEnded(false);
