@@ -113,9 +113,9 @@ Onyx.connect({
 });
 
 /** Check if the passed employee is an approver in the policy's employeeList */
-function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number) {
+function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number, managerID?: number) {
     const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
-    if (policy?.approver === employeeLogin) {
+    if (policy?.approver === employeeLogin || managerID === employeeAccountID) {
         return true;
     }
     return Object.values(policy?.employeeList ?? {}).some(
