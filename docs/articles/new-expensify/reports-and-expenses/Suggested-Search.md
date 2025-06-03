@@ -17,7 +17,6 @@ Suggested Search surfaces key report actions in your **Reports** page so you can
 - Submit expenses waiting on you
 - Approve reports that need your review
 - Pay approved reports ready for reimbursement
-- Export finalized reports to accounting platforms
 
 These shortcuts are personalized based on your role and workspace configuration, helping you process reports in batches with no advanced search needed.
 
@@ -31,7 +30,6 @@ Depending on your role, you’ll see shortcuts like:
 - **Submit** – Reports you’ve drafted and need to submit.
 - **Approve** – Reports awaiting your review.
 - **Pay** – Reports ready for reimbursement.
-- **Export** – Reports ready for accounting export (e.g., to QuickBooks).
 
 ---
 
