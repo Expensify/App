@@ -246,7 +246,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 test: /\.lottie$/,
                 type: 'asset/resource',
             },
-            
         ],
     },
     resolve: {
