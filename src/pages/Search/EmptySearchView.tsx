@@ -82,7 +82,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
-    const {canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [modalVisible, setModalVisible] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -215,7 +215,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                               },
                           ]
                         : []),
-                    ...(canUseTableReportView && groupPoliciesWithChatEnabled.length > 0
+                    ...(isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && groupPoliciesWithChatEnabled.length > 0
                         ? [
                               {
                                   buttonText: translate('quickAction.createReport'),
@@ -360,7 +360,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         styles.tripEmptyStateLottieWebView,
         introSelected?.choice,
         hasSeenTour,
-        canUseTableReportView,
+        isBetaEnabled,
         groupPoliciesWithChatEnabled,
         activePolicy,
         activePolicyID,

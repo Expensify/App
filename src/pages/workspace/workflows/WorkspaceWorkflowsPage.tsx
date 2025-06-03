@@ -84,7 +84,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             }),
         [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
     );
-    const {canUseGlobalReimbursementsOnND} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
@@ -106,14 +106,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         setIsUpdateWorkspaceCurrencyModalOpen(false);
 
-        if (canUseGlobalReimbursementsOnND) {
+        if (isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND)) {
             setIsForcedToChangeCurrency(true);
             Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
         } else {
             updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
             navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
         }
-    }, [canUseGlobalReimbursementsOnND, policy, route.params.policyID]);
+    }, [isBetaEnabled, policy, route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
@@ -262,7 +262,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 titleStyle={shouldShowBankAccount ? undefined : styles.textLabelSupportingEmptyValue}
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
-                                    if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, canUseGlobalReimbursementsOnND ?? false)) {
+                                    if (
+                                        !isCurrencySupportedForGlobalReimbursement(
+                                            (policy?.outputCurrency ?? '') as CurrencyType,
+                                            isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false,
+                                        )
+                                    ) {
                                         setIsUpdateWorkspaceCurrencyModalOpen(true);
                                         return;
                                     }
@@ -322,7 +327,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
-        canUseGlobalReimbursementsOnND,
+        isBetaEnabled,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -376,7 +381,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}
-                    {canUseGlobalReimbursementsOnND ? (
+                    {isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ? (
                         <ConfirmModal
                             title={translate('workspace.bankAccount.workspaceCurrencyNotSupported')}
                             isVisible={isUpdateWorkspaceCurrencyModalOpen}
