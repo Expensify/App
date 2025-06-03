@@ -10590,16 +10590,25 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
     return Object.values(reportActions).some((action) => isIntegrationMessageAction(action));
 }
 
+function isBothUserCreateExpenseFromIOUReport(iouReport: OnyxEntry<Report>): boolean {
+    const transactions = getReportTransactions(iouReport?.reportID);
+    return isIOUReport(iouReport) && transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+}
+
 /**
  * Determines whether the report can be moved to the workspace.
  */
 function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
+    if (isBothUserCreateExpenseFromIOUReport(report)) {
+        return false;
+    }
+
     return (
         isPaidGroupPolicyPolicyUtils(newPolicy) &&
         (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies)) &&
-        isWorkspacePayer(managerLogin?.toString() ?? '', newPolicy)
+        (!isIOUReport(report) || isWorkspacePayer(managerLogin?.toString() ?? '', newPolicy))
     );
 }
 
