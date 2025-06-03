@@ -334,10 +334,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             onSelected: navigateToTagsSettings,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
         });
-        const shouldShowMoreOptions = isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) ? !hasDependentTags : !policy?.hasMultipleTagLists;
-        if (!shouldShowMoreOptions) {
-            return menuItems;
-        }
+
         if (!hasAccountingConnectionsPolicyUtils(policy)) {
             menuItems.push({
                 icon: Expensicons.Table,
@@ -584,7 +581,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.popToSidebar();
                         }}
-                        shouldShowThreeDotsButton={isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) ? true : !policy?.hasMultipleTagLists}
                     >
                         {!shouldUseNarrowLayout && getHeaderButtons()}
                     </HeaderWithBackButton>

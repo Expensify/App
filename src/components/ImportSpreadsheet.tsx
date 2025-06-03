@@ -110,7 +110,6 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
                 const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
-
                 setSpreadsheetData(formattedSpreadsheetData, fileURI, spreadsheet?.isImportingMultiLevelTags ?? false)
                     .then(() => {
                         Navigation.navigate(goTo);
@@ -121,9 +120,6 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
             })
             .finally(() => {
                 setIsReadingFIle(false);
-                if (fileURI && !file.uri) {
-                    URL.revokeObjectURL(fileURI);
-                }
             });
     };
 
