@@ -15,12 +15,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {startMoneyRequest} from '@userActions/IOU';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import NewChatSelectorPage from './NewChatSelectorPage';
@@ -122,6 +124,10 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         {
                             buttonText: translate('iou.createExpense'),
                             buttonAction: () => {
+                                if (report && report.policyID && shouldRestrictUserBillableActions(report.policyID)) {
+                                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
+                                    return;
+                                }
                                 interceptAnonymousUser(() => {
                                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, undefined, false, backToReport);
                                 });
