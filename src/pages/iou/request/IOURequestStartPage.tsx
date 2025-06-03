@@ -166,6 +166,7 @@ function IOURequestStartPage({
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                                 shouldShowLabelWhenInactive={!shouldShowPerDiemOption}
+                                lazyLoadEnabled
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
