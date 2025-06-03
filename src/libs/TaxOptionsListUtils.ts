@@ -1,8 +1,8 @@
-import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import localeCompare from './LocaleCompare';
 import tokenizedSearch from './tokenizedSearch';
 import {transformedTaxRates} from './TransactionUtils';
 
@@ -33,8 +33,8 @@ type TaxSection = {
  * Sorts tax rates alphabetically by name.
  */
 function sortTaxRates(taxRates: TaxRates): TaxRate[] {
-    const sortedTaxRates = lodashSortBy(taxRates, (taxRate) => taxRate.name);
-    return sortedTaxRates;
+    const sortedtaxRates = Object.values(taxRates).sort((a, b) => localeCompare(a.name, b.name));
+    return sortedtaxRates;
 }
 
 /**

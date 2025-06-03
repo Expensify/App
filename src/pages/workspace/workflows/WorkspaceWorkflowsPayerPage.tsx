@@ -95,7 +95,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                     },
                 ],
                 errors: policyEmployee.errors,
-                pendingAction: policyEmployee.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburser : null,
+                pendingAction: (policyEmployee.pendingAction ?? isAuthorizedPayer) ? policy?.pendingFields?.reimburser : null,
             };
 
             if (isAuthorizedPayer) {

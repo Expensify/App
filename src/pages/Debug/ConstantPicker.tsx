@@ -44,7 +44,7 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
                             keyForList: key,
                             isSelected: value === fieldValue,
                             searchText: value,
-                        } satisfies ListItem),
+                        }) satisfies ListItem,
                 )
                 .filter(({searchText}) => {
                     return tokenizedSearch([{searchText}], searchValue, (item) => [item.searchText]).length > 0;

@@ -1,11 +1,10 @@
-import lodashSortBy from 'lodash/sortBy';
 import CONST from '@src/CONST';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
-import type {Option} from './OptionsListUtils';
 import {hasEnabledOptions} from './OptionsListUtils';
+import type {Option} from './OptionsListUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -164,8 +163,7 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
  * Sorts tags alphabetically by name.
  */
 function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
-    // Use lodash's sortBy to ensure consistency with oldDot.
-    return lodashSortBy(tags, 'name', localeCompare) as PolicyTag[];
+    return Object.values(tags ?? {}).sort((a, b) => localeCompare(a.name, b.name)) as PolicyTag[];
 }
 
 export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags};

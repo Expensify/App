@@ -6,6 +6,7 @@ import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
+import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
@@ -213,7 +214,7 @@ function getCategoryListSections({
  */
 function sortCategories(categories: Record<string, Category>): Category[] {
     // Sorts categories alphabetically by name.
-    const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
+    const sortedCategories = Object.values(categories).sort((a, b) => localeCompare(a.name, b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy: Hierarchy = {};
