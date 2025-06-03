@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useLocalize from './useLocalize';
+import useReportIsArchived from './useReportIsArchived';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
@@ -44,6 +45,7 @@ function useSelectedTransactionsActions({
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
         () =>
             selectedTransactionIDs.reduce((acc, transactionID) => {
@@ -202,7 +204,7 @@ function useSelectedTransactionsActions({
             return canRemoveTransaction && isIOUActionOwner && !isActionDeleted;
         });
 
-        const canRemoveReportTransaction = canDeleteTransaction(report);
+        const canRemoveReportTransaction = canDeleteTransaction(report, isReportArchived);
 
         if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
             options.push({
@@ -213,7 +215,19 @@ function useSelectedTransactionsActions({
             });
         }
         return options;
-    }, [selectedTransactionIDs, report, selectedTransactions, translate, reportActions, clearSelectedTransactions, onExportFailed, iouType, session?.accountID, showDeleteModal]);
+    }, [
+        selectedTransactionIDs,
+        report,
+        selectedTransactions,
+        translate,
+        reportActions,
+        clearSelectedTransactions,
+        onExportFailed,
+        iouType,
+        session?.accountID,
+        showDeleteModal,
+        isReportArchived,
+    ]);
 
     return {
         options: computedOptions,

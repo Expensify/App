@@ -25,6 +25,7 @@ describe('SidebarUtils', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         initOnyxDerivedValues();
     });
 
@@ -310,7 +311,6 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
-                preferredLocale: CONST.LOCALES.DEFAULT,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -320,7 +320,6 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
-                preferredLocale: CONST.LOCALES.DEFAULT,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -783,7 +782,6 @@ describe('SidebarUtils', () => {
                 personalDetails: {},
                 policy: undefined,
                 parentReportAction: undefined,
-                preferredLocale: CONST.LOCALES.EN,
                 oneTransactionThreadReport: undefined,
             });
 
@@ -841,7 +839,6 @@ describe('SidebarUtils', () => {
                 personalDetails: {},
                 policy: undefined,
                 parentReportAction: undefined,
-                preferredLocale: CONST.LOCALES.EN,
                 oneTransactionThreadReport: undefined,
             });
 
@@ -855,7 +852,6 @@ describe('SidebarUtils', () => {
                 await waitForBatchedUpdates();
             });
             it('The text should not contain the policy name at prefix if the report is not related to a workspace', async () => {
-                const preferredLocale = 'en';
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -880,7 +876,6 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
-                    preferredLocale,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -890,7 +885,6 @@ describe('SidebarUtils', () => {
                 expect(optionData?.alternateText).toBe(`test message`);
             });
             it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
-                const preferredLocale = 'en';
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -915,7 +909,6 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: LHNTestUtils.fakePersonalDetails,
-                    preferredLocale,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -925,7 +918,6 @@ describe('SidebarUtils', () => {
                 expect(optionData?.alternateText).toBe(`test message`);
             });
             it('The text should not contain the policy name at prefix if we only have a workspace', async () => {
-                const preferredLocale = 'en';
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -947,7 +939,6 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
-                    preferredLocale,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -957,7 +948,6 @@ describe('SidebarUtils', () => {
                 expect(optionData?.alternateText).toBe(`test message`);
             });
             it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {
-                const preferredLocale = 'en';
                 const policy: Policy = {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -983,7 +973,6 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
-                    preferredLocale,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -1051,7 +1040,6 @@ describe('SidebarUtils', () => {
                     personalDetails: {},
                     policy: undefined,
                     parentReportAction: undefined,
-                    preferredLocale: CONST.LOCALES.EN,
                     oneTransactionThreadReport: undefined,
                 });
 
@@ -1093,7 +1081,6 @@ describe('SidebarUtils', () => {
                     personalDetails: {},
                     policy: undefined,
                     parentReportAction: undefined,
-                    preferredLocale: CONST.LOCALES.EN,
                     oneTransactionThreadReport: undefined,
                 });
 
