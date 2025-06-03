@@ -311,12 +311,12 @@ function SearchList(
     const getItemHeight = useCallback(
         (item: SearchListItem): number => {
             try {
-                const reportListItem = item as ReportListItemType;
-                const transactionListItem = item as TransactionListItemType;
-                const reportActionListItem = item as ReportActionListItemType;
+                const reportListItem = isReportListItemType(item) ? item : null;
+                const transactionListItem = isTransactionListItemType(item) ? item : null;
+                const reportActionListItem = isReportActionListItemType(item) ? item : null;
 
-                const isTransaction = isTransactionListItemType(transactionListItem);
-                const isReportAction = isReportActionListItemType(reportActionListItem);
+                const isTransaction = !!transactionListItem;
+                const isReportAction = !!reportActionListItem;
 
                 if (isTransaction || isReportAction) {
                     if (queryJSONType === CONST.SEARCH.DATA_TYPES.CHAT) {
@@ -342,7 +342,7 @@ function SearchList(
 
                     return heightConstants;
                 }
-                if (isReportListItemType(reportListItem)) {
+                if (reportListItem) {
                     if (!reportListItem.transactions || reportListItem.transactions.length === 0) {
                         return Math.max(ITEM_HEIGHTS.HEADER, 1);
                     }
