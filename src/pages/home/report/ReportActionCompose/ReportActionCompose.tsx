@@ -440,7 +440,7 @@ function ReportActionCompose({
                             shouldDisableSendButton={!!exceededMaxLength}
                             reportID={reportID}
                         >
-                            {({displayFileInModal}) => (
+                            {({displayFileInModal, displayMultipleFilesInModal}) => (
                                 <>
                                     <AttachmentPickerWithMenuItems
                                         displayFileInModal={displayFileInModal}
@@ -507,6 +507,16 @@ function ReportActionCompose({
                                                 if (isAttachmentPreviewActive) {
                                                     return;
                                                 }
+                                                if (canUseMultiFilesDragAndDrop && event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
+                                                    const files = Array.from(event.dataTransfer?.files).map((file) => {
+                                                        // eslint-disable-next-line no-param-reassign
+                                                        file.uri = URL.createObjectURL(file);
+                                                        return file;
+                                                    });
+                                                    displayMultipleFilesInModal(files);
+                                                    return;
+                                                }
+
                                                 const data = event.dataTransfer?.files[0];
                                                 if (data) {
                                                     data.uri = URL.createObjectURL(data);

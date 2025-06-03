@@ -152,7 +152,7 @@ function AttachmentPicker({
 
                         return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                     }
-
+                    // TODO: refactor this to use multiple files
                     const targetAsset = response.assets?.[0];
                     const targetAssetUri = targetAsset?.uri;
 

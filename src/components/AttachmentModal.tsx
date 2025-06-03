@@ -64,6 +64,7 @@ type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
     displayFileInModal: (data: FileObject) => void;
+    displayMultipleFilesInModal: (data: FileObject[]) => void;
     show: () => void;
 };
 
@@ -358,6 +359,17 @@ function AttachmentModal({
             return false;
         }
         return true;
+    }, []);
+
+    const validateAndDisplayMultipleFilesToUpload = useCallback((data: FileObject[]) => {
+        if (!data?.length) {
+            return;
+        }
+        if (data.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
+            setIsAttachmentInvalid(true);
+            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+            setAttachmentInvalidReason('attachmentPicker.tooManyFiles');
+        }
     }, []);
 
     const validateAndDisplayFileToUpload = useCallback(
@@ -697,6 +709,7 @@ function AttachmentModal({
 
             {children?.({
                 displayFileInModal: validateAndDisplayFileToUpload,
+                displayMultipleFilesInModal: validateAndDisplayMultipleFilesToUpload,
                 show: openModal,
             })}
         </>
