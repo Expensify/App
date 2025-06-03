@@ -41,7 +41,7 @@ import setTestReceipt from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
@@ -60,6 +60,7 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import variables from '@styles/variables';
 import type {GpsPoint} from '@userActions/IOU';
 import {
+    checkIfScanFileCanBeRead,
     getMoneyRequestParticipantsFromReport,
     replaceReceipt,
     requestMoney,
@@ -238,6 +239,39 @@ function IOURequestStepScan({
                 setVideoConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
+    }, []);
+
+    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, make the user star scanning flow from scratch.
+    // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
+    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
+    useEffect(() => {
+        let isAllScanFilesCanBeRead = true;
+
+        Promise.all(
+            transactions.map((item) => {
+                const itemReceiptPath = item.receipt?.source;
+                const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
+
+                if (!isLocalFile) {
+                    return;
+                }
+
+                const onFailure = () => {
+                    isAllScanFilesCanBeRead = false;
+                };
+
+                return checkIfScanFileCanBeRead(item.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
+            }),
+        ).then(() => {
+            if (isAllScanFilesCanBeRead) {
+                return;
+            }
+            setIsMultiScanEnabled?.(false);
+            removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+            removeDraftTransactions(true);
+        });
+        // We want this hook to run on mounting only
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
