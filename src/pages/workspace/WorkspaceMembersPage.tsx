@@ -381,6 +381,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
 
+    const toggleOrNavigate = useCallback(
+        (item: MemberOption) => {
+            if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
+                toggleUser(item.accountID);
+                return;
+            }
+            openMemberDetails(item);
+        },
+        [shouldUseNarrowLayout, selectionMode, openMemberDetails, toggleUser],
+    );
+
     /**
      * Dismisses the errors on one item
      */
@@ -794,7 +805,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldUseUserSkeletonView
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
-                        onSelectRow={openMemberDetails}
+                        onSelectRow={toggleOrNavigate}
                         shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={filteredData.length > 0 ? () => toggleAllUsers(filteredData) : undefined}

@@ -166,6 +166,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     }
 
     const toggleTag = (tag: TagListItem) => {
+        if (tag.isDisabledCheckbox) {
+            return;
+        }
         setSelectedTags((prev) => {
             if (prev.includes(tag.value)) {
                 return prev.filter((selectedTag) => selectedTag !== tag.value);
@@ -200,6 +203,14 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value, backTo)
                 : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value),
         );
+    };
+
+    const toggleOrNavigate = (tag: TagListItem) => {
+        if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
+            toggleTag(tag);
+            return;
+        }
+        navigateToTagSettings(tag);
     };
 
     const deleteTags = () => {
@@ -405,7 +416,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         selectedItems={selectedTags}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleTag}
-                        onSelectRow={navigateToTagSettings}
+                        onSelectRow={toggleOrNavigate}
                         onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                         showScrollIndicator
                         ListItem={TableListItem}

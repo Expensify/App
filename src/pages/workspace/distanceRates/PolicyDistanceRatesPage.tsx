@@ -243,6 +243,9 @@ function PolicyDistanceRatesPage({
     };
 
     const toggleRate = (rate: RateForList) => {
+        if (rate.isDisabledCheckbox) {
+            return;
+        }
         setSelectedDistanceRates((prevSelectedRates) => {
             if (prevSelectedRates.includes(rate.value)) {
                 return prevSelectedRates.filter((selectedRate) => selectedRate !== rate.value);
@@ -261,6 +264,14 @@ function PolicyDistanceRatesPage({
                     .map(([key]) => key),
             );
         }
+    };
+
+    const toggleOrNavigate = (rate: RateForList) => {
+        if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
+            toggleRate(rate);
+            return;
+        }
+        openRateDetails(rate);
     };
 
     const getCustomListHeader = () => {
@@ -427,7 +438,7 @@ function PolicyDistanceRatesPage({
                         shouldUseDefaultRightHandSideCheckmark={false}
                         selectedItems={selectedDistanceRates}
                         onCheckboxPress={toggleRate}
-                        onSelectRow={openRateDetails}
+                        onSelectRow={toggleOrNavigate}
                         onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
                         onDismissError={dismissError}
                         ListItem={TableListItem}
