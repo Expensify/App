@@ -85,18 +85,18 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     // If the unread message is on the first page, scroll to the end once the content is measured and the data is loaded
     const isMessageOnFirstPage = useRef(currentDataIndex > Math.max(0, data.length - initialNumToRender));
     const didScroll = useRef(false);
-    const [hasInitialContentBeenRendered, setHasInitialContentBeenRendered] = useState(false);
+    const [didInitialContentRender, setDidInitialContentRender] = useState(false);
 
     const handleContentSizeChange = useCallback(
         (contentWidth: number, contentHeight: number) => {
             onContentSizeChange?.(contentWidth, contentHeight);
-            setHasInitialContentBeenRendered(true);
+            setDidInitialContentRender(true);
         },
         [onContentSizeChange],
     );
 
     useEffect(() => {
-        if (didScroll.current || !isMessageOnFirstPage.current || !hasInitialContentBeenRendered) {
+        if (didScroll.current || !isMessageOnFirstPage.current || !didInitialContentRender) {
             return;
         }
 
@@ -108,7 +108,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             didScroll.current = true;
             renderQueue.start();
         }, INITIAL_SCROLL_DELAY);
-    }, [currentDataIndex, data.length, displayedData.length, hasInitialContentBeenRendered, initialNumToRender, isInitialData, isMessageOnFirstPage, onInitiallyLoaded, renderQueue]);
+    }, [currentDataIndex, data.length, displayedData.length, didInitialContentRender, initialNumToRender, isInitialData, isMessageOnFirstPage, onInitiallyLoaded, renderQueue]);
 
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);
@@ -121,9 +121,8 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
         if (isInitialData) {
             setIsInitialData(false);
+            onInitiallyLoaded?.();
         }
-
-        onInitiallyLoaded?.();
 
         const firstDisplayedItem = displayedData.at(0);
         setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
