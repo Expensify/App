@@ -10602,15 +10602,16 @@ function isBothUserCreateExpenseFromIOUReport(iouReport: OnyxEntry<Report>): boo
 function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
+    // We can't move the iou report to the workspace if both users from the iou report create the expense
     if (isBothUserCreateExpenseFromIOUReport(report)) {
         return false;
     }
 
-    return (
-        isPaidGroupPolicyPolicyUtils(newPolicy) &&
-        (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies)) &&
-        (!isIOUReport(report) || isWorkspacePayer(managerLogin?.toString() ?? '', newPolicy))
-    );
+    // We can only move the iou report to the workspace if the manager is the payer of the new policy
+    if (isIOUReport(report)) {
+        return isPaidGroupPolicyPolicyUtils(newPolicy) && isWorkspacePayer(managerLogin?.toString() ?? '', newPolicy);
+    }
+    return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies));
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
