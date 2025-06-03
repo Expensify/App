@@ -614,7 +614,7 @@ function MoneyReportHeader({
     };
 
     const {canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits} = usePermissions();
-
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
         exportReportToPDF({reportID});
@@ -656,6 +656,10 @@ function MoneyReportHeader({
             icon: Expensicons.Download,
             onSelected: () => {
                 if (!moneyRequestReport) {
+                    return;
+                }
+                if (isOffline) {
+                    setOfflineModalVisible(true);
                     return;
                 }
                 exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs}, () => {
@@ -1152,6 +1156,15 @@ function MoneyReportHeader({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={offlineModalVisible}
+                onClose={() => setOfflineModalVisible(false)}
             />
             <Modal
                 onClose={() => setIsPDFModalVisible(false)}
