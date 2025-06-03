@@ -1,5 +1,5 @@
 ---
-title: Merge-Accounts.md
+title: Merge Accounts
 description: Learn how to merge two Expensify accounts into one and keep all your data in a single login.
 keywords: [Expensify Classic, merge accounts, combine logins, consolidate email addresses, multiple accounts]
 ---
