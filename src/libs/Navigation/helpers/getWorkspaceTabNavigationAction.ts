@@ -1,7 +1,7 @@
-import type {NavigationState} from '@react-navigation/native';
 import type {NavigationAction as NavigationActionType} from '@react-navigation/routers';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import navigationRef from '@libs/Navigation/navigationRef';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -13,15 +13,18 @@ import {isFullScreenName, isWorkspacesTabScreenName} from './isNavigatorName';
 import {getLastVisitedWorkspaceTabScreen, getWorkspacesTabStateFromSessionStorage} from './lastVisitedTabPathUtils';
 
 type Params = {
-    rootState: NavigationState;
-    // workspacesTabStateFromSessionStorage: NavigationState;
     currentUserLogin?: string;
     shouldUseNarrowLayout: boolean;
 };
 
-type NavigationAction = {type: 'goBack'; route: Route} | {type: 'navigate'; route: Route} | {type: 'dispatch'; dispatchType: string; payload: NavigationActionType} | {type: 'return'};
+type NavigationAction =
+    | {type: 'goBack'; route: Route}
+    | {type: 'navigate'; route: Route}
+    | {type: 'dispatch'; dispatchType: string; payload: NavigationActionType['payload']}
+    | {type: 'return'};
 
-const getWorkspaceTabNavigationAction = ({rootState, currentUserLogin, shouldUseNarrowLayout}: Params): NavigationAction => {
+const getWorkspaceTabNavigationAction = ({currentUserLogin, shouldUseNarrowLayout}: Params): NavigationAction => {
+    const rootState = navigationRef.getRootState();
     const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
     if (!topmostFullScreenRoute) {
         return {type: 'return'};
@@ -31,13 +34,15 @@ const getWorkspaceTabNavigationAction = ({rootState, currentUserLogin, shouldUse
         return {type: 'goBack', route: ROUTES.WORKSPACES_LIST.route};
     }
 
+    let returnAction: NavigationAction = {type: 'return'};
+
     interceptAnonymousUser(() => {
         const workspacesTabStateFromSessionStorage = getWorkspacesTabStateFromSessionStorage() ?? rootState;
-        const state = workspacesTabStateFromSessionStorage;
-        const lastWorkspacesTabNavigatorRoute = state.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
+        const lastWorkspacesTabNavigatorRoute = workspacesTabStateFromSessionStorage.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
         // If there is no settings or workspace navigator route, then we should open the settings navigator.
         if (!lastWorkspacesTabNavigatorRoute) {
-            return {type: 'goBack', route: ROUTES.WORKSPACES_LIST.route};
+            returnAction = {type: 'navigate', route: ROUTES.WORKSPACES_LIST.route};
+            return;
         }
 
         let workspacesTabState = lastWorkspacesTabNavigatorRoute.state;
@@ -54,12 +59,13 @@ const getWorkspaceTabNavigationAction = ({rootState, currentUserLogin, shouldUse
             const isPendingDelete = isPendingDeletePolicy(policy);
 
             if (!shouldShowPolicy || isPendingDelete) {
-                return {type: 'navigate', route: ROUTES.WORKSPACES_LIST.route};
+                returnAction = {type: 'navigate', route: ROUTES.WORKSPACES_LIST.route};
+                return;
             }
 
             if (params.policyID) {
                 const workspaceScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceTabScreen() : SCREENS.WORKSPACE.INITIAL;
-                return {
+                returnAction = {
                     type: 'dispatch',
                     dispatchType: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
                     payload: {
@@ -67,17 +73,17 @@ const getWorkspaceTabNavigationAction = ({rootState, currentUserLogin, shouldUse
                         screenName: workspaceScreenName,
                     },
                 };
+                return;
             }
-            return {
+            returnAction = {
                 type: 'return',
             };
+            return;
         }
 
-        return {type: 'navigate', route: ROUTES.WORKSPACES_LIST.route};
+        returnAction = {type: 'navigate', route: ROUTES.WORKSPACES_LIST.route};
     });
-    return {
-        type: 'return',
-    };
+    return returnAction;
 };
 
 export default getWorkspaceTabNavigationAction;

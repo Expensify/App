@@ -28,7 +28,6 @@ import {getLastVisitedTabPath, getSettingsTabStateFromSessionStorage} from '@lib
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
-import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State} from '@navigation/types';
@@ -141,18 +140,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showWorkspaces = useCallback(() => {
-        const rootState = navigationRef.getRootState();
-        const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
-        if (!topmostFullScreenRoute) {
-            return;
-        }
-
-        if (topmostFullScreenRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-            Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
-            return;
-        }
-
-        const navigationAction = getWorkspaceTabNavigationAction({rootState, shouldUseNarrowLayout, currentUserLogin});
+        const navigationAction = getWorkspaceTabNavigationAction({shouldUseNarrowLayout, currentUserLogin});
 
         switch (navigationAction?.type) {
             case 'goBack':
