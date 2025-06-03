@@ -438,7 +438,7 @@ const CONST = {
         MIN_SIZE: 240,
 
         // Allowed extensions for receipts
-        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
+        ALLOWED_RECEIPT_EXTENSIONS: ['heif', 'heic', 'jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
     // Allowed extensions for spreadsheets import
@@ -1060,6 +1060,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -1129,6 +1130,7 @@ const CONST = {
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
+    REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1890,7 +1892,7 @@ const CONST = {
     DISPLAY_PARTICIPANTS_LIMIT: 5,
 
     // Amount of emojis to render ahead at the end of the update cycle
-    EMOJI_DRAW_AMOUNT: 250,
+    EMOJI_DRAW_AMOUNT: 100,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -2684,6 +2686,11 @@ const CONST = {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
             BANCORP_BANK: 'The Bancorp Bank, N.A.',
         },
+        STATEMENT_ACTIONS: {
+            SUBMIT_EXPENSE: 'start/submit/manual',
+            PAY_SOMEONE: 'start/pay/manual',
+            SPLIT_EXPENSE: 'start/split/manual',
+        },
     },
 
     PLAID: {
@@ -2979,6 +2986,11 @@ const CONST = {
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
+        SECONDARY_ACTIONS: {
+            IMPORT_SPREADSHEET: 'importSpreadsheet',
+            DOWNLOAD_CSV: 'downloadCSV',
+            SETTINGS: 'settings',
+        },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
@@ -6455,9 +6467,9 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
-        LAST_VISITED_TAB_PATH: {
-            WORKSPACES: 'LAST_VISITED_WORKSPACES_TAB_PATH',
-            SETTINGS: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        LAST_VISITED_PATH: {
+            WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
+            SETTINGS_TAB: 'LAST_VISITED_PATH_SETTINGS_TAB',
         },
     },
 
@@ -7148,6 +7160,11 @@ const CONST = {
             DESCRIPTION: 'My test drive receipt!',
             MERCHANT: "Tommy's Tires",
         },
+    },
+
+    ONBOARDING_HELP: {
+        TALK_TO_SALES: 'talkToSales',
+        REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
 
     SCHEDULE_CALL_STATUS: {
