@@ -54,7 +54,7 @@ function acceptSpotnanaTerms(domain?: string) {
     API.write(WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS, params, {optimisticData, successData, failureData});
 }
 
-function travelSignupRequest() {
+function requestTravelAccess() {
     API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, {});
 }
 
@@ -62,4 +62,4 @@ function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
-export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, travelSignupRequest};
+export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess};
