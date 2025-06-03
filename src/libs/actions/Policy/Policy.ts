@@ -81,6 +81,7 @@ import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPo
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
+import {completeTask} from '@userActions/Task';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -104,7 +105,6 @@ import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuit
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {completeTask} from '../Task';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
 
 type ReportCreationData = Record<
@@ -2166,7 +2166,7 @@ function createWorkspace(
         companySize,
     );
 
-    // For test drive receivers, we want to complete the createWorkspace task in conciege, instead of #admin room
+    // For test drive receivers, we want to complete the createWorkspace task in concierge, instead of #admin room
     if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
         const createWorkspaceTaskReport = introSelected.createWorkspace ? {reportID: introSelected.createWorkspace} : undefined;
         completeTask(createWorkspaceTaskReport);
