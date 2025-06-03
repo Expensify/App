@@ -33,6 +33,10 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
 
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
+            if (!policyID) {
+                return;
+            }
+
             verifyIdentityForBankAccount(Number(bankAccountID), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
             updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
         },
