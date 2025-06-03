@@ -1,0 +1,24 @@
+diff --git a/node_modules/@react-navigation/core/lib/module/deepFreeze.js b/node_modules/@react-navigation/core/lib/module/deepFreeze.js
+index f5afb5c..1d4e98a 100644
+--- a/node_modules/@react-navigation/core/lib/module/deepFreeze.js
++++ b/node_modules/@react-navigation/core/lib/module/deepFreeze.js
+@@ -9,6 +9,7 @@ export const isPlainObject = value => {
+ export const deepFreeze = object => {
+   // We only freeze in development to catch issues early
+   // Don't freeze in production to avoid unnecessary performance overhead
++  return object;
+   if (process.env.NODE_ENV === 'production') {
+     return object;
+   }
+diff --git a/node_modules/@react-navigation/core/src/deepFreeze.tsx b/node_modules/@react-navigation/core/src/deepFreeze.tsx
+index a7e5468..81f0966 100644
+--- a/node_modules/@react-navigation/core/src/deepFreeze.tsx
++++ b/node_modules/@react-navigation/core/src/deepFreeze.tsx
+@@ -9,6 +9,7 @@ export const isPlainObject = (value: unknown): value is object => {
+ export const deepFreeze = <T,>(object: T): Readonly<T> => {
+   // We only freeze in development to catch issues early
+   // Don't freeze in production to avoid unnecessary performance overhead
++  return object;
+   if (process.env.NODE_ENV === 'production') {
+     return object;
+   }
