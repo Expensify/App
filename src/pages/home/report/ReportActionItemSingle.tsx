@@ -216,7 +216,7 @@ function ReportActionItemSingle({
                       text: displayName,
                   },
               ]
-            : [action?.person?.[0]].filter(Boolean) ?? [];
+            : ([action?.person?.[0]].filter(Boolean) ?? []);
 
         if (displayAllActors && secondaryAvatar?.name) {
             return [
@@ -249,7 +249,7 @@ function ReportActionItemSingle({
     const shouldDisableDetailPage = useMemo(
         () =>
             CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? CONST.DEFAULT_NUMBER_ID) ||
-            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? CONST.DEFAULT_NUMBER_ID)),
+            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (actorAccountID ?? CONST.DEFAULT_NUMBER_ID))),
         [action, isWorkspaceActor, actorAccountID],
     );
 
@@ -285,7 +285,7 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
                 delegateAccountID={action?.delegateAccountID}
                 icon={icon}
             >
@@ -343,7 +343,7 @@ function ReportActionItemSingle({
                         <ReportActionItemFragment
                             style={[styles.flex1]}
                             key={`person-${action?.reportActionID}-${fragment?.text ?? ''}`}
-                            accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                            accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
                             fragment={{...fragment, type: fragment?.type ?? '', text: fragment?.text ?? ''}}
                             delegateAccountID={Number(action?.delegateAccountID)}
                             isSingleLine
