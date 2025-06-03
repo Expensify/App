@@ -31,9 +31,6 @@ const REPORT_ID = 1;
 const TRANSACTION_ID = 1;
 const VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
-jest.mock('@components/ConfirmedRoute.tsx');
-
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     hasViolations: jest.fn().mockReturnValue(false),
@@ -230,8 +227,11 @@ describe('getReportPreviewAction', () => {
 
     it('canReview should return true for reports where there are violations, user is submitter or approver and Workflows are enabled', async () => {
         (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
-        const report = {
+        const report: Report = {
             ...createRandomReport(REPORT_ID),
+            statusNum: 0,
+            stateNum: 0,
+            type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             isWaitingOnBankAccount: false,
         };
@@ -261,8 +261,11 @@ describe('getReportPreviewAction', () => {
 
     it('canReview should return true for reports with RTER violations regardless of workspace workflow configuration', async () => {
         (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
-        const report = {
+        const report: Report = {
             ...createRandomReport(REPORT_ID),
+            statusNum: 0,
+            stateNum: 0,
+            type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             isWaitingOnBankAccount: false,
         };

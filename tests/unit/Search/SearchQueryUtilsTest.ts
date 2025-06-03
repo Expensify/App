@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
+import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
-import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 const personalDetailsFakeData = {
@@ -129,6 +131,18 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('sortBy:date sortOrder:desc type:expense status:all category:services,consulting currency:USD,EUR');
         });
 
+        test('has empty category values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: 'all',
+                category: ['equipment', 'consulting', 'none,Uncategorized'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense status:all category:equipment,consulting,none,Uncategorized');
+        });
+
         test('empty filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {};
 
@@ -168,6 +182,49 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('buildFilterFormValuesFromQuery', () => {
+        test('category filter includes empty values', () => {
+            const policyID = generatePolicyID();
+            const queryString = 'sortBy:date sortOrder:desc type:expense status:all category:none,Uncategorized,Maintenance';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
+                    Maintenance: {
+                        enabled: true,
+                        name: 'Maintenance',
+                    },
+                    Travel: {
+                        enabled: true,
+                        name: 'Travel',
+                    },
+                    Meals: {
+                        enabled: true,
+                        name: 'Meals',
+                    },
+                },
+            };
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: 'all',
+                category: ['Maintenance', 'none,Uncategorized'],
+            });
+        });
+    });
+
     describe('shouldHighlight', () => {
         it('returns false if either input is empty', () => {
             expect(shouldHighlight('', 'test')).toBe(false);
@@ -187,6 +244,7 @@ describe('SearchQueryUtils', () => {
         });
 
         it('matches with special characters', () => {
+            // cspell:disable-next-line
             expect(shouldHighlight('Explore the #%tự đặc biệt!', '#%tự')).toBe(true);
         });
 
