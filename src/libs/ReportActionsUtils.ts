@@ -1187,7 +1187,7 @@ function isTagModificationAction(actionName: string): boolean {
 
 /** Whether action has no linked report by design */
 const isIOUActionTypeExcludedFromFiltering = (type: OriginalMessageIOU['type'] | undefined) =>
-    [CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.TRACK].some((actionType) => actionType === type);
+    [CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.PAY].some((actionType) => actionType === type);
 
 /**
  * Determines whether the given action is an IOU and, if a list of report transaction IDs is provided,
