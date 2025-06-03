@@ -17,13 +17,24 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCreated as getTransactionCreated, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import Parser from '@libs/Parser';
+import StringUtils from '@libs/StringUtils';
+import {
+    getDescription,
+    getMerchant,
+    getCreated as getTransactionCreated,
+    getTransactionPendingAction,
+    hasReceipt,
+    isReceiptBeingScanned,
+    isTransactionPendingDelete,
+} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
-import MerchantOrDescriptionCell, {getMerchantNameWithFallback} from './DataCells/MerchantCell';
+import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
@@ -77,10 +88,28 @@ type TransactionItemRowProps = {
     isParentHovered?: boolean;
     columnWrapperStyles?: ViewStyle[];
     scrollToNewTransaction?: ((offset: number) => void) | undefined;
-    isChildListItem?: boolean;
+    isReportItemChild?: boolean;
     isActionLoading?: boolean;
     shouldUseAnimatedHighlight?: boolean;
 };
+
+/** If merchant name is empty or (none), then it falls back to description if screen is narrow */
+function getMerchantNameWithFallback(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, shouldUseNarrowLayout?: boolean | undefined) {
+    const shouldShowMerchant = transactionItem.shouldShowMerchant ?? true;
+    const description = getDescription(transactionItem);
+    let merchantOrDescriptionToDisplay = transactionItem?.formattedMerchant ?? getMerchant(transactionItem);
+    const merchantNameEmpty = !merchantOrDescriptionToDisplay || merchantOrDescriptionToDisplay === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    if (merchantNameEmpty && shouldUseNarrowLayout) {
+        merchantOrDescriptionToDisplay = Parser.htmlToText(description);
+    }
+    let merchant = shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
+
+    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && shouldShowMerchant) {
+        merchant = translate('iou.receiptStatusTitle');
+    }
+    const merchantName = StringUtils.getFirstLine(merchant);
+    return merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
+}
 
 function TransactionItemRow({
     transactionItem,
@@ -95,7 +124,7 @@ function TransactionItemRow({
     isParentHovered,
     columnWrapperStyles,
     scrollToNewTransaction,
-    isChildListItem = true,
+    isReportItemChild = false,
     isActionLoading,
     shouldUseAnimatedHighlight = false,
 }: TransactionItemRowProps) {
@@ -130,7 +159,7 @@ function TransactionItemRow({
         }
     }, [hovered, isParentHovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
 
-    const merchantOrDescriptionName = getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout);
+    const merchantOrDescriptionName = useMemo(() => getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout), [shouldUseNarrowLayout, transactionItem, translate]);
 
     useEffect(() => {
         if (!transactionItem.shouldBeHighlighted || !scrollToNewTransaction) {
@@ -194,7 +223,7 @@ function TransactionItemRow({
                         <ActionCell
                             action={transactionItem.action}
                             isSelected={false}
-                            isChildListItem={isChildListItem}
+                            isChildListItem={isReportItemChild}
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
                             isLoading={isActionLoading}
@@ -262,7 +291,7 @@ function TransactionItemRow({
             StyleUtils,
             createdAt,
             isActionLoading,
-            isChildListItem,
+            isReportItemChild,
             isDateColumnWide,
             isSelected,
             merchantOrDescriptionName,

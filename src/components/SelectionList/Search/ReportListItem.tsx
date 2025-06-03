@@ -43,8 +43,8 @@ function ReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const dateColumnSize = useMemo(() => {
-        return reportItem?.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
-    }, [reportItem?.shouldShowYear]);
+        return reportItem.transactions.some((transaction) => transaction.shouldShowYear) ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    }, [reportItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -100,7 +100,7 @@ function ReportListItem<TItem extends ListItem>({
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
         COLUMNS.TOTAL_AMOUNT,
         COLUMNS.ACTION,
-    ] as Array<ValueOf<typeof COLUMNS>>;
+    ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
     return (
         <BaseListItem
@@ -160,6 +160,7 @@ function ReportListItem<TItem extends ListItem>({
                                     }}
                                     isParentHovered={hovered}
                                     columnWrapperStyles={[styles.ph3, styles.pv1half]}
+                                    isReportItemChild
                                 />
                             </View>
                         ))

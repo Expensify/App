@@ -94,7 +94,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     );
 }
 
-function FirstHeaderRow<TItem extends ListItem>({
+function HeaderFirstRow<TItem extends ListItem>({
     policy,
     report: reportItem,
     onCheckboxPress,
@@ -179,7 +179,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     };
     return !isLargeScreenWidth ? (
         <View>
-            <FirstHeaderRow
+            <HeaderFirstRow
                 report={reportItem}
                 policy={policy}
                 onCheckboxPress={onCheckboxPress}
@@ -195,7 +195,7 @@ function ReportListItemHeader<TItem extends ListItem>({
         </View>
     ) : (
         <View>
-            <FirstHeaderRow
+            <HeaderFirstRow
                 report={reportItem}
                 policy={policy}
                 onCheckboxPress={onCheckboxPress}

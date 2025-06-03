@@ -301,12 +301,6 @@ type TaskListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
-
-        /**
-         * Whether we should show the task year.
-         * This is true if at least one task in the dataset was created in past years
-         */
-        shouldShowYear: boolean;
     };
 
 type ReportListItemType = ListItem &
@@ -319,11 +313,6 @@ type ReportListItemType = ListItem &
 
         /** List of transactions that belong to this report */
         transactions: TransactionListItemType[];
-
-        /** Whether we should show the transaction year.
-         * This is true if at least one transaction in the dataset was created in past years
-         */
-        shouldShowYear?: boolean;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {

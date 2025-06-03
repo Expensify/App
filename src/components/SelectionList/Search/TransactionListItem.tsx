@@ -75,7 +75,7 @@ function TransactionListItem<TItem extends ListItem>({
                 ...(transactionItem?.shouldShowTax ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX] : []),
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
-            ] as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>,
+            ] satisfies Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>,
         [transactionItem?.shouldShowCategory, transactionItem?.shouldShowTag, transactionItem?.shouldShowTax],
     );
 
@@ -123,7 +123,6 @@ function TransactionListItem<TItem extends ListItem>({
                         isSelected={!!transactionItem.isSelected}
                         dateColumnSize={dateColumnSize}
                         shouldShowCheckbox={!!canSelectMultiple}
-                        isChildListItem={false}
                     />
                 </>
             )}
