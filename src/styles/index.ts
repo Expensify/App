@@ -3619,6 +3619,10 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 6,
         },
 
+        workspaceOwnerSectionMinWidth: {
+            minWidth: 180,
+        },
+
         workspaceTypeWrapper: {
             margin: 3,
         },
@@ -5370,6 +5374,14 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             borderRadius: 4,
             backgroundColor: colors.green700,
+        },
+
+        splitItemBottomContent: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 12,
+            justifyContent: 'space-between',
+            minHeight: 16,
         },
 
         volumeSliderOverlay: {
