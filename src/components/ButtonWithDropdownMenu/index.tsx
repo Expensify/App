@@ -15,6 +15,7 @@ import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function ButtonWithDropdownMenu<IValueType>({
     success = true,
@@ -60,6 +61,7 @@ function ButtonWithDropdownMenu<IValueType>({
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const dropdownAnchor = useRef<View | null>(null);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     // eslint-disable-next-line react-compiler/react-compiler
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
@@ -229,7 +231,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     shouldUseScrollView
-                    scrollContainerStyle={styles.pv4}
+                    scrollContainerStyle={shouldUseNarrowLayout ? styles.pv4 : undefined}
                     shouldUseModalPaddingStyle={false}
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
