@@ -5,11 +5,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest} from '@libs/actions/IOU';
+import {deleteMoneyRequest, initSplitExpense} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -158,13 +159,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         canBeMissing: false,
     });
     
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        canBeMissing: true,
-    });
-    
-    // Only load violations when we have a transaction
-    const shouldLoadViolations = !!transaction?.transactionID;
-    const transactionViolations = useTransactionViolations(shouldLoadViolations ? transaction?.transactionID : undefined);
+    const [transaction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${
+            isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID
+        }`,
+        {canBeMissing: true},
+    );
+    const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
@@ -187,11 +188,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    
+
     // Memoize callback for status changes
     const handleStatusChange = useCallback((flags: StatusFlags) => {
         setStatusFlags(flags);
     }, []);
+    
+    const isOnHold = isOnHoldTransactionUtils(transaction);
+    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
+    const {canUseNewDotSplits} = usePermissions();
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
@@ -263,11 +268,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     // Defer primary action calculation until needed and memoize heavily
     const primaryAction = useMemo(() => {
-        if (!report || !parentReport || !transaction || !shouldLoadViolations) {
+        if (!report || !parentReport || !transaction) {
             return '';
         }
         return getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy);
-    }, [parentReport, policy, report, transaction, transactionViolations, shouldLoadViolations]);
+    }, [parentReport, policy, report, transaction, transactionViolations]);
 
     // Memoize primary action implementation to prevent recreation
     const primaryActionImplementation = useMemo(() => ({
@@ -301,20 +306,21 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         ),
     }), [translate, parentReportAction, reportID, markAsCash]);
 
+    // Get report actions for secondary actions calculation
+    const reportActions = useMemo(() => {
+        if (!parentReport) {
+            return {};
+        }
+        return getReportActions(parentReport) || {};
+    }, [parentReport]);
+
     // Optimize secondary actions calculation with better memoization and lazy loading
     const secondaryActions = useMemo(() => {
-        if (!transaction || !parentReport || !shouldLoadViolations) {
+        if (!transaction || !parentReport || !reportActions) {
             return [];
         }
-        
-        // Use a lightweight check first and cache the result
-        const reportActions = getReportActions(parentReport);
-        if (!reportActions) {
-            return [];
-        }
-        
-        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions));
-    }, [parentReport, transaction, shouldLoadViolations]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, canUseNewDotSplits);
+    }, [canUseNewDotSplits, parentReport, policy, transaction, reportActions]);
 
     // Memoize secondary actions implementation
     const secondaryActionsImplementation = useMemo((): Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> => ({
@@ -327,6 +333,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     throw new Error('Parent action does not exist');
                 }
                 changeMoneyRequestHoldStatus(parentReportAction);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
+            text: translate('iou.split'),
+            icon: Expensicons.ArrowSplit,
+            value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
+            onSelected: () => {
+                initSplitExpense(transaction, reportID ?? String(CONST.DEFAULT_NUMBER_ID));
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {

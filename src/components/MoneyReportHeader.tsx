@@ -17,18 +17,20 @@ import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsAction
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openUnreportedExpense} from '@libs/actions/Report';
+import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openReport, openUnreportedExpense} from '@libs/actions/Report';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {getValidConnectedIntegration} from '@libs/PolicyUtils';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
+    buildTransactionThread,
     changeMoneyRequestHoldStatus,
+    generateReportID,
     getArchiveReason,
     getBankAccountRoute,
     getIntegrationIcon,
@@ -69,6 +71,7 @@ import {
     deleteMoneyRequest,
     getNavigationUrlOnMoneyRequestDelete,
     getNextApproverAccountID,
+    initSplitExpense,
     payInvoice,
     payMoneyRequest,
     reopenReport,
@@ -625,9 +628,14 @@ function MoneyReportHeader({
                     success
                     text={translate('iou.reviewDuplicates')}
                     onPress={() => {
-                        const threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
+                        let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                         if (!threadID) {
-                            return;
+                            threadID = generateReportID();
+                            const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction.transactionID));
+                            const transactionID = duplicateTransaction?.transactionID;
+                            const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
+                            const optimisticTransactionThread = buildTransactionThread(iouAction, moneyRequestReport, undefined, threadID);
+                            openReport(threadID, undefined, session?.email ? [session?.email] : [], optimisticTransactionThread, iouAction?.reportActionID);
                         }
                         Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
                     }}
@@ -644,36 +652,37 @@ function MoneyReportHeader({
             ),
         }),
         [
-            translate,
-            confirmApproval,
-            getAmount,
-            isPaidAnimationRunning,
-            isApprovedAnimationRunning,
-            stopAnimation,
-            onlyShowPayElsewhere,
-            moneyRequestReport,
-            chatReport?.reportID,
-            confirmPayment,
-            bankAccountRoute,
-            shouldShowPayButton,
-            shouldShowApproveButton,
-            shouldDisableApproveButton,
-            payAmount,
-            isOffline,
-            canAllowSettlement,
-            connectedIntegration,
-            markAsCash,
             addExpenseDropdownOptions,
-            isExported,
-            reportActions,
-            transactionThreadReportID,
-            requestParentReportAction,
+            bankAccountRoute,
+            canAllowSettlement,
+            chatReport?.reportID,
+            confirmApproval,
+            confirmPayment,
+            connectedIntegration,
+            getAmount,
             getFirstDuplicateThreadID,
+            isApprovedAnimationRunning,
+            isExported,
+            isOffline,
+            isPaidAnimationRunning,
+            markAsCash,
+            moneyRequestReport,
+            onlyShowPayElsewhere,
+            payAmount,
+            reportActions,
+            requestParentReportAction,
+            session?.email,
+            shouldDisableApproveButton,
+            shouldShowApproveButton,
+            shouldShowPayButton,
+            stopAnimation,
             transactions,
+            transactionThreadReportID,
+            translate,
         ],
     );
 
-    const {canUseRetractNewDot, canUseTableReportView} = usePermissions();
+    const {canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
@@ -684,8 +693,19 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot, canUseTableReportView, policies);
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot, canUseTableReportView, policies]);
+        return getSecondaryReportActions(
+            moneyRequestReport,
+            transactions,
+            violations,
+            policy,
+            reportNameValuePairs,
+            reportActions,
+            policies,
+            canUseRetractNewDot,
+            canUseTableReportView,
+            canUseNewDotSplits,
+        );
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -739,12 +759,7 @@ function MoneyReportHeader({
                 text: translate('iou.approve', getAmount(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)),
                 icon: Expensicons.ThumbsUp,
                 value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
-                onSelected: () => {
-                    if (!moneyRequestReport) {
-                        return;
-                    }
-                    approveMoneyRequest(moneyRequestReport);
-                },
+                onSelected: confirmApproval,
             },
             [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
                 text: translate('iou.unapprove'),
@@ -815,6 +830,19 @@ function MoneyReportHeader({
                     }
 
                     changeMoneyRequestHoldStatus(requestParentReportAction);
+                },
+            },
+            [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
+                text: translate('iou.split'),
+                icon: Expensicons.ArrowSplit,
+                value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
+                onSelected: () => {
+                    if (Number(transactions?.length) !== 1) {
+                        return;
+                    }
+
+                    const currentTransaction = transactions.at(0);
+                    initSplitExpense(currentTransaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
                 },
             },
             [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
