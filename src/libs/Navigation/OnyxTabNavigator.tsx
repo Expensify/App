@@ -51,7 +51,7 @@ type OnyxTabNavigatorProps = ChildrenProps & {
     disableSwipe?: boolean;
 
     /** Whether to lazy load the tab screens */
-    lazyLoadScreens?: boolean;
+    lazyLoadEnabled?: boolean;
 
     /** Callback to handle the Pager's internal onPageSelected event callback */
     onTabSelect?: ({index}: {index: number}) => void;
@@ -78,7 +78,7 @@ function OnyxTabNavigator({
     screenListeners,
     shouldShowLabelWhenInactive = true,
     disableSwipe = false,
-    lazyLoadScreens = false,
+    lazyLoadEnabled = false,
     onTabSelect,
     ...rest
 }: OnyxTabNavigatorProps) {
@@ -166,7 +166,7 @@ function OnyxTabNavigator({
                 screenOptions={{
                     ...defaultScreenOptions,
                     swipeEnabled: !disableSwipe,
-                    lazy: lazyLoadScreens,
+                    lazy: lazyLoadEnabled,
                     lazyPlaceholder: LazyPlaceholder,
                 }}
             >
