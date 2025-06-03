@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
@@ -26,8 +26,8 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     const styles = useThemeStyles();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
 
-    const [currentReceipt, setCurrentReceipt] = React.useState<ReceiptFile | null>();
-    const [page, setPage] = React.useState<number>(0);
+    const [currentReceipt, setCurrentReceipt] = useState<ReceiptFile | null>();
+    const [page, setPage] = useState<number>(0);
 
     const [receipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
@@ -43,10 +43,10 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         }
 
         const activeReceipt = receipts.find((receipt) => receipt.transactionID === route?.params?.transactionID);
-        const currentReceiptIndex = receipts.findIndex((receipt) => receipt.transactionID === activeReceipt?.transactionID);
+        const activeReceiptIndex = receipts.findIndex((receipt) => receipt.transactionID === activeReceipt?.transactionID);
 
         setCurrentReceipt(activeReceipt);
-        setPage(currentReceiptIndex);
+        setPage(activeReceiptIndex);
     }, [receipts, route?.params?.transactionID]);
 
     const cycleThroughReceipts = useCallback(

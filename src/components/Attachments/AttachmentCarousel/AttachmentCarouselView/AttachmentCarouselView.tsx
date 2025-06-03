@@ -8,7 +8,6 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 
 type AttachmentCarouselViewProps = {
@@ -19,7 +18,7 @@ type AttachmentCarouselViewProps = {
     page: number;
 
     /** The attachments from the carousel */
-    attachments: Attachment[] | ReceiptFile[];
+    attachments: Attachment[];
 
     /** Callback for auto hiding carousel button arrows */
     autoHideArrows: () => void;
