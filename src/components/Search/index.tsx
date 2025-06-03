@@ -1,7 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
@@ -56,7 +55,7 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: ContentStyle;
+    contentContainerStyle?: StyleProp<ViewStyle>;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
@@ -175,7 +174,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
-    const {canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -433,7 +432,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             const shouldHandleTransactionAsReport = isReportListItemType(item) || (isTransactionItem && isOpenedAsReport);
 
-            if (canUseTableReportView && shouldHandleTransactionAsReport) {
+            if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && shouldHandleTransactionAsReport) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
                 return;
             }
@@ -446,7 +445,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [canUseTableReportView, hash, selectionMode?.isEnabled, toggleTransaction],
+        [isBetaEnabled, hash, selectionMode?.isEnabled, toggleTransaction],
     );
 
     const onViewableItemsChanged = useCallback(
@@ -601,7 +600,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         />
                     )
                 }
-                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
+                contentContainerStyle={[contentContainerStyle, styles.pb3]}
                 containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 shouldGroupByReports={shouldGroupByReports}
@@ -617,7 +616,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     ) : undefined
                 }
                 queryJSONHash={hash}
-                queryJSONType={type}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />

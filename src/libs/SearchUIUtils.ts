@@ -364,7 +364,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const transactionItem = data[key];
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const shouldShowBlankTo = isOpenExpenseReport(report);
+        const shouldShowBlankTo = !report || isOpenExpenseReport(report);
 
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
@@ -745,7 +745,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-            const shouldShowBlankTo = isOpenExpenseReport(report);
+            const shouldShowBlankTo = !report || isOpenExpenseReport(report);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
