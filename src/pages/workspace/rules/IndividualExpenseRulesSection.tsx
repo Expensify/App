@@ -8,11 +8,10 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
@@ -84,7 +83,6 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, styles}: Indi
 function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {canUseProhibitedExpenses} = usePermissions();
     const policy = usePolicy(policyID);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -173,14 +171,12 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         },
     ];
 
-    if (canUseProhibitedExpenses) {
-        individualExpenseRulesItems.push({
-            title: prohibitedExpenses,
-            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
-            action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
-            pendingAction: policy?.pendingFields?.prohibitedExpenses,
-        });
-    }
+    individualExpenseRulesItems.push({
+        title: prohibitedExpenses,
+        descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
+        action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
+        pendingAction: policy?.pendingFields?.prohibitedExpenses,
+    });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
 
@@ -236,6 +232,21 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                             {translate('workspace.rules.individualExpenseRules.eReceiptsHintLink')}
                         </TextLink>
                         .
+                    </Text>
+                </View>
+                <View style={[styles.mt3]}>
+                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}>
+                        <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
+                            <Switch
+                                isOn={!!policy?.isAttendeeTrackingEnabled}
+                                accessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !policy?.isAttendeeTrackingEnabled)}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}</Text>
                     </Text>
                 </View>
             </View>

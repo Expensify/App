@@ -122,6 +122,9 @@ type ReportPreviewProps = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
+    /** Callback for measuring child and running a defined callback/action later */
+    onShowContextMenu: (callback: () => void) => void;
+
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
 
@@ -150,6 +153,7 @@ function ReportPreview({
     checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
+    onShowContextMenu = () => {},
     shouldDisplayContextMenu = true,
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
@@ -228,7 +232,7 @@ function ReportPreview({
 
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
-    const moneyRequestComment = numberOfRequests < 2 ? action?.childLastMoneyRequestComment ?? '' : '';
+    const moneyRequestComment = numberOfRequests < 2 ? (action?.childLastMoneyRequestComment ?? '') : '';
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
@@ -542,7 +546,7 @@ function ReportPreview({
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
             <Button
-                text={translate('iou.approve')}
+                text={translate('iou.approve', {formattedAmount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
                 success
                 onPress={() => confirmApproval()}
             />
@@ -633,13 +637,14 @@ function ReportPreview({
                     onPress={openReportFromPreview}
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => {
-                        if (!shouldDisplayContextMenu) {
-                            return;
-                        }
-
-                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
-                    }}
+                    onLongPress={(event) =>
+                        onShowContextMenu(() => {
+                            if (!shouldDisplayContextMenu) {
+                                return;
+                            }
+                            return showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                        })
+                    }
                     shouldUseHapticsOnLongPress
                     // This is added to omit console error about nested buttons as its forbidden on web platform
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, isOnSearch ? styles.borderedContentCardLarge : {}]}

@@ -30,7 +30,8 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {canSendInvoice, getAllTaxRates} from '@libs/PolicyUtils';
+import {hasInvoiceReports} from '@libs/ReportUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,8 +94,6 @@ const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
 
 function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return expenseStatusOptions;
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return chatStatusOptions;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -103,6 +102,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return tripStatusOptions;
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
             return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions;
     }
@@ -121,8 +121,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
@@ -141,15 +143,19 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
-    const openAdvancedFilters = useCallback(() => {
-        updateAdvancedFilters(filterFormValues);
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [filterFormValues]);
-
     // We need to create a stable key for filterFormValues so that we don't infinitely
     // re-render components that access all of the filterFormValues. This is due to the way
     // that react calculates diffs (it doesn't know how to compare objects).
     const filterFormValuesKey = JSON.stringify(filterFormValues);
+
+    const openAdvancedFilters = useCallback(() => {
+        updateAdvancedFilters(filterFormValues);
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+
+        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterFormValuesKey]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
@@ -160,27 +166,34 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 const newType = item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
                 // If the type has changed, reset the status so we dont have an invalid status selected
                 const newStatus = hasTypeChanged ? CONST.SEARCH.STATUS.EXPENSE.ALL : status;
-                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus});
+                const newGroupBy = hasTypeChanged ? undefined : groupBy;
+                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus, groupBy: newGroupBy});
                 Navigation.setParams({q: query});
             };
+
+            // Remove the invoice option if the user is not allowed to send invoices
+            let visibleOptions = typeOptions;
+            if (!canSendInvoice(allPolicies, session?.email) && !hasInvoiceReports()) {
+                visibleOptions = visibleOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE);
+            }
 
             return (
                 <SingleSelectPopup
                     label={translate('common.type')}
                     value={value}
-                    items={typeOptions}
+                    items={visibleOptions}
                     closeOverlay={closeOverlay}
                     onChange={onChange}
                 />
             );
         },
-        [queryJSON, status, translate, type],
+        [allPolicies, groupBy, queryJSON, session?.email, status, translate, type],
     );
 
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const items = getStatusOptions(type, groupBy);
-            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : items.find((option) => option.value === status) ?? [];
+            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : (items.find((option) => option.value === status) ?? []);
             const value = [selected].flat();
 
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
@@ -356,10 +369,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 </View>
             ) : (
                 <ScrollView
+                    horizontal
+                    keyboardShouldPersistTaps="always"
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
                     contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
                     ref={scrollRef}
-                    horizontal
                     showsHorizontalScrollIndicator={false}
                 >
                     {filters.map((filter) => (
