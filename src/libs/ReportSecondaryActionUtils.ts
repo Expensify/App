@@ -27,7 +27,6 @@ import {
     hasOnlyHeldExpenses,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     isArchivedReport,
-    isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -39,7 +38,6 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isReportManager as isReportManagerUtils,
-    isSelfDM as isSelfDMReportUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
@@ -48,7 +46,6 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    isCardTransaction as isCardTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -405,42 +402,29 @@ function isMoveTransactionAction(reportTransactions: Transaction[], reportAction
     return canMoveExpense;
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
+function isDeleteAction(report: Report): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
-    const isUnreported = isSelfDMReportUtils(report);
-    const transaction = reportTransactions.at(0);
-    const transactionID = transaction?.transactionID;
-    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
-    const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
-    const isSingleTransaction = reportTransactions.length === 1;
 
-    if (isUnreported) {
-        return isOwner;
+    if (!isExpenseReport && !isIOUReport) {
+        return false;
     }
 
-    // Users cannot delete a report in the unrepeorted or IOU cases, but they can delete individual transactions.
-    // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
-    if (isIOUReport) {
-        return isSingleTransaction && isOwner && isReportOpenOrProcessing;
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+
+    if (!isReportSubmitter) {
+        return false;
     }
 
-    if (isExpenseReport) {
-        const isCardTransactionWithCorporateLiability =
-            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+    const isReportOpen = isOpenReportUtils(report);
+    const isProcessingReport = isProcessingReportUtils(report);
+    const isReportApproved = isReportApprovedUtils({report});
 
-        if (isCardTransactionWithCorporateLiability) {
-            return false;
-        }
-
-        const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-        const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-        const isForwarded = isProcessingReportUtils(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
-
-        return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
+    if (isReportApproved) {
+        return false;
     }
 
-    return false;
+    return isReportOpen || isProcessingReport;
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -562,7 +546,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
+    if (isDeleteAction(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -588,7 +572,7 @@ function getSecondaryTransactionThreadActions(
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], reportActions ?? [])) {
+    if (isDeleteAction(parentReport)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
