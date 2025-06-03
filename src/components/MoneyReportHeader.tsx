@@ -608,7 +608,7 @@ function MoneyReportHeader({
                     let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                     if (!threadID) {
                         threadID = generateReportID();
-                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction.transactionID));
+                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction));
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
                         const optimisticTransactionThread = buildTransactionThread(iouAction, moneyRequestReport, undefined, threadID);
