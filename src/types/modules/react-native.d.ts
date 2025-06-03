@@ -34,7 +34,7 @@ declare module 'react-native' {
         emitCurrentTestState: (status: string) => void;
     }
 
-    interface LinkingStatic {
+    interface LinkingImpl {
         setInitialURL: (url: string) => void;
     }
 

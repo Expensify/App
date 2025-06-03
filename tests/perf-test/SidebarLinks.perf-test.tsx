@@ -94,9 +94,11 @@ describe('SidebarLinks', () => {
 
     test('[SidebarLinks] should click on list item', async () => {
         const scenario = async () => {
-            await wrapInAct(async () => {
+            await waitFor(async () => {
                 const button = await screen.findByTestId('1');
-                fireEvent.press(button);
+                await wrapInAct(() => {
+                    fireEvent.press(button);
+                });
             });
         };
 

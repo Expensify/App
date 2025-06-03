@@ -99,7 +99,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     popoverHorizontalOffsetType?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
 
     /* ref for the button */
-    buttonRef?: RefObject<View>;
+    buttonRef?: RefObject<View | null>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;

@@ -48,7 +48,7 @@ type ContextMenuItemProps = {
     shouldPreventDefaultFocusOnPress?: boolean;
 
     /** The ref of mini context menu item */
-    buttonRef?: React.RefObject<View>;
+    buttonRef?: React.RefObject<View | null>;
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
