@@ -161,7 +161,6 @@ function PopoverWithMeasuredContent({
         };
     }, [anchorPosition, anchorAlignment, popoverWidth, popoverHeight]);
 
-    // Memoize expensive position calculations
     const positionCalculations = useMemo(() => {
         const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
         const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(
