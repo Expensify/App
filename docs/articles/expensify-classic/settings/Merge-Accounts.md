@@ -34,6 +34,8 @@ Make sure you know:
 
 ---
 
+# FAQ
+
 ## What Happens When You Merge?
 
 The following will be brought into your primary account:
@@ -45,9 +47,7 @@ The following will be brought into your primary account:
 - Copilots
 - Group workspace settings
 
----
-
-## Things to Know
+## When can I not merge accounts?
 
 - You **cannot** merge two company accounts from private domains.
 - You **cannot** merge a company account **into** a personal account.
