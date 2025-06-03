@@ -163,7 +163,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
                 canSelectMultiple
-                textInputAutoFocus={false}
+                textInputAutoFocus
                 shouldClearInputOnSelect={false}
                 headerMessage={headerMessage}
                 sections={sections}
