@@ -414,6 +414,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             transactionThreadReportID: transactionItem.transactionThreadReportID,
             isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
             tag: transactionItem.tag,
+            receipt: transactionItem.receipt,
         };
 
         transactionsSections.push(transactionSection);
