@@ -5580,7 +5580,6 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         .replaceAll(/\{report:total\}/gi, report.total !== undefined ? convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
         .replaceAll(/\{report:currency\}/gi, report.currency ?? '')
         .replaceAll(/\{report:policyname\}/gi, policy?.name ?? '')
-        // cspell:disable-next-line
         .replaceAll(/\{report:workspacename\}/gi, policy?.name ?? '')
         .replaceAll(/\{report:created\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '')
         .replaceAll(/\{report:created:yyyy-MM-dd\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
