@@ -45,6 +45,7 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
 import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
+import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import Log from './Log';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
@@ -91,28 +92,16 @@ Onyx.connect({
 
 let isOffline: boolean | undefined;
 
-let preferredLocaleFromOnyx: Locale;
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        preferredLocaleFromOnyx = value;
-    },
-});
-
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
         if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(preferredLocaleFromOnyx));
+            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
         }
 
         const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
         if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(preferredLocaleFromOnyx));
+            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
         }
         isOffline = newIsOffline;
     },
