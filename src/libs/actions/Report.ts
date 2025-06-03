@@ -1615,10 +1615,9 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
 
     API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
 
-    // Clear the pending request after a short delay to allow for completion
-    setTimeout(() => {
+    Promise.resolve().then(() => {
         pendingReadRequests.delete(reportID);
-    }, 1000);
+    });
 
     if (shouldResetUnreadMarker) {
         DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
