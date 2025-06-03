@@ -30,10 +30,7 @@ import {
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
-    isDeletedParentAction,
     isReportPreviewAction,
-    isReversedTransaction,
-    isTransactionThread,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {
@@ -519,10 +516,6 @@ function ReportActionsList({
 
         if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return false;
-        }
-
-        if (isTransactionThread(parentReportAction)) {
-            return !isDeletedParentAction(parentReportAction) && !isReversedTransaction(parentReportAction);
         }
 
         if (isTaskReport(report)) {
