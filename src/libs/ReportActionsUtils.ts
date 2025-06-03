@@ -1591,7 +1591,7 @@ function getTravelUpdateMessage(action: ReportAction, formatDate?: (datetime: st
             return translateLocal('travel.updates.paymentDeclined');
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CANCELED_BY_TRAVELER:
-            return translateLocal('travel.updates.bookingCancelledByTraveller', {
+            return translateLocal('travel.updates.bookingCancelledByTraveler', {
                 type: details.type,
                 id: details.reservationID,
             });
