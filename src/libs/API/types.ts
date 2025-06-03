@@ -106,6 +106,7 @@ const WRITE_COMMANDS = {
     RESET_BANK_ACCOUNT_SETUP: 'ResetBankAccountSetup',
     RESEND_VALIDATE_CODE: 'ResendValidateCode',
     READ_NEWEST_ACTION: 'ReadNewestAction',
+    MARK_ALL_MESSAGES_AS_READ: 'MarkAllMessagesAsRead',
     MARK_AS_UNREAD: 'MarkAsUnread',
     TOGGLE_PINNED_CHAT: 'TogglePinnedChat',
     DELETE_COMMENT: 'DeleteComment',
@@ -577,6 +578,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP]: Parameters.ResetBankAccountSetupParams;
     [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: null;
     [WRITE_COMMANDS.READ_NEWEST_ACTION]: Parameters.ReadNewestActionParams;
+    [WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ]: Parameters.MarkAllMessagesAsReadParams;
     [WRITE_COMMANDS.MARK_AS_UNREAD]: Parameters.MarkAsUnreadParams;
     [WRITE_COMMANDS.TOGGLE_PINNED_CHAT]: Parameters.TogglePinnedChatParams;
     [WRITE_COMMANDS.DELETE_COMMENT]: Parameters.DeleteCommentParams;
@@ -1188,7 +1190,7 @@ type ApiCommand = WriteCommand | ReadCommand | SideEffectRequestCommand;
 type CommandOfType<TRequestType extends ApiRequestType> = TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE
     ? WriteCommand
     : TRequestType extends typeof CONST.API_REQUEST_TYPE.READ
-    ? ReadCommand
-    : SideEffectRequestCommand;
+      ? ReadCommand
+      : SideEffectRequestCommand;
 
 export type {ApiCommand, ApiRequestType, ApiRequestCommandParameters, CommandOfType, WriteCommand, ReadCommand, SideEffectRequestCommand};
