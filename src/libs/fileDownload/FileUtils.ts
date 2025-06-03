@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
@@ -376,6 +376,45 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
             setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
             return false;
         });
+};
+
+const validateReceiptFile = (file: FileObject) => {
+    const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+    if (
+        !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>)
+    ) {
+        return false;
+    }
+
+    if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+        return false;
+    }
+
+    if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        return false;
+    }
+    return true;
+};
+
+const getFileValidationErrorText = (validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>) => {
+    switch (validationError) {
+        case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
+            return {title: 'attachmentPicker.wrongFileType', reason: 'attachmentPicker.notAllowedExtension'};
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
+            return {title: 'attachmentPicker.attachmentTooLarge', reason: 'attachmentPicker.sizeExceededWithLimit'};
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
+            return {title: 'attachmentPicker.attachmentTooSmall', reason: 'attachmentPicker.sizeNotMet'};
+        case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
+            return {
+                title: 'attachmentPicker.attachmentError',
+                reason: 'attachmentPicker.errorWhileSelectingCorruptedAttachment',
+            };
+        default:
+            return {
+                title: 'attachmentPicker.attachmentError',
+                reason: 'attachmentPicker.errorWhileSelectingCorruptedAttachment',
+            };
+    }
 };
 
 export {

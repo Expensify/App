@@ -442,6 +442,11 @@ const CONST = {
 
         MAX_FILE_LIMIT: 30,
     },
+         ATTACHMENT_ERRORS: {
+        COUNT: 'count',
+        SIZE: 'size',
+        FILE_TYPE: 'fileType',
+    },
 
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
@@ -2051,6 +2056,14 @@ const CONST = {
         // Video MimeTypes allowed by iOS photos app.
         VIDEO: /\.(mov|mp4)$/,
     },
+
+    FILE_VALIDATION_ERRORS: {
+        WRONG_FILE_TYPE: 'wrongFileType',
+        FILE_TOO_LARGE: 'fileTooLarge',
+        FILE_TOO_SMALL: 'fileTooSmall',
+        FILE_CORRUPTED: 'fileCorrupted',
+    },
+
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
