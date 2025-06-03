@@ -26,6 +26,7 @@
         "appleid",
         "applesignin",
         "applinks",
+        "approvable",
         "approvalstatus",
         "appversion",
         "archivado",
@@ -101,6 +102,7 @@
         "cleartext",
         "CLIENTID",
         "clippath",
+        "cloudflarestream",
         "cmaps",
         "cmjs",
         "cocoapods",
@@ -285,6 +287,7 @@
         "Krasoń",
         "Lagertha",
         "laggy",
+        "lastiPhoneLogin",
         "lastname",
         "LDFLAGS",
         "LHNGBR",
@@ -517,11 +520,13 @@
         "shellcheck",
         "shellenv",
         "shipit",
+        "shouldshowellipsis",
         "signingkey",
         "signup",
         "Signup",
         "simctl",
         "skip_codesigning",
+        "Slurper",
         "SMARTREPORT",
         "Smartscan",
         "soloader",
@@ -627,6 +632,7 @@
         "workletization",
         "worklets",
         "workshopping",
+        "workspacename",
         "writeitdown",
         "xcconfig",
         "xcodeproj",
@@ -648,6 +654,7 @@
         "yourcompany",
         "yourname",
         "YYMM",
+        "zencdn",
         "Zenefit",
         "Zenefits",
         "zipalign",
@@ -658,8 +665,6 @@
         "مثال"
     ],
     "ignorePaths": [
-        ".github",
-        "node_modules",
         "src/languages/es.ts",
         "android/app/BUCK",
         "android/app/build_defs.bzl",
@@ -689,19 +694,11 @@
         "tests/unit/LocaleCompareTest.ts",
         "tests/unit/removeInvisibleCharacters.ts",
         "tests/unit/searchCountryOptionsTest.ts",
-        "tests/unit/splitLongWordTest.ts",
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST.ts",
-        "src/libs/SearchParser/*",
-        ".gitignore"
+        "src/libs/SearchParser/*"
     ],
     "ignoreRegExpList": ["@assets/.*"],
-    "useGitignore": true,
-    "overrides": [
-        {
-            "filename": "src/languages/es.ts",
-            "language": "es"
-        }
-    ]
+    "useGitignore": true
 }

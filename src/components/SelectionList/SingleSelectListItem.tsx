@@ -5,7 +5,7 @@ import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
 /**
- * SingleSelectListItem mirrors the behavior of a default radiolistitem, but adds support
+ * SingleSelectListItem mirrors the behavior of a default RadioListItem, but adds support
  * for the new style of single selection lists.
  */
 function SingleSelectListItem<TItem extends ListItem>({
