@@ -989,6 +989,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
 
     [WRITE_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
+    [WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST]: null;
 };
 
 const READ_COMMANDS = {
