@@ -7,6 +7,13 @@ import type {Report, ReportAction, Response} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useNetwork from './useNetwork';
 
+const GET_REPORT_ACTIONS_MAX_WAITING_TIME = 3000;
+function createMaxWaitingTimePromise(maxWaitingTime: number) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, maxWaitingTime);
+    });
+}
+
 type UseLoadReportActionsArguments = {
     /** The id of the current report */
     reportID: string;
@@ -34,14 +41,6 @@ type UseLoadReportActionsArguments = {
 function useLoadReportActions({reportID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseLoadReportActionsArguments) {
     const isLoadingNewerChats = useRef(false);
     const isLoadingOlderChats = useRef(false);
-
-    const resetIsLoadingOlderChats = () => {
-        isLoadingOlderChats.current = false;
-    };
-
-    const resetIsLoadingNewerChats = () => {
-        isLoadingNewerChats.current = false;
-    };
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -87,7 +86,9 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 getOlderActionsPromises.push(getOlderActions(reportID, oldestReportAction.reportActionID));
             }
 
-            Promise.all(getOlderActionsPromises).then(resetIsLoadingOlderChats);
+            Promise.race([createMaxWaitingTimePromise(GET_REPORT_ACTIONS_MAX_WAITING_TIME), Promise.all(getOlderActionsPromises)]).then(() => {
+                isLoadingOlderChats.current = false;
+            });
         },
         [isOffline, oldestReportAction, reportID, reportActionIDMap, transactionThreadReport, hasOlderActions],
     );
@@ -125,7 +126,9 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 getNewerActionsPromises.push(getNewerActions(reportID, newestReportAction.reportActionID));
             }
 
-            Promise.all(getNewerActionsPromises).then(resetIsLoadingNewerChats);
+            Promise.race([createMaxWaitingTimePromise(GET_REPORT_ACTIONS_MAX_WAITING_TIME), Promise.all(getNewerActionsPromises)]).then(() => {
+                isLoadingNewerChats.current = false;
+            });
         },
         [isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
     );
