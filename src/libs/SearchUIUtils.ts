@@ -371,7 +371,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
 
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
-
+        console.log('over here', transactionItem);
         const transactionSection: TransactionListItemType = {
             action: getAction(data, key),
             from,
