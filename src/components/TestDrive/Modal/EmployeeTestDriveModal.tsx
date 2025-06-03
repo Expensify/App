@@ -48,42 +48,51 @@ function EmployeeTestDriveModal() {
 
         setIsLoading(true);
 
-        verifyTestDriveRecipient(bossEmail).then(() => {
-            setTestReceipt(
-                TestReceipt,
-                'jpg',
-                (source, _, filename) => {
-                    const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-                    const reportID = generateReportID();
-                    initMoneyRequest(reportID, undefined, false, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
+        verifyTestDriveRecipient(bossEmail)
+            .then(() => {
+                setTestReceipt(
+                    TestReceipt,
+                    'jpg',
+                    (source, _, filename) => {
+                        const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+                        const reportID = generateReportID();
+                        initMoneyRequest({
+                            reportID,
+                            isFromGlobalCreate: false,
+                            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        });
 
-                    setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
+                        setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
 
-                    setMoneyRequestParticipants(transactionID, [
-                        {
-                            accountID: generateAccountID(bossEmail),
-                            login: bossEmail,
-                            displayName: bossEmail,
-                            selected: true,
-                        },
-                    ]);
+                        setMoneyRequestParticipants(transactionID, [
+                            {
+                                accountID: generateAccountID(bossEmail),
+                                login: bossEmail,
+                                displayName: bossEmail,
+                                selected: true,
+                            },
+                        ]);
 
-                    setMoneyRequestAmount(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.AMOUNT, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
-                    setMoneyRequestDescription(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
-                    setMoneyRequestMerchant(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
-                    setMoneyRequestCreated(transactionID, format(new Date(), CONST.DATE.FNS_FORMAT_STRING), true);
+                        setMoneyRequestAmount(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.AMOUNT, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
+                        setMoneyRequestDescription(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
+                        setMoneyRequestMerchant(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
+                        setMoneyRequestCreated(transactionID, format(new Date(), CONST.DATE.FNS_FORMAT_STRING), true);
 
-                    InteractionManager.runAfterInteractions(() => {
-                        Navigation.goBack();
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                    });
-                },
-                () => {
-                    setIsLoading(false);
-                    setFormError(translate('testDrive.modal.employee.error'));
-                },
-            );
-        });
+                        InteractionManager.runAfterInteractions(() => {
+                            Navigation.goBack();
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                        });
+                    },
+                    () => {
+                        setIsLoading(false);
+                        setFormError(translate('testDrive.modal.employee.error'));
+                    },
+                );
+            })
+            .catch(() => {
+                setIsLoading(false);
+                setFormError(translate('testDrive.modal.employee.error'));
+            });
     };
 
     const skipTestDrive = () => {

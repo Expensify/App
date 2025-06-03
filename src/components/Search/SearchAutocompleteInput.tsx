@@ -174,11 +174,19 @@ function SearchAutocompleteInput(
     const clearFilters = useCallback(() => {
         clearAdvancedFilters();
         onSearchQueryChange('');
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: buildCannedSearchQuery(),
-            }),
-        );
+
+        // Check if we are on the search page before clearing query. If we are using the popup search menu,
+        // then the clear button is ONLY available when the search is *not* saved, so we don't have to navigate
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+        const isSearchPage = currentRoute === `/${ROUTES.SEARCH_ROOT.route}`;
+
+        if (isSearchPage) {
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: buildCannedSearchQuery(),
+                }),
+            );
+        }
     }, [onSearchQueryChange]);
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};

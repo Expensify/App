@@ -152,8 +152,6 @@ const createWorkspaceTask: OnboardingTask = {
     description: ({workspaceSettingsLink}) =>
         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
         '\n' +
-        'Here’s how to create a workspace:\n' +
-        '\n' +
         '1. Click *Settings*.\n' +
         '2. Click *Workspaces* > *New workspace*.\n' +
         '\n' +
@@ -169,8 +167,6 @@ const setupCategoriesTask: OnboardingTask = {
     title: ({workspaceCategoriesLink}) => `Set up [categories](${workspaceCategoriesLink})`,
     description: ({workspaceCategoriesLink}) =>
         '*Set up categories* so your team can code expenses for easy reporting.\n' +
-        '\n' +
-        'Here’s how to set up categories:\n' +
         '\n' +
         '1. Click *Settings*.\n' +
         '2. Go to *Workspaces*.\n' +
@@ -196,8 +192,6 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
             description:
                 '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                 '\n' +
-                'Here’s how to submit an expense:\n' +
-                '\n' +
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
@@ -219,8 +213,6 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
             title: 'Submit an expense',
             description:
                 '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                '\n' +
-                'Here’s how to submit an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
@@ -245,8 +237,6 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
             description:
                 '*Track an expense* in any currency, whether you have a receipt or not.\n' +
                 '\n' +
-                'Here’s how to track an expense:\n' +
-                '\n' +
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
@@ -268,8 +258,6 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
             title: 'Track an expense',
             description:
                 '*Track an expense* in any currency, whether you have a receipt or not.\n' +
-                '\n' +
-                'Here’s how to track an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
@@ -450,11 +438,14 @@ const CONST = {
         MIN_SIZE: 240,
 
         // Allowed extensions for receipts
-        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
+        ALLOWED_RECEIPT_EXTENSIONS: ['heif', 'heic', 'jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
+
+    // Allowed extensions for text files that are used as spreadsheets
+    TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
 
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
@@ -1072,6 +1063,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -1142,6 +1134,7 @@ const CONST = {
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
+    REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1858,6 +1851,11 @@ const CONST = {
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags.
     VALIDATE_FOR_HTML_TAG_REGEX: /<\/?\w*((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g,
 
+    // Matches any content enclosed in angle brackets, including non-standard or symbolic tags like <✓>, <123>, etc.
+    // This is a stricter version of VALIDATE_FOR_HTML_TAG_REGEX, used to detect and block inputs that resemble HTML-like tags,
+    // even if they are not valid HTML, to match backend validation behavior.
+    STRICT_VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
+
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
     // More info https://github.com/Expensify/App/issues/8007
@@ -1903,7 +1901,7 @@ const CONST = {
     DISPLAY_PARTICIPANTS_LIMIT: 5,
 
     // Amount of emojis to render ahead at the end of the update cycle
-    EMOJI_DRAW_AMOUNT: 250,
+    EMOJI_DRAW_AMOUNT: 100,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -2697,6 +2695,11 @@ const CONST = {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
             BANCORP_BANK: 'The Bancorp Bank, N.A.',
         },
+        STATEMENT_ACTIONS: {
+            SUBMIT_EXPENSE: 'start/submit/manual',
+            PAY_SOMEONE: 'start/pay/manual',
+            SPLIT_EXPENSE: 'start/split/manual',
+        },
     },
 
     PLAID: {
@@ -2992,6 +2995,11 @@ const CONST = {
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
+        SECONDARY_ACTIONS: {
+            IMPORT_SPREADSHEET: 'importSpreadsheet',
+            DOWNLOAD_CSV: 'downloadCSV',
+            SETTINGS: 'settings',
+        },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
@@ -5519,8 +5527,6 @@ const CONST = {
                     description: ({integrationName, workspaceAccountingLink}) =>
                         `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         '\n' +
-                        `Here’s how to connect to ${integrationName}:\n` +
-                        '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
@@ -5540,8 +5546,6 @@ const CONST = {
                     description: ({corporateCardLink}) =>
                         `Connect your corporate card to automatically import and code expenses.\n` +
                         '\n' +
-                        'Here’s how to invite your team:\n' +
-                        '\n' +
                         '1. Click *Workspaces*.\n' +
                         '2. Select your workspace.\n' +
                         '3. Click *Corporate cards*.\n' +
@@ -5560,8 +5564,6 @@ const CONST = {
                     title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
                     description: ({workspaceMembersLink}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
-                        '\n' +
-                        'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
@@ -5594,8 +5596,6 @@ const CONST = {
                     },
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
-                        '\n' +
-                        '*Here’s how to set up tags:*\n' +
                         '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
@@ -5631,8 +5631,6 @@ const CONST = {
                     description: ({workspaceMembersLink}) =>
                         '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
                         '\n' +
-                        'Here’s how to invite your accountant:\n' +
-                        '\n' +
                         '1. Click your profile picture.\n' +
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
@@ -5660,8 +5658,6 @@ const CONST = {
                     description:
                         '*Start a chat* with a friend or group using their email or phone number.\n' +
                         '\n' +
-                        'Here’s how to start a chat:\n' +
-                        '\n' +
                         '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter emails or phone numbers.\n' +
@@ -5677,8 +5673,6 @@ const CONST = {
                     title: 'Split an expense',
                     description:
                         '*Split an expense* right in your chat with one or more friends.\n' +
-                        '\n' +
-                        'Here’s how to request money:\n' +
                         '\n' +
                         '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
@@ -5711,8 +5705,6 @@ const CONST = {
                     title: 'Submit an expense',
                     description:
                         '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                        '\n' +
-                        'Here’s how to submit an expense:\n' +
                         '\n' +
                         '1. Click the green *+* button.\n' +
                         '2. Choose *Create expense*.\n' +
@@ -6484,9 +6476,9 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
-        LAST_VISITED_TAB_PATH: {
-            WORKSPACES: 'LAST_VISITED_WORKSPACES_TAB_PATH',
-            SETTINGS: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        LAST_VISITED_PATH: {
+            WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
+            SETTINGS_TAB: 'LAST_VISITED_PATH_SETTINGS_TAB',
         },
     },
 
@@ -6687,7 +6679,8 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
         },
-        EMPTY_VALUE: 'none',
+        TAG_EMPTY_VALUE: 'none',
+        CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
@@ -7186,6 +7179,11 @@ const CONST = {
             DESCRIPTION: 'My test drive receipt!',
             MERCHANT: "Tommy's Tires",
         },
+    },
+
+    ONBOARDING_HELP: {
+        TALK_TO_SALES: 'talkToSales',
+        REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
 
     SCHEDULE_CALL_STATUS: {
