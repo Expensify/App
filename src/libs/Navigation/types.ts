@@ -1320,7 +1320,6 @@ type MoneyRequestNavigatorParamList = {
     };
     [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: {
         transactionID: string;
-        reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
         action: IOUAction;

@@ -948,8 +948,8 @@ const ROUTES = {
     },
 
     MONEY_REQUEST_RECEIPT_VIEW_MODAL: {
-        route: 'receipt-view-modal/:transactionID/:reportID',
-        getRoute: (transactionID: string, reportID: string) => `receipt-view-modal/${transactionID}/${reportID}` as const,
+        route: 'receipt-view-modal/:transactionID',
+        getRoute: (transactionID: string) => `receipt-view-modal/${transactionID}` as const,
     },
 
     MONEY_REQUEST_STATE_SELECTOR: {

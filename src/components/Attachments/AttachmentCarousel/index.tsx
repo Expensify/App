@@ -282,48 +282,43 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
     );
 
     return (
-        <View
-            style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
-            onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
+        <AttachmentCarouselView
+            cycleThroughAttachments={cycleThroughAttachments}
+            page={page}
+            attachments={attachments}
+            shouldShowArrows={shouldShowArrows}
+            autoHideArrows={autoHideArrows}
+            cancelAutoHideArrow={cancelAutoHideArrows}
+            setShouldShowArrows={setShouldShowArrows}
         >
-            <AttachmentCarouselView
-                cycleThroughAttachments={cycleThroughAttachments}
-                page={page}
-                attachments={attachments}
-                shouldShowArrows={shouldShowArrows}
-                autoHideArrows={autoHideArrows}
-                cancelAutoHideArrow={cancelAutoHideArrows}
-            >
-                <AttachmentCarouselPagerContext.Provider value={context}>
-                    <DeviceAwareGestureDetector
-                        canUseTouchScreen={canUseTouchScreen}
-                        gesture={pan}
-                    >
-                        <Animated.FlatList
-                            keyboardShouldPersistTaps="handled"
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            // scrolling is controlled by the pan gesture
-                            scrollEnabled={false}
-                            ref={scrollRef}
-                            initialScrollIndex={page}
-                            initialNumToRender={3}
-                            windowSize={5}
-                            maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
-                            data={attachments}
-                            renderItem={renderItem}
-                            getItemLayout={getItemLayout}
-                            keyExtractor={extractItemKey}
-                            viewabilityConfig={viewabilityConfig}
-                            onViewableItemsChanged={updatePage}
-                        />
-                    </DeviceAwareGestureDetector>
-                </AttachmentCarouselPagerContext.Provider>
+            <AttachmentCarouselPagerContext.Provider value={context}>
+                <DeviceAwareGestureDetector
+                    canUseTouchScreen={canUseTouchScreen}
+                    gesture={pan}
+                >
+                    <Animated.FlatList
+                        keyboardShouldPersistTaps="handled"
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        // scrolling is controlled by the pan gesture
+                        scrollEnabled={false}
+                        ref={scrollRef}
+                        initialScrollIndex={page}
+                        initialNumToRender={3}
+                        windowSize={5}
+                        maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
+                        data={attachments}
+                        renderItem={renderItem}
+                        getItemLayout={getItemLayout}
+                        keyExtractor={extractItemKey}
+                        viewabilityConfig={viewabilityConfig}
+                        onViewableItemsChanged={updatePage}
+                    />
+                </DeviceAwareGestureDetector>
+            </AttachmentCarouselPagerContext.Provider>
 
-                <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
-            </AttachmentCarouselView>
-        </View>
+            <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
+        </AttachmentCarouselView>
     );
 }
 

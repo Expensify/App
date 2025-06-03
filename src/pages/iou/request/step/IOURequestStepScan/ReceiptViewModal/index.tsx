@@ -1,6 +1,7 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
+import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView/AttachmentCarouselView';
+import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
@@ -8,40 +9,64 @@ import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import {removeTransactionReceipt} from '@userActions/TransactionEdit';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Receipt} from '@src/types/onyx/Transaction';
 
 type ReceiptViewModalProps = {
     route: {
         params: {
             transactionID: string;
-            reportID: string;
         };
     };
 };
 
-type ReceiptWithTransactionID = Receipt & {transactionID: string};
-
 function ReceiptViewModal({route}: ReceiptViewModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
+
+    const [currentReceipt, setCurrentReceipt] = React.useState<ReceiptFile | null>();
+    const [page, setPage] = React.useState<number>(0);
 
     const [receipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
             Object.values(items ?? {})
                 .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
-                .filter((receipt): receipt is ReceiptWithTransactionID => !!receipt),
+                .filter((receipt): receipt is ReceiptFile => !!receipt),
         canBeMissing: true,
     });
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route?.params?.reportID}`);
+    useEffect(() => {
+        if (!receipts || receipts.length === 0) {
+            return;
+        }
+
+        const activeReceipt = receipts.find((receipt) => receipt.transactionID === route?.params?.transactionID);
+        const currentReceiptIndex = receipts.findIndex((receipt) => receipt.transactionID === activeReceipt?.transactionID);
+
+        setCurrentReceipt(activeReceipt);
+        setPage(currentReceiptIndex);
+    }, [receipts, route?.params?.transactionID]);
+
+    const cycleThroughReceipts = useCallback(
+        (deltaSlide: number) => {
+            const nextIndex = page + deltaSlide;
+            const nextItem = receipts?.at(nextIndex);
+
+            setPage(nextIndex);
+            setCurrentReceipt(nextItem);
+        },
+        [page, receipts],
+    );
 
     const handleDelete = useCallback(() => {
-        // onDelete();
+        if (!currentReceipt) {
+            return;
+        }
         Navigation.goBack();
-    }, []);
-
-    const selectedReceipt = receipts?.find((receipt) => receipt.transactionID === route?.params?.transactionID);
+        removeTransactionReceipt(currentReceipt.transactionID);
+    }, [currentReceipt]);
 
     return (
         <Modal
@@ -56,16 +81,20 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                 threeDotsMenuIcon={Expensicons.Trashcan}
                 onThreeDotsButtonPress={handleDelete}
             />
-
-            <Image
-                style={[styles.flex1]}
-                source={{uri: selectedReceipt?.source ?? ''}}
-            />
-            {/* <AttachmentCarousel
-                onClose={Navigation.goBack}
-                report={report}
-                source={selectedReceipt?.source}
-            /> */}
+            <AttachmentCarouselView
+                attachments={receipts ?? []}
+                autoHideArrows={autoHideArrows}
+                cancelAutoHideArrow={cancelAutoHideArrows}
+                cycleThroughAttachments={cycleThroughReceipts}
+                shouldShowArrows={shouldShowArrows}
+                page={page}
+                setShouldShowArrows={setShouldShowArrows}
+            >
+                <Image
+                    style={[styles.flex1]}
+                    source={{uri: currentReceipt?.source ?? ''}}
+                />
+            </AttachmentCarouselView>
         </Modal>
     );
 }

@@ -105,39 +105,36 @@ function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownlo
         [autoHideArrows, page, updatePage],
     );
 
-    const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
-
     if (page == null) {
         return (
-            <View style={containerStyles}>
+            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
                 <FullScreenLoadingIndicator />
             </View>
         );
     }
 
     return (
-        <View style={containerStyles}>
-            <AttachmentCarouselView
-                cycleThroughAttachments={cycleThroughAttachments}
-                page={page}
-                attachments={attachments}
-                shouldShowArrows={shouldShowArrows}
-                autoHideArrows={autoHideArrows}
-                cancelAutoHideArrow={cancelAutoHideArrows}
-            >
-                <AttachmentCarouselPager
-                    items={attachments}
-                    initialPage={page}
-                    onAttachmentError={onAttachmentError}
-                    activeAttachmentID={activeAttachmentID}
-                    setShouldShowArrows={setShouldShowArrows}
-                    onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                    onClose={onClose}
-                    ref={pagerRef}
-                    reportID={report.reportID}
-                />
-            </AttachmentCarouselView>
-        </View>
+        <AttachmentCarouselView
+            cycleThroughAttachments={cycleThroughAttachments}
+            page={page}
+            attachments={attachments}
+            shouldShowArrows={shouldShowArrows}
+            autoHideArrows={autoHideArrows}
+            cancelAutoHideArrow={cancelAutoHideArrows}
+            setShouldShowArrows={setShouldShowArrows}
+        >
+            <AttachmentCarouselPager
+                items={attachments}
+                initialPage={page}
+                onAttachmentError={onAttachmentError}
+                activeAttachmentID={activeAttachmentID}
+                setShouldShowArrows={setShouldShowArrows}
+                onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                onClose={onClose}
+                ref={pagerRef}
+                reportID={report.reportID}
+            />
+        </AttachmentCarouselView>
     );
 }
 
