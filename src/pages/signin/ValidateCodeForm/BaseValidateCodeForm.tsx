@@ -24,7 +24,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import * as HybridAppActions from '@userActions/HybridApp';
+import {resetSignInFlow, setNewDotSignInState} from '@userActions/HybridApp';
 import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
 import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
@@ -52,7 +52,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: false});
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -157,7 +157,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      */
     const resendValidateCode = () => {
         if (CONFIG.IS_HYBRID_APP) {
-            HybridAppActions.resetSignInFlow();
+            resetSignInFlow();
         }
 
         userActionsResendValidateCode(credentials?.login ?? '');
@@ -244,7 +244,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             return;
         }
         if (CONFIG.IS_HYBRID_APP) {
-            HybridAppActions.resetSignInFlow();
+            resetSignInFlow();
         }
         if (account?.errors) {
             clearAccountMessages();
@@ -293,7 +293,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const recoveryCodeOr2faCode = isUsingRecoveryCode ? recoveryCode : twoFactorAuthCode;
 
-        HybridAppActions.setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
+        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
         const accountID = credentials?.accountID;
         if (accountID) {
             signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);

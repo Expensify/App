@@ -6,9 +6,9 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {setNewDotSignInState, setReadyToShowAuthScreens} from '@userActions/HybridApp';
-import * as Session from '@userActions/Session';
+import {clearSignInData, signUpUser} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
@@ -18,8 +18,8 @@ function SignUpWelcomeForm() {
     const network = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const serverErrorText = useMemo(() => (account ? ErrorUtils.getLatestErrorMessage(account) : ''), [account]);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
 
     return (
         <>
@@ -32,7 +32,7 @@ function SignUpWelcomeForm() {
                     isLoading={account?.isLoading}
                     onPress={() => {
                         setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
-                        Session.signUpUser();
+                        signUpUser();
                         setReadyToShowAuthScreens(true);
                     }}
                     pressOnEnter
@@ -44,7 +44,7 @@ function SignUpWelcomeForm() {
                         message={serverErrorText}
                     />
                 )}
-                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
+                <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />
             </View>
             <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
