@@ -361,7 +361,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         introSelected?.choice,
         hasSeenTour,
         canUseTableReportView,
-        allPolicies,
+        groupPoliciesWithChatEnabled,
         activePolicy,
         activePolicyID,
         currentUserPersonalDetails,
