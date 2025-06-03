@@ -50,8 +50,11 @@ function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
 }
 
+/**
+ * The feature is released so hardcoding the value to true while we clean up the beta from the code.
+ */
 function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
+    return true || !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
 }
 
 function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
@@ -86,6 +89,10 @@ function canUseTrackFlows(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.TRACK_FLOWS) || canUseAllBetas(betas);
 }
 
+function canUseNewDotSplits(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_SPLITS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -104,6 +111,7 @@ export default {
     canUseMultiLevelTags,
     canUseMultiFilesDragAndDrop,
     canUseMultiScan,
+    canUseNewDotSplits,
     canUsePlaidCompanyCards,
     canUseTrackFlows,
 };

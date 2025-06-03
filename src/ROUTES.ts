@@ -73,7 +73,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
     SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
-    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -934,8 +933,6 @@ const ROUTES = {
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
-    IOU_REQUEST: 'submit/new',
-    IOU_SEND: 'pay/new',
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
@@ -1291,7 +1288,12 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
         route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET route');
+            }
+            return `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const;
+        },
     },
     WORKSPACE_INVOICES: {
         route: 'settings/workspaces/:policyID/invoices',
@@ -1891,6 +1893,8 @@ const ROUTES = {
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     SHARE_ROOT: 'share/root',
+    SHARE_ROOT_SHARE: 'share/root/share',
+    SHARE_ROOT_SUBMIT: 'share/root/submit',
     SHARE_DETAILS: {
         route: 'share/share-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}` as const,
