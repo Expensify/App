@@ -135,8 +135,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const {canUseTalkToAISales} = usePermissions();
-    const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
+    const {isBetaEnabled} = usePermissions();
+    const shouldShowTalkToSales = !!isBetaEnabled(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) && isAdminRoom(report);
     const isNativePlatform = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;

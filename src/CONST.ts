@@ -444,6 +444,9 @@ const CONST = {
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
 
+    // Allowed extensions for text files that are used as spreadsheets
+    TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
+
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
@@ -1060,6 +1063,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -1845,6 +1849,11 @@ const CONST = {
 
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags.
     VALIDATE_FOR_HTML_TAG_REGEX: /<\/?\w*((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g,
+
+    // Matches any content enclosed in angle brackets, including non-standard or symbolic tags like <✓>, <123>, etc.
+    // This is a stricter version of VALIDATE_FOR_HTML_TAG_REGEX, used to detect and block inputs that resemble HTML-like tags,
+    // even if they are not valid HTML, to match backend validation behavior.
+    STRICT_VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)

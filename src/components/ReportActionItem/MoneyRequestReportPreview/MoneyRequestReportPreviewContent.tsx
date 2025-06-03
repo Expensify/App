@@ -60,6 +60,7 @@ import {
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasPendingUI, isCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -471,6 +472,10 @@ function MoneyRequestReportPreviewContent({
                     if (!iouReport?.reportID) {
                         return;
                     }
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReport?.reportID, undefined, false, chatReportID);
                 },
             },
@@ -479,11 +484,15 @@ function MoneyRequestReportPreviewContent({
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
                 onSelected: () => {
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
                     openUnreportedExpense(iouReport?.reportID, iouReport?.parentReportID);
                 },
             },
         ],
-        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, translate],
+        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, translate],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
