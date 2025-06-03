@@ -1,4 +1,4 @@
-// Jest unit test for getWorkspaceTabNavigationAction
+/* eslint-disable @typescript-eslint/naming-convention */
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import getWorkspaceTabNavigationAction from '@libs/Navigation/helpers/getWorkspaceTabNavigationAction';
 import * as lastVisitedTabPathUtils from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
