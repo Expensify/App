@@ -141,8 +141,15 @@ function MoneyRequestReportTransactionList({
     const {selectionMode} = useMobileSelectionMode();
 
     const toggleTransaction = useCallback(
-        (transactionID: string) =>
-            setSelectedTransactions(selectedTransactionIDs.includes(transactionID) ? selectedTransactionIDs.filter((t) => t !== transactionID) : [...selectedTransactionIDs, transactionID]),
+        (transactionID: string) => {
+            let newSelectedTransactionIDs = selectedTransactionIDs;
+            if (selectedTransactionIDs.includes(transactionID)) {
+                newSelectedTransactionIDs = selectedTransactionIDs.filter((t) => t !== transactionID);
+            } else {
+                newSelectedTransactionIDs = [...selectedTransactionIDs, transactionID];
+            }
+            setSelectedTransactions(newSelectedTransactionIDs);
+        },
         [setSelectedTransactions, selectedTransactionIDs],
     );
 
@@ -156,7 +163,10 @@ function MoneyRequestReportTransactionList({
                 }
                 clearSelectedTransactions(true);
             };
-        }, [clearSelectedTransactions]),
+            // We don't need to run the effect on change of clearSelectedTransactions on every focus.
+            // eslint-disable-next-line react-compiler/react-compiler
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []),
     );
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {

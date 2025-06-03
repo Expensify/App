@@ -23,9 +23,18 @@ jest.mock('@components/AvatarWithDisplayName.tsx');
 const mockSearchContext = {
     currentSearchHash: 12345,
     selectedReports: {},
-    setSelectedReports: jest.fn(),
     selectedTransactionIDs: [],
-    clearSelectedItems: jest.fn(),
+    selectedTransactions: {},
+    isOnSearch: false,
+    shouldTurnOffSelectionMode: false,
+    setSelectedReports: jest.fn(),
+    clearSelectedTransactions: jest.fn(),
+    setLastSearchType: jest.fn(),
+    setCurrentSearchHash: jest.fn(),
+    setSelectedTransactions: jest.fn(),
+    setShouldShowFiltersBarLoading: jest.fn(),
+    setShouldShowExportModeOption: jest.fn(),
+    setExportMode: jest.fn(),
 };
 
 const mockPersonalDetails: Record<string, SearchPersonalDetails> = {
