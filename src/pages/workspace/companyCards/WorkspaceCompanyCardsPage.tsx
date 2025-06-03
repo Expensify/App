@@ -185,7 +185,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}
                         />
                     )}
-                    {isGB && !!canUsePlaidCompanyCards && (isNoFeed || isPending) && (
+                    {isGB && !!canUsePlaidCompanyCards && (isNoFeed || (isFeedAdded && !isPending)) && (
                         <View style={[styles.sidebarFooter, styles.mb5]}>
                             <Text style={[styles.chatItemMessageHeaderTimestamp]}>{translate('workspace.companyCards.ukRegulation')}</Text>
                         </View>
