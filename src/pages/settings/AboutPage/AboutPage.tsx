@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {useWindowDimensions} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import RenderHtml from 'react-native-render-html';
+import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -54,6 +54,7 @@ function AboutPage() {
     const {translate} = useLocalize();
     const {width} = useWindowDimensions();
     const styles = useThemeStyles();
+    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -171,6 +172,7 @@ function AboutPage() {
                 <View style={[styles.sidebarFooter, styles.mb5]}>
                     <RenderHtml
                         contentWidth={width}
+                        systemFonts={systemFonts}
                         source={{
                             html: translate('initialSettingsPage.readTheTermsAndPrivacy.full')
                                 .replace('<a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}" style="color: ${styles.link.color}; text-decoration: none;">`)
