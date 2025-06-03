@@ -10,6 +10,7 @@ import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import {getPolicy} from './PolicyUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -109,17 +110,10 @@ function getDestinationListSections({
     const destinationSections: DestinationTreeSection[] = [];
 
     if (searchValue) {
-        const searchDestinations: Destination[] = [];
-
-        sortedDestinations.forEach((destination) => {
-            if (!destination.name.toLowerCase().includes(searchValue.toLowerCase())) {
-                return;
-            }
-            searchDestinations.push({
-                ...destination,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
-            });
-        });
+        const searchDestinations: Destination[] = tokenizedSearch(sortedDestinations, searchValue, (destination) => [destination.name]).map((destination) => ({
+            ...destination,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
+        }));
 
         const data = getDestinationOptionTree(searchDestinations);
         destinationSections.push({
@@ -278,6 +272,6 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     };
 }
 
-export type {Destination};
+export type {Destination, DestinationTreeSection};
 
 export {getCustomUnitID, getDestinationListSections, getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeForDisplay, getTimeDifferenceIntervals};
