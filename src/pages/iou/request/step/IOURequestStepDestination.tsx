@@ -52,7 +52,7 @@ function IOURequestStepDestination({
     openedFromStartPage = false,
     explicitPolicyID,
 }: IOURequestStepDestinationProps) {
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
 
@@ -105,6 +105,7 @@ function IOURequestStepDestination({
         [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
+        [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
@@ -143,7 +144,7 @@ function IOURequestStepDestination({
                                 style={[styles.w100]}
                                 onPress={() => {
                                     InteractionManager.runAfterInteractions(() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id));
+                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
                                     });
                                 }}
                                 text={translate('workspace.perDiem.editPerDiemRates')}

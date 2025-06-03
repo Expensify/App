@@ -1,12 +1,21 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import {useRoute} from '@react-navigation/native';
+import lodashIsEmpty from 'lodash/isEmpty';
+import React, {useMemo, useState} from 'react';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {
     getOriginalMessage,
     isDeletedParentAction as isDeletedParentActionReportActionsUtils,
@@ -18,13 +27,15 @@ import {
 import {generateReportID} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import MoneyRequestPreview from './MoneyRequestPreview';
+import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
     /** All the data of the action */
@@ -48,9 +59,6 @@ type MoneyRequestActionProps = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
-    /** Callback for measuring child and running a defined callback/action later */
-    onShowContextMenu?: (callback: () => void) => void;
-
     /** Whether the IOU is hovered so we can modify its style */
     isHovered?: boolean;
 
@@ -71,7 +79,6 @@ function MoneyRequestAction({
     reportID,
     isMostRecentIOUReportAction,
     contextMenuAnchor,
-    onShowContextMenu = () => {},
     checkIfContextMenuActive = () => {},
     isHovered = false,
     style,
@@ -81,12 +88,34 @@ function MoneyRequestAction({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
-
+    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
+    const [previewWidth, setPreviewWidth] = useState(0);
+    const containerStyles = useMemo(
+        () => [styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style],
+        [isHovered, style, styles.cursorPointer, styles.reportPreviewBoxHoverBorder],
+    );
+
+    const transactionPreviewContainerStyles = useMemo(
+        () => [
+            {
+                width: previewWidth,
+                maxWidth: previewWidth,
+            },
+            styles.borderNone,
+        ],
+        [previewWidth, styles.borderNone],
+    );
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, undefined, true);
 
     const onMoneyRequestPreviewPressed = () => {
         if (contextMenuRef.current?.isContextMenuOpening) {
@@ -102,7 +131,7 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         if (!action?.childReportID && transactionID && action.reportActionID) {
             const optimisticReportID = generateReportID();
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute(), requestReportID));
             return;
         }
 
@@ -133,27 +162,59 @@ function MoneyRequestAction({
         return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />;
     }
 
-    // NOTE: this part of code is needed here if we want to replace MoneyRequestPreview with TransactionPreview
-    // const renderCondition = lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction);
-    // return renderCondition ? null : (
-    return (
-        <MoneyRequestPreview
+    // Condition extracted from MoneyRequestPreview
+    const renderCondition = !(lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction)) && isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && isReviewDuplicateTransactionPage;
+    const isLayoutWidthInvalid = (layoutWidth: number) => {
+        return (shouldUseNarrowLayout && layoutWidth > variables.mobileResponsiveWidthBreakpoint) || (!shouldUseNarrowLayout && layoutWidth > variables.sideBarWidth);
+    };
+
+    const singleTransactionPreviewWidth = shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width;
+    const singleTransactionPreviewStyles = [shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt2];
+
+    const TransactionPreviewComponent = (
+        <TransactionPreview
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}
+            action={action}
+            transactionPreviewWidth={renderCondition ? previewWidth : singleTransactionPreviewWidth}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
-            action={action}
             contextMenuAnchor={contextMenuAnchor}
-            onShowContextMenu={onShowContextMenu}
             checkIfContextMenuActive={checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onMoneyRequestPreviewPressed}
-            containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style]}
+            containerStyles={renderCondition ? [containerStyles, transactionPreviewContainerStyles] : singleTransactionPreviewStyles}
             isHovered={isHovered}
             isWhisper={isWhisper}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
         />
+    );
+
+    if (!renderCondition) {
+        return TransactionPreviewComponent;
+    }
+
+    return (
+        <View
+            onLayout={(e: LayoutChangeEvent) => {
+                if (isLayoutWidthInvalid(e.nativeEvent.layout.width)) {
+                    return;
+                }
+                setPreviewWidth(e.nativeEvent.layout.width);
+            }}
+        >
+            {!previewWidth ? (
+                <View style={[{height: CONST.REPORT.TRANSACTION_PREVIEW.DUPLICATE.HEIGHT_WIDE}, styles.justifyContentCenter]}>
+                    <ActivityIndicator
+                        color={theme.spinner}
+                        size={40}
+                    />
+                </View>
+            ) : (
+                TransactionPreviewComponent
+            )}
+        </View>
     );
 }
 

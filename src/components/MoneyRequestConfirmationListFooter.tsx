@@ -8,7 +8,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -250,7 +249,6 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseTableReportView} = usePermissions();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -675,7 +673,7 @@ function MoneyRequestConfirmationListFooter({
                     shouldRenderAsHTML
                 />
             ),
-            shouldShow: isPolicyExpenseChat && canUseTableReportView,
+            shouldShow: isPolicyExpenseChat,
             isSupplementary: true,
         },
     ];
@@ -752,7 +750,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={styles.moneyRequestImage}>
+            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -815,6 +813,7 @@ function MoneyRequestConfirmationListFooter({
         ),
         [
             styles.moneyRequestImage,
+            styles.expenseViewImageSmall,
             styles.cursorDefault,
             styles.h100,
             styles.flex1,
@@ -909,21 +908,29 @@ function MoneyRequestConfirmationListFooter({
                     <View style={styles.dividerLine} />
                 </>
             )}
-            {!shouldShowMap &&
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                (receiptImage || receiptThumbnail
-                    ? receiptThumbnailContent
-                    : shouldShowReceiptEmptyState && (
-                          <ReceiptEmptyState
-                              onPress={() => {
-                                  if (!transactionID) {
-                                      return;
-                                  }
+            {!shouldShowMap && (
+                <View style={styles.mv3}>
+                    {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        receiptImage || receiptThumbnail
+                            ? receiptThumbnailContent
+                            : shouldShowReceiptEmptyState && (
+                                  <ReceiptEmptyState
+                                      onPress={() => {
+                                          if (!transactionID) {
+                                              return;
+                                          }
 
-                                  Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
-                              }}
-                          />
-                      ))}
+                                          Navigation.navigate(
+                                              ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()),
+                                          );
+                                      }}
+                                      style={styles.expenseViewImageSmall}
+                                  />
+                              )
+                    }
+                </View>
+            )}
             {primaryFields}
             {!shouldShowAllFields && (
                 <ShowMoreButton
