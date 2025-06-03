@@ -629,7 +629,7 @@ function MoneyReportHeader({
         ),
     };
 
-    const {canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
@@ -648,11 +648,11 @@ function MoneyReportHeader({
             reportNameValuePairs,
             reportActions,
             policies,
-            canUseRetractNewDot,
-            canUseTableReportView,
-            canUseNewDotSplits,
+            isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
+            isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
+            isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
         );
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -827,7 +827,7 @@ function MoneyReportHeader({
                     setIsDeleteReportModalVisible(true);
                 }
             },
-            shouldShow: canUseTableReportView,
+            shouldShow: isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
             text: translate('iou.undoSubmit'),
