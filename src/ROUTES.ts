@@ -38,6 +38,8 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
+    WORKSPACES_LIST: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
+
     SEARCH_ROOT: {
         route: 'search',
         getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => {
@@ -71,7 +73,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
     SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
-    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -202,7 +203,6 @@ const ROUTES = {
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
-    SETTINGS_WORKSPACES: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_MERGE_ACCOUNTS: {
@@ -572,6 +572,24 @@ const ROUTES = {
             return getUrlWithBackToParam(`r/${reportID}/invite` as const, backTo);
         },
     },
+    SPLIT_EXPENSE: {
+        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
+        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
+            if (!reportID || !originalTransactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE route`);
+            }
+            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
+        },
+    },
+    SPLIT_EXPENSE_EDIT: {
+        route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
+        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
+            if (!reportID || !originalTransactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
+            }
+            return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
+        },
+    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
@@ -915,8 +933,6 @@ const ROUTES = {
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
-    IOU_REQUEST: 'submit/new',
-    IOU_SEND: 'pay/new',
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
@@ -964,7 +980,6 @@ const ROUTES = {
             return `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const;
         },
     },
-    WORKSPACE_HUB_INITIAL: 'settings/workspace-menu',
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite`, backTo)}` as const,
@@ -1273,7 +1288,12 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
         route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET route');
+            }
+            return `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const;
+        },
     },
     WORKSPACE_INVOICES: {
         route: 'settings/workspaces/:policyID/invoices',
@@ -1873,6 +1893,8 @@ const ROUTES = {
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     SHARE_ROOT: 'share/root',
+    SHARE_ROOT_SHARE: 'share/root/share',
+    SHARE_ROOT_SUBMIT: 'share/root/submit',
     SHARE_DETAILS: {
         route: 'share/share-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}` as const,
@@ -1895,7 +1917,10 @@ const ROUTES = {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
     },
-    TRAVEL_UPGRADE: 'travel/upgrade',
+    TRAVEL_UPGRADE: {
+        route: 'travel/upgrade',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('travel/upgrade', backTo),
+    },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
@@ -1915,12 +1940,18 @@ const ROUTES = {
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo);
         },
     },
-    TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
+    TRAVEL_DOMAIN_SELECTOR: {
+        route: 'travel/domain-selector',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/domain-selector`, backTo),
+    },
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         route: 'travel/domain-permission/:domain/info',
         getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
     },
-    TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
+    TRAVEL_PUBLIC_DOMAIN_ERROR: {
+        route: 'travel/public-domain-error',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error`, backTo),
+    },
     TRAVEL_WORKSPACE_ADDRESS: {
         route: 'travel/:domain/workspace-address',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address`, backTo),
