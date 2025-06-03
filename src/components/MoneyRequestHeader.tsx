@@ -10,9 +10,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, initSplitExpense} from '@libs/actions/IOU';
+import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, getReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
@@ -196,7 +196,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
-    const {canUseNewDotSplits} = usePermissions();
+    const reportID = report?.reportID;
+    const {isBetaEnabled} = usePermissions();
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
@@ -319,8 +320,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !parentReport || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, canUseNewDotSplits);
-    }, [canUseNewDotSplits, parentReport, policy, transaction, reportActions]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS));
+    }, [isBetaEnabled, parentReport, policy, transaction]);
 
     // Memoize secondary actions implementation
     const secondaryActionsImplementation = useMemo((): Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> => ({
@@ -467,8 +468,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     if (!parentReportAction || !transaction) {
                         throw new Error('Data missing');
                     }
-
-                    deleteMoneyRequest(transaction?.transactionID, parentReportAction, true);
+                    if (isTrackExpenseAction(parentReportAction)) {
+                        deleteTrackExpense(report?.chatReportID, transaction.transactionID, parentReportAction, true);
+                    } else {
+                        deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
+                    }
                     onBackButtonPress();
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}

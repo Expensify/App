@@ -50,6 +50,7 @@ import {
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     hasDuplicateTransactions,
@@ -517,6 +518,10 @@ function MoneyReportHeader({
                     if (!moneyRequestReport?.reportID) {
                         return;
                     }
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
                 },
             },
@@ -525,11 +530,15 @@ function MoneyReportHeader({
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
                 onSelected: () => {
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
                     openUnreportedExpense(moneyRequestReport?.reportID);
                 },
             },
         ],
-        [moneyRequestReport?.reportID, translate],
+        [moneyRequestReport?.reportID, policy, translate],
     );
 
     const primaryActionsImplementation = useMemo(
@@ -682,7 +691,7 @@ function MoneyReportHeader({
         ],
     );
 
-    const {canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
@@ -701,11 +710,11 @@ function MoneyReportHeader({
             reportNameValuePairs,
             reportActions,
             policies,
-            canUseRetractNewDot,
-            canUseTableReportView,
-            canUseNewDotSplits,
+            isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
+            isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
+            isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
         );
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -869,19 +878,19 @@ function MoneyReportHeader({
                         ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, moneyRequestReport.reportID, getReportRHPActiveRoute()),
                     );
                 },
-            },
-            [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
-                text: translate('common.delete'),
-                icon: Expensicons.Trashcan,
-                value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-                onSelected: () => {
-                    if (Object.keys(transactions).length === 1) {
-                        setIsDeleteExpenseModalVisible(true);
-                    } else {
-                        setIsDeleteReportModalVisible(true);
-                    }
+                [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
+                    text: translate('common.delete'),
+                    icon: Expensicons.Trashcan,
+                    value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+                    onSelected: () => {
+                        if (Object.keys(transactions).length === 1) {
+                            setIsDeleteExpenseModalVisible(true);
+                        } else {
+                            setIsDeleteReportModalVisible(true);
+                        }
+                    },
+                    shouldShow: isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
                 },
-                shouldShow: canUseTableReportView,
             },
             [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
                 text: translate('iou.undoSubmit'),
@@ -890,51 +899,57 @@ function MoneyReportHeader({
                 onSelected: () => {
                     retractReport(moneyRequestReport);
                 },
-            },
-            [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
-                text: translate('iou.undoClose'),
-                icon: Expensicons.CircularArrowBackwards,
-                value: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
-                onSelected: () => {
-                    if (isExported) {
-                        setIsReopenWarningModalVisible(true);
-                        return;
-                    }
-                    reopenReport(moneyRequestReport);
+                [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
+                    text: translate('iou.undoClose'),
+                    icon: Expensicons.CircularArrowBackwards,
+                    value: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
+                    onSelected: () => {
+                        if (isExported) {
+                            setIsReopenWarningModalVisible(true);
+                            return;
+                        }
+                        reopenReport(moneyRequestReport);
+                    },
                 },
-            },
-            [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
-                text: translate('iou.addExpense'),
-                backButtonText: translate('iou.addExpense'),
-                icon: Expensicons.Plus,
-                value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
-                subMenuItems: addExpenseDropdownOptions,
-                onSelected: () => {
-                    if (!moneyRequestReport?.reportID) {
-                        return;
-                    }
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
+                [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
+                    text: translate('iou.addExpense'),
+                    backButtonText: translate('iou.addExpense'),
+                    icon: Expensicons.Plus,
+                    value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
+                    subMenuItems: addExpenseDropdownOptions,
+                    onSelected: () => {
+                        if (!moneyRequestReport?.reportID) {
+                            return;
+                        }
+                        if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                            return;
+                        }
+                        startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
+                    },
                 },
-            },
-            [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
-                text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
-                icon: Expensicons.Cash,
-                value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
-                backButtonText: translate('iou.settlePayment', {formattedAmount: totalAmount}),
-                subMenuItems: Object.values(paymentButtonOptions),
+                [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
+                    text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
+                    icon: Expensicons.Cash,
+                    value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
+                    backButtonText: translate('iou.settlePayment', {formattedAmount: totalAmount}),
+                    subMenuItems: Object.values(paymentButtonOptions),
+                },
             },
         }),
         [
             addExpenseDropdownOptions,
-            canUseTableReportView,
+            confirmApproval,
             connectedIntegration,
             getAmount,
             getReportRHPActiveRoute,
             iouType,
+            isBetaEnabled,
             isDelegateAccessRestricted,
             isExported,
             moneyRequestReport,
             paymentButtonOptions,
+            policy,
             requestParentReportAction,
             styles.integrationIcon,
             totalAmount,
