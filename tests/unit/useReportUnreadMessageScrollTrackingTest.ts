@@ -1,7 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
-import {useCallback} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import useDebounce from '@hooks/useDebounce';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -124,7 +122,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
         it('calls readAction when scrolling inside the threshold and the message and read action skipped is true', () => {
             jest.useFakeTimers();
-            
+
             // Given
             const offsetRef = {current: 0};
             const readActionSkippedRef = {current: true};
@@ -167,7 +165,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
             expect(readActionSkippedRef.current).toBe(false);
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
-            
+
             jest.useRealTimers();
         });
     });
