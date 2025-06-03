@@ -383,7 +383,7 @@ const reportActionListItems = [
         ],
         reportActionID: 'Admin',
         reportID: '123456789',
-        reportName: 'Unavailable workspace owes $50.00',
+        reportName: 'Expense Report #123',
     },
 ] as ReportActionListItemType[];
 
@@ -400,7 +400,6 @@ const transactionsListItems = [
         created: '2024-12-21',
         currency: 'USD',
         date: '2024-12-21',
-        description: '',
         formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
         formattedTo: '',
@@ -412,7 +411,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        hasViolation: false,
         isFromOneTransactionReport: true,
         keyForList: '1',
         managerID: 18439984,
@@ -453,7 +451,6 @@ const transactionsListItems = [
         created: '2024-12-21',
         currency: 'USD',
         date: '2024-12-21',
-        description: '',
         formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
         formattedTo: 'Admin',
@@ -465,7 +462,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        hasViolation: true,
         isFromOneTransactionReport: true,
         keyForList: '2',
         managerID: 18439984,
@@ -912,7 +908,7 @@ describe('SearchUIUtils', () => {
                     ],
                     reportActionID: 'Admin',
                     reportID: '123456789',
-                    reportName: 'Unavailable workspace owes $50.00',
+                    reportName: 'Expense Report #123',
                 },
             ]);
         });
@@ -991,10 +987,137 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    test('Should show `Approve` for report', () => {
+        Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+
+        const result: OnyxTypes.SearchResults = {
+            data: {
+                personalDetailsList: {
+                    adminAccountID: {
+                        accountID: adminAccountID,
+                        avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/fake.jpeg',
+                        displayName: 'You',
+                        login: 'you@expensifail.com',
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '2074551': {
+                        accountID: 2074551,
+                        avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/fake2.jpeg',
+                        displayName: 'Jason',
+                        login: 'jason@expensifail.com',
+                    },
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                policy_137DA25D273F2423: {
+                    approvalMode: 'ADVANCED',
+                    approver: '',
+                    autoReimbursement: {
+                        limit: 500000,
+                    },
+                    autoReimbursementLimit: 500000,
+                    autoReporting: true,
+                    autoReportingFrequency: 'immediate',
+                    harvesting: {
+                        enabled: true,
+                    },
+                    id: '137DA25D273F2423',
+                    name: 'Expenses - Expensify US',
+                    owner: 'accounting@expensifail.com',
+                    preventSelfApproval: true,
+                    reimbursementChoice: 'reimburseYes',
+                    role: 'user',
+                    rules: {
+                        approvalRules: [],
+                        expenseRules: [],
+                    },
+                    type: 'corporate',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                report_6523565988285061: {
+                    accountID: 2074551,
+                    chatReportID: '4128157185472356',
+                    created: '2025-05-26 19:49:56',
+                    currency: 'USD',
+                    isOneTransactionReport: true,
+                    isOwnPolicyExpenseChat: false,
+                    isPolicyExpenseChat: false,
+                    isWaitingOnBankAccount: false,
+                    managerID: adminAccountID,
+                    nonReimbursableTotal: 0,
+                    oldPolicyName: '',
+                    ownerAccountID: 2074551,
+                    parentReportActionID: '5568426544518647396',
+                    parentReportID: '4128157185472356',
+                    policyID: '137DA25D273F2423',
+                    private_isArchived: '',
+                    reportID: '6523565988285061',
+                    reportName: 'Expense Report #6523565988285061',
+                    stateNum: 1,
+                    statusNum: 1,
+                    total: -1000,
+                    type: 'expense',
+                    unheldTotal: -1000,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transactions_1805965960759424086: {
+                    accountID: 2074551,
+                    amount: 0,
+                    canDelete: false,
+                    canHold: true,
+                    canUnhold: false,
+                    category: 'Employee Meals Remote (Fringe Benefit)',
+                    action: 'approve',
+                    comment: {
+                        comment: '',
+                    },
+                    created: '2025-05-26',
+                    currency: 'USD',
+                    hasEReceipt: false,
+                    isFromOneTransactionReport: true,
+                    managerID: adminAccountID,
+                    merchant: '(none)',
+                    modifiedAmount: -1000,
+                    modifiedCreated: '2025-05-22',
+                    modifiedCurrency: 'USD',
+                    modifiedMerchant: 'Costco Wholesale',
+                    parentTransactionID: '',
+                    policyID: '137DA25D273F2423',
+                    receipt: {
+                        source: 'https://www.expensify.com/receipts/fake.jpg',
+                        state: 'SCANCOMPLETE',
+                    },
+                    reportID: '6523565988285061',
+                    reportType: 'expense',
+                    tag: '',
+                    transactionID: '1805965960759424086',
+                    transactionThreadReportID: '4139222832581831',
+                    transactionType: 'cash',
+                },
+            },
+            search: {
+                type: 'expense',
+                status: 'all',
+                offset: 0,
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                columnsToShow: {
+                    shouldShowCategoryColumn: true,
+                    shouldShowTagColumn: true,
+                    shouldShowTaxColumn: true,
+                },
+            },
+        };
+        return waitForBatchedUpdates().then(() => {
+            const action = SearchUIUtils.getAction(result.data, 'report_6523565988285061');
+            expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
+        });
+    });
+
     test('Should return true if the search result has valid type', () => {
         expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults.search.type)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
-        const inValidSearchType: SearchDataTypes = 'expensse' as SearchDataTypes;
+        const inValidSearchType: SearchDataTypes = 'expensify' as SearchDataTypes;
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchType)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults.search.type)).toBe(false);
     });

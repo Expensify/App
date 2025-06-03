@@ -69,10 +69,10 @@ type RouteParams = {
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
-    const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
+    const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseNetSuiteUSATax} = usePermissions();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
@@ -101,6 +101,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
+        getLocalDateFromDatetime,
         connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
         connectedIntegration === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
     );
@@ -520,8 +521,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [translate('workspace.accounting.talkYourAccountManager'), account?.accountManagerReportID];
         }
         // Else, display the following and link to their Concierge DM.
-        return [translate('workspace.accounting.talkToConcierge'), conciergeChatReportID];
-    }, [account, conciergeChatReportID, translate]);
+        return [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
+    }, [account, conciergeReportID, translate]);
 
     return (
         <AccessOrNotFoundWrapper

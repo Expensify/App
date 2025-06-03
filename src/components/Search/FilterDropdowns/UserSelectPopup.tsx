@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
-    return {...option, selected: true};
+    return {...option, reportID: `${option.reportID}`, selected: true};
 }
 
 type UserSelectPopupProps = {
@@ -38,34 +38,28 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {options} = useOptionsList();
+    const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const personalDetails = usePersonalDetails();
-
-    // Since accountIDs are passed as value, we need to "populate" them into OptionData
-    const initialSelectedData: OptionData[] = useMemo(() => {
-        const initialOptions = value
-            .map((accountID) => {
-                const participant = personalDetails?.[accountID];
-
-                if (!participant) {
-                    return;
-                }
-
-                return getSelectedOptionData(participant);
-            })
-            .filter(Boolean) as OptionData[];
-
-        return initialOptions;
-
-        // The initial value of a useState only gets calculated once, so we dont need to keep calculating this initial state
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedData);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
+        return value.reduce<OptionData[]>((acc, accountID) => {
+            const participant = personalDetails?.[accountID];
+            if (!participant) {
+                return acc;
+            }
+
+            const optionData = getSelectedOptionData(participant);
+            if (optionData) {
+                acc.push(optionData);
+            }
+
+            return acc;
+        }, []);
+    });
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
@@ -80,7 +74,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeSelectedOptions: true,
-                includeSelfDM: true,
+                includeCurrentUser: true,
             },
         );
 
@@ -89,13 +83,24 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
-        const personalDetailList = filteredOptionsList.map((participant) => ({
-            ...participant,
-            isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
-        }));
+        const personalDetailList = filteredOptionsList
+            .map((participant) => ({
+                ...participant,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+            }))
+            .sort((a, b) => {
+                // Put the current user at the top of the list
+                if (a.accountID === session?.accountID) {
+                    return -1;
+                }
+                if (b.accountID === session?.accountID) {
+                    return 1;
+                }
+                return 0;
+            });
 
-        return [...(recentReports ?? []), ...(personalDetailList ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions]);
+        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
+    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, session?.accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
@@ -158,6 +163,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
                 canSelectMultiple
+                textInputAutoFocus={false}
                 shouldClearInputOnSelect={false}
                 headerMessage={headerMessage}
                 sections={sections}

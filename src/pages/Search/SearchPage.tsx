@@ -19,7 +19,6 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -27,6 +26,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -66,7 +66,6 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
@@ -91,6 +90,10 @@ function SearchPage({route}: SearchPageProps) {
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+
+    useEffect(() => {
+        confirmReadyToOpenApp();
+    }, []);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -159,7 +162,6 @@ function SearchPage({route}: SearchPageProps) {
                         jsonQuery: JSON.stringify(queryJSON),
                         reportIDList,
                         transactionIDList: selectedTransactionsKeys,
-                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
                     },
                     () => {
                         setIsDownloadErrorModalVisible(true);
@@ -195,7 +197,7 @@ function SearchPage({route}: SearchPageProps) {
                     const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
-                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                        : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
@@ -383,7 +385,6 @@ function SearchPage({route}: SearchPageProps) {
         isOffline,
         selectedReports,
         queryJSON,
-        activeWorkspaceID,
         clearSelectedTransactions,
         lastPaymentMethods,
         theme.icon,
@@ -463,11 +464,10 @@ function SearchPage({route}: SearchPageProps) {
             jsonQuery: JSON.stringify(queryJSON),
             reportIDList,
             transactionIDList: selectedTransactionsKeys,
-            policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
         });
         setExportMode(false);
         clearSelectedTransactions();
-    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID, setExportMode, clearSelectedTransactions]);
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, setExportMode, clearSelectedTransactions]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();

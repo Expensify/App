@@ -633,6 +633,14 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             },
         });
 
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                reportID,
+            },
+        });
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -644,10 +652,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         // 2. Keep track of the new report totals
         const transactionAmount = getAmount(transaction);
         if (oldReportID) {
-            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : oldReport?.total ?? 0) + transactionAmount;
+            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
         }
         if (reportID) {
-            updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : newReport.total ?? 0) - transactionAmount;
+            updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : (newReport.total ?? 0)) - transactionAmount;
         }
 
         // 3. Optimistically update the IOU action reportID

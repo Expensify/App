@@ -55,7 +55,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const accountMessage = account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account.message) : account?.message ?? '';
+    const accountMessage = account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account.message) : (account?.message ?? '');
 
     /**
      * Validate the input value and set the error for formError

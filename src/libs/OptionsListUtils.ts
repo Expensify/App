@@ -27,19 +27,19 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportAttributesDerivedValue,
     ReportNameValuePairs,
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
 import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
-import {translate, translateLocal} from './Localize';
+import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
@@ -62,6 +62,7 @@ import {
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
+    getRetractedMessage,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
@@ -88,17 +89,13 @@ import {
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
-    getAllReportErrors,
     getChatByParticipants,
     getChatRoomSubtitle,
     getDeletedParentActionMessageForChatReport,
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
     getIcons,
-    getIOUApprovedMessage,
     getIOUForwardedMessage,
-    getIOUSubmittedMessage,
-    getIOUUnapprovedMessage,
     getMoneyRequestSpendBreakdown,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
@@ -106,9 +103,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
-    getReportAutomaticallySubmittedMessage,
     getReportLastMessage,
     getReportName,
     getReportNotificationPreference,
@@ -229,6 +224,7 @@ type GetValidReportsReturnTypeCombined = {
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
+    includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
@@ -327,17 +323,6 @@ let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (allPersonalDetails = isEmptyObject(value) ? {} : value),
-});
-
-let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        preferredLocale = value;
-    },
 });
 
 const policies: OnyxCollection<Policy> = {};
@@ -449,6 +434,12 @@ let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
 Onyx.connect({
     key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     callback: (value) => (nvpDismissedProductTraining = value),
+});
+
+let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'] | undefined;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => (reportAttributesDerivedValue = value?.reports),
 });
 
 /**
@@ -614,11 +605,11 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
     if (isExpenseThread || option.isMoneyRequestReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'iou.expense');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('iou.expense');
     }
 
     if (option.isThread) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'threads.thread');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('threads.thread');
     }
 
     if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
@@ -630,16 +621,16 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
     }
 
     if (option.isTaskReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'task.task');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('task.task');
     }
 
     if (isGroupChat) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'common.group');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('common.group');
     }
 
     return showChatPreviewLine && formattedLastMessageText
         ? formattedLastMessageTextWithPrefix
-        : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
+        : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
 }
 
 /**
@@ -722,18 +713,18 @@ function getLastMessageTextForReport(
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
-                lastMessageTextFromReport = translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                lastMessageTextFromReport = translateLocal(`reportArchiveReasons.${archiveReason}`, {
                     displayName: formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails)),
                     policyName: getPolicyName({report, policy}),
                 });
                 break;
             }
             case CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED: {
-                lastMessageTextFromReport = translate(preferredLocale, `reportArchiveReasons.${archiveReason}`);
+                lastMessageTextFromReport = translateLocal(`reportArchiveReasons.${archiveReason}`);
                 break;
             }
             default: {
-                lastMessageTextFromReport = translate(preferredLocale, `reportArchiveReasons.default`);
+                lastMessageTextFromReport = translateLocal(`reportArchiveReasons.default`);
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
@@ -781,21 +772,21 @@ function getLastMessageTextForReport(
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
         isMarkAsClosedAction(lastReportAction)
     ) {
-        const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? getOriginalMessage(lastReportAction)?.harvesting ?? false : false;
+        const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? (getOriginalMessage(lastReportAction)?.harvesting ?? false) : false;
         if (wasSubmittedViaHarvesting) {
-            lastMessageTextFromReport = getReportAutomaticallySubmittedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.automaticallySubmitted');
         } else {
-            lastMessageTextFromReport = getIOUSubmittedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.submitted');
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
-            lastMessageTextFromReport = getReportAutomaticallyApprovedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.automaticallyApproved');
         } else {
-            lastMessageTextFromReport = getIOUApprovedMessage(lastReportAction);
+            lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
     } else if (isUnapprovedAction(lastReportAction)) {
-        lastMessageTextFromReport = getIOUUnapprovedMessage(lastReportAction);
+        lastMessageTextFromReport = translateLocal('iou.unapproved');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
@@ -821,7 +812,10 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getLeaveRoomMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
+        lastMessageTextFromReport = getRetractedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         lastMessageTextFromReport = getReopenedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
@@ -843,23 +837,18 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
     }
 
-    return lastMessageTextFromReport || (report?.lastMessageText ?? '');
-}
+    // If the last report action is a pending moderation action, get the last message text from the last visible report action
+    if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalReportAction)) {
+        lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+    }
 
-function hasReportErrors(report: Report, reportActions: OnyxEntry<ReportActions>) {
-    return !isEmptyObject(getAllReportErrors(report, reportActions));
+    return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
 /**
  * Creates a report list option
  */
-function createOption(
-    accountIDs: number[],
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
-    report: OnyxInputOrEntry<Report>,
-    reportActions: ReportActions,
-    config?: PreviewConfig,
-): OptionData {
+function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>, config?: PreviewConfig): OptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const result: OptionData = {
         text: undefined,
@@ -919,9 +908,9 @@ function createOption(
         result.shouldShowSubscript = shouldReportShowSubscript(report);
         result.isPolicyExpenseChat = reportUtilsIsPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
-        result.allReportErrors = getAllReportErrors(report, reportActions);
-        result.brickRoadIndicator = hasReportErrors(report, reportActions) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
+        result.allReportErrors = reportAttributesDerivedValue?.[report.reportID]?.reportErrors ?? {};
+        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat) : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
@@ -947,7 +936,7 @@ function createOption(
         // lastActorAccountID can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const lastActorAccountID = report.lastActorAccountID || lastAction?.actorAccountID;
-        const lastActorDetails = lastActorAccountID ? personalDetails?.[lastActorAccountID] ?? null : null;
+        const lastActorDetails = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, reportNameValuePairs);
         let lastMessageText = lastMessageTextFromReport;
@@ -999,16 +988,10 @@ function getReportOption(participant: Participant): OptionData {
     const report = getReportOrDraftReport(participant.reportID);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
-    const option = createOption(
-        visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
-        !isEmptyObject(report) ? report : undefined,
-        {},
-        {
-            showChatPreviewLine: false,
-            forcePolicyNamePreview: false,
-        },
-    );
+    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(report) ? report : undefined, {
+        showChatPreviewLine: false,
+        forcePolicyNamePreview: false,
+    });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
@@ -1043,16 +1026,10 @@ function getReportOption(participant: Participant): OptionData {
 function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
-    const option = createOption(
-        visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
-        !isEmptyObject(report) ? report : undefined,
-        {},
-        {
-            showChatPreviewLine: false,
-            forcePolicyNamePreview: false,
-        },
-    );
+    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(report) ? report : undefined, {
+        showChatPreviewLine: false,
+        forcePolicyNamePreview: false,
+    });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
@@ -1084,16 +1061,10 @@ function getPolicyExpenseReportOption(participant: Participant | OptionData): Op
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
 
-    const option = createOption(
-        visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
-        !isEmptyObject(expenseReport) ? expenseReport : null,
-        {},
-        {
-            showChatPreviewLine: false,
-            forcePolicyNamePreview: false,
-        },
-    );
+    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(expenseReport) ? expenseReport : null, {
+        showChatPreviewLine: false,
+        forcePolicyNamePreview: false,
+    });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = getPolicyName({report: expenseReport});
@@ -1170,7 +1141,7 @@ function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyT
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchTerm)));
-    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+    return parsedPhoneNumber.possible ? (parsedPhoneNumber.number?.e164 ?? '') : searchTerm.toLowerCase();
 }
 
 /**
@@ -1222,7 +1193,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, {}),
+            ...createOption(accountIDs, personalDetails, report),
         },
     };
 }
@@ -1248,13 +1219,9 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
-        ...createOption(
-            [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-            personalDetails,
-            reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-            {},
-            {showPersonalDetails: true},
-        ),
+        ...createOption([personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], {
+            showPersonalDetails: true,
+        }),
     }));
 
     return {
@@ -1268,7 +1235,7 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, {}),
+        ...createOption(accountIDs, personalDetails, report),
     };
 }
 
@@ -1419,14 +1386,7 @@ function canCreateOptimisticPersonalDetailOption({
  * - If prop shouldAcceptName = true, the searchValue can be also a normal string
  * - The searchValue isn't the current personal detail login
  */
-function getUserToInviteOption({
-    searchValue,
-    loginsToExclude = {},
-    selectedOptions = [],
-    reportActions = {},
-    showChatPreviewLine = false,
-    shouldAcceptName = false,
-}: GetUserToInviteConfig): OptionData | null {
+function getUserToInviteOption({searchValue, loginsToExclude = {}, selectedOptions = [], showChatPreviewLine = false, shouldAcceptName = false}: GetUserToInviteConfig): OptionData | null {
     if (!searchValue) {
         return null;
     }
@@ -1451,7 +1411,7 @@ function getUserToInviteOption({
             login: searchValue,
         },
     };
-    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, {
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
@@ -1626,7 +1586,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 
             if (reportPreviewAction) {
                 const iouReportID = getIOUReportIDFromReportActionPreview(reportPreviewAction);
-                const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] ?? [] : [];
+                const iouReportActions = iouReportID ? (allSortedReportActions[iouReportID] ?? []) : [];
                 const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                 if (lastIOUAction) {
                     lastIOUCreationDate = lastIOUAction.lastModified;
@@ -1818,7 +1778,7 @@ function getValidOptions(
         if (currentUserLogin) {
             personalDetailLoginsToExclude = {
                 ...loginsToExclude,
-                [currentUserLogin]: true,
+                [currentUserLogin]: !config.includeCurrentUser,
             };
         }
 
@@ -2050,22 +2010,22 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
     const isValidEmail = Str.isValidEmail(searchValue);
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
-        return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
+        return translateLocal('messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
-            return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
+            return translateLocal('messages.errorMessageInvalidPhone');
         }
         if (/@/.test(searchValue) && !isValidEmail) {
-            return translate(preferredLocale, 'messages.errorMessageInvalidEmail');
+            return translateLocal('messages.errorMessageInvalidEmail');
         }
         if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
             return '';
         }
-        return translate(preferredLocale, 'common.noResultsFound');
+        return translateLocal('common.noResultsFound');
     }
 
     return '';
@@ -2076,7 +2036,7 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
  */
 function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchValue: string): string {
     if (searchValue && !hasSelectableOptions) {
-        return translate(preferredLocale, 'common.noResultsFound');
+        return translateLocal('common.noResultsFound');
     }
     return '';
 }
@@ -2476,7 +2436,6 @@ export {
     getAttendeeOptions,
     getAlternateText,
     getReportDisplayOption,
-    hasReportErrors,
     combineOrderingOfReportsAndPersonalDetails,
     filterWorkspaceChats,
     orderWorkspaceOptions,
