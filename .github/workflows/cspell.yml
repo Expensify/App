@@ -1,12 +1,9 @@
 name: 🧙 Check spell
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
+    types: [opened, synchronize]
+    branches: [main]
 
 jobs:
   spellcheck:
