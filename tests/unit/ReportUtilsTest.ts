@@ -2809,10 +2809,9 @@ describe('ReportUtils', () => {
             };
             const report: Report = {
                 ...createRandomReport(1),
-                reportName: 'Test Report',
             };
             const result = getMoneyReportPreviewName(action, report);
-            expect(result).toBe('Test Report');
+            expect(result).toBe('Five, Four, One, Three, Two...');
         });
 
         it('should return the child report name if the report name is not present', () => {
@@ -2821,15 +2820,11 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportName: 'Child Report',
             };
-            const report: Report = {
-                ...createRandomReport(1),
-                reportName: '',
-            };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, undefined);
             expect(result).toBe('Child Report');
         });
     });
-    
+
     describe('canAddTransaction', () => {
         it('should return true for a non-archived report', async () => {
             // Given a non-archived expense report
