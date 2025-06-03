@@ -25,6 +25,7 @@ import {
     canHoldUnholdReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
+    hasReportBeenReopened as hasReportBeenReopenedUtils,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
@@ -55,14 +56,14 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
     if (!isReportSubmitter || reportTransactions.length === 0) {
         return false;
     }
 
-    return canAddTransaction(report);
+    return canAddTransaction(report, isReportArchived);
 }
 
 function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
@@ -102,7 +103,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     return isSubmitter || isAdmin || isManager;
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs): boolean {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]): boolean {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
     }
@@ -132,6 +133,11 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+        return false;
+    }
+
+    const hasReportBeenReopened = hasReportBeenReopenedUtils(reportActions);
+    if (hasReportBeenReopened && isReportSubmitter) {
         return false;
     }
 
@@ -498,11 +504,11 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
-    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions)) {
+    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs))) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
