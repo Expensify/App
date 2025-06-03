@@ -25,6 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReadNewestActionDebounced from '@hooks/useReadNewestActionDebounced';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -78,7 +79,6 @@ import {
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
 } from '@userActions/Report';
-import useReadNewestActionDebounced from '@hooks/useReadNewestActionDebounced';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';

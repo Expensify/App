@@ -1,8 +1,8 @@
 import {useState} from 'react';
 import type {MutableRefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import CONST from '@src/CONST';
 import useReadNewestActionDebounced from '@hooks/useReadNewestActionDebounced';
+import CONST from '@src/CONST';
 
 type Args = {
     /** The report ID */
