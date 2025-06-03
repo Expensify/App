@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+import {useCallback} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import useDebounce from '@hooks/useDebounce';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -152,8 +154,15 @@ describe('useReportUnreadMessageScrollTracking', () => {
                 result.current.trackVerticalScrolling(emptyScrollEventMock);
             });
 
+            const debouncedReadNewestAction = useDebounce(
+                useCallback(() => {
+                    readNewestAction(reportID);
+                }, [reportID]),
+                CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME,
+            );
+
             // Then
-            expect(readNewestAction).toBeCalledTimes(1);
+            expect(debouncedReadNewestAction).toBeCalledTimes(1);
             expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
             expect(readActionRefFalse.current).toBe(false);
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
