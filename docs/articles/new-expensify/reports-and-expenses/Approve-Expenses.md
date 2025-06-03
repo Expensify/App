@@ -9,11 +9,9 @@ Expenses can be created through manual entry, tracking distance, or scanning a r
 
 ---
 
-# Expenses Sent by an Individual Not on a Workspace
+# Expenses Sent to an Individual (Not a Workspace)
 
-When an expense is submitted to an individual (rather than a workspace), it doesn’t require approval—it just needs to be paid.
-
-See [Pay an Expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Pay-an-expense) for the payment steps.
+When an expense is submitted to an individual (rather than on a workspace), it won't go through an approval process. It only needs to be paid. See [Pay an Expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Pay-an-expense) for the payment steps.
 
 ---
 
