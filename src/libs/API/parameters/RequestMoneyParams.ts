@@ -25,8 +25,8 @@ type RequestMoneyParams = {
     taxAmount: number;
     billable?: boolean;
     receiptGpsPoints?: string;
-    transactionThreadReportID: string;
-    createdReportActionIDForThread: string | undefined;
+    transactionThreadReportID?: string;
+    createdReportActionIDForThread?: string | undefined;
     reimbursable?: boolean;
     description?: string;
     attendees?: string;

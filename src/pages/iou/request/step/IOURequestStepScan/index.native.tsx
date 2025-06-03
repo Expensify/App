@@ -37,6 +37,7 @@ import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
+import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
@@ -127,7 +128,7 @@ function IOURequestStepScan({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
+        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
@@ -522,6 +523,22 @@ function IOURequestStepScan({
     );
 
     /**
+     * Converts HEIC image to JPEG using promises
+     */
+    const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
+        return new Promise((resolve, reject) => {
+            convertHeicImage(file, {
+                onStart: () => setIsLoaderVisible(true),
+                onSuccess: (convertedFile) => resolve(convertedFile),
+                onError: (nonConvertedFile) => {
+                    reject(nonConvertedFile);
+                },
+                onFinish: () => setIsLoaderVisible(false),
+            });
+        });
+    };
+
+    /**
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
@@ -535,33 +552,56 @@ function IOURequestStepScan({
             return;
         }
 
-        resizeImageIfNeeded(originalFile).then((file) => {
-            // Store the receipt on the transaction object in Onyx
-            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-            // So, let us also save the file type in receipt for later use during blob fetch
-            setMoneyRequestReceipt(initialTransactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
+        // Helper function to process the file after any conversion
+        const processFile = (file: FileObject) => {
+            resizeImageIfNeeded(file).then((resizedFile) => {
+                // Store the receipt on the transaction object in Onyx
+                // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+                // So, let us also save the file type in receipt for later use during blob fetch
+                setMoneyRequestReceipt(initialTransactionID, resizedFile?.uri ?? '', resizedFile.name ?? '', !isEditing, resizedFile.type);
 
-            if (isEditing) {
-                updateScanAndNavigate(file, file?.uri ?? '');
-                return;
-            }
+                if (isEditing) {
+                    updateScanAndNavigate(resizedFile, resizedFile?.uri ?? '');
+                    return;
+                }
 
-            const newReceiptFiles = [{file, source: file?.uri ?? '', transactionID: initialTransactionID}];
+                const newReceiptFiles = [{file: resizedFile, source: resizedFile?.uri ?? '', transactionID: initialTransactionID}];
 
-            if (shouldSkipConfirmation) {
-                setReceiptFiles(newReceiptFiles);
-                const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                if (shouldSkipConfirmation) {
+                    setReceiptFiles(newReceiptFiles);
+                    const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && resizedFile;
 
-                if (gpsRequired) {
-                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                    if (beginLocationPermissionFlow) {
-                        setStartLocationPermissionFlow(true);
-                        return;
+                    if (gpsRequired) {
+                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                        if (beginLocationPermissionFlow) {
+                            setStartLocationPermissionFlow(true);
+                            return;
+                        }
                     }
                 }
-            }
-            navigateToConfirmationStep(newReceiptFiles, false);
-        });
+                navigateToConfirmationStep(newReceiptFiles, false);
+            });
+        };
+
+        // Check if the file is HEIC/HEIF and needs conversion
+        if (
+            originalFile?.type?.startsWith('image') &&
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            (originalFile.name?.toLowerCase().endsWith('.heic') || originalFile.name?.toLowerCase().endsWith('.heif'))
+        ) {
+            convertHeicImageToJpegPromise(originalFile)
+                .then((convertedFile) => {
+                    processFile(convertedFile);
+                })
+                .catch((fallbackFile: FileObject) => {
+                    // Use the original file if conversion fails
+                    processFile(fallbackFile);
+                });
+            return;
+        }
+
+        // Process the file directly if no conversion is needed
+        processFile(originalFile);
     };
 
     const capturePhoto = useCallback(() => {
