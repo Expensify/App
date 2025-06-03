@@ -355,6 +355,7 @@ function ReportFieldsListValuesPage({
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
                 {shouldShowEmptyState && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                        {headerContent}
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}

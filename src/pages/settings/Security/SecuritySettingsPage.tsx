@@ -60,7 +60,7 @@ function SecuritySettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
-    const {canUseMergeAccounts} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated;
@@ -134,7 +134,7 @@ function SecuritySettingsPage() {
             },
         ];
 
-        if (canUseMergeAccounts) {
+        if (isBetaEnabled(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS)) {
             baseMenuItems.push({
                 translationKey: 'mergeAccountsPage.mergeAccount',
                 icon: Expensicons.ArrowCollapse,
@@ -170,7 +170,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [isActingAsDelegate, waitForNavigate, canUseMergeAccounts, isAccountLocked, translate, styles.sectionMenuItemTopDescription]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, isBetaEnabled, isAccountLocked]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>

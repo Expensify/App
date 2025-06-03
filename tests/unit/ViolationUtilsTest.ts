@@ -250,7 +250,7 @@ describe('getViolationsOnyxData', () => {
             transaction.comment = {comment: ''};
         });
 
-        it.only('should add category specific violations', () => {
+        it('should add category specific violations', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([categoryOverLimitViolation, categoryReceiptRequiredViolation, categoryMissingCommentViolation, ...transactionViolations]));
         });
