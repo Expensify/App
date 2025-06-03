@@ -15,12 +15,13 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getPolicy, getTagLists} from '@libs/PolicyUtils';
+import {getPolicy, getTagLists, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag} from '@libs/TransactionUtils';
+import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,7 +56,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTag = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
     const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
 
     return (
@@ -113,29 +115,37 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 titleStyle={styles.flex1}
                             />
                         )}
-                        {shouldShowTag && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                key={translate('workspace.common.tags')}
-                                description={translate('workspace.common.tags')}
-                                title={transactionTag}
-                                numberOfLinesTitle={2}
-                                onPress={() => {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                            0,
-                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                            reportID,
-                                            Navigation.getActiveRoute(),
-                                        ),
-                                    );
-                                }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                            />
-                        )}
+                        {policyTagLists.map(({name, required, tags}, index) => {
+                            const isTagRequired = required ?? false;
+                            const shouldShow = shouldShowTags && (!isMultilevelTags || hasEnabledOptions(tags));
+                            if (!shouldShow) {
+                                return null;
+                            }
+                            return (
+                                <MenuItemWithTopDescription
+                                    key={name}
+                                    shouldShowRightIcon
+                                    title={getTagForDisplay(splitExpenseDraftTransaction, index)}
+                                    description={name}
+                                    numberOfLinesTitle={2}
+                                    onPress={() => {
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                index,
+                                                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                reportID,
+                                                Navigation.getActiveRoute(),
+                                            ),
+                                        );
+                                    }}
+                                    rightLabel={isTagRequired ? translate('common.required') : ''}
+                                    style={[styles.moneyRequestMenuItem]}
+                                    titleStyle={styles.flex1}
+                                />
+                            );
+                        })}
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             key={translate('common.date')}
