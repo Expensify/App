@@ -16,9 +16,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getPolicy} from '@libs/PolicyUtils';
+import {getPolicy, getTagLists} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {getTag} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,9 +34,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const {translate} = useLocalize();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
+    const report = getReportOrDraftReport(reportID);
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
+    const policy = getPolicy(report?.policyID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
@@ -46,8 +52,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const currentAmount = transactionDetailsAmount >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
-    const report = getReportOrDraftReport(reportID);
-    const policy = getPolicy(report?.policyID);
+    const transactionTag = getTag(splitExpenseDraftTransaction);
+    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+
+    const shouldShowTag = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
@@ -82,7 +91,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             titleWrapperStyle={styles.flex1}
                             numberOfLinesTitle={2}
                         />
-                        {!!policy?.areCategoriesEnabled && (
+                        {shouldShowCategory && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 key={translate('common.category')}
@@ -104,12 +113,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 titleStyle={styles.flex1}
                             />
                         )}
-                        {!!policy?.areTagsEnabled && (
+                        {shouldShowTag && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 key={translate('workspace.common.tags')}
                                 description={translate('workspace.common.tags')}
-                                title={splitExpenseDraftTransactionDetails?.tag}
+                                title={transactionTag}
                                 numberOfLinesTitle={2}
                                 onPress={() => {
                                     Navigation.navigate(
