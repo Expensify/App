@@ -613,7 +613,7 @@ function MoneyReportHeader({
         ),
     };
 
-    const {canUseRetractNewDot, canUseTableReportView} = usePermissions();
+    const {canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
@@ -624,8 +624,19 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot, canUseTableReportView, policies);
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot, canUseTableReportView, policies]);
+        return getSecondaryReportActions(
+            moneyRequestReport,
+            transactions,
+            violations,
+            policy,
+            reportNameValuePairs,
+            reportActions,
+            policies,
+            canUseRetractNewDot,
+            canUseTableReportView,
+            canUseNewDotSplits,
+        );
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -678,12 +689,7 @@ function MoneyReportHeader({
             text: translate('iou.approve', getAmount(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)),
             icon: Expensicons.ThumbsUp,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
-            onSelected: () => {
-                if (!moneyRequestReport) {
-                    return;
-                }
-                approveMoneyRequest(moneyRequestReport);
-            },
+            onSelected: confirmApproval,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),

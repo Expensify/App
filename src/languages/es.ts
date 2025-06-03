@@ -549,9 +549,24 @@ const translations = {
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
+        explore: 'Explorar',
+        todo: 'Tereas',
+        invoice: 'Factura',
+        expense: 'Gasto',
+        chat: 'Chat',
+        task: 'Tarea',
+        trip: 'Viaje',
+        apply: 'Aplicar',
+        status: 'Estado',
+        on: 'El',
+        before: 'Antes',
+        after: 'Después',
         reschedule: 'Reprogramar',
         general: 'General',
+        never: 'Nunca',
         workspacesTabTitle: 'Espacios',
+        getTheApp: 'Descarga la app',
+        scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -654,6 +669,7 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',
         findMember: 'Encuentra un miembro',
+        searchForSomeone: 'Busca a alguien',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -960,7 +976,7 @@ const translations = {
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto a ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : '[eliminado]'}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'movió este gasto a tu espacio personal',
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
@@ -5039,6 +5055,8 @@ const translations = {
                 eReceipts: 'Recibos electrónicos',
                 eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
                 eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
+                attendeeTracking: 'Seguimiento de asistentes',
+                attendeeTrackingHint: 'Haz un seguimiento del coste por persona para cada gasto.',
                 prohibitedDefaultDescription:
                     'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
                 prohibitedExpenses: 'Gastos prohibidos',
@@ -5059,7 +5077,7 @@ const translations = {
                 customNameInputLabel: 'Nombre',
                 customNameEmailPhoneExample: 'Correo electrónico o teléfono del miembro: {report:submit:from}',
                 customNameStartDateExample: 'Fecha de inicio del informe: {report:startdate}',
-                customNameWorkspaceNameExample: 'Nombre del espacio de trabajo: {report:policyname}',
+                customNameWorkspaceNameExample: 'Nombre del espacio de trabajo: {report:workspacename}',
                 customNameReportIDExample: 'ID del informe: {report:id}',
                 customNameTotalExample: 'Total: {report:total}.',
                 preventMembersFromChangingCustomNamesTitle: 'Evitar que los miembros cambien los nombres personalizados de los informes',
@@ -5126,6 +5144,8 @@ const translations = {
         scheduleACall: 'Programar llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
+        registerForWebinar: 'Registrarse para el seminario web',
+        onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
@@ -5299,6 +5319,7 @@ const translations = {
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {
             openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
+            markAllMessagesAsRead: 'Marcar todos los mensajes como leídos',
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
             newChat: 'Nueva pantalla de chat',
@@ -5324,6 +5345,11 @@ const translations = {
                 subtitle: 'Crea un gasto o haz una proba por Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un gasto.',
             },
+            emptyReportResults: {
+                title: 'Aún no has creado ningún informe',
+                subtitle: 'Crea un informe o haz una prueba de Expensify para aprender más.',
+                subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un informe.',
+            },
             emptyInvoiceResults: {
                 title: 'Aún no has creado \nninguna factura',
                 subtitle: 'Envía una factura o haz una proba por Expensify para aprender más.',
@@ -5333,6 +5359,23 @@ const translations = {
                 title: 'No tienes viajes',
                 subtitle: 'Reserva tu primer viaje a continuación.',
                 buttonText: 'Reserva un viaje',
+            },
+            emptySubmitResults: {
+                title: 'No hay gastos para enviar',
+                subtitle: 'Todo despejado. ¡Date una vuelta de victoria!',
+                buttonText: 'Crear informe',
+            },
+            emptyApproveResults: {
+                title: 'No hay gastos para aprobar',
+                subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
+            },
+            emptyPayResults: {
+                title: 'No hay gastos para pagar',
+                subtitle: '¡Felicidades! Has cruzado la línea de meta.',
+            },
+            emptyExportResults: {
+                title: 'No hay gastos para exportar',
+                subtitle: 'Es hora de relajarse, buen trabajo.',
             },
         },
         saveSearch: 'Guardar búsqueda',
@@ -5354,6 +5397,7 @@ const translations = {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Antes de ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Después de ${date ?? ''}`,
+                on: ({date}: OptionalParam<DateParams> = {}) => `En ${date ?? ''}`,
             },
             status: 'Estado',
             keyword: 'Palabra clave',
@@ -6924,7 +6968,7 @@ const translations = {
             helpText: 'Saltar',
             employee: {
                 description:
-                    '<muted-text>Consigue <strong>3 meses gratis</strong>  de Expensify para tu equipo. Solo introduce el correo electrónico de tu jefe abajo y le enviaremos un gasto escaneado de prueba — sin entrada manual.</muted-text>',
+                    '<muted-text>Consigue <strong>3 meses gratis</strong>  de Expensify para tu equipo. Solo introduce el correo electrónico de tu jefe abajo para enviarle un gasto escaneado de prueba.</muted-text>',
                 email: 'Introduce el correo electrónico de tu jefe',
                 error: 'Ese miembro es propietario de un espacio de trabajo, por favor introduce un nuevo miembro para probar.',
             },
