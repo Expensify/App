@@ -42,6 +42,7 @@ import {
     getRenamedAction,
     getReopenedMessage,
     getReportActionMessageText,
+    getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -626,6 +627,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, card}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(getRemovedConnectionMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
+                    setClipboardMessage(getTravelUpdateMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
                     const displayMessage = getPolicyChangeMessage(reportAction);
                     Clipboard.setString(displayMessage);
