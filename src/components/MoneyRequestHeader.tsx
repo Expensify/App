@@ -11,9 +11,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, initSplitExpense} from '@libs/actions/IOU';
+import {deleteMoneyRequest, initSplitExpense, deleteTrackExpense} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, getReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
@@ -329,8 +329,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     if (!parentReportAction || !transaction) {
                         throw new Error('Data missing');
                     }
-
-                    deleteMoneyRequest(transaction?.transactionID, parentReportAction, true);
+                    if (isTrackExpenseAction(parentReportAction)) {
+                        deleteTrackExpense(report?.chatReportID, transaction.transactionID, parentReportAction, true);
+                    } else {
+                        deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
+                    }
                     onBackButtonPress();
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
