@@ -614,6 +614,10 @@ const translations = {
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `You can only upload up to ${fileLimit} files at a time.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
+        someFilesCantBeUploaded: "Some files can't be uploaded",
+        sizeLimitExceeded: "Files must be under 10 MB. Any larger files won't be uploaded.",
+        maxFileLimitExceeded: "You can upload up to 30 receipts at a time. Any extras won't be uploaded.",
+        unsupportedFileType: "files aren't supported. Only supported file types will be uploaded. Learn more about supported formats."
     },
     dropzone: {
         addAttachments: 'Add attachments',

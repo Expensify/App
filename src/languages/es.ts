@@ -609,6 +609,10 @@ const translations = {
         attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Solamente puedes suber ${fileLimit} archivos a la vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB} MB. Por favor, vuelve a intentarlo.`,
+        someFilesCantBeUploaded: "Algunos archivos no se pueden subir",
+        sizeLimitExceeded: "Los archivos deben ser menores a 10 MB. Los archivos más grandes no se subirán.",
+        maxFileLimitExceeded: "Puedes subir hasta 30 recibos a la vez. Los extras no se subirán.",
+        unsupportedFileType: "archivos no son compatibles. Solo se subirán los tipos de archivo compatibles. Obtén más información sobre los formatos compatibles."
     },
     dropzone: {
         addAttachments: 'Añadir archivos adjuntos',
