@@ -25,8 +25,8 @@ import {
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
-    getPlaidInstitutionId,
     getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
     isCustomFeed,
 } from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
