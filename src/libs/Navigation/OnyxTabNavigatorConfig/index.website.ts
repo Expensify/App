@@ -1,5 +1,5 @@
 const defaultScreenOptions = {
-    animationEnabled: false,
+    animation: 'none',
 } as const;
 
 export {

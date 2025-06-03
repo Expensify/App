@@ -119,7 +119,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
             <StackNavigator.Navigator
                 id={id}
                 screenOptions={{
-                    animationEnabled: false,
+                    animation: 'none',
                     headerShown: false,
                 }}
                 screenListeners={{
