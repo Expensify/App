@@ -55,7 +55,7 @@ function acceptSpotnanaTerms(domain?: string) {
 }
 
 function requestTravelAccess() {
-    API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, {});
+    API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null);
 }
 
 function cleanupTravelProvisioningSession() {
