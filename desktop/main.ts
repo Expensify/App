@@ -21,7 +21,7 @@ import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
-const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
+const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
 
 // Setup google api key in process environment, we are setting it this way intentionally. It is required by the
 // geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
@@ -70,7 +70,7 @@ function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTa
  * @param preferredLocale - The current user language to be used for translating menu labels.
  * @returns A dispose function to clean up the created context menu.
  */
-function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => void {
+function createContextMenu(preferredLocale: Locale): () => void {
     return contextMenu({
         labels: {
             cut: translate(preferredLocale, 'desktopApplicationMenu.cut'),
@@ -95,7 +95,7 @@ function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => voi
     });
 }
 
-let disposeContextMenu = createContextMenu();
+let disposeContextMenu: (() => void) | undefined;
 
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
@@ -128,11 +128,7 @@ let hasUpdate = false;
 let downloadedVersion: string;
 let isSilentUpdating = false;
 let isUpdateInProgress = false;
-
-// Note that we have to subscribe to this separately and cannot use translateLocal,
-// because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
-// So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
-const preferredLocale: Locale = CONST.LOCALES.DEFAULT;
+let preferredLocale: Locale | undefined;
 
 const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
@@ -204,7 +200,7 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
         .then((result) => {
             const downloadPromise = result && 'downloadPromise' in result ? result.downloadPromise : undefined;
 
-            if (!browserWindow) {
+            if (!browserWindow || !preferredLocale) {
                 return;
             }
 
@@ -419,19 +415,16 @@ const mainWindow = (): Promise<void> => {
                 const initialMenuTemplate: MenuItemConstructorOptions[] = [
                     {
                         id: 'mainMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
                         submenu: [
                             {id: 'about', role: 'about'},
                             {
                                 id: 'update',
-                                label: translate(preferredLocale, `desktopApplicationMenu.update`),
                                 click: () => verifyAndInstallLatestVersion(browserWindow),
                                 visible: false,
                             },
-                            {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
+                            {id: 'checkForUpdates', click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
-                                label: translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
                                 accelerator: 'CmdOrCtrl+J',
                                 click: () => {
                                     showKeyboardShortcutsPage(browserWindow);
@@ -449,12 +442,10 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'fileMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.fileMenu`),
                         submenu: [{id: 'closeWindow', role: 'close', accelerator: 'Cmd+w'}],
                     },
                     {
                         id: 'editMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.editMenu`),
                         submenu: [
                             {id: 'undo', role: 'undo'},
                             {id: 'redo', role: 'redo'},
@@ -477,7 +468,6 @@ const mainWindow = (): Promise<void> => {
                             {type: 'separator'},
                             {
                                 id: 'speechSubmenu',
-                                label: translate(preferredLocale, `desktopApplicationMenu.speechSubmenu`),
                                 submenu: [
                                     {id: 'startSpeaking', role: 'startSpeaking'},
                                     {id: 'stopSpeaking', role: 'stopSpeaking'},
@@ -487,7 +477,6 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'viewMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.viewMenu`),
                         submenu: [
                             {id: 'reload', role: 'reload'},
                             {id: 'forceReload', role: 'forceReload'},
@@ -502,7 +491,6 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'historyMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.historyMenu`),
                         submenu: [
                             {
                                 id: 'back',
@@ -543,33 +531,28 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'helpMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
                         role: 'help',
                         submenu: [
                             {
                                 id: 'learnMore',
-                                label: translate(preferredLocale, `desktopApplicationMenu.learnMore`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.LEARN_MORE);
                                 },
                             },
                             {
                                 id: 'documentation',
-                                label: translate(preferredLocale, `desktopApplicationMenu.documentation`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.DOCUMENTATION);
                                 },
                             },
                             {
                                 id: 'communityDiscussions',
-                                label: translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
                                 },
                             },
                             {
                                 id: 'searchIssues',
-                                label: translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
                                 },
@@ -577,10 +560,6 @@ const mainWindow = (): Promise<void> => {
                         ],
                     },
                 ];
-
-                // Build and set the initial menu
-                const initialMenu = Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, preferredLocale));
-                Menu.setApplicationMenu(initialMenu);
 
                 // When the user clicks a link that has target="_blank" (which is all external links)
                 // open the default browser instead of a new electron window
@@ -682,9 +661,13 @@ const mainWindow = (): Promise<void> => {
                     app.hide();
                 }
 
+                // Note that we have to subscribe to this separately since we cannot listen to Onyx.connect here,
+                // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
+                // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale: Locale) => {
+                    preferredLocale = updatedLocale;
                     Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
-                    disposeContextMenu();
+                    disposeContextMenu?.();
                     disposeContextMenu = createContextMenu(updatedLocale);
                 });
 
