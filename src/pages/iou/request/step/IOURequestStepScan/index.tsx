@@ -34,7 +34,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -99,6 +98,8 @@ function IOURequestStepScan({
     transaction: initialTransaction,
     currentUserPersonalDetails,
     setTabSwipeDisabled,
+    isMultiScanEnabled = false,
+    setIsMultiScanEnabled,
     isTooltipAllowed = false,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
@@ -148,11 +149,8 @@ function IOURequestStepScan({
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(transactions.length > 1);
-
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();
-    const prevIsTabActive = usePrevious(isTabActive);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -241,15 +239,6 @@ function IOURequestStepScan({
                 setCameraPermissionState('denied');
             });
     }, []);
-
-    useEffect(() => {
-        if (isTabActive && !prevIsTabActive) {
-            setIsMultiScanEnabled(transactions.length > 1);
-        }
-        if (!isTabActive && prevIsTabActive) {
-            setIsMultiScanEnabled(false);
-        }
-    }, [isTabActive, prevIsTabActive, transactions.length]);
 
     useEffect(() => {
         if (!isMobile() || !isTabActive) {
@@ -717,7 +706,7 @@ function IOURequestStepScan({
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
         }
-        setIsMultiScanEnabled(!isMultiScanEnabled);
+        setIsMultiScanEnabled?.(!isMultiScanEnabled);
     };
 
     const clearTorchConstraints = useCallback(() => {

@@ -1,7 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/core';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -32,7 +32,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
@@ -91,6 +90,8 @@ function IOURequestStepScan({
     transaction: initialTransaction,
     currentUserPersonalDetails,
     setTabSwipeDisabled,
+    isMultiScanEnabled = false,
+    setIsMultiScanEnabled,
     isTooltipAllowed = false,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
@@ -123,7 +124,6 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const isTabActive = useIsFocused();
-    const prevIsTabActive = usePrevious(isTabActive);
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -140,20 +140,10 @@ function IOURequestStepScan({
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(transactions.length > 1);
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
         opacity: blinkOpacity.get(),
     }));
-
-    useEffect(() => {
-        if (isTabActive && !prevIsTabActive) {
-            setIsMultiScanEnabled(transactions.length > 1);
-        }
-        if (!isTabActive && prevIsTabActive) {
-            setIsMultiScanEnabled(false);
-        }
-    }, [isTabActive, prevIsTabActive, transactions.length]);
 
     const showBlink = useCallback(() => {
         blinkOpacity.set(
@@ -720,7 +710,7 @@ function IOURequestStepScan({
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
         }
-        setIsMultiScanEnabled(!isMultiScanEnabled);
+        setIsMultiScanEnabled?.(!isMultiScanEnabled);
     };
 
     // Wait for camera permission status to render
