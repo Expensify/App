@@ -58,7 +58,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
-    const {canUseDefaultRooms} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -230,14 +230,14 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
         navigateAfterOnboarding(
             isSmallScreenWidth,
-            canUseDefaultRooms,
+            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
             // See https://github.com/Expensify/App/issues/57167 for more details
             (session?.email ?? '').includes('+'),
         );
-    }, [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, canUseDefaultRooms, session?.email]);
+    }, [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, isBetaEnabled, session?.email]);
 
     const inviteUser = useCallback(() => {
         let isValid = true;
