@@ -188,7 +188,9 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     if (
         !hasAnyViolations ||
         isReimbursed ||
-        (!(isSubmitter && isOpen) && !canApprove(report, violations, policy, transactions, false) && !canPay(report, violations, policy, isReportArchived, policy, false))
+        (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
+            !canApprove(report, violations, policy, transactions, false) &&
+            !canPay(report, violations, policy, isReportArchived, policy, false))
     ) {
         return false;
     }
@@ -204,7 +206,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     }
 
     if (policy) {
-        return !!policy.areWorkflowsEnabled;
+        return !!policy.areWorkflowsEnabled || isSubmitter;
     }
 
     return true;
