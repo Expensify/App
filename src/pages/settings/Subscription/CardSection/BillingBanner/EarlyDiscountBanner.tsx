@@ -31,7 +31,7 @@ type EarlyDiscountBannerProps = {
     onDismissedDiscountBanner?: () => void;
 
     /** Has user active Schedule call with guide */
-    hasActiveScheduledCall: boolean | undefined;
+    hasActiveScheduledCall?: boolean;
 };
 
 function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, onDismissedDiscountBanner, hasActiveScheduledCall}: EarlyDiscountBannerProps) {
