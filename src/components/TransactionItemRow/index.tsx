@@ -31,6 +31,7 @@ import {
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {TransactionViolation} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -41,6 +42,7 @@ import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import TransactionItemRowRBR from './TransactionItemRowRBR';
+import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
 
 type ColumnComponents = {
     [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
@@ -73,6 +75,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Type of transaction */
     transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
+
+    /** Precomputed violations */
+    violations?: TransactionViolation[];
 };
 
 type TransactionItemRowProps = {
@@ -90,7 +95,7 @@ type TransactionItemRowProps = {
     scrollToNewTransaction?: ((offset: number) => void) | undefined;
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
-    shouldUseAnimatedHighlight?: boolean;
+    isInReportTableView?: boolean;
 };
 
 /** If merchant name is empty or (none), then it falls back to description if screen is narrow */
@@ -126,7 +131,7 @@ function TransactionItemRow({
     scrollToNewTransaction,
     isReportItemChild = false,
     isActionLoading,
-    shouldUseAnimatedHighlight = false,
+    isInReportTableView = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -311,7 +316,7 @@ function TransactionItemRow({
         >
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldUseNarrowLayout ? (
-                    <Animated.View style={[shouldUseAnimatedHighlight ? animatedHighlightStyle : {}]}>
+                    <Animated.View style={[isInReportTableView ? animatedHighlightStyle : {}]}>
                         <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, styles.pt2, bgActiveStyles]}>
                             <View style={[styles.flexRow]}>
                                 {shouldShowCheckbox && (
@@ -387,7 +392,7 @@ function TransactionItemRow({
                                             />
                                         </View>
                                     )}
-                                    <TransactionItemRowRBR
+                                    <TransactionItemRowRBRWithOnyx
                                         transaction={transactionItem}
                                         containerStyles={[styles.mt2, styles.minHeight4]}
                                     />
@@ -400,7 +405,7 @@ function TransactionItemRow({
                         </View>
                     </Animated.View>
                 ) : (
-                    <Animated.View style={[shouldUseAnimatedHighlight ? animatedHighlightStyle : {}]}>
+                    <Animated.View style={[isInReportTableView ? animatedHighlightStyle : {}]}>
                         <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles, styles.mw100]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                                 <View style={[styles.mr1]}>
@@ -415,7 +420,12 @@ function TransactionItemRow({
                                 </View>
                                 {columns?.map((column) => columnComponent[column])}
                             </View>
-                            <TransactionItemRowRBR transaction={transactionItem} />
+                            {}
+                            {isInReportTableView ? (
+                                <TransactionItemRowRBRWithOnyx transaction={transactionItem} />
+                            ) : (
+                                <TransactionItemRowRBR transactionViolations={transactionItem.violations} /> // We are rendering this component only if we are not in the report table view for performance reasons
+                            )}
                         </View>
                     </Animated.View>
                 )}
