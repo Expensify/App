@@ -10,7 +10,6 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
