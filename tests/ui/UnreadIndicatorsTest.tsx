@@ -368,6 +368,16 @@ describe('Unread Indicators', () => {
             .then(waitForBatchedUpdates)
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                
+                // Wait for debounced read action to complete and update display names
+                await waitFor(() => {
+                    const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                    const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
+                    const firstReportFontWeight = (displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight;
+                    // Wait until the first report shows normal font weight (read state)
+                    expect(firstReportFontWeight).toBe(FontUtils.fontWeight.normal);
+                }, { timeout: CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME + 1000 });
+
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
