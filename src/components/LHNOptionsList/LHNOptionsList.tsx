@@ -55,6 +55,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -237,6 +238,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                     activePolicyID={activePolicyID}
                     onboardingPurpose={introSelected?.choice}
+                    isFullscreenVisible={isFullscreenVisible}
                 />
             );
         },
@@ -258,7 +260,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isOffline,
             firstReportIDWithGBRorRBR,
             activePolicyID,
-            introSelected?.choice
+            introSelected?.choice,
+            isFullscreenVisible
         ],
     );
 
