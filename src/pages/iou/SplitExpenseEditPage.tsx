@@ -7,6 +7,7 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
@@ -59,7 +60,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         })}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
-                    <View style={[styles.flex1]}>
+                    <ScrollView>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             shouldRenderAsHTML
@@ -146,7 +147,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                         />
-                    </View>
+                    </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
                         {Number(splitExpensesList?.length) > 2 && (
                             <Button
