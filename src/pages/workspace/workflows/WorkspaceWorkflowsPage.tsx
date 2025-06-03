@@ -60,7 +60,7 @@ type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<Wo
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -155,7 +155,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
-        const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting ?? !!policy?.errorFields?.autoReportingFrequency;
+        const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
 
         return [
             {
@@ -168,7 +168,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subMenuItems: (
                     <MenuItemWithTopDescription
                         title={
-                            getAutoReportingFrequencyDisplayNames(preferredLocale)[
+                            getAutoReportingFrequencyDisplayNames(translate)[
                                 (getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
                             ]
                         }
@@ -317,7 +317,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         policy,
         styles,
         translate,
-        preferredLocale,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
         approvalWorkflows,

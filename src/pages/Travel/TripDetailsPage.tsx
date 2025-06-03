@@ -40,7 +40,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isBetaEnabled, isBlockedFromSpotnanaTravel} = usePermissions();
+    const {isBlockedFromSpotnanaTravel} = usePermissions();
     const {isOffline} = useNetwork();
 
     const [isModifyTripLoading, setIsModifyTripLoading] = useState(false);
@@ -55,10 +55,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const reservationType = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0)?.type;
     const reservation = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0);
     const reservationIcon = getTripReservationIcon(reservation?.type);
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation),
-        canBeMissing: false,
-    });
+    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation), canBeMissing: true});
 
     return (
         <ScreenWrapper
@@ -70,7 +67,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={!reservation || (!CONFIG.IS_HYBRID_APP && (!isBetaEnabled(CONST.BETAS.SPOTNANA_TRAVEL) || isBlockedFromSpotnanaTravel))}
+                shouldShow={!reservation || (!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel)}
             >
                 <HeaderWithBackButton
                     title={reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details')}

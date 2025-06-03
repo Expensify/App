@@ -1060,6 +1060,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -1129,6 +1130,7 @@ const CONST = {
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
+    REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1890,7 +1892,7 @@ const CONST = {
     DISPLAY_PARTICIPANTS_LIMIT: 5,
 
     // Amount of emojis to render ahead at the end of the update cycle
-    EMOJI_DRAW_AMOUNT: 250,
+    EMOJI_DRAW_AMOUNT: 100,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -7158,6 +7160,11 @@ const CONST = {
             DESCRIPTION: 'My test drive receipt!',
             MERCHANT: "Tommy's Tires",
         },
+    },
+
+    ONBOARDING_HELP: {
+        TALK_TO_SALES: 'talkToSales',
+        REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
 
     SCHEDULE_CALL_STATUS: {

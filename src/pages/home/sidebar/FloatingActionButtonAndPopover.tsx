@@ -471,16 +471,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   },
               ]
             : []),
-        ...(isBetaEnabled(CONST.BETAS.SPOTNANA_TRAVEL)
-            ? [
-                  {
-                      icon: Expensicons.Suitcase,
-                      text: translate('travel.bookTravel'),
-                      rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
-                      onSelected: () => interceptAnonymousUser(() => openTravel()),
-                  },
-              ]
-            : []),
+        ...[
+            {
+                icon: Expensicons.Suitcase,
+                text: translate('travel.bookTravel'),
+                rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
+                onSelected: () => interceptAnonymousUser(() => openTravel()),
+            },
+        ],
         ...(!hasSeenTour
             ? [
                   {
