@@ -4990,11 +4990,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                alcohol: 'alcohol',
-                hotelIncidentals: 'hotel incidentals',
-                gambling: 'gambling',
-                tobacco: 'tobacco',
-                adultEntertainment: 'adult entertainment',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Hotel incidentals',
+                gambling: 'Gambling',
+                tobacco: 'Tobacco',
+                adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
@@ -5093,6 +5093,8 @@ const translations = {
         scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
+        registerForWebinar: 'Register for webinar',
+        onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',

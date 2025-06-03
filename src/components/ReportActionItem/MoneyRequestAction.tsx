@@ -98,7 +98,7 @@ function MoneyRequestAction({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
@@ -134,7 +134,7 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         if (!action?.childReportID && transactionID && action.reportActionID) {
             const optimisticReportID = generateReportID();
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute(), requestReportID));
             return;
         }
 
@@ -166,7 +166,7 @@ function MoneyRequestAction({
     }
 
     // Condition extracted from MoneyRequestPreview
-    const renderCondition = !(lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction)) && canUseTableReportView && isReviewDuplicateTransactionPage;
+    const renderCondition = !(lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction)) && isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && isReviewDuplicateTransactionPage;
     const isLayoutWidthInvalid = (layoutWidth: number) => {
         return (shouldUseNarrowLayout && layoutWidth > variables.mobileResponsiveWidthBreakpoint) || (!shouldUseNarrowLayout && layoutWidth > variables.sideBarWidth);
     };

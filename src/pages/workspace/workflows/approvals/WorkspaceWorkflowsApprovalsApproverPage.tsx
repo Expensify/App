@@ -25,6 +25,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -136,13 +137,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         }
 
         const filteredApprovers =
-            debouncedSearchTerm !== ''
-                ? approvers.filter((option) => {
-                      const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-                      const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                      return isPartOfSearchTerm;
-                  })
-                : approvers;
+            debouncedSearchTerm !== '' ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : approvers;
 
         const data = sortAlphabetically(filteredApprovers, 'text');
         return [

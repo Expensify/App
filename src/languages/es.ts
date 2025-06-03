@@ -5060,11 +5060,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
                 prohibitedExpenses: 'Gastos prohibidos',
-                alcohol: 'alcohol',
-                hotelIncidentals: 'gastos adicionales de hotel',
-                gambling: 'juegos de apuestas',
-                tobacco: 'tabaco',
-                adultEntertainment: 'entretenimiento para adultos',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Gastos adicionales de hotel',
+                gambling: 'Juegos de apuestas',
+                tobacco: 'Tabaco',
+                adultEntertainment: 'Entretenimiento para adultos',
             },
             expenseReportRules: {
                 examples: 'Ejemplos:',
@@ -5144,6 +5144,8 @@ const translations = {
         scheduleACall: 'Programar llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
+        registerForWebinar: 'Registrarse para el seminario web',
+        onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
