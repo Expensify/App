@@ -14,12 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import {
-    cleanFileName,
-    getFileName, getFileValidationErrorText,
-    validateImageForCorruption,
-    validateReceiptFile,
-} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileName, getFileValidationErrorText, validateImageForCorruption, validateReceiptFile} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -350,16 +345,24 @@ function AttachmentModal({
         return true;
     }, []);
 
-    const validateAndDisplayMultipleFilesToUpload = useCallback((data: FileObject[]) => {
-        if (!data?.length) {
-            return;
-        }
-        if (data.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-            setAttachmentInvalidReason('attachmentPicker.tooManyFiles');
-        }
-    }, []);
+    const validateAndDisplayMultipleFilesToUpload = useCallback(
+        (data: FileObject[]) => {
+            if (!data?.length || data.some((fileObject) => !isDirectoryCheck(fileObject))) {
+                return;
+            }
+            if (data.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
+                setFileError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            data.forEach((fileToUpload) =>
+                isValidFile(fileToUpload).then((isValid) => {
+                    console.log(fileToUpload, isValid);
+                }),
+            );
+        },
+        [isDirectoryCheck, isValidFile],
+    );
 
     const validateAndDisplayFileToUpload = useCallback(
         (data: FileObject) => {
@@ -530,7 +533,7 @@ function AttachmentModal({
                     setShouldLoadAttachment(false);
                     clearAttachmentErrors();
                     if (isPDFLoadError.current) {
-                        setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)
+                        setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
                         return;
                     }
 

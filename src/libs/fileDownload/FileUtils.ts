@@ -415,6 +415,8 @@ const getFileValidationErrorText = (
             return {title: 'attachmentPicker.attachmentTooSmall', reason: 'attachmentPicker.sizeNotMet'};
         case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
             return {title: 'attachmentPicker.attachmentError', reason: 'attachmentPicker.folderNotAllowedMessage'};
+        case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
+            return {title: 'attachmentPicker.someFilesCantBeUploaded', reason: 'attachmentPicker.maxFileLimitExceeded'};
         case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
             return {
                 title: 'attachmentPicker.attachmentError',
