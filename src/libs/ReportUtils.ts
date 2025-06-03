@@ -117,6 +117,7 @@ import {
     getActivePolicies,
     getForwardsToAccount,
     getManagerAccountEmail,
+    getManagerAccountID,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getPolicyNameByID,
     getPolicyRole,
@@ -616,7 +617,7 @@ type OptimisticModifiedExpenseReportAction = Pick<
     | 'delegateAccountID'
 > & {reportID?: string};
 
-type OptimisticMoneyRequestEntities = {
+type BaseOptimisticMoneyRequestEntities = {
     iouReport: Report;
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     amount: number;
@@ -633,6 +634,10 @@ type OptimisticMoneyRequestEntities = {
     existingTransactionThreadReportID?: string;
     linkedTrackedExpenseReportAction?: ReportAction;
 };
+
+type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateOptimisticTransactionThread?: boolean};
+type OptimisticMoneyRequestEntitiesWithTransactionThreadFlag = BaseOptimisticMoneyRequestEntities & {shouldGenerateOptimisticTransactionThread: boolean};
+type OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag = BaseOptimisticMoneyRequestEntities;
 
 type OptimisticTaskReport = SetRequired<
     Pick<
@@ -2329,12 +2334,8 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(moneyRequestReport?.reportID);
-
-    if (!isMoneyRequestReport(moneyRequestReport) || isArchivedReport(reportNameValuePairs)) {
+function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
         return false;
     }
 
@@ -2361,7 +2362,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
  * - report is a non-settled IOU
  * - report is a draft
  */
-function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
+function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
@@ -2371,7 +2372,7 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    return canAddOrDeleteTransactions(moneyRequestReport);
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
 }
 
 /**
@@ -2380,8 +2381,8 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
  * - report is a non-settled IOU
  * - report is a non-approved IOU
  */
-function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
-    return canAddOrDeleteTransactions(moneyRequestReport);
+function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
 }
 
 /**
@@ -4057,8 +4058,8 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
 
     const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
 
-    if (!transactionID || !reportAction.childReportID) {
-        Log.warn('Missing transactionID and reportAction.childReportID during the change of the money request hold status');
+    if (!transactionID) {
+        Log.warn('Missing transactionID during the change of the money request hold status');
         return;
     }
 
@@ -4066,7 +4067,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
-    if (isOnHold) {
+    if (isOnHold && reportAction.childReportID) {
         unholdRequest(transactionID, reportAction.childReportID);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
@@ -5750,7 +5751,7 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         parentReportID: parentReport?.reportID,
         parentReportActionID,
         chatReportID: parentReport?.reportID,
-        managerID: getSubmitToAccountID(policy, undefined),
+        managerID: getManagerAccountID(policy, {ownerAccountID: accountID}),
     };
 
     const optimisticReportName = populateOptimisticReportFormula(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, optimisticEmptyReport, policy);
@@ -7437,6 +7438,7 @@ function buildTransactionThread(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
     moneyRequestReport: OnyxEntry<Report>,
     existingTransactionThreadReportID?: string,
+    optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
     const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
@@ -7459,6 +7461,7 @@ function buildTransactionThread(
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportActionID: reportAction?.reportActionID,
         parentReportID: moneyRequestReport?.reportID,
+        optimisticReportID: optimisticTransactionThreadReportID,
     });
 }
 
@@ -7471,6 +7474,12 @@ function buildTransactionThread(
  * 4. Transaction Thread linked to the IOU action via `parentReportActionID`
  * 5. CREATED action for the Transaction Thread
  */
+function buildOptimisticMoneyRequestEntities(
+    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null];
+function buildOptimisticMoneyRequestEntities(
+    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithTransactionThreadFlag,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport | undefined, OptimisticCreatedReportAction | null];
 function buildOptimisticMoneyRequestEntities({
     iouReport,
     type,
@@ -7484,10 +7493,17 @@ function buildOptimisticMoneyRequestEntities({
     isSettlingUp = false,
     isSendMoneyFlow = false,
     isOwnPolicyExpenseChat = false,
+    shouldGenerateOptimisticTransactionThread = true,
     isPersonalTrackingExpense,
     existingTransactionThreadReportID,
     linkedTrackedExpenseReportAction,
-}: OptimisticMoneyRequestEntities): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null] {
+}: OptimisticMoneyRequestEntities): [
+    OptimisticCreatedReportAction,
+    OptimisticCreatedReportAction,
+    OptimisticIOUReportAction,
+    OptimisticChatReport | undefined,
+    OptimisticCreatedReportAction | null,
+] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
@@ -7512,11 +7528,11 @@ function buildOptimisticMoneyRequestEntities({
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
-    const transactionThread = buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID);
-    const createdActionForTransactionThread = existingTransactionThreadReportID ? null : buildOptimisticCreatedReportAction(payeeEmail);
+    const transactionThread = shouldGenerateOptimisticTransactionThread ? buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID) : undefined;
+    const createdActionForTransactionThread = !!existingTransactionThreadReportID || !shouldGenerateOptimisticTransactionThread ? null : buildOptimisticCreatedReportAction(payeeEmail);
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
-    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread.reportID;
+    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread?.reportID;
 
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
@@ -9332,12 +9348,12 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
 
 /**
  * Get optimistic data of parent report action
- * @param reportID The reportID of the report that is updated
+ * @param reportOrID The reportID of the report that is updated or the optimistic report on its own
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForParentReportAction(reportID: string | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
-    const report = getReportOrDraftReport(reportID);
+function getOptimisticDataForParentReportAction(reportOrID: Report | string | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
+    const report = typeof reportOrID === 'string' ? getReportOrDraftReport(reportOrID) : reportOrID;
 
     if (!report || isEmptyObject(report)) {
         return [];
