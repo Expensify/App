@@ -74,6 +74,9 @@ type FormAlertWithSubmitButtonProps = {
 
     /** Whether to add a bottom padding to the button */
     addButtonBottomPadding?: boolean;
+
+    /** Prevents the button from triggering blur on mouse down. */
+    shouldPreventDefaultFocusOnPress?: boolean;
 };
 
 function FormAlertWithSubmitButton({
@@ -98,6 +101,7 @@ function FormAlertWithSubmitButton({
     shouldRenderFooterAboveSubmit = false,
     shouldBlendOpacity = false,
     addButtonBottomPadding = true,
+    shouldPreventDefaultFocusOnPress = false,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
@@ -130,6 +134,7 @@ function FormAlertWithSubmitButton({
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}
+                            onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                         />
                     ) : (
                         <Button
@@ -146,6 +151,7 @@ function FormAlertWithSubmitButton({
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}
+                            onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                         />
                     )}
                     {!shouldRenderFooterAboveSubmit && footerContent}
