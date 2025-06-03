@@ -90,6 +90,8 @@ type OptionRowLHNDataProps = {
     /** Whether the fullscreen is visible */
     isFullscreenVisible?: boolean;
 
+    isReportsSplitNavigatorLast: boolean;
+
     /**
      * Array of report actions for the IOU report related to the last action of this report.
      * If the last action is a report action preview, the last message of the report depends on
@@ -150,6 +152,8 @@ type OptionRowLHNProps = {
 
     /** Whether the fullscreen is visible */
     isFullscreenVisible?: boolean;
+
+    isReportsSplitNavigatorLast: boolean;
 
     /** Whether a report contains a draft */
     hasDraftComment: boolean;

@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
@@ -27,6 +28,7 @@ import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -61,6 +63,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
+    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
@@ -239,6 +242,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     activePolicyID={activePolicyID}
                     onboardingPurpose={introSelected?.choice}
                     isFullscreenVisible={isFullscreenVisible}
+                    isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                 />
             );
         },
@@ -261,7 +265,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             firstReportIDWithGBRorRBR,
             activePolicyID,
             introSelected?.choice,
-            isFullscreenVisible
+            isFullscreenVisible,
+            isReportsSplitNavigatorLast
         ],
     );
 

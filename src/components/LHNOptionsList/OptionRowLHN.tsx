@@ -18,7 +18,6 @@ import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,7 +42,6 @@ import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
@@ -57,6 +55,7 @@ function OptionRowLHN({
     activePolicyID,
     onboardingPurpose,
     isFullscreenVisible,
+    isReportsSplitNavigatorLast,
     style,
     onLayout = () => {},
     hasDraftComment,
@@ -74,8 +73,6 @@ function OptionRowLHN({
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurpose);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
-
-    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     const {tooltipToRender, shouldShowTooltip, shouldTooltipBeLeftAligned} = useMemo(() => {
         let tooltip: ProductTrainingTooltipName;
