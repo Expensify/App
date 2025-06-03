@@ -91,6 +91,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
+    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
@@ -213,13 +215,12 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                               },
                           ]
                         : []),
-                    ...(isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && !!Object.keys(allPolicies ?? {})?.length
+                    ...(isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && groupPoliciesWithChatEnabled.length > 0
                         ? [
                               {
                                   buttonText: translate('quickAction.createReport'),
                                   buttonAction: () => {
                                       interceptAnonymousUser(() => {
-                                          const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
                                           let workspaceIDForReportCreation: string | undefined;
 
                                           if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
@@ -360,7 +361,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         introSelected?.choice,
         hasSeenTour,
         isBetaEnabled,
-        allPolicies,
+        groupPoliciesWithChatEnabled,
         activePolicy,
         activePolicyID,
         currentUserPersonalDetails,
