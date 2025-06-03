@@ -105,6 +105,7 @@ function IOURequestStepScan({
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -135,10 +136,9 @@ function IOURequestStepScan({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
-    // TODO: remove when multi-scan functionality is removed from beta
-    const {canUseMultiScan: canUseMultiScanBeta} = usePermissions();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const canUseMultiScan = canUseMultiScanBeta && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
+    // TODO: remove beta check when multi-scan functionality is removed from the beta
+    const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
@@ -155,8 +155,6 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
-
-    const {isBetaEnabled} = usePermissions();
 
     const platform = getPlatform(true);
 

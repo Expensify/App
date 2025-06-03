@@ -107,9 +107,8 @@ function IOURequestStepScan({
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
-    // TODO: remove when multi-scan functionality is removed from beta
-    const {canUseMultiScan: canUseMultiScanBeta} = usePermissions();
-    const canUseMultiScan = canUseMultiScanBeta && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
+    // TODO: remove beta check when multi-scan functionality is removed from the beta
+    const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
