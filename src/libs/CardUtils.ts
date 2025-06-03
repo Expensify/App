@@ -84,7 +84,7 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     if (!card) {
         return '';
     }
-    const isPlaid = getPlaidInstitutionId(card.bank);
+    const isPlaid = !!getPlaidInstitutionId(card.bank);
     const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
@@ -415,22 +415,21 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     return customFeedName ?? formattedFeedName;
 }
 
-function getPlaidInstitutionLink(plaid?: string) {
-    const bank = plaid?.split('.');
-    if (!bank || bank?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+function getPlaidInstitutionIconUrl(feedName?: string) {
+    const institutionId = getPlaidInstitutionId(feedName);
+    if (!institutionId) {
         return '';
     }
-
-    return `${CONST.COMPANY_CARD_PLAID}${bank.at(1)}.png`;
+    return `${CONST.COMPANY_CARD_PLAID}${institutionId}.png`;
 }
 
-function getPlaidInstitutionId(plaid?: string) {
-    const bank = plaid?.split('.');
-    if (!bank || bank?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+function getPlaidInstitutionId(feedName?: string) {
+    const feed = feedName?.split('.');
+    if (!feed || feed?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
         return '';
     }
 
-    return bank.at(1);
+    return feed.at(1);
 }
 
 function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData: CardFeedData | undefined): number {
@@ -718,7 +717,7 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
-    getPlaidInstitutionLink,
+    getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
     getCustomCardName,

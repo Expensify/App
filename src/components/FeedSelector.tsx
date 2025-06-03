@@ -7,8 +7,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import * as Illustrations from './Icon/Illustrations';
-import Image from './Image';
+import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 
@@ -46,18 +45,7 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
             accessibilityLabel={feedName ?? ''}
         >
             {plaidUrl ? (
-                <View>
-                    <Image
-                        source={{uri: plaidUrl}}
-                        style={styles.plaidIconSmall}
-                        cachePolicy="memory-disk"
-                    />
-                    <Icon
-                        src={Illustrations.PlaidCompanyCardDetail}
-                        height={variables.cardIconHeight}
-                        width={variables.cardIconWidth}
-                    />
-                </View>
+                <PlaidCardFeedIcon plaidUrl={plaidUrl} />
             ) : (
                 <Icon
                     src={cardIcon}

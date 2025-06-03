@@ -1,11 +1,10 @@
 import React from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import Image from '@components/Image';
 import MenuItem from '@components/MenuItem';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -22,7 +21,7 @@ import {
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
-    getPlaidInstitutionLink,
+    getPlaidInstitutionIconUrl,
     getSelectedFeed,
 } from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -33,7 +32,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {updateSelectedFeed} from '@userActions/Card';
 import {clearAddNewCardFlow} from '@userActions/CompanyCards';
-import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,7 +66,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feed}`],
         );
         const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
-        const plaidUrl = getPlaidInstitutionLink(feed);
+        const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
         return {
             value: feed,
@@ -80,18 +78,10 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             canShowSeveralIndicators: isFeedConnectionBroken,
             leftElement: feed ? (
-                <View style={styles.mr3}>
-                    <Image
-                        source={{uri: plaidUrl}}
-                        style={styles.plaidIconSmall}
-                        cachePolicy="memory-disk"
-                    />
-                    <Icon
-                        src={Illustrations.PlaidCompanyCardDetail}
-                        height={variables.cardIconHeight}
-                        width={variables.cardIconWidth}
-                    />
-                </View>
+                <PlaidCardFeedIcon
+                    plaidUrl={plaidUrl}
+                    style={styles.mr3}
+                />
             ) : (
                 <Icon
                     src={getCardFeedIcon(feed, illustrations)}

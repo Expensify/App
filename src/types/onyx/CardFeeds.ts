@@ -122,11 +122,11 @@ type AddNewCardFeedData = {
     /** Public token from Plaid connection */
     publicToken?: string;
 
-    /** Bank from Plaid connection */
-    plaidConnectedBank?: string;
+    /** Feed from Plaid connection */
+    plaidConnectedFeed?: string;
 
-    /** Bank name from Plaid connection */
-    plaidConnectedBankName?: string;
+    /** Feed name from Plaid connection */
+    plaidConnectedFeedName?: string;
 };
 
 /** Issue new card flow steps */

@@ -51,19 +51,19 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const selectedBank = addNewCard?.data?.selectedBank;
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const bankName = feed ? getBankName(feed) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedBank ?? selectedBank);
+    const bankName = feed ? getBankName(feed) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
     const {canUsePlaidCompanyCards} = usePermissions();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
-    const plaidFeed = addNewCard?.data?.plaidConnectedBank ?? assignCard?.data?.institutionId;
-    const plaidFeedName = addNewCard?.data?.plaidConnectedBankName ?? assignCard?.data?.plaidConnectedBankName;
+    const plaidFeed = addNewCard?.data?.plaidConnectedFeed ?? assignCard?.data?.institutionId;
+    const plaidFeedName = addNewCard?.data?.plaidConnectedFeedName ?? assignCard?.data?.plaidConnectedFeedName;
     const url = canUsePlaidCompanyCards && plaidToken ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName) : getCompanyCardBankConnection(policyID, bankName);
     const [cardFeeds] = useCardFeeds(policyID);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}, addNewCard?.data?.plaidConnectedBank),
-        [addNewCard?.data?.plaidConnectedBank, cardFeeds?.settings?.oAuthAccountDetails, prevFeedsData],
+        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}, addNewCard?.data?.plaidConnectedFeed),
+        [addNewCard?.data?.plaidConnectedFeed, cardFeeds?.settings?.oAuthAccountDetails, prevFeedsData],
     );
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;

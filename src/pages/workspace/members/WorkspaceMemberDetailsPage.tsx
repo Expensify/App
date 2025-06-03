@@ -26,7 +26,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
-import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionLink, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionIconUrl, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
@@ -390,7 +390,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </View>
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                                        const plaidUrl = getPlaidInstitutionLink(memberCard?.bank);
+                                        const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
 
                                         return (
                                             <OfflineWithFeedback

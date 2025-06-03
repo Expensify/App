@@ -33,8 +33,8 @@ type AssignCardData = {
     /** access token for Plaid bank */
     plaidAccessToken?: string;
 
-    /** Plaid bank name */
-    plaidConnectedBankName?: string;
+    /** Plaid feed name */
+    plaidConnectedFeedName?: string;
 };
 
 /** Model of assign card flow */

@@ -4,10 +4,9 @@ import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
-import * as Illustrations from '@components/Icon/Illustrations';
-import Image from '@components/Image';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
@@ -20,7 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, getFilteredCardList, getPlaidInstitutionLink, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -46,7 +45,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [list] = useCardsList(policyID, feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
-    const plaidUrl = getPlaidInstitutionLink(feed);
+    const plaidUrl = getPlaidInstitutionIconUrl(feed);
     const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames);
 
     const isEditing = assignCard?.isEditing;
@@ -97,18 +96,10 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         alternateText: lastFourNumbersFromCardName(cardNumber),
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: plaidUrl ? (
-            <View style={styles.mr3}>
-                <Image
-                    source={{uri: plaidUrl}}
-                    style={styles.plaidIconSmall}
-                    cachePolicy="memory-disk"
-                />
-                <Icon
-                    src={Illustrations.PlaidCompanyCardDetail}
-                    height={variables.cardIconHeight}
-                    width={variables.cardIconWidth}
-                />
-            </View>
+            <PlaidCardFeedIcon
+                plaidUrl={plaidUrl}
+                style={styles.mr3}
+            />
         ) : (
             <Icon
                 src={getCardFeedIcon(feed, illustrations)}

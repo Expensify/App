@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import Navigation from '@navigation/Navigation';
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
 import {openPlaidCompanyCardLogin} from '@userActions/Plaid';
@@ -93,6 +94,10 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
     }, [addNewCard?.data?.selectedCountry, isAuthenticatedWithPlaid, isOffline]);
 
     const handleBackButtonPress = () => {
+        if (feed) {
+            Navigation.goBack();
+            return;
+        }
         setAddNewCompanyCardStepAndData({step: isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
     const handlePlaidLinkError = useCallback((error: ErrorEvent | null) => {
@@ -125,17 +130,17 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
                         // on success we need to move to bank connection screen with token, bank name = plaid
                         Log.info('[PlaidLink] Success!');
 
-                        const plaidConnectedBank =
+                        const plaidConnectedFeed =
                             (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
-                        const plaidConnectedBankName =
+                        const plaidConnectedFeedName =
                             (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
 
                         if (feed) {
                             setAssignCardStepAndData({
                                 data: {
                                     plaidAccessToken: publicToken,
-                                    institutionId: plaidConnectedBank,
-                                    plaidConnectedBankName,
+                                    institutionId: plaidConnectedFeed,
+                                    plaidConnectedFeedName,
                                 },
                                 currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                             });
@@ -145,8 +150,8 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
                             step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
-                                plaidConnectedBank,
-                                plaidConnectedBankName,
+                                plaidConnectedFeed,
+                                plaidConnectedFeedName,
                             },
                         });
                     }}

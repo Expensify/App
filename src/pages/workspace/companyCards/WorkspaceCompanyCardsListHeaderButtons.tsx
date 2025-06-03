@@ -26,7 +26,7 @@ import {
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
     getPlaidInstitutionId,
-    getPlaidInstitutionLink,
+    getPlaidInstitutionIconUrl,
     isCustomFeed,
 } from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
@@ -63,7 +63,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const formattedFeedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const isCommercialFeed = isCustomFeed(selectedFeed);
-    const plaidUrl = getPlaidInstitutionLink(selectedFeed);
+    const plaidUrl = getPlaidInstitutionIconUrl(selectedFeed);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
     const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(selectedFeed);
@@ -72,7 +72,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
 
     const openBankConnection = () => {
-        const institutionId = getPlaidInstitutionId(selectedFeed);
+        const institutionId = !!getPlaidInstitutionId(selectedFeed);
         if (institutionId) {
             setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.PLAID_CONNECTION});
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));

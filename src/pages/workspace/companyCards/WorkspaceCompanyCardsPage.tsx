@@ -137,7 +137,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         }
 
         if (isFeedExpired) {
-            const institutionId = getPlaidInstitutionId(selectedFeed);
+            const institutionId = !!getPlaidInstitutionId(selectedFeed);
             currentStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
         }
 

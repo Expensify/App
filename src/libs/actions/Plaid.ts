@@ -48,7 +48,6 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
  * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
  */
 function openPlaidCompanyCardLogin(country: string) {
-    // redirect_uri needs to be in kebab case convention because that's how it's passed to the backend
     const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
 
     const params: OpenPlaidCompanyCardLoginParams = {

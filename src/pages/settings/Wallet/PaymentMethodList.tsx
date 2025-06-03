@@ -20,7 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardFeedIcon, getPlaidInstitutionLink, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -225,7 +225,7 @@ function PaymentMethodList({
                 if (!isExpensifyCard(card.cardID)) {
                     const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
-                    const plaidUrl = getPlaidInstitutionLink(card.bank);
+                    const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl,

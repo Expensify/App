@@ -4,6 +4,7 @@ import React, {forwardRef, useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -30,9 +31,7 @@ import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import * as Illustrations from './Icon/Illustrations';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
-import Image from './Image';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
 import type {PressableRef} from './Pressable/GenericPressable/types';
@@ -791,20 +790,7 @@ function MenuItem(
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
                                                             )}
-                                                            {iconType === CONST.ICON_TYPE_PLAID && (
-                                                                <View>
-                                                                    <Image
-                                                                        source={{uri: plaidUrl}}
-                                                                        style={styles.plaidIconSmall}
-                                                                        cachePolicy="memory-disk"
-                                                                    />
-                                                                    <Icon
-                                                                        src={Illustrations.PlaidCompanyCardDetail}
-                                                                        height={variables.cardIconHeight}
-                                                                        width={variables.cardIconWidth}
-                                                                    />
-                                                                </View>
-                                                            )}
+                                                            {iconType === CONST.ICON_TYPE_PLAID && !!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
                                                         </View>
                                                     )}
                                                     {!!secondaryIcon && (
