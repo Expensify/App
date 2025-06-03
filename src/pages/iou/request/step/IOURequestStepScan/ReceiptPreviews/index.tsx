@@ -115,34 +115,32 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
 
     return (
         <Animated.View style={slideInStyle}>
-            {isMultiScanEnabled && (
-                <View style={styles.ph4}>
-                    <FlatList
-                        ref={flatListRef}
-                        data={receipts}
-                        horizontal
-                        keyExtractor={(_, index) => index.toString()}
-                        renderItem={renderItem}
-                        getItemLayout={(data, index) => ({length: previewItemWidth, offset: previewItemWidth * index, index})}
-                        onTouchStart={() => setTabSwipeDisabled?.(true)}
-                        onTouchEnd={() => setTabSwipeDisabled?.(false)}
-                        style={styles.pv2}
-                        scrollEnabled={isScrollEnabled}
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{paddingRight: styles.singleAvatarMedium.width}}
+            <View style={styles.pr4}>
+                <FlatList
+                    ref={flatListRef}
+                    data={receipts}
+                    horizontal
+                    keyExtractor={(_, index) => index.toString()}
+                    renderItem={renderItem}
+                    getItemLayout={(data, index) => ({length: previewItemWidth, offset: previewItemWidth * index, index})}
+                    onTouchStart={() => setTabSwipeDisabled?.(true)}
+                    onTouchEnd={() => setTabSwipeDisabled?.(false)}
+                    style={styles.pv2}
+                    scrollEnabled={isScrollEnabled}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={[{paddingRight: styles.singleAvatarMedium.width}, styles.pl4]}
+                />
+                <SubmitButtonShadow>
+                    <Button
+                        large
+                        isDisabled={!optimisticTransactionsReceipts?.length}
+                        innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
+                        icon={Expensicons.ArrowRight}
+                        iconFill={theme.white}
+                        onPress={submit}
                     />
-                    <SubmitButtonShadow>
-                        <Button
-                            large
-                            isDisabled={!optimisticTransactionsReceipts?.length}
-                            innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
-                            icon={Expensicons.ArrowRight}
-                            iconFill={theme.white}
-                            onPress={submit}
-                        />
-                    </SubmitButtonShadow>
-                </View>
-            )}
+                </SubmitButtonShadow>
+            </View>
         </Animated.View>
     );
 }

@@ -97,13 +97,16 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
 
 function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
     const draftTransactions = getDraftTransactions();
-    const draftTransactionsSet = draftTransactions.reduce((acc, item) => {
-        if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+    const draftTransactionsSet = draftTransactions.reduce(
+        (acc, item) => {
+            if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                return acc;
+            }
+            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
             return acc;
-        }
-        acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
-        return acc;
-    }, {} as Record<string, null>);
+        },
+        {} as Record<string, null>,
+    );
     Onyx.multiSet(draftTransactionsSet);
 }
 

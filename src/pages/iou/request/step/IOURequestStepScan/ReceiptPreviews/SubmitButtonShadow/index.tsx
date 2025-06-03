@@ -6,7 +6,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 function SubmitButtonShadow({children}: ChildrenProps) {
     const styles = useThemeStyles();
 
-    return <View style={[styles.receiptsSubmitButton, styles.webButtonShadow]}>{children}</View>;
+    return <View style={[styles.receiptsSubmitButton, styles.buttonShadowContainer, styles.webButtonShadow]}>{children}</View>;
 }
 
 export default SubmitButtonShadow;

@@ -13,8 +13,14 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
         /** Disable tab swipe */
         setTabSwipeDisabled?: (isDisabled: boolean) => void;
 
-        /* If the tooltip is allowed to be shown */
+        /** If the tooltip is allowed to be shown */
         isTooltipAllowed?: boolean;
+
+        /** If the receipts preview should be shown */
+        isMultiScanEnabled?: boolean;
+
+        /** Updates isMultiScanEnabled flag */
+        setIsMultiScanEnabled?: (value: boolean) => void;
     };
 
 type ReceiptFile = {
