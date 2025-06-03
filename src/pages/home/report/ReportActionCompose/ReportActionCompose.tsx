@@ -373,12 +373,29 @@ function ReportActionCompose({
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
 
+    const emojiPositionValues = useMemo(
+        () => ({
+            secondaryRowHeight: styles.chatItemComposeSecondaryRow.height,
+            secondaryRowMarginTop: styles.chatItemComposeSecondaryRow.marginTop,
+            secondaryRowMarginBottom: styles.chatItemComposeSecondaryRow.marginBottom,
+            composeBoxMinHeight: styles.chatItemComposeBox.minHeight,
+            emojiButtonHeight: styles.chatItemEmojiButton.height,
+        }),
+        [
+            styles.chatItemComposeSecondaryRow.height,
+            styles.chatItemComposeSecondaryRow.marginTop,
+            styles.chatItemComposeSecondaryRow.marginBottom,
+            styles.chatItemComposeBox.minHeight,
+            styles.chatItemEmojiButton.height,
+        ],
+    );
+
     const emojiShiftVertical = useMemo(() => {
-        const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
-        const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;
-        const emojiOffsetWithComposeBox = (styles.chatItemComposeBox.minHeight - styles.chatItemEmojiButton.height) / 2;
+        const chatItemComposeSecondaryRowHeight = emojiPositionValues.secondaryRowHeight + emojiPositionValues.secondaryRowMarginTop + emojiPositionValues.secondaryRowMarginBottom;
+        const reportActionComposeHeight = emojiPositionValues.composeBoxMinHeight + chatItemComposeSecondaryRowHeight;
+        const emojiOffsetWithComposeBox = (emojiPositionValues.composeBoxMinHeight - emojiPositionValues.emojiButtonHeight) / 2;
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
-    }, [styles]);
+    }, [emojiPositionValues]);
 
     const validateMaxLength = useCallback(
         (value: string) => {
