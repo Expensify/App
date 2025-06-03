@@ -123,22 +123,24 @@ describe('useReportUnreadMessageScrollTracking', () => {
         });
 
         it('calls readAction when scrolling inside the threshold and the message and read action skipped is true', () => {
+            jest.useFakeTimers();
+            
             // Given
             const offsetRef = {current: 0};
+            const readActionSkippedRef = {current: true};
             const {result, rerender} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
                     currentVerticalScrollingOffsetRef: offsetRef,
-                    readActionSkippedRef: {current: true},
+                    readActionSkippedRef,
                     floatingMessageVisibleInitialValue: false,
                     hasUnreadMarkerReportAction: true,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
 
-            // When
+            // When - scroll outside threshold first
             act(() => {
-                // offset greater, will set visible to true
                 offsetRef.current = CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD + 100;
                 result.current.trackVerticalScrolling(emptyScrollEventMock);
             });
@@ -148,24 +150,25 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             rerender({});
 
+            // When - scroll back inside threshold
             act(() => {
-                // scrolling into the offset, should call readNewestAction
                 offsetRef.current = CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD - 100;
                 result.current.trackVerticalScrolling(emptyScrollEventMock);
             });
 
-            const debouncedReadNewestAction = useDebounce(
-                useCallback(() => {
-                    readNewestAction(reportID);
-                }, []),
-                CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME,
-            );
+            // Advance timers to trigger debounced function
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME);
+            });
 
             // Then
-            expect(debouncedReadNewestAction).toBeCalledTimes(1);
+            expect(readNewestAction).toBeCalledTimes(1);
+            expect(readNewestAction).toBeCalledWith(reportID);
             expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
-            expect(readActionRefFalse.current).toBe(false);
+            expect(readActionSkippedRef.current).toBe(false);
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+            
+            jest.useRealTimers();
         });
     });
 });
