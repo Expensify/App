@@ -614,7 +614,7 @@ function MoneyReportHeader({
                         const optimisticTransactionThread = buildTransactionThread(iouAction, moneyRequestReport, undefined, threadID);
                         openReport(threadID, undefined, session?.email ? [session?.email] : [], optimisticTransactionThread, iouAction?.reportActionID);
                     }
-                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID, undefined, true));
+                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID, undefined, !isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) ? true : undefined));
                 }}
             />
         ),
