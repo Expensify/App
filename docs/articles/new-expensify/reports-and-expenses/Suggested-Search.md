@@ -1,11 +1,11 @@
 ---
 title: Suggested-Search.md
-description: Learn how Suggested Search simplifies submitting, approving, paying, and exporting expense reports in New Expensify.
-keywords: [Suggested Search, Submit, Approve, Pay, Export, New Expensify, To-do, LHN, batch processing, filters, expense report actions]
+description: Learn how Suggested Search simplifies submitting, approving, or paying expense reports in New Expensify.
+keywords: [Suggested Search, Submit, Approve, Pay, New Expensify, To-do, LHN, batch processing, filters, expense report actions]
 ---
 <div id="new-expensify" markdown="1">
 
-Suggested Search helps you quickly take action on expense reports you need to submit, approve, pay, or export, all tailored to your role in a workspace.
+Suggested Search helps you quickly take action on expense reports you need to submit, approve, or pay, all tailored to your role in a workspace.
 
 **Navigation:** Reports > Expense Reports > Suggested Search
 
@@ -51,10 +51,6 @@ Depending on your role, you’ll see shortcuts like:
 - See **Pay** for reports ready to reimburse.
 - See a celebratory message (e.g., “All reports paid!”) when cleared.
 
-### Admins (Exports)
-- See **Export** for reports eligible for accounting export (e.g., to QuickBooks Online).
-- Filter uses `exported:never` to show only unexported reports.
-
 ---
 
 ## Best practices
@@ -67,7 +63,7 @@ Depending on your role, you’ll see shortcuts like:
 
 # FAQ
 
-## What if I don't see the Submit, Approve, Pay, or Export options?
+## What if I don't see the Submit, Approve, or Pay options?
 
 Suggested searches only appear when:
 - You have reports that require those actions.
@@ -80,6 +76,6 @@ Not yet. The **Workspace filter** is currently single-select. Multi-workspace su
 ## What is the difference between Explore and To-do?
 
 - **Explore** = General browsing (e.g., Expenses, Chats)
-- **To-do** = Personalized actions based on your role (e.g., Submit, Approve, Pay, Export)
+- **To-do** = Personalized actions based on your role (e.g., Submit, Approve, Pay)
 
 </div>
