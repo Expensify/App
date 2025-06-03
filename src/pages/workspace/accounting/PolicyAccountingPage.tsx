@@ -74,7 +74,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseNetSuiteUSATax} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -330,7 +330,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const isConnectionVerified = !isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
+        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX));
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         let connectionMessage;
@@ -445,7 +445,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
-        canUseNetSuiteUSATax,
+        isBetaEnabled,
         shouldShowCardReconciliationOption,
     ]);
 
