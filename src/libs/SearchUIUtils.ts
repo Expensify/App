@@ -415,6 +415,15 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
             tag: transactionItem.tag,
             receipt: transactionItem.receipt,
+            taxAmount: transactionItem.taxAmount,
+            description: transactionItem.description,
+            mccGroup: transactionItem.mccGroup,
+            modifiedMCCGroup: transactionItem.modifiedMCCGroup,
+            moneyRequestReportActionID: transactionItem.moneyRequestReportActionID,
+            pendingAction: transactionItem.pendingAction,
+            errors: transactionItem.errors,
+            isActionLoading: transactionItem.isActionLoading,
+            hasViolation: transactionItem.hasViolation,
         };
 
         transactionsSections.push(transactionSection);
