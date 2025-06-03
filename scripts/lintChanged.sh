@@ -15,7 +15,16 @@ if [[ -z "${npm_lifecycle_event:-}" ]]; then
 fi
 
 # Fetch the commit history to include the merge-base commit
+info "Fetching origin/main"
 git fetch origin main --no-tags
+
+CURRENT_BRANCH="$(git branch --show-current)"
+readonly CURRENT_BRANCH
+
+if [[ "$CURRENT_BRANCH" != "main" ]] && [[ "$(git rev-parse --is-shallow-repository)" == "true" ]]; then
+    info "The current branch was fetched shallow, fetching again unshallow."
+    git fetch --unshallow origin HEAD
+fi
 
 MERGE_BASE_SHA_HASH="$(git merge-base origin/main HEAD)"
 readonly MERGE_BASE_SHA_HASH
