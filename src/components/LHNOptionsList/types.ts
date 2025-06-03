@@ -17,7 +17,7 @@ type CustomLHNOptionsListProps = {
     /** Extra styles for the section list container */
     contentContainerStyles?: StyleProp<ContentStyle>;
 
-    /** Sections for the section list */
+    /** List of reports */
     data: Report[];
 
     /** Callback to fire when a row is selected */
@@ -114,6 +114,9 @@ type OptionRowLHNDataProps = {
 type OptionRowLHNProps = {
     /** The ID of the report that the option is for */
     reportID: string;
+
+    /** The report for this option */
+    report?: Report;
 
     /** Whether this option is currently in focus so we can modify its style */
     isFocused?: boolean;
