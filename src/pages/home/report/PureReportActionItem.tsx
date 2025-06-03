@@ -827,7 +827,6 @@ function PureReportActionItem({
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
-                    onShowContextMenu={handleShowContextMenu}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
