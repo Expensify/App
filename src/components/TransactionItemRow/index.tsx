@@ -342,10 +342,10 @@ function TransactionItemRow({
                                     )}
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                                 <View style={[styles.flexColumn, styles.flex1]}>
                                     {hasCategoryOrTag && (
-                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
                                             <CategoryCell
                                                 transactionItem={transactionItem}
                                                 shouldShowTooltip={shouldShowTooltip}
@@ -360,12 +360,12 @@ function TransactionItemRow({
                                     )}
                                     <TransactionItemRowRBR
                                         transaction={transactionItem}
-                                        containerStyles={[styles.mt3]}
+                                        containerStyles={[styles.mt2, styles.minHeight4]}
                                     />
                                 </View>
                                 <ChatBubbleCell
                                     transaction={transactionItem}
-                                    containerStyles={[styles.mt3]}
+                                    containerStyles={[styles.mt2]}
                                 />
                             </View>
                         </View>
