@@ -27,7 +27,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
-    const {canUsePlaidCompanyCards} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
 
@@ -78,7 +78,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
             return <PlaidConnectionStep />;
         default:
-            return canUsePlaidCompanyCards ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
+            return isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
     }
 }
 

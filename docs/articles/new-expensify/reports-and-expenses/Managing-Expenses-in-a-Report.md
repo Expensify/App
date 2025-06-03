@@ -1,27 +1,25 @@
 ---
-title: Managing-Expenses-in-a-Report.md
+title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses within a report in New Expensify, and how they interact with comments and system messages.
 keywords: [manage expenses, add expense, remove expense, delete expense, move expense, expense table, expense comments, audit trail, report troubleshooting, New Expensify]
 ---
 <div id="new-expensify" markdown="1">
 
-This article walks you through how to manage expenses within a report in New Expensify—from adding and removing expenses to how they interact with comments and system messages.
-
-# Managing Expenses in a Report
+This article walks you through managing expenses within a report in New Expensify, from adding and removing expenses to how they interact with comments and system messages.
 
 ---
 
-## Add Expenses to a Report
+# Add Expenses to a Report
 
-You can add expenses to a report in two ways:
+There are two options for adding expenses to a report. 
 
-### Create a new expense
+**Create a new expense:**
 1. Open the draft report.
 2. Click **Add expense** → **Create new expense**.
 3. Fill in the expense details, then click **Save**.
 4. The new expense appears instantly in the report table.
 
-### Add existing unreported expenses
+**Add existing unreported expenses:**
 1. Click **Add expense** → **Add unreported expenses**.
 2. Select one or more expenses from the list.
 3. Click **Add to report**.
@@ -30,16 +28,14 @@ You can add expenses to a report in two ways:
 
 ---
 
-## Remove (Delete) Expenses From a Report
+# Remove (Delete) Expenses From a Report
 
-You can remove one or multiple expenses:
-
-### Remove a single expense
+**Remove a single expense:**
 1. Open the report.
 2. Check the box next to the expense you want to remove.
 3. Click the **Bulk actions** menu → Select **Delete**.
 
-### Remove multiple expenses
+**Remove multiple expenses:**
 1. Select the checkboxes for the expenses you want to delete.
 2. From the **Bulk actions** menu, click **Delete**.
 
@@ -47,7 +43,7 @@ You can remove one or multiple expenses:
 
 ---
 
-## Move Expenses to Another Report
+# Move Expenses to Another Report
 
 To transfer expenses between reports:
 
@@ -62,11 +58,11 @@ To transfer expenses between reports:
 
 ---
 
-## How Expenses Appear in the Report Table
+# How Expenses Appear in the Report Table
 
 Each report includes a table that shows all added expenses.
 
-### What you’ll see in each row
+## What you’ll see in each row
 - Date
 - Merchant
 - Category
@@ -74,23 +70,23 @@ Each report includes a table that shows all added expenses.
 - Policy violations (if applicable)
 - Clickable rows that open details in the side panel
 
-### Behavior highlights
-- New expenses briefly highlight when added.
+## Behavior highlights
+- New expenses are briefly highlighted when added.
 - Checkboxes allow you to take group actions.
 - Expenses are listed in reverse chronological order (newest first).
 
 ---
 
-## Comments and How They Relate to Expenses
+# Comments and How They Relate to Expenses
 
 Every report has a comment thread for collaboration and context.
 
-### Comment features
-- Thread appears below the report table.
+## Comment features
+- The thread appears below the report table.
 - Supports mentions, questions, and internal notes.
 - Updates live for all members in the workspace.
 
-### How comments relate to expenses
+## How comments relate to expenses
 - Reference expenses manually (e.g., “Why is the $150 Uber charge included?”).
 - Comments stay with the report, even if expenses are moved or deleted.
 - Comments aren’t tied to a specific expense, but they’re context-aware.
@@ -99,15 +95,13 @@ Every report has a comment thread for collaboration and context.
 
 ---
 
-## System Messages and Audit Trail
+# System Messages and Audit Trail
 
 System messages like **“Expense moved”** or **“Report submitted”** appear in the same thread as comments to help keep a clear audit trail. This makes it easier to track changes and approval workflows.
 
 ---
 
 # Troubleshooting the Reports Page
-
----
 
 ## Why Can’t I Find a Report I Just Created?
 
