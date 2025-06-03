@@ -1,7 +1,6 @@
 import React from 'react';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
@@ -40,7 +39,7 @@ type AmountTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior'>;
 
 function AmountTextInput(
     {
@@ -59,7 +58,6 @@ function AmountTextInput(
     }: AmountTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const styles = useThemeStyles();
     return (
         <TextInput
             autoGrow
@@ -67,7 +65,7 @@ function AmountTextInput(
             shouldInterceptSwipe
             disableKeyboard={disableKeyboard}
             inputStyle={style}
-            textInputContainerStyles={[styles.p0, containerStyle]}
+            textInputContainerStyles={containerStyle}
             onChangeText={onChangeAmount}
             ref={ref}
             value={formattedAmount}
@@ -87,7 +85,6 @@ function AmountTextInput(
             autoCorrect={false}
             spellCheck={false}
             disableKeyboardShortcuts
-            shouldUseFullInputHeight
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

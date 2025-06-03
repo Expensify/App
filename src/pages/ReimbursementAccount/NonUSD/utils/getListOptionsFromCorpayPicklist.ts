@@ -6,14 +6,17 @@ function getListOptionsFromCorpayPicklist(corpayPicklist: Picklist | undefined):
         return {};
     }
 
-    return corpayPicklist.reduce((accumulator, currentValue) => {
-        if (currentValue.stringValue === CONST.NON_USD_BANK_ACCOUNT.CORPAY_UNDEFINED_OPTION_VALUE) {
-            return accumulator;
-        }
+    return corpayPicklist.reduce(
+        (accumulator, currentValue) => {
+            if (currentValue.stringValue === CONST.NON_USD_BANK_ACCOUNT.CORPAY_UNDEFINED_OPTION_VALUE) {
+                return accumulator;
+            }
 
-        accumulator[currentValue.name] = currentValue.stringValue;
-        return accumulator;
-    }, {} as Record<string, string>);
+            accumulator[currentValue.name] = currentValue.stringValue;
+            return accumulator;
+        },
+        {} as Record<string, string>,
+    );
 }
 
 export default getListOptionsFromCorpayPicklist;

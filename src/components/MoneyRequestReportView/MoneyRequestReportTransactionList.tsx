@@ -27,14 +27,18 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
+import {generateReportID, getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
+import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -94,6 +98,8 @@ type SortedTransactions = {
     sortOrder: SortOrder;
 };
 
+type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
 const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
@@ -122,6 +128,11 @@ function MoneyRequestReportTransactionList({
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
+
+    const pendingActionsOpacity = useMemo(() => {
+        const pendingAction = transactions.some(getTransactionPendingAction);
+        return pendingAction && styles.opacitySemiTransparent;
+    }, [styles.opacitySemiTransparent, transactions]);
 
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
@@ -165,19 +176,27 @@ function MoneyRequestReportTransactionList({
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
-            const reportIDToNavigate = iouAction?.childReportID;
-            if (!reportIDToNavigate) {
-                return;
-            }
+            const reportIDToNavigate = iouAction?.childReportID ?? generateReportID();
 
-            const backTo = Navigation.getActiveRoute();
+            const backTo = Navigation.getActiveRoute() as Route;
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigating between transactions
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+            const routeParams = {
+                reportID: reportIDToNavigate,
+                backTo,
+            } as ReportScreenNavigationProps;
+
+            if (!iouAction?.childReportID) {
+                routeParams.moneyRequestReportActionID = iouAction?.reportActionID;
+                routeParams.transactionID = activeTransaction.transactionID;
+                routeParams.iouReportID = activeTransaction.reportID;
+            }
+
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
         },
         [reportActions, sortedTransactions],
     );
@@ -200,7 +219,7 @@ function MoneyRequestReportTransactionList({
                                 if (selectedTransactionsID.length !== 0) {
                                     setSelectedTransactionsID([]);
                                 } else {
-                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                    setSelectedTransactionsID(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
@@ -251,7 +270,8 @@ function MoneyRequestReportTransactionList({
                             hoverDimmingValue={1}
                             onMouseDown={(e) => e.preventDefault()}
                             id={transaction.transactionID}
-                            style={[pressableStyle]}
+                            style={[pressableStyle, styles.userSelectNone]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             onMouseLeave={handleMouseLeave}
                             onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
@@ -266,6 +286,7 @@ function MoneyRequestReportTransactionList({
                                 setSelectedTransactionID(transaction.transactionID);
                                 setIsModalVisible(true);
                             }}
+                            disabled={isTransactionPendingDelete(transaction)}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
@@ -315,7 +336,7 @@ function MoneyRequestReportTransactionList({
                 </Animated.Text>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
-                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold]}>
+                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, pendingActionsOpacity]}>
                         {convertToDisplayString(totalDisplaySpend, report?.currency)}
                     </Text>
                 </View>
