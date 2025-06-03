@@ -93,7 +93,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID, managerID);
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID) || managerID === currentUserAccountID;
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     if (!isExpenseReport || !isReportApprover || !isApprovalEnabled || reportTransactions.length === 0) {
