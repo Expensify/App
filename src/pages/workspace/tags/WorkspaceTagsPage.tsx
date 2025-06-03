@@ -187,7 +187,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     enabled: true,
                     required: policyTagList.required,
                     rightElement:
-                        canUseMultiLevelTags && hasDependentTags ? (
+                        isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) && hasDependentTags ? (
                             <ListItemRightCaretWithLabel
                                 labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})}
                                 shouldShowCaret
@@ -236,7 +236,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, canUseMultiLevelTags, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
+    }, [isMultiLevelTags, policyTagLists, isBetaEnabled, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
@@ -271,7 +271,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const getCustomListHeader = () => {
-        if (canUseMultiLevelTags && hasDependentTags) {
+        if (isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) && hasDependentTags) {
             return (
                 <CustomListHeader
                     canSelectMultiple={false}
@@ -347,17 +347,25 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                    );
+                    if (isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS)) {
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
+                        );
+                    } else {
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                        );
+                    }
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
             });
         }
 
-        if (hasVisibleTags) {
+        if (hasVisibleTags && !hasDependentTags) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
@@ -496,65 +504,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-
-    const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-
-    const threeDotsMenuItems = useMemo(() => {
-        const menuItems: PopoverMenuItem[] = [];
-        if (!hasAccountingConnectionsPolicyUtils(policy)) {
-            menuItems.push({
-                icon: Expensicons.Table,
-                text: translate('spreadsheet.importSpreadsheet'),
-                onSelected: () => {
-                    if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    if (canUseMultiLevelTags) {
-                        Navigation.navigate(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
-                        );
-                    } else {
-                        Navigation.navigate(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                        );
-                    }
-                },
-            });
-        }
-
-        if (hasVisibleTags && !hasDependentTags) {
-            menuItems.push({
-                icon: Expensicons.Download,
-                text: translate('spreadsheet.downloadCSV'),
-                onSelected: () => {
-                    if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    close(() => {
-                        if (hasIndependentTags && canUseMultiLevelTags) {
-                            downloadMultiLevelIndependentTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
-                        } else {
-                            downloadTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
-                        }
-                    });
-                },
-            });
-        }
-
-        return menuItems;
-    }, [policy, hasVisibleTags, hasDependentTags, translate, isOffline, canUseMultiLevelTags, isQuickSettingsFlow, policyID, backTo, hasIndependentTags]);
-
-
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
@@ -635,10 +584,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.popToSidebar();
                         }}
-                        shouldShowThreeDotsButton={canUseMultiLevelTags ? true : !policy?.hasMultipleTagLists}
-                        threeDotsMenuItems={threeDotsMenuItems}
-                        threeDotsAnchorPosition={threeDotsAnchorPosition}
-
+                        shouldShowThreeDotsButton={isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) ? true : !policy?.hasMultipleTagLists}
                     >
                         {!shouldUseNarrowLayout && getHeaderButtons()}
                     </HeaderWithBackButton>
