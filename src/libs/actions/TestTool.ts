@@ -20,16 +20,13 @@ const throttledToggle = throttle(
             setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
         };
         // Dismiss any current modal before showing test tools modal
-        // We need to handle test drive modal differently using Navigation.goBack() instead of Navigation.dismissModal() to properly clean up its navigation state
-        // Without this, the URL would revert to onboarding/test-drive while the modal is already dismissed, leading to an unresponsive state
+        // We need to handle test drive modal differently using Navigation.goBack() to properly clean up its navigation state
+        // Without this, the URL would revert to onboarding/test-drive or onboarding/test-drive/demo while the modal is already dismissed, leading to an unresponsive state
         if (currentRoute.includes('test-drive')) {
             Navigation.goBack();
             openTestToolsModal();
-        } else if (currentRoute.includes('onboarding')) {
-            Navigation.navigate(ROUTES.TEST_TOOLS_MODAL);
         } else {
             close(() => {
-                Navigation.dismissModal();
                 openTestToolsModal();
             });
         }
