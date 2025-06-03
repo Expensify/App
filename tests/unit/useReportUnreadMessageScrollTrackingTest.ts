@@ -157,7 +157,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             const debouncedReadNewestAction = useDebounce(
                 useCallback(() => {
                     readNewestAction(reportID);
-                }, [reportID]),
+                }, []),
                 CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME,
             );
 
