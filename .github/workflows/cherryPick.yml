@@ -237,7 +237,7 @@ jobs:
           gh pr create \
             --title "🍒 Cherry pick PR #${{ steps.getPRInfo.outputs.PR_NUMBER }} to ${{ inputs.TARGET }} 🍒" \
             --body "$PR_DESCRIPTION" \
-            --label "Engineering,Hourly" \
+            --label "Engineering,Hourly,${{ inputs.TARGET == 'staging' && 'CP Staging' || 'CP Production' }}" \
             --base "${{ inputs.TARGET }}"
           sleep 5
         env:
