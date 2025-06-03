@@ -5792,8 +5792,9 @@ const styles = (theme: ThemeColors) =>
             // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
             // and never expand over the max height
             const height = Math.min(ESTIMATED_LIST_HEIGHT, CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * 0.9);
+            const width = shouldUseNarrowLayout ? '100%' : CONST.POPOVER_DROPDOWN_WIDTH;
 
-            return {height};
+            return {height, width};
         },
 
         earlyDiscountButton: {
