@@ -23,20 +23,15 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {
-    getLastVisitedTabPath,
-    getLastVisitedWorkspaceTabScreen,
-    getSettingsTabStateFromSessionStorage,
-    getWorkspacesTabStateFromSessionStorage,
-} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
-import {getPolicy, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import getWorkspaceTabNavigationAction from '@libs/Navigation/helpers/getWorkspaceTabNavigationAction';
+import {getLastVisitedTabPath, getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
-import {isFullScreenName, isWorkspacesTabScreenName} from '@navigation/helpers/isNavigatorName';
+import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -157,49 +152,34 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
 
-        interceptAnonymousUser(() => {
-            const state = getWorkspacesTabStateFromSessionStorage() ?? rootState;
-            const lastWorkspacesTabNavigatorRoute = state.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
-            // If there is no settings or workspace navigator route, then we should open the settings navigator.
-            if (!lastWorkspacesTabNavigatorRoute) {
-                Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
-                return;
-            }
+        const navigationAction = getWorkspaceTabNavigationAction({rootState, shouldUseNarrowLayout, currentUserLogin});
 
-            let workspacesTabState = lastWorkspacesTabNavigatorRoute.state;
-            if (!workspacesTabState && lastWorkspacesTabNavigatorRoute.key) {
-                workspacesTabState = getPreservedNavigatorState(lastWorkspacesTabNavigatorRoute.key);
-            }
-
-            // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
-            if (lastWorkspacesTabNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                const params = workspacesTabState?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
-                // Screens of this navigator should always have policyID
-                const policy = getPolicy(params.policyID);
-                const shouldShowPolicy = shouldShowPolicyUtil(policy, false, currentUserLogin);
-                const isPendingDelete = isPendingDeletePolicy(policy);
-
-                if (!shouldShowPolicy || isPendingDelete) {
-                    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
-                    return;
+        switch (navigationAction?.type) {
+            case 'goBack':
+                if (navigationAction.route) {
+                    Navigation.goBack(navigationAction.route);
                 }
+                break;
 
-                if (params.policyID) {
-                    const workspaceScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceTabScreen() : SCREENS.WORKSPACE.INITIAL;
-                    // This action will put settings split under the workspace split to make sure that we can swipe back to settings split.
+            case 'navigate':
+                if (navigationAction.route) {
+                    Navigation.navigate(navigationAction.route);
+                }
+                break;
+
+            case 'dispatch':
+                if (navigationAction.dispatchType && navigationAction.payload) {
                     navigationRef.dispatch({
-                        type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
-                        payload: {
-                            policyID: params.policyID,
-                            screenName: workspaceScreenName,
-                        },
+                        type: navigationAction.dispatchType,
+                        payload: navigationAction.payload,
                     });
                 }
-                return;
-            }
+                break;
 
-            Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
-        });
+            case 'return':
+            default:
+                break;
+        }
     }, [shouldUseNarrowLayout, currentUserLogin]);
 
     if (!shouldUseNarrowLayout) {
