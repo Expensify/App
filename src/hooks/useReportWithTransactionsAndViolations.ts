@@ -8,19 +8,10 @@ const DEFAULT_TRANSACTIONS: Transaction[] = [];
 const DEFAULT_VIOLATIONS: Record<string, TransactionViolation[]> = {};
 
 function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [reportTransactions] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {canBeMissing: true});
     const transactions = reportTransactions?.[reportID ?? CONST.DEFAULT_NUMBER_ID];
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (allViolations) => {
-            if (!transactions?.length) {
-                return {};
-            }
-
-            const transactionIDs = new Set(transactions.map((t) => t.transactionID));
-            return Object.fromEntries(Object.entries(allViolations ?? {}).filter(([key]) => transactionIDs.has(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ''))));
-        },
-    });
+    const violations = transactions?.violations;
     return [report, transactions ?? DEFAULT_TRANSACTIONS, violations ?? DEFAULT_VIOLATIONS];
 }
 
