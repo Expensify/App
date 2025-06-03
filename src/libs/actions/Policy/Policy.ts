@@ -104,6 +104,7 @@ import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuit
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {completeTask} from '../Task';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
 
 type ReportCreationData = Record<
@@ -2164,6 +2165,13 @@ function createWorkspace(
         shouldAddOnboardingTasks,
         companySize,
     );
+
+    // For test drive receivers, we want to complete the createWorkspace task in conciege, instead of #admin room
+    if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+        const createWorkspaceTaskReport = introSelected.createWorkspace ? {reportID: introSelected.createWorkspace} : undefined;
+        completeTask(createWorkspaceTaskReport);
+    }
+
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Publish a workspace created event if this is their first policy
