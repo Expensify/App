@@ -296,6 +296,7 @@ const tests = [
         },
     },
     {
+        // cspell:disable-next-line
         query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 reportid:12345 tag:ecx date>2023-01-01',
         expected: {
             type: 'expense',

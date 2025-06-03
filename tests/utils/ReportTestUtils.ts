@@ -8,7 +8,7 @@ import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/nativ
 import createRandomReportAction from './collections/reportActions';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
-const actionNames: ReportActionName[] = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
+const actionNames: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.CLOSED];
 
 const getFakeReportAction = (index: number, overrides: Partial<ReportAction> = {}): ReportAction =>
     ({
@@ -51,7 +51,7 @@ const getFakeReportAction = (index: number, overrides: Partial<ReportAction> = {
         sequenceNumber: 0,
         shouldShow: true,
         ...overrides,
-    } as ReportAction);
+    }) as ReportAction;
 
 const getMockedSortedReportActions = (length = 100): ReportAction[] =>
     Array.from({length}, (element, index): ReportAction => {
@@ -62,7 +62,7 @@ const getMockedSortedReportActions = (length = 100): ReportAction[] =>
 const getMockedReportActionsMap = (length = 100): ReportActions => {
     const mockReports: ReportActions[] = Array.from({length}, (element, index): ReportActions => {
         const reportID = index + 1;
-        const actionName: ReportActionName = index === 0 ? 'CREATED' : actionNames.at(index % actionNames.length) ?? 'CREATED';
+        const actionName: ReportActionName = index === 0 ? 'CREATED' : (actionNames.at(index % actionNames.length) ?? 'CREATED');
         const reportAction = {
             ...createRandomReportAction(reportID),
             actionName,

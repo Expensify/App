@@ -19,6 +19,7 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import createCollection from '../utils/collections/createCollection';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
@@ -704,7 +705,7 @@ describe('actions/Report', () => {
                 reportAction = Object.values(reportActions).at(0);
 
                 if (reportAction) {
-                    // Add the same reaction to the same report action with a different skintone
+                    // Add the same reaction to the same report action with a different skin tone
                     Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 }
                 return waitForBatchedUpdates()
@@ -731,7 +732,7 @@ describe('actions/Report', () => {
                         const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
                         expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
-                        // Expect two different skintone reactions
+                        // Expect two different skin tone reactions
                         const reportActionReactionEmojiUserSkinTones = reportActionReactionEmoji?.users[TEST_USER_ACCOUNT_ID].skinTones;
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('-1');
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('2');
@@ -989,7 +990,7 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
-    it('should send DeleteComment request after AddComment is rollbacked', async () => {
+    it('should send DeleteComment request after AddComment is rollback', async () => {
         global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
         const mockedXhr = jest.fn();
@@ -1615,6 +1616,50 @@ describe('actions/Report', () => {
             Object.values(reportActions ?? {}).forEach((action) => {
                 expect(action.isOptimisticAction).toBeFalsy();
             });
+        });
+    });
+
+    describe('markAllMessagesAsRead', () => {
+        it('should mark all unread reports as read', async () => {
+            // Given a collection of 10 unread and read reports, where even-index report is unread
+            const currentTime = DateUtils.getDBTime();
+            const reportCollections: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, OnyxTypes.Report> = createCollection<OnyxTypes.Report>(
+                (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+                (index) => {
+                    if (index % 2 === 0) {
+                        return {
+                            ...createRandomReport(index),
+                            lastMessageText: 'test',
+                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1),
+                            lastVisibleActionCreated: currentTime,
+                        };
+                    }
+                    return createRandomReport(index);
+                },
+                10,
+            );
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
+
+            // When mark all reports as read
+            Report.markAllMessagesAsRead();
+
+            await waitForBatchedUpdates();
+
+            // Then all report should be read
+            const isUnreadCollection = await Promise.all(
+                Object.values(reportCollections).map((report) => {
+                    return new Promise<boolean>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                            callback: (reportVal) => {
+                                Onyx.disconnect(connection);
+                                resolve(ReportUtils.isUnread(reportVal, undefined));
+                            },
+                        });
+                    });
+                }),
+            );
+            expect(isUnreadCollection.some(Boolean)).toBe(false);
         });
     });
 

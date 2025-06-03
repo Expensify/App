@@ -54,11 +54,12 @@ type ArrayElement<TOnyx extends Record<string, unknown>, K extends keyof TOnyx> 
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 
-type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string | number | undefined = undefined> = Required<TOnyx>[K] extends Record<string | number, infer ValueType>
-    ? TCollectionKey extends string | number
-        ? {[ValueTypeKey in KeysOfUnion<ValueType>]: ValueType[ValueTypeKey]}
-        : {[ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey]}
-    : never;
+type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string | number | undefined = undefined> =
+    Required<TOnyx>[K] extends Record<string | number, infer ValueType>
+        ? TCollectionKey extends string | number
+            ? {[ValueTypeKey in KeysOfUnion<ValueType>]: ValueType[ValueTypeKey]}
+            : {[ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey]}
+        : never;
 
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
@@ -300,8 +301,8 @@ function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string
     arrayType: T extends Record<string, unknown>
         ? Record<keyof T, 'string' | 'number' | 'object' | 'boolean' | 'array' | PropertyTypes | ConstantEnum>
         : T extends 'constantEnum'
-        ? ConstantEnum
-        : T,
+          ? ConstantEnum
+          : T,
 ) {
     if (isEmptyValue(value)) {
         return;
@@ -1071,6 +1072,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1108,6 +1110,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
                 splits: 'array',
                 dismissedViolations: 'object',
+                splitExpenses: 'array',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
