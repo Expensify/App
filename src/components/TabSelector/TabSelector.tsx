@@ -91,7 +91,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
 
                         if (!event.defaultPrevented) {
                             // The `merge: true` option makes sure that the params inside the tab screen are preserved
-                            navigation.navigate({key: route.key, merge: true});
+                            navigation.navigate(route.name, {key: route.key, merge: true});
                         }
 
                         onTabPress(route.name);
