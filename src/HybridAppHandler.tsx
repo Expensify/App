@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {findFocusedRoute} from '@react-navigation/native';
 import {useContext, useEffect, useState} from 'react';
 import {Linking} from 'react-native';
@@ -34,7 +33,6 @@ function HybridAppHandler({url, hybridAppSettings}: AppProps) {
         const listener = Linking.addEventListener('url', (state) => {
             handleHybridUrlNavigation(state.url as Route);
         });
-        HybridAppModule.allowSendingThroughLinking();
 
         return () => {
             listener.remove();

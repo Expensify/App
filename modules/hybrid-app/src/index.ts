@@ -24,10 +24,6 @@ const HybridAppModule: HybridAppModuleType = {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `sendAuthToken` should never be called on web');
     },
-    allowSendingThroughLinking() {
-        // eslint-disable-next-line no-console
-        console.warn('HybridAppModule: `allowSendingThroughLinking` should never be called on web');
-    }
 };
 
 export default HybridAppModule;

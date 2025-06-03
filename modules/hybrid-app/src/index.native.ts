@@ -20,9 +20,6 @@ const HybridAppModule: HybridAppModuleType = {
     sendAuthToken({authToken}) {
         ReactNativeHybridApp.sendAuthToken(authToken);
     },
-    allowSendingThroughLinking() {
-        ReactNativeHybridApp.allowSendingThroughLinking();
-    }
 };
 
 export default HybridAppModule;
