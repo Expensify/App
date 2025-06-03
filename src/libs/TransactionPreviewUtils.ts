@@ -67,7 +67,7 @@ const getReviewNavigationRoute = (
     duplicates: string[],
 ) => {
     const backTo = route.params.backTo;
-    const isFromExpense = route.params.isFromExpense ?? false;
+    const isFromExpense = route.params.isFromExpense;
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
