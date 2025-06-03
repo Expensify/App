@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,7 +14,6 @@ import {HandCard} from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -93,6 +93,18 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     };
 
+    const secondaryActions = useMemo(
+        () => [
+            {
+                icon: Gear,
+                text: translate('common.settings'),
+                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID)),
+                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            },
+        ],
+        [policyID, translate],
+    );
+
     const getHeaderButtons = () => (
         <View style={[styles.flexRow, styles.gap2, shouldChangeLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
             <Button
@@ -102,11 +114,14 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 text={translate('workspace.expensifyCard.issueCard')}
                 style={shouldChangeLayout && styles.flex1}
             />
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
-                icon={Gear}
-                text={translate('common.settings')}
-                style={shouldChangeLayout && styles.flex1}
+            <ButtonWithDropdownMenu
+                success={false}
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.more')}
+                options={secondaryActions}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow0}
             />
         </View>
     );
@@ -143,7 +158,26 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
-    const renderListHeader = useCallback(() => <WorkspaceCardListHeader cardSettings={cardSettings} />, [cardSettings]);
+    const renderListHeader = (
+        <>
+            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
+                <WorkspaceCardListLabels
+                    policyID={policyID}
+                    cardSettings={cardSettings}
+                />
+                {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.expensifyCard.findCard')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={isSearchEmpty}
+                        style={[styles.mb0, styles.mt5]}
+                    />
+                )}
+            </View>
+            {!isSearchEmpty && <WorkspaceCardListHeader cardSettings={cardSettings} />}
+        </>
+    );
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
 
@@ -186,32 +220,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             {isEmptyObject(cardsList) ? (
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                >
-                    <View style={styles.appBG}>
-                        <WorkspaceCardListLabels
-                            policyID={policyID}
-                            cardSettings={cardSettings}
-                        />
-                        {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
-                            <SearchBar
-                                label={translate('workspace.expensifyCard.findCard')}
-                                inputValue={inputValue}
-                                onChangeText={setInputValue}
-                                shouldShowEmptyState={isSearchEmpty}
-                                style={[styles.mb0, styles.mt5]}
-                            />
-                        )}
-                    </View>
-                    <FlatList
-                        data={filteredSortedCards}
-                        renderItem={renderItem}
-                        ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
-                        contentContainerStyle={bottomSafeAreaPaddingStyle}
-                    />
-                </ScrollView>
+                <FlatList
+                    data={filteredSortedCards}
+                    renderItem={renderItem}
+                    ListHeaderComponent={renderListHeader}
+                    contentContainerStyle={bottomSafeAreaPaddingStyle}
+                />
             )}
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}

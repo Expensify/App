@@ -16,6 +16,8 @@
     --color-button-success-background: #03d47c;
     --color-button-success-background-hover: #00a862;
     --color-overlay: rgba(235, 230, 223, 0.72);
+    --color-white: #ffffff;
+    --color-transparent-white: #ffffff51;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -37,5 +39,7 @@
         --color-button-success-background: #03d47c;
         --color-button-success-background-hover: #00a862;
         --color-overlay: rgba(26, 61, 50, 0.72);
+        --color-white: #ffffff;
+        --color-transparent-white: #ffffff51;
     }
 }

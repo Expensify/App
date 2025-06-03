@@ -19,6 +19,8 @@ type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTI
 
 type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
+type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
+
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
@@ -132,6 +134,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The second line text displays under the first line */
     secondLineText?: string;
 
+    /** Callback to execute when a dropdown submenu option is selected */
+    onSubItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
+
     /** Icon for main button */
     icon?: IconAsset;
 };
@@ -145,4 +150,5 @@ export type {
     ButtonWithDropdownMenuProps,
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
+    OnboardingHelpType,
 };

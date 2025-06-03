@@ -50,16 +50,15 @@ function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
 }
 
+/**
+ * The feature is released so hardcoding the value to true while we clean up the beta from the code.
+ */
 function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
+    return true || !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
 }
 
 function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) || canUseAllBetas(betas);
-}
-
-function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
 }
 
 function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
@@ -68,10 +67,6 @@ function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
 
 function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
-}
-
-function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
 }
 
 function canUsePlaidCompanyCards(betas: OnyxEntry<Beta[]>): boolean {
@@ -90,6 +85,14 @@ function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
 }
 
+function canUseTrackFlows(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.TRACK_FLOWS) || canUseAllBetas(betas);
+}
+
+function canUseNewDotSplits(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_SPLITS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -102,13 +105,13 @@ export default {
     canUseCustomRules,
     canUseTableReportView,
     canUseTalkToAISales,
-    canUseProhibitedExpenses,
     canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
-    canUsePrivateDomainOnboarding,
     canUseRetractNewDot,
     canUseMultiLevelTags,
     canUseMultiFilesDragAndDrop,
     canUseMultiScan,
+    canUseNewDotSplits,
     canUsePlaidCompanyCards,
+    canUseTrackFlows,
 };
