@@ -1808,11 +1808,11 @@ const ROUTES = {
     },
     WORKSPACE_PER_DIEM: {
         route: 'settings/workspaces/:policyID/per-diem',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_PER_DIEM route');
             }
-            return `settings/workspaces/${policyID}/per-diem` as const;
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/per-diem`, backTo);
         },
     },
     WORKSPACE_PER_DIEM_IMPORT: {
