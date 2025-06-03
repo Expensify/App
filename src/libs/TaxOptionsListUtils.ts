@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import localeCompare from './LocaleCompare';
+import tokenizedSearch from './tokenizedSearch';
 import {transformedTaxRates} from './TransactionUtils';
 
 type TaxRatesOption = {
@@ -99,9 +100,10 @@ function getTaxRatesSection({
     }
 
     if (searchValue) {
-        const enabledSearchTaxRates = enabledTaxRatesWithoutSelectedOptions.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchValue.toLowerCase()));
-        const selectedSearchTags = selectedTaxRateWithDisabledState.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchValue.toLowerCase()));
-        const taxesForSearch = [...selectedSearchTags, ...enabledSearchTaxRates];
+        const taxesForSearch = [
+            ...tokenizedSearch(selectedTaxRateWithDisabledState, searchValue, (taxRate) => [taxRate.modifiedName ?? '']),
+            ...tokenizedSearch(enabledTaxRatesWithoutSelectedOptions, searchValue, (taxRate) => [taxRate.modifiedName ?? '']),
+        ];
 
         policyRatesSections.push({
             // "Search" section

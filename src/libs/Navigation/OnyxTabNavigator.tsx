@@ -5,6 +5,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {IOURequestType} from '@libs/actions/IOU';
@@ -49,6 +50,9 @@ type OnyxTabNavigatorProps = ChildrenProps & {
     /** Disable swipe between tabs */
     disableSwipe?: boolean;
 
+    /** Whether to lazy load the tab screens */
+    lazyLoadEnabled?: boolean;
+
     /** Callback to handle the Pager's internal onPageSelected event callback */
     onTabSelect?: ({index}: {index: number}) => void;
 };
@@ -74,6 +78,7 @@ function OnyxTabNavigator({
     screenListeners,
     shouldShowLabelWhenInactive = true,
     disableSwipe = false,
+    lazyLoadEnabled = false,
     onTabSelect,
     ...rest
 }: OnyxTabNavigatorProps) {
@@ -81,6 +86,10 @@ function OnyxTabNavigator({
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`, {canBeMissing: false});
+
+    const LazyPlaceholder = useCallback(() => {
+        return <FullScreenLoadingIndicator />;
+    }, []);
 
     // This callback is used to register the focus trap container element of each available tab screen
     const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {
@@ -157,6 +166,8 @@ function OnyxTabNavigator({
                 screenOptions={{
                     ...defaultScreenOptions,
                     swipeEnabled: !disableSwipe,
+                    lazy: lazyLoadEnabled,
+                    lazyPlaceholder: LazyPlaceholder,
                 }}
             >
                 {children}
