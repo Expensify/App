@@ -74,11 +74,11 @@ import {
     clearDeleteTransactionNavigateBackUrl,
     navigateToConciergeChat,
     openReport,
-    readNewestAction,
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
 } from '@userActions/Report';
+import useReadNewestActionDebounced from '@hooks/useReadNewestActionDebounced';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -144,6 +144,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
+
+    const debouncedReadNewestAction = useReadNewestActionDebounced();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
@@ -747,8 +749,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        readNewestAction(report?.reportID);
-    }, [report]);
+        debouncedReadNewestAction(report?.reportID);
+    }, [report, debouncedReadNewestAction]);
 
     const lastRoute = usePrevious(route);
 
