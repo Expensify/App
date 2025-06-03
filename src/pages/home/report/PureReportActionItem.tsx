@@ -411,7 +411,7 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const {canUseTableReportView, canUseTrackFlows} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const shouldRenderViewBasedOnAction = useNewTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -713,7 +713,7 @@ function PureReportActionItem({
                 },
             ];
 
-            if (canUseTrackFlows) {
+            if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
                 options.push(
                     {
                         text: 'actionableMentionTrackExpense.categorize',
@@ -796,7 +796,7 @@ function PureReportActionItem({
         resolveActionableReportMentionWhisper,
         resolveActionableMentionWhisper,
         originalReportID,
-        canUseTrackFlows,
+        isBetaEnabled,
     ]);
 
     /**
@@ -836,7 +836,7 @@ function PureReportActionItem({
             );
 
             // Table Report View does not display these components as separate messages, except for self-DM
-            if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
+            if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && report?.type === CONST.REPORT.TYPE.CHAT) {
                 if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || isSplitInGroupChat) {
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
@@ -884,7 +884,7 @@ function PureReportActionItem({
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
             children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
             children = (
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -1008,6 +1008,20 @@ function PureReportActionItem({
                 );
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
+            }
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+            const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
+            const paymentType = getOriginalMessage(action)?.paymentType;
+            if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
+            } else if (wasAutoPaid) {
+                children = (
+                    <ReportActionItemBasicMessage>
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyPaidWithExpensify')}</muted-text></comment>`} />
+                    </ReportActionItemBasicMessage>
+                );
+            } else {
+                children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
             }
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
@@ -1268,7 +1282,7 @@ function PureReportActionItem({
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
-        if (canUseTableReportView && (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses))) {
+        if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses))) {
             return emptyHTML;
         }
 
