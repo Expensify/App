@@ -1815,11 +1815,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 20,
         },
 
-        sidebarListContainer: {
-            ...spacing.pt3,
-            paddingBottom: 4,
-        },
-
         sidebarListItem: {
             justifyContent: 'center',
             textDecorationLine: 'none',
@@ -3069,8 +3064,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sectionTitle: {
-            ...spacing.pt2,
-            ...spacing.pb4,
+            ...spacing.pv2,
             ...spacing.ph2,
             fontSize: 13,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -3855,12 +3849,6 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 12,
             backgroundColor: theme.appBG,
             justifyContent: 'flex-start',
-        },
-
-        narrowSearchHeaderStyle: {
-            flex: 1,
-            paddingTop: 12,
-            backgroundColor: theme.appBG,
         },
 
         narrowSearchRouterInactiveStyle: {

@@ -84,7 +84,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
+    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
     return (
         <View style={[styles.flex1, styles.h100]}>
