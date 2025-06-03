@@ -43,7 +43,6 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
         styles.justifyContentCenter,
         styles.moneyRequestViewImage,
         isThumbnail && !isInMoneyRequestView ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
-        isInMoneyRequestView && styles.expenseViewImage,
         hasError && styles.borderColorDanger,
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
         style,
