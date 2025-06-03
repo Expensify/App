@@ -1,8 +1,10 @@
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
+import {setNewDotSignInState} from '@libs/actions/HybridApp';
+import Growl from '@libs/Growl';
 import Log from '@libs/Log';
-import * as Session from '@userActions/Session';
+import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {GoogleSignInProps} from '.';
@@ -13,8 +15,8 @@ import type GoogleError from './types';
  */
 function googleSignInRequest() {
     GoogleSignin.configure({
-        webClientId: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
-        iosClientId: CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
+        webClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_WEB_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
+        iosClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_IOS_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
         offlineAccess: false,
     });
 
@@ -25,11 +27,15 @@ function googleSignInRequest() {
 
     GoogleSignin.signIn()
         .then((response) => response.idToken)
-        .then((token) => Session.beginGoogleSignIn(token))
+        .then((token) => {
+            setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
+            beginGoogleSignIn(token);
+        })
         .catch((error: GoogleError | undefined) => {
             // Handle unexpected error shape
             if (error?.code === undefined) {
                 Log.alert(`[Google Sign In] Google sign in failed: ${JSON.stringify(error)}`);
+                Growl.error(`[Google Sign In] Google sign in failed: ${JSON.stringify(error)}`);
                 return;
             }
             /** The logged code is useful for debugging any new errors that are not specifically handled. To decode, see:
@@ -38,8 +44,12 @@ function googleSignInRequest() {
             */
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
                 Log.info('[Google Sign In] Google Sign In cancelled');
+                // TODO: Growl is temporary to allow debugging
+                Growl.error('[Google Sign In] Google Sign In cancelled');
             } else {
                 Log.alert(`[Google Sign In] Error Code: ${error.code}. ${error.message}`, {}, false);
+                // TODO: Growl is temporary to allow debugging
+                Growl.error(`[Google Sign In] Error Code: ${error.code}. ${error.message}`);
             }
         });
 }

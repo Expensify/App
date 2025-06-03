@@ -41,12 +41,12 @@ Onyx.connect({
 
 let isSingleNewDotEntry: boolean | undefined;
 Onyx.connect({
-    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
+    key: ONYXKEYS.HYBRID_APP,
     callback: (value) => {
         if (!value) {
             return;
         }
-        isSingleNewDotEntry = value;
+        isSingleNewDotEntry = value?.isSingleNewDotEntry;
     },
 });
 
