@@ -8,6 +8,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -254,6 +255,8 @@ function MoneyRequestConfirmationListFooter({
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
@@ -750,7 +753,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall]}>
+            <View style={[styles.moneyRequestImage, !isSmallScreenWidth && styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
