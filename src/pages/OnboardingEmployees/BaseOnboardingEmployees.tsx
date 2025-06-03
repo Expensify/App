@@ -32,8 +32,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(onboardingCompanySize);
     const [error, setError] = useState('');
 
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
-        const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
         const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
             .filter((size) => !isSmb || size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO)
@@ -44,7 +44,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     isSelected: companySize === selectedCompanySize,
                 };
             });
-    }, [translate, selectedCompanySize]);
+    }, [translate, selectedCompanySize, onboardingValues?.signupQualifier]);
 
     const footerContent = (
         <>
