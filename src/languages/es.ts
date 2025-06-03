@@ -2989,7 +2989,7 @@ const translations = {
             flightSeatChanged: ({airlineCode}: AirlineParams) => `Tu asignación de asiento en el vuelo ${airlineCode} ha sido modificada.`,
             flightSeatCancelled: ({airlineCode}: AirlineParams) => `Tu asignación de asiento en el vuelo ${airlineCode} fue eliminada.`,
             paymentDeclined: 'El pago de tu reserva aérea ha fallado. Por favor, inténtalo de nuevo.',
-            bookingCancelledByTraveller: ({type, id = ''}: TravelTypeParams) => `Cancelaste tu reserva de ${type} ${id}.`,
+            bookingCancelledByTraveler: ({type, id = ''}: TravelTypeParams) => `Cancelaste tu reserva de ${type} ${id}.`,
             bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `El proveedor canceló tu reserva de ${type} ${id}.`,
             bookingRebooked: ({type, id = ''}: TravelTypeParams) => `Tu reserva de ${type} fue reprogramada. Nuevo número de confirmación: ${id}.`,
             bookingUpdated: ({type}: TravelTypeParams) => `Tu reserva de ${type} fue actualizada. Revisa los nuevos detalles en el itinerario.`,
