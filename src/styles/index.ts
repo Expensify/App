@@ -4904,6 +4904,7 @@ const styles = (theme: ThemeColors) =>
         moneyRequestAttachReceiptThumbnail: {
             backgroundColor: theme.hoverComponentBG,
             borderWidth: 0,
+            width: '100%',
         },
 
         receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
