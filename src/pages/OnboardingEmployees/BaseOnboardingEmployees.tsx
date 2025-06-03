@@ -33,13 +33,17 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [error, setError] = useState('');
 
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
-        return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize): OnboardingListItem => {
-            return {
-                text: translate(`onboarding.employees.${companySize}`),
-                keyForList: companySize,
-                isSelected: companySize === selectedCompanySize,
-            };
-        });
+        const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
+        const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+        return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
+            .filter((size) => !isSmb || size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO)
+            .map((companySize): OnboardingListItem => {
+                return {
+                    text: translate(`onboarding.employees.${companySize}`),
+                    keyForList: companySize,
+                    isSelected: companySize === selectedCompanySize,
+                };
+            });
     }, [translate, selectedCompanySize]);
 
     const footerContent = (
