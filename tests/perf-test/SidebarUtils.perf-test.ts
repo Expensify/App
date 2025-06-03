@@ -16,7 +16,7 @@ import createRandomReport from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 15000;
-const REPORT_TRESHOLD = 5;
+const REPORT_THRESHOLD = 5;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
 
 const allReports = createCollection<Report>(
@@ -25,9 +25,9 @@ const allReports = createCollection<Report>(
         ...createRandomReport(index),
         type: rand(Object.values(CONST.REPORT.TYPE)),
         lastVisibleActionCreated: getRandomDate(),
-        // add status and state to every 5th report to mock nonarchived reports
-        statusNum: index % REPORT_TRESHOLD ? 0 : CONST.REPORT.STATUS_NUM.CLOSED,
-        stateNum: index % REPORT_TRESHOLD ? 0 : CONST.REPORT.STATE_NUM.APPROVED,
+        // add status and state to every 5th report to mock non-archived reports
+        statusNum: index % REPORT_THRESHOLD ? 0 : CONST.REPORT.STATUS_NUM.CLOSED,
+        stateNum: index % REPORT_THRESHOLD ? 0 : CONST.REPORT.STATE_NUM.APPROVED,
         isUnreadWithMention: false,
     }),
     REPORTS_COUNT,
@@ -58,6 +58,7 @@ describe('SidebarUtils', () => {
 
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+            [ONYXKEYS.NVP_PREFERRED_LOCALE]: 'en',
         });
     });
 
@@ -67,7 +68,6 @@ describe('SidebarUtils', () => {
 
     test('[SidebarUtils] getOptionData', async () => {
         const report = createRandomReport(1);
-        const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
         const reportNameValuePairs = {};
@@ -80,7 +80,6 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs,
                 personalDetails,
-                preferredLocale,
                 policy,
                 parentReportAction,
                 oneTransactionThreadReport: undefined,
