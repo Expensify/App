@@ -10,6 +10,7 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -31,12 +32,13 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
+    const {isOffline} = useNetwork();
 
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
-
+    const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
     function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
         if (!transactions) {
             return [];
@@ -174,8 +176,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     setErrorMessage('');
                 }}
                 onEndReached={fetchMoreUnreportedTransactions}
-                onEndReachedThreshold={0.9}
-                listFooterContent={isLoadingUnreportedTransactions ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
+                onEndReachedThreshold={0.75}
+                listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
             >
                 {!!errorMessage && (
                     <FormHelpMessage
