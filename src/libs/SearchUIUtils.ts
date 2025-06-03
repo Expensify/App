@@ -364,7 +364,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const transactionItem = data[key];
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const shouldShowBlankTo = isOpenExpenseReport(report);
+        const shouldShowBlankTo = !report || isOpenExpenseReport(report);
 
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
@@ -530,7 +530,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     }
 
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcut the logic for performance reasons
-    if (!isMoneyRequestReport(report)) {
+    if (!isMoneyRequestReport(report) && !isInvoiceReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
@@ -571,8 +571,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
-
-    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
+    if (canApproveIOU(report, policy, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
@@ -746,7 +745,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-            const shouldShowBlankTo = isOpenExpenseReport(report);
+            const shouldShowBlankTo = !report || isOpenExpenseReport(report);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
@@ -1056,7 +1055,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
             const isPolicyApprover = policy.approver === email;
             const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-                return employee.submitsTo === email;
+                return employee.submitsTo === email || employee.forwardsTo === email;
             });
 
             return isPolicyApprover || isSubmittedTo;

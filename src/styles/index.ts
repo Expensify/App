@@ -4688,7 +4688,7 @@ const styles = (theme: ThemeColors) =>
         moneyRequestImage: {
             height: 200,
             borderRadius: 16,
-            margin: 20,
+            marginHorizontal: 20,
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
@@ -4866,7 +4866,6 @@ const styles = (theme: ThemeColors) =>
 
         moneyRequestViewImage: {
             ...spacing.mh5,
-            ...spacing.mv3,
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,

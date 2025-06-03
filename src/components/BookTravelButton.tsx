@@ -59,7 +59,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const {isBlockedFromSpotnanaTravel, isTravelVerified} = usePermissions();
+    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -134,7 +134,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
                 });
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
-        } else if (!isTravelVerified) {
+        } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             setVerificationModalVisibility(true);
             travelSignupRequest();
         }
@@ -166,7 +166,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         setRootStatusBarEnabled,
         isUserValidated,
         groupPaidPolicies.length,
-        isTravelVerified,
+        isBetaEnabled,
     ]);
 
     return (
