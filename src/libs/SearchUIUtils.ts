@@ -1056,7 +1056,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
             const isPolicyApprover = policy.approver === email;
             const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-                return employee.submitsTo === email;
+                return employee.submitsTo === email || employee.forwardsTo === email;
             });
 
             return isPolicyApprover || isSubmittedTo;
