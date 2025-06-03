@@ -5,7 +5,7 @@ import {Linking} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {setupNewDotAfterTransitionFromOldDot} from '@libs/actions/Session';
 import Navigation, {navigationRef} from '@navigation/Navigation';
-import * as HybridAppActions from '@userActions/HybridApp';
+import {parseHybridAppSettings} from '@userActions/HybridApp';
 import type {AppProps} from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +68,7 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
             if (!isLoading) {
                 if (!setupCalled.current) {
                     setupCalled.current = true;
-                    const parsedHybridAppSettings = HybridAppActions.parseHybridAppSettings(hybridAppSettings);
+                    const parsedHybridAppSettings = parseHybridAppSettings(hybridAppSettings);
                     setupNewDotAfterTransitionFromOldDot(parsedHybridAppSettings, tryNewDot).then(() => {
                         handleNavigation(url);
                         if (parsedHybridAppSettings.hybridApp?.loggedOutFromOldDot) {

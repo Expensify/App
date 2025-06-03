@@ -4,7 +4,7 @@ import IconButton from '@components/SignInButtons/IconButton';
 import {setNewDotSignInState} from '@libs/actions/HybridApp';
 import Growl from '@libs/Growl';
 import Log from '@libs/Log';
-import * as Session from '@userActions/Session';
+import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {GoogleSignInProps} from '.';
@@ -29,7 +29,7 @@ function googleSignInRequest() {
         .then((response) => response.idToken)
         .then((token) => {
             setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
-            Session.beginGoogleSignIn(token);
+            beginGoogleSignIn(token);
         })
         .catch((error: GoogleError | undefined) => {
             // Handle unexpected error shape

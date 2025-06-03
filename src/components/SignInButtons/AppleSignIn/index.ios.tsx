@@ -5,7 +5,7 @@ import IconButton from '@components/SignInButtons/IconButton';
 import {setNewDotSignInState} from '@libs/actions/HybridApp';
 import Growl from '@libs/Growl';
 import Log from '@libs/Log';
-import * as Session from '@userActions/Session';
+import {beginAppleSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {AppleSignInProps} from '.';
 
@@ -41,7 +41,7 @@ function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
         appleSignInRequest()
             .then((token) => {
                 setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
-                Session.beginAppleSignIn(token);
+                beginAppleSignIn(token);
             })
             .catch((error: {code: AppleError}) => {
                 if (error.code === appleAuth.Error.CANCELED) {
