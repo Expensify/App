@@ -1,24 +1,101 @@
+import {addMinutes} from 'date-fns';
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from '@components/ButtonWithDropdownMenu/types';
-import {Monitor} from '@components/Icon/Expensicons';
+import {CalendarSolid, Close, Monitor} from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
+import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
+import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 type OnboardingHelpButtonProps = {
+    /** The ID of onboarding chat report */
+    reportID: string | undefined;
+
     /** Whether we should display the Onboarding help button as in narrow layout */
     shouldUseNarrowLayout: boolean;
 
-    /** Should show Register for Webinar option */
+    /** Should show Register for webinar option */
     shouldShowRegisterForWebinar: boolean;
+
+    /** Should show Guide booking option */
+    shouldShowGuideBooking: boolean;
+
+    /** Has user active Schedule call with guide */
+    hasActiveScheduledCall: boolean | undefined;
 };
 
-function OnboardingHelpDropdownButton({shouldUseNarrowLayout, shouldShowRegisterForWebinar}: OnboardingHelpButtonProps) {
+function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate} = useLocalize();
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
+    const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const styles = useThemeStyles();
+
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
+
     const options: Array<DropdownOption<OnboardingHelpType>> = [];
+
+    if (!hasActiveScheduledCall && shouldShowGuideBooking) {
+        options.push({
+            text: translate('getAssistancePage.scheduleACall'),
+            icon: CalendarSolid,
+            value: CONST.ONBOARDING_HELP.SCHEDULE_CALL,
+            onSelected: () => {
+                if (!reportID) {
+                    return;
+                }
+                clearBookingDraft();
+                Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(reportID));
+            },
+        });
+    }
+
+    if (hasActiveScheduledCall && latestScheduledCall) {
+        options.push({
+            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${DateUtils.formatInTimeZoneWithFallback(
+                latestScheduledCall.eventTime,
+                userTimezone,
+                CONST.DATE.MONTH_DAY_YEAR_FORMAT,
+            )}`,
+            value: CONST.ONBOARDING_HELP.EVENT_TIME,
+            description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
+                addMinutes(latestScheduledCall.eventTime, 30),
+                userTimezone,
+                CONST.DATE.LOCAL_TIME_FORMAT,
+            )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
+            descriptionTextStyle: [styles.themeTextColor, styles.ml2],
+            displayInDefaultIconColor: true,
+            icon: Illustrations.HeadSet,
+            iconWidth: variables.avatarSizeLargeNormal,
+            iconHeight: variables.avatarSizeLargeNormal,
+            wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
+            interactive: false,
+            titleStyle: styles.ml2,
+            avatarSize: CONST.AVATAR_SIZE.LARGE_NORMAL,
+        });
+        options.push({
+            text: translate('common.reschedule'),
+            value: CONST.ONBOARDING_HELP.RESCHEDULE,
+            onSelected: () => rescheduleBooking(latestScheduledCall),
+            icon: CalendarSolid,
+        });
+        options.push({
+            text: translate('common.cancel'),
+            value: CONST.ONBOARDING_HELP.CENCEL,
+            onSelected: () => cancelBooking(latestScheduledCall),
+            icon: Close,
+        });
+    }
 
     if (shouldShowRegisterForWebinar) {
         options.push({
@@ -39,11 +116,12 @@ function OnboardingHelpDropdownButton({shouldUseNarrowLayout, shouldShowRegister
         <ButtonWithDropdownMenu
             onPress={() => null}
             shouldAlwaysShowDropdownMenu
-            success={false}
+            pressOnEnter
+            success={!!hasActiveScheduledCall}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             options={options}
             isSplitButton={false}
-            customText={translate('getAssistancePage.onboardingHelp')}
+            customText={hasActiveScheduledCall ? translate('scheduledCall.callScheduled') : translate('getAssistancePage.onboardingHelp')}
             wrapperStyle={shouldUseNarrowLayout && styles.earlyDiscountButton}
         />
     );
