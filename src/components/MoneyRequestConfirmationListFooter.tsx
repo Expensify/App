@@ -256,7 +256,7 @@ function MoneyRequestConfirmationListFooter({
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
 
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
@@ -753,7 +753,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={[styles.moneyRequestImage, !isSmallScreenWidth && styles.expenseViewImageSmall]}>
+            <View style={[styles.moneyRequestImage, !shouldUseNarrowLayout && styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -820,6 +820,7 @@ function MoneyRequestConfirmationListFooter({
             styles.cursorDefault,
             styles.h100,
             styles.flex1,
+            shouldUseNarrowLayout,
             isLocalFile,
             receiptFilename,
             translate,
