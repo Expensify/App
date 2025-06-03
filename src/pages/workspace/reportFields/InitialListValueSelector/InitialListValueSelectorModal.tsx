@@ -43,6 +43,7 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={styles.pb0}
