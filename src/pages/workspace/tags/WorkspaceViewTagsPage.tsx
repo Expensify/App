@@ -295,7 +295,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 buttonRef={dropdownButtonRef}
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
-                pressOnEnter
                 isSplitButton={false}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTags.length})}
@@ -397,7 +396,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length > CONST.SEARCH_ITEM_LIMIT && !isLoading && (
+                {tagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress

@@ -14,8 +14,9 @@ import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-import * as Localize from '@libs/Localize';
-import * as NumberUtils from '@libs/NumberUtils';
+import {translateLocal} from '@libs/Localize';
+import BaseLocaleListener from '@libs/Localize/LocaleListener/BaseLocaleListener';
+import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {
     getCleanedTagName,
     getDistanceRateCustomUnitRate,
@@ -43,11 +44,10 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
 
@@ -70,6 +70,8 @@ type TransactionParams = {
     source?: string;
     filename?: string;
     customUnit?: TransactionCustomUnit;
+    splitExpenses?: SplitExpense[];
+    participants?: Participant[];
 };
 
 type BuildOptimisticTransactionParams = {
@@ -116,17 +118,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => (allTransactionViolations = value),
-});
-
-let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        preferredLocale = value;
-    },
 });
 
 let currentUserEmail = '';
@@ -261,10 +252,12 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         source = '',
         filename = '',
         customUnit,
+        splitExpenses,
+        participants,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
-    const transactionID = existingTransactionID ?? NumberUtils.rand64();
+    const transactionID = existingTransactionID ?? rand64();
 
     const commentJSON: Comment = {comment, attendees};
     if (source) {
@@ -272,6 +265,10 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     }
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
+    }
+
+    if (splitExpenses) {
+        commentJSON.splitExpenses = splitExpenses;
     }
 
     const isDistanceTransaction = !!pendingFields?.waypoints;
@@ -297,7 +294,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt} : {},
-        filename: (receipt?.source ? receipt?.name ?? filename : filename).toString(),
+        filename: (receipt?.source ? (receipt?.name ?? filename) : filename).toString(),
         category,
         tag,
         taxCode,
@@ -305,6 +302,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         billable,
         reimbursable,
         inserted: DateUtils.getDBTime(),
+        participants,
     };
 }
 
@@ -335,6 +333,10 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
+    if (!policy?.isAttendeeTrackingEnabled) {
+        return false;
+    }
+
     return (
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM)
     );
@@ -420,7 +422,7 @@ function getUpdatedTransaction({
             // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
             updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
-            updatedTransaction.modifiedMerchant = Localize.translateLocal('iou.fieldPending');
+            updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
         } else {
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
             const {unit, rate} = mileageRate;
@@ -428,8 +430,8 @@ function getUpdatedTransaction({
             const distanceInMeters = getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport ? -amount : amount;
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, Localize.translateLocal, (digit) =>
-                toLocaleDigit(preferredLocale, digit),
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
+                toLocaleDigit(BaseLocaleListener.getPreferredLocale(), digit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -452,7 +454,7 @@ function getUpdatedTransaction({
         // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            const distance = NumberUtils.roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+            const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
@@ -468,8 +470,8 @@ function getUpdatedTransaction({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, Localize.translateLocal, (digit) =>
-                toLocaleDigit(preferredLocale, digit),
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
+                toLocaleDigit(BaseLocaleListener.getPreferredLocale(), digit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -657,9 +659,11 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
-        return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, Localize.translateLocal, (digit) => toLocaleDigit(preferredLocale, digit));
+        return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
+            toLocaleDigit(BaseLocaleListener.getPreferredLocale(), digit),
+        );
     }
-    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
+    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
 function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
@@ -670,7 +674,7 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * Return the list of modified attendees if present otherwise list of attendees
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
-    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.comment?.attendees ?? [];
+    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
 }
 
 /**
@@ -1235,8 +1239,7 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
         return policy && getDefaultTaxCode(policy, transaction);
     };
 
-    const getModifiedName = (data: TaxRate, code: string) =>
-        `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
@@ -1266,6 +1269,8 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
 /**
  * @deprecated Get the data straight from Onyx
  */
+// TODO: Will be handled in this PR https://github.com/Expensify/App/pull/62434
+// eslint-disable-next-line deprecation/deprecation
 function getTransaction(transactionID: string | number | undefined): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
@@ -1546,6 +1551,23 @@ function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
     return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0)?.transactionID, allTransactionViolations));
 }
 
+const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>) => {
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
+
+    if (splits && splits.length > 0) {
+        return {isBillSplit: true, isExpenseSplit: false, originalTransaction: originalTransaction ?? transaction};
+    }
+
+    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
+        return {isBillSplit: false, isExpenseSplit: false, originalTransaction: transaction};
+    }
+
+    // To determine if it’s a split bill or a split expense, we check for the presence of `comment.splits` on the original transaction.
+    // Since both splits use `comment.originalTransaction`, but split expenses won’t have `comment.splits`.
+    return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: !originalTransaction?.comment?.splits, originalTransaction: originalTransaction ?? transaction};
+};
+
 /**
  * Return transactions pending action.
  */
@@ -1555,6 +1577,10 @@ function getTransactionPendingAction(transaction: OnyxEntry<Transaction>): Pendi
     }
     const hasPendingFields = Object.keys(transaction?.pendingFields ?? {}).length > 0;
     return hasPendingFields ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
+}
+
+function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolean {
+    return getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 export {
@@ -1632,6 +1658,8 @@ export {
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
+    // TODO: Will be handled in this PR https://github.com/Expensify/App/pull/62434
+    // eslint-disable-next-line deprecation/deprecation
     getTransaction,
     compareDuplicateTransactionFields,
     getTransactionID,
@@ -1654,7 +1682,9 @@ export {
     isPendingCardOrScanningTransaction,
     getTransactionOrDraftTransaction,
     checkIfShouldShowMarkAsCashButton,
+    getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
+    isTransactionPendingDelete,
 };
 
 export type {TransactionChanges};
