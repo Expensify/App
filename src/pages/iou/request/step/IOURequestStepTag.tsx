@@ -113,7 +113,7 @@ function IOURequestStepTag({
             updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex);
         }
 
-        if (isEditingSplitBill) {
+        if (isEditingSplit) {
             setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
             return;
