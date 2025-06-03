@@ -331,7 +331,7 @@ function MoneyRequestPreviewContent({
 
     const navigateToReviewFields = () => {
         const backTo = route.params.backTo;
-        const isFromExpense = route.params.isFromExpense ?? false;
+        const isFromExpense = route.params.isFromExpense;
 
         // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
         // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
