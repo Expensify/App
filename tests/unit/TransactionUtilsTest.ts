@@ -484,4 +484,37 @@ describe('TransactionUtils', () => {
                 });
         });
     });
+    describe('getTransactionPendingAction', () => {
+        it.each([
+            ['when pendingAction is null', null, null],
+            ['when pendingAction is delete', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE],
+            ['when pendingAction is add', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD],
+        ])('%s', (_description, pendingAction, expected) => {
+            const transaction = generateTransaction({pendingAction});
+            const result = TransactionUtils.getTransactionPendingAction(transaction);
+            expect(result).toEqual(expected);
+        });
+        it('when pendingAction is update', () => {
+            const pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+            const transaction = generateTransaction({
+                pendingFields: {amount: pendingAction},
+                pendingAction: null,
+            });
+            const result = TransactionUtils.getTransactionPendingAction(transaction);
+            expect(result).toEqual(pendingAction);
+        });
+    });
+
+    describe('isTransactionPendingDelete', () => {
+        it.each([
+            ['when pendingAction is null', null, false],
+            ['when pendingAction is delete', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, true],
+            ['when pendingAction is add', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, false],
+            ['when pendingAction is update', CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, false],
+        ])('%s', (_description, pendingAction, expected) => {
+            const transaction = generateTransaction({pendingAction});
+            const result = TransactionUtils.isTransactionPendingDelete(transaction);
+            expect(result).toEqual(expected);
+        });
+    });
 });
