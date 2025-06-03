@@ -10838,6 +10838,14 @@ function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportA
     return reportActionList.some((action) => isReopenedAction(action));
 }
 
+function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean) {
+    if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
+        const originalMessage = getOriginalMessage(action);
+        return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
+    }
+    return getReportName(iouReport) || action.childReportName;
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11214,6 +11222,7 @@ export {
     isWorkspaceEligibleForReportChange,
     navigateOnDeleteExpense,
     hasReportBeenReopened,
+    getMoneyReportPreviewName,
 };
 
 export type {
