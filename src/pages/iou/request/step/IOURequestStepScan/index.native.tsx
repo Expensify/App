@@ -624,19 +624,22 @@ function IOURequestStepScan({
         processFile(originalFile);
     };
 
-    const submitReceipts = useCallback(() => {
-        if (shouldSkipConfirmation) {
-            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-            if (gpsRequired) {
-                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                if (beginLocationPermissionFlow) {
-                    setStartLocationPermissionFlow(true);
-                    return;
+    const submitReceipts = useCallback(
+        (files: ReceiptFile[]) => {
+            if (shouldSkipConfirmation) {
+                const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+                if (gpsRequired) {
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                    if (beginLocationPermissionFlow) {
+                        setStartLocationPermissionFlow(true);
+                        return;
+                    }
                 }
             }
-        }
-        navigateToConfirmationStep(receiptFiles, false);
-    }, [initialTransaction, iouType, navigateToConfirmationStep, receiptFiles, shouldSkipConfirmation]);
+            navigateToConfirmationStep(files, false);
+        },
+        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+    );
 
     const capturePhoto = useCallback(() => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
@@ -710,7 +713,7 @@ function IOURequestStepScan({
                                     return;
                                 }
 
-                                submitReceipts();
+                                submitReceipts(newReceiptFiles);
                             },
                             () => {
                                 setDidCapturePhoto(false);

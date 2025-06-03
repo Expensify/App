@@ -13,6 +13,7 @@ import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -22,7 +23,7 @@ type ReceiptWithTransactionID = Receipt & {transactionID: string};
 
 type ReceiptPreviewsProps = {
     /** Submit method */
-    submit: () => void;
+    submit: (files: ReceiptFile[]) => void;
 
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
@@ -142,7 +143,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                             // TODO: uncomment the submit call when necessary updates for the confirmation page and bulk expense creation are implemented
                             // https://github.com/Expensify/App/issues/61183
                             // https://github.com/Expensify/App/issues/61184
-                            // submit();
+                            // submit(optimisticTransactionsReceipts ?? []);
                         }}
                     />
                 </SubmitButtonShadow>
