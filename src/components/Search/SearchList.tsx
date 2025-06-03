@@ -1,12 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListProps, ViewToken} from '@shopify/flash-list';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
+import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -29,11 +28,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import {isReportActionListItemType, isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ITEM_HEIGHTS from './itemHeights';
 
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
@@ -43,7 +40,7 @@ type SearchListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
-type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'contentContainerStyle' | 'onEndReached' | 'onEndReachedThreshold' | 'ListFooterComponent' | 'estimatedItemSize'> & {
+type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' | 'contentContainerStyle' | 'onEndReached' | 'onEndReachedThreshold' | 'ListFooterComponent'> & {
     data: SearchListItem[];
 
     /** Default renderer for every item in the list */
@@ -75,9 +72,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** The hash of the queryJSON */
     queryJSONHash: number;
 
-    /** The type of the queryJSON */
-    queryJSONType: string;
-
     /** Whether to group the list by reports */
     shouldGroupByReports?: boolean;
 
@@ -88,8 +82,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     onLayout?: () => void;
 };
 
-const AnimatedFlashList = Animated.createAnimatedComponent<FlashListProps<SearchListItem>>(FlashList);
-const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
+const onScrollToIndexFailed = () => {};
 
 function SearchList(
     {
@@ -111,9 +104,7 @@ function SearchList(
         queryJSONHash,
         shouldGroupByReports,
         onViewableItemsChanged,
-        estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         onLayout,
-        queryJSONType,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -124,7 +115,7 @@ function SearchList(
     }, 0);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
-    const listRef = useRef<FlashList<SearchListItem>>(null);
+    const listRef = useRef<FlatList<SearchListItem>>(null);
     const hasKeyBeenPressed = useRef(false);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -133,7 +124,7 @@ function SearchList(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {selectionMode} = useMobileSelectionMode();
@@ -308,77 +299,8 @@ function SearchList(
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
 
-    const getItemHeight = useCallback(
-        (item: SearchListItem): number => {
-            try {
-                const reportListItem = isReportListItemType(item) ? item : null;
-                const transactionListItem = isTransactionListItemType(item) ? item : null;
-                const reportActionListItem = isReportActionListItemType(item) ? item : null;
-
-                const isTransaction = !!transactionListItem;
-                const isReportAction = !!reportActionListItem;
-
-                if (isTransaction || isReportAction) {
-                    if (queryJSONType === CONST.SEARCH.DATA_TYPES.CHAT) {
-                        return reportListItem?.childReportID ? variables.searchListItemHeightChat : variables.searchListItemHeightChatCompact;
-                    }
-                    const itemAction = transactionListItem?.action;
-                    // VIEW is the only action type that should be compact
-                    const isItemActionView = isTransaction && itemAction === CONST.SEARCH.ACTION_TYPES.VIEW;
-
-                    // Determine which layout to use based on screen size and drawer state
-                    let heightConstants;
-
-                    if (shouldUseNarrowLayout) {
-                        // For narrow screens without drawer (mobile or collapsed desktop)
-                        heightConstants = isItemActionView ? ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD : ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.WITH_BUTTON;
-                    } else if (!isLargeScreenWidth) {
-                        // For narrow screens with drawer
-                        heightConstants = isItemActionView ? ITEM_HEIGHTS.NARROW_WITH_DRAWER.STANDARD : ITEM_HEIGHTS.NARROW_WITH_DRAWER.WITH_BUTTON;
-                    } else {
-                        // For wide screens (desktop)
-                        heightConstants = ITEM_HEIGHTS.WIDE.STANDARD;
-                    }
-
-                    return heightConstants;
-                }
-                if (reportListItem) {
-                    if (!reportListItem.transactions || reportListItem.transactions.length === 0) {
-                        return Math.max(ITEM_HEIGHTS.HEADER, 1);
-                    }
-                    const baseReportItemHeight = isLargeScreenWidth
-                        ? variables.searchOptionRowMargin + variables.searchOptionRowBaseHeight + variables.searchOptionRowLargeFooterHeight
-                        : variables.searchOptionRowMargin + variables.searchOptionRowBaseHeight + variables.searchOptionRowSmallFooterHeight;
-                    const transactionHeight = variables.searchOptionRowTransactionHeight;
-                    const calculatedHeight =
-                        baseReportItemHeight + reportListItem.transactions.length * transactionHeight + variables.optionRowListItemPadding + variables.searchOptionRowMargin;
-                    return Math.max(calculatedHeight, ITEM_HEIGHTS.HEADER, 1);
-                }
-
-                return isLargeScreenWidth ? variables.searchListItemHeightLargeScreen : variables.searchListItemHeightSmallScreen;
-            } catch (error) {
-                console.error('SearchList: Error calculating item height, returning estimated size.', error, item);
-                return estimatedItemSize;
-            }
-        },
-        [isLargeScreenWidth, estimatedItemSize, shouldUseNarrowLayout, queryJSONType],
-    );
-
-    const overrideItemLayout = useCallback(
-        (layout: {span?: number; size?: number}, item: SearchListItem) => {
-            const height = getItemHeight(item);
-            if (!layout) {
-                return;
-            }
-            // eslint-disable-next-line no-param-reassign
-            layout.size = height > 0 ? height : estimatedItemSize;
-        },
-        [getItemHeight, estimatedItemSize],
-    );
-
     const renderItem = useCallback(
-        // eslint-disable-next-line react/no-unused-prop-types
-        ({item, index}: {item: SearchListItem; index: number}) => {
+        ({item, index}: ListRenderItemInfo<SearchListItem>) => {
             const isItemFocused = focusedIndex === index;
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
@@ -464,23 +386,22 @@ function SearchList(
                     )}
                 </View>
             )}
-            <AnimatedFlashList
-                ref={listRef}
+
+            <Animated.FlatList
                 data={data}
                 renderItem={renderItem}
-                keyExtractor={keyExtractor}
+                keyExtractor={(item, index) => item.keyForList ?? `${index}`}
                 onScroll={onScroll}
                 contentContainerStyle={contentContainerStyle}
                 showsVerticalScrollIndicator={false}
-                estimatedItemSize={estimatedItemSize}
-                overrideItemLayout={overrideItemLayout}
+                ref={listRef}
+                extraData={focusedIndex}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
-                drawDistance={1000}
-                extraData={focusedIndex}
                 removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
+                onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
             />
             <Modal
