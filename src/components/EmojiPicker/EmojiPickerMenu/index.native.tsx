@@ -68,10 +68,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         }
     }, 300);
 
-    const scrollToHeader = (headerIndex: number) => {
-        const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
-    };
+    const scrollToHeader = useCallback(
+        (headerIndex: number) => {
+            const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+            emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
+        },
+        [emojiListRef],
+    );
 
     /**
      * Given an emoji item object, render a component based on its type.
