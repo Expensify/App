@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -48,8 +47,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const isValidated = isCurrentUserValidated(loginList);
 
-    const {canUseDefaultRooms} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const {isBetaEnabled} = usePermissions();
 
     const handleJoinWorkspace = useCallback(
         (policy: JoinablePolicy) => {
@@ -67,9 +65,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);
 
-            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policy.automaticJoiningEnabled ? policy.policyID : undefined, activeWorkspaceID);
+            navigateAfterOnboarding(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), policy.automaticJoiningEnabled ? policy.policyID : undefined);
         },
-        [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, canUseDefaultRooms, activeWorkspaceID],
+        [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, isBetaEnabled],
     );
 
     const policyIDItems = useMemo(() => {
