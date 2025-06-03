@@ -346,7 +346,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 footerContent={footerContent}
                 isLoadingNewOptions={!!isSearchingForReports}
-                addBottomSafeAreaPadding
+                addBottomSafeAreaPadding={isSmallScreenWidth}
             />
         </ScreenWrapper>
     );
