@@ -4,9 +4,11 @@ import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import mergeRefs from '@libs/mergeRefs';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
@@ -32,8 +34,7 @@ function DatePicker(
         autoFocus = false,
         shouldHideClearButton = false,
     }: DateInputWithPickerProps,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ref: ForwardedRef<View>,
+    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
@@ -42,7 +43,7 @@ function DatePicker(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
-    const textInputRef = useRef<HTMLFormElement | null>(null);
+    const textInputRef = useRef<BaseTextInputRef>(null);
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
     const isAutoFocused = useRef(false);
@@ -124,7 +125,7 @@ function DatePicker(
                 style={styles.mv2}
             >
                 <TextInput
-                    ref={textInputRef}
+                    ref={mergeRefs(ref, textInputRef)}
                     inputID={inputID}
                     forceActiveLabel
                     icon={selectedDate ? null : Expensicons.Calendar}
