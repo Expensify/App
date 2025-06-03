@@ -5381,7 +5381,6 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         return;
     }
 
-    // 1. Add the submitter to the workspace
     const submitterEmail = PersonalDetailsUtils.getLoginByAccountID(report.ownerAccountID);
 
     if (!submitterEmail) {
@@ -5412,7 +5411,6 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
     successData.push(...successChangePolicyData);
     failureData.push(...failureChangePolicyData);
 
-    // Call the ChangeReportPolicy API endpoint
     const params = {
         reportID: report.reportID,
         policyID,
@@ -5423,7 +5421,7 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
     };
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params, {optimisticData, successData, failureData});
 
-    // 5. If the dismissedProductTraining.changeReportModal is not set, navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
+    // If the dismissedProductTraining.changeReportModal is not set, navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
     if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
         Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
     }
