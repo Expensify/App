@@ -3941,8 +3941,8 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+            // We set introSelected to CHAT_SPLIT to avoid workflows enabled by default on new workspaces created.
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT});
 
             return waitForBatchedUpdates()
                 .then(() => {
@@ -4108,8 +4108,8 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+            // We set introSelected to CHAT_SPLIT to avoid workflows enabled by default on new workspaces created.
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT});
 
             return waitForBatchedUpdates()
                 .then(() => {

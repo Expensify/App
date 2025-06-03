@@ -261,7 +261,7 @@ describe('actions/Policy', () => {
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
         });
 
-        it('creates a new workspace with OPTIONAL approval mode if the introSelected is TRACK_WORKSPACE', async () => {
+        it('creates a new workspace with BASIC approval mode if the introSelected is TRACK_WORKSPACE', async () => {
             Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
             await waitForBatchedUpdates();
 
@@ -280,8 +280,8 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Then the policy should have approval mode set to OPTIONAL
-            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            // Then the policy should have approval mode set to BASIC
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
         });
 
         it('create a new workspace fails will reset hasCompletedGuidedSetupFlow to the correct value', async () => {
@@ -388,7 +388,7 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with disabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
             Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
             await waitForBatchedUpdates();
 
@@ -401,8 +401,8 @@ describe('actions/Policy', () => {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 waitForCollectionCallback: false,
                 callback: (policy) => {
-                    // Then workflows are not enabled
-                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                    // Then workflows is enabled
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
                 },
             });
         });
