@@ -81,7 +81,7 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
             transactionThreadOldest: transactionThreadOldestAction,
             transactionThreadNewest: transactionThreadNewestAction,
         };
-    }, [reportActions, allReportActionIDs, reportID, transactionThreadReport?.reportID]);
+    }, [reportActions, allReportActionIDs, reportID, transactionThreadReport]);
 
     /**
      * Retrieves the next set of reportActions for the chat once we are nearing the end of what we are currently
