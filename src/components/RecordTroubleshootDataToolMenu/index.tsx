@@ -48,7 +48,6 @@ function RecordTroubleshootDataToolMenu() {
             file={file}
             onDisableLogging={onDisableLogging}
             onEnableLogging={hideShareButton}
-            displayPath={file?.path}
             pathToBeUsed=""
             displayPath2=""
             onDownloadZip={onDownloadZip}

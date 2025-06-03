@@ -67,7 +67,6 @@ function RecordTroubleshootDataToolMenu() {
             file={file}
             onEnableLogging={() => setFile(undefined)}
             onDisableLogging={createAndSaveFile}
-            displayPath={`${CONST.DOWNLOADS_PATH}/${file?.newFileName ?? ''}`}
             pathToBeUsed={RNFS.DownloadDirectoryPath}
             displayPath2={`${CONST.DOWNLOADS_PATH}`}
             showShareButton

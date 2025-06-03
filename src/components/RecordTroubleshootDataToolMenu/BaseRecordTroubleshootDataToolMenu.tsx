@@ -1,6 +1,6 @@
 import type JSZip from 'jszip';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {Alert} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import {useOnyx} from 'react-native-onyx';
@@ -40,8 +40,6 @@ type BaseRecordTroubleshootDataToolMenuProps = {
     onDisableLogging: (logs: OnyxLog[]) => void;
     /** Action to run when enabling logging */
     onEnableLogging?: () => void;
-    /** Path used to display location of saved file */
-    displayPath?: string;
     /** Path used to save the file */
     pathToBeUsed: string;
     /** Path used to display location of saved file */
@@ -75,7 +73,6 @@ function BaseRecordTroubleshootDataToolMenu({
     file,
     onDisableLogging,
     onEnableLogging,
-    displayPath,
     showShareButton = false,
     pathToBeUsed,
     displayPath2,
@@ -87,32 +84,23 @@ function BaseRecordTroubleshootDataToolMenu({
     const [shouldRecordTroubleshootData] = useOnyx(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, {canBeMissing: true});
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: true});
     const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
-    const [filePath, setFilePath] = useState('');
-    const [sharePath, setSharePath] = useState('');
-
-    // eslint-disable-next-line @lwc/lwc/no-async-await
-    const stop = useCallback(async () => {
-        // const path = await stopProfiling(getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.WEB, newFileName);
-        const path = await stopProfiling(true, newFileName);
-        setFilePath(path);
-
-        Performance.disableMonitoring();
-    }, []);
+    const [shareUrls, setShareUrls] = useState<string[]>();
 
     const onToggleProfiling = useCallback(() => {
         const shouldProfiling = !isProfilingInProgress;
         if (shouldProfiling) {
+            setShareUrls(undefined);
             Memoize.startMonitoring();
             Performance.enableMonitoring();
             startProfiling();
         } else {
-            stop();
+            Performance.disableMonitoring();
         }
         toggleProfileTool();
         return () => {
-            stop();
+            Performance.disableMonitoring();
         };
-    }, [isProfilingInProgress, stop]);
+    }, [isProfilingInProgress]);
 
     const getAppInfo = useCallback(() => {
         return Promise.all([DeviceInfo.getTotalMemory(), DeviceInfo.getUsedMemory()]).then(([totalMemory, usedMemory]) => {
@@ -158,59 +146,51 @@ function BaseRecordTroubleshootDataToolMenu({
             onDisableLogging(logsWithParsedMessages);
             Console.disableLoggingAndFlushLogs();
             Troubleshoot.setShouldRecordTroubleshootData(false);
+            onDisableSwitch();
         });
     };
 
-    useEffect(() => {
-        if (!filePath) {
-            return;
+    function onDisableSwitch() {
+        if (getPlatform() === CONST.PLATFORM.WEB) {
+            stopProfiling(true, newFileName).then(() => {
+                onDownloadZip();
+            });
+        } else {
+            stopProfiling(true, newFileName).then((path) => {
+                const newFilePath = `${pathToBeUsed}/${newFileName}`;
+
+                RNFS.exists(newFilePath)
+                    .then((fileExists) => {
+                        if (!fileExists) {
+                            return;
+                        }
+
+                        RNFS.unlink(newFilePath).then(() => {
+                            Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
+                        });
+                    })
+                    .catch((error) => {
+                        const typedError = error as Error;
+                        Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
+                    });
+
+                RNFS.copyFile(path, newFilePath)
+                    .then(() => {
+                        Log.hmmm('[ProfilingToolMenu] file copied successfully');
+                        setShareUrls([`file://${newFilePath}`, `file://${file?.path}`]);
+                    })
+                    .catch((error: Record<string, unknown>) => {
+                        Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
+                    });
+            });
         }
+    }
 
-        // eslint-disable-next-line @lwc/lwc/no-async-await
-        const rename = async () => {
-            const newFilePath = `${pathToBeUsed}/${newFileName}`;
-
-            try {
-                const fileExists = await RNFS.exists(newFilePath);
-                if (fileExists) {
-                    await RNFS.unlink(newFilePath);
-                    Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
-                }
-            } catch (error) {
-                const typedError = error as Error;
-                Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
-            }
-
-            // Copy the file to a new location with the desired filename
-            await RNFS.copyFile(filePath, newFilePath)
-                .then(() => {
-                    Log.hmmm('[ProfilingToolMenu] file copied successfully');
-                })
-                .catch((error: Record<string, unknown>) => {
-                    Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
-                });
-
-            setSharePath(newFilePath);
-        };
-
-        rename();
-    }, [filePath, pathToBeUsed]);
-
-    const onDownloadProfiling = useCallback(() => {
-        // eslint-disable-next-line @lwc/lwc/no-async-await
-        const shareFiles = async () => {
-            try {
-                const shareOptions = {
-                    url: `file://${sharePath}`,
-                };
-
-                await Share.open(shareOptions);
-            } catch (error) {
-                console.error('Error renaming and sharing file:', error);
-            }
-        };
-        shareFiles();
-    }, [sharePath]);
+    const onShare = () => {
+        Share.open({
+            urls: shareUrls,
+        });
+    };
 
     return (
         <>
@@ -221,42 +201,18 @@ function BaseRecordTroubleshootDataToolMenu({
                     onToggle={onToggle}
                 />
             </TestToolRow>
-            {!!file && (
-                <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
-                    <TestToolRow title="Download troubleshoot data">
-                        <Button
-                            small
-                            text={translate('common.share')}
-                            onPress={onDownloadZip}
-                        />
-                    </TestToolRow>
-                </>
-            )}
-            {/* {!!file && (
-                <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
-                    <TestToolRow title={translate('initialSettingsPage.debugConsole.logs')}>
-                        <Button
-                            small
-                            text={translate('common.share')}
-                            onPress={onShareLogs}
-                        />
-                    </TestToolRow>
-                </>
-            )}
-            {!!filePath && showShareButton && (
+            {(shareUrls?.length ?? 0) > 0 && showShareButton && (
                 <>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath2}/${newFileName}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
                         <Button
                             small
                             text={translate('common.share')}
-                            onPress={onDownloadProfiling}
+                            onPress={onShare}
                         />
                     </TestToolRow>
                 </>
-            )} */}
+            )}
         </>
     );
 }
