@@ -168,7 +168,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 headerMessage={headerMessage}
                 sections={sections}
                 ListItem={UserSelectionListItem}
-                showScrollIndicator={false}
                 containerStyle={[!shouldUseNarrowLayout && styles.pt4]}
                 contentContainerStyle={[styles.pb2]}
                 textInputLabel={translate('selectionList.searchForSomeone')}
