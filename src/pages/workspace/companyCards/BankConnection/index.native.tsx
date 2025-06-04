@@ -56,7 +56,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
     const plaidFeed = addNewCard?.data?.plaidConnectedFeed ?? assignCard?.data?.institutionId;
     const plaidFeedName = addNewCard?.data?.plaidConnectedFeedName ?? assignCard?.data?.plaidConnectedFeedName;
-    const url = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && plaidToken ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName) : getCompanyCardBankConnection(policyID, bankName);
+    const url =
+        isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && plaidToken
+            ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName)
+            : getCompanyCardBankConnection(policyID, bankName);
     const [cardFeeds] = useCardFeeds(policyID);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);

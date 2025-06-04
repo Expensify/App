@@ -58,16 +58,18 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         [addNewCard?.data?.plaidConnectedFeed, cardFeeds?.settings?.oAuthAccountDetails, prevFeedsData],
     );
     const {isOffline} = useNetwork();
-    const {canUsePlaidCompanyCards} = usePermissions();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
     const plaidFeed = addNewCard?.data?.plaidConnectedFeed ?? assignCard?.data?.institutionId;
     const plaidFeedName = addNewCard?.data?.plaidConnectedFeedName ?? assignCard?.data?.plaidConnectedFeedName;
+    const {isBetaEnabled} = usePermissions();
 
-    const url = canUsePlaidCompanyCards && plaidToken ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName) : getCompanyCardBankConnection(policyID, bankName);
+    const url =
+        isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && plaidToken
+            ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName)
+            : getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const {isBetaEnabled} = usePermissions();
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
