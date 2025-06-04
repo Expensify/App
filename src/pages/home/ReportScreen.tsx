@@ -773,7 +773,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         debouncedReadNewestAction(report?.reportID);
-    }, [report, debouncedReadNewestAction]);
+    }, [report]);
 
     const lastRoute = usePrevious(route);
 
