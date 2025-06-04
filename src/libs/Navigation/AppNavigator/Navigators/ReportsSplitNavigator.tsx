@@ -23,7 +23,7 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  * There can be multiple report screens in the stack with different report IDs.
  */
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
-    const {canUseDefaultRooms} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
     const [initialReportID] = useState(() => {
@@ -33,7 +33,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
             return reportIdFromPath;
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom());
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom());
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
