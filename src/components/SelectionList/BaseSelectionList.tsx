@@ -464,6 +464,7 @@ function BaseSelectionList<TItem extends ListItem>(
             shouldPreventDefaultFocusOnSelectRow,
             sections.length,
             isItemSelected,
+            shouldScrollSelectedItemToTop,
             isSmallScreenWidth,
             scrollToIndex,
             clearInputAfterSelect,
