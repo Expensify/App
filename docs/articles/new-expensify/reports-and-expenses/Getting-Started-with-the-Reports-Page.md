@@ -75,38 +75,43 @@ Each row represents an expense and includes:
 ---
 
 # Filters
+Filters help you narrow down expenses or reports so you can find exactly what you need—fast. This is especially useful when you're working with a large dataset or trying to take specific actions, such as reporting unsubmitted expenses.
 
-Filters help you quickly find specific expenses or reports, which is especially helpful for large datasets.
+**Filters can help you:**
 
-## Filter Placement
-
-- **Add unreported expenses**: Use filters to find expenses to add to a report  
-- **Reports page search**: Filter by workspace, submitter, or status
+- **Add unreported expenses to a report**: Use filters to find unreported expenses, and then add them to a report with just a few clicks.
+- **Quickly search reports**  
+  On the **Reports** page, filter by:
+  - **Workspace**
+  - **Submitter**
+  - **Report status** (e.g., Open, Approved, Reimbursed)
 
 ## Filter Controls
 
-1. Use filters to show a specific set of expenses (e.g., unreported expenses)  
-2. Use controls to sort expenses by:
-   - Date Range
-   - Category
-   - Merchant
-   - Workspace
-   - Tags (if enabled)
-   - Status (e.g., pending, reimbursed)
-
-**Filter controls may appear as:**
+You’ll find different controls depending on where you are in your account. These may appear as:
 - Dropdowns  
-- Chips  
 - Search bars  
-- Radio buttons or checkboxes
+- Chips (selectable tags)  
+- Radio buttons or checkboxes  
 
-**Once filters are applied:**
-- The list updates in real-time  
-- **Select all** only applies to filtered results
+Common filters include:
+- **Date range**
+- **Category**
+- **Merchant**
+- **Workspace**
+- **Tags** (if enabled)
+- **Status** (e.g., pending, reimbursed)
 
-## Default Filter Behavior
-- Without filters, you'll see your **most recent unreported expenses**  
-- Combine **search + filter** to narrow results (e.g., “Uber in March”)
+## How Filtering Works
+
+1. Apply filters to view only the results that match your criteria.
+2. Once filters are applied:
+   - The list updates in real time  
+   - The **Select all** option applies *only* to the filtered results—not everything
+
+You can also combine filters with keyword search for even more precision. For example, searching **"Uber in March"** will show only Uber rides from March.
+
+**Note:** If you haven't applied any filters yet, you'll see your **most recent unreported expenses** by default.
 
 ---
 
