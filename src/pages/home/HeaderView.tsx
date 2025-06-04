@@ -128,7 +128,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const shouldShowTalkToSales = !!isBetaEnabled(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) && isAdminRoom(report);
-    // TODO: Remove this platform check once https://github.com/Expensify/App/issues/59157 is resolved.
     const isNativePlatform = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
@@ -411,7 +410,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 <EarlyDiscountBanner
                     onboardingHelpDropdownButton={shouldUseNarrowLayout && shouldShowOnBoardingHelpDropdownButton ? onboardingHelpDropdownButton : undefined}
                     isSubscriptionPage={false}
-                    onDismissedDiscountBanner={() => null}
                     hasActiveScheduledCall={hasActiveScheduledCall}
                 />
             )}
