@@ -1,15 +1,15 @@
 ---
-title: Create Distance Requests
-description: Learn how to create a distance request in Expensify and request mileage reimbursement.
-keywords: [New Expensify, distance request, mileage reimbursement, create request, map route, add stops, calculate distance, workspace submission, request money]
+title: Distance Expenses
+description: Learn how to create a distance expense in Expensify and expense mileage reimbursement.
+keywords: [New Expensify, distance expense, mileage reimbursement, create expense, map route, add stops, calculate distance, workspace submission, expense money]
 ---
 <div id="new-expensify" markdown="1">
 
-Expensify makes it easy to request mileage reimbursement using a built-in map. You can create and send a distance request directly from the web, desktop, or mobile app.
+Expensify makes it easy to expense mileage using a built-in map. You can create and send a distance expense directly from the web, desktop, or mobile app.
 
 ---
 
-# Create and Send a Distance Request
+# Create and Send a Distance Expense
 
 To submit a mileage-based expense:
 
@@ -26,7 +26,7 @@ To submit a mileage-based expense:
    - (Optional) Add a **description**, **category**, or **tag**
 7. Click **Create expense** to submit the mileage expense for approval.
 
-A Workspace Admin will be notified of the request and, depending on your workspace settings, can reimburse you through Expensify or another method.
+A Workspace Admin will be notified of the expense and, depending on your workspace settings, can reimburse you through Expensify or another method.
 
 ---
 
