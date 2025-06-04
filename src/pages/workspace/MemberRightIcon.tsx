@@ -2,6 +2,7 @@ import React from 'react';
 import Badge from '@components/Badge';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
+import {TranslationPaths} from '@src/languages/types';
 
 type MemberRightIconProps = {
     owner?: string;
@@ -12,15 +13,16 @@ type MemberRightIconProps = {
 export default function MemberRightIcon({role, owner, login}: MemberRightIconProps) {
     const {translate} = useLocalize();
 
-    const isOwner = owner === login;
-    const isAdmin = role === CONST.POLICY.ROLE.ADMIN;
-    const isAuditor = role === CONST.POLICY.ROLE.AUDITOR;
-
-    if (isOwner || isAdmin) {
-        return <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
+    let badgeText = '';
+    if (owner === login) {
+        badgeText = 'common.owner';
+    } else if (role === CONST.POLICY.ROLE.ADMIN) {
+        badgeText = 'common.admin';
+    } else if (role === CONST.POLICY.ROLE.AUDITOR) {
+        badgeText = 'common.auditor';
     }
-    if (isAuditor) {
-        return <Badge text={translate('common.auditor')} />;
+    if (badgeText) {
+        return <Badge text={translate(badgeText as TranslationPaths)} />;
     }
     return null;
 }
