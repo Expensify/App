@@ -123,7 +123,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
 
-    const {canUseSpotnanaTravel, canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
@@ -144,7 +144,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
-    const shouldShowCreateReportOption = canUseTableReportView && (shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0);
+    const shouldShowCreateReportOption = isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && (shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 
@@ -189,7 +189,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
             return quickActionPolicy?.name;
         }
-        return !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '';
+        return !hideQABSubtitle ? (getReportName(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
@@ -471,16 +471,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   },
               ]
             : []),
-        ...(canUseSpotnanaTravel
-            ? [
-                  {
-                      icon: Expensicons.Suitcase,
-                      text: translate('travel.bookTravel'),
-                      rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
-                      onSelected: () => interceptAnonymousUser(() => openTravel()),
-                  },
-              ]
-            : []),
+        ...[
+            {
+                icon: Expensicons.Suitcase,
+                text: translate('travel.bookTravel'),
+                rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
+                onSelected: () => interceptAnonymousUser(() => openTravel()),
+            },
+        ],
         ...(!hasSeenTour
             ? [
                   {

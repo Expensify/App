@@ -143,7 +143,7 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
-        const {childReportName: moneyRequestReportPreviewName = ''} = mockAction;
+        const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
 

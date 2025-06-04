@@ -91,7 +91,7 @@ function ScheduleCallPage() {
             return allSlots;
         }, [] as TimeSlot[]);
 
-        // Group timeslots by date to render per day slots on calendar
+        // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         allTimeSlots.forEach((timeSlot) => {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
@@ -114,7 +114,7 @@ function ScheduleCallPage() {
     const lastDate = selectableDates.at(selectableDates.length - 1);
     const minDate = firstDate ? parse(firstDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
     const maxDate = lastDate ? parse(lastDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
-    const timeSlotsForSelectedData = scheduleCallDraft?.date ? timeSlotDateMap?.[scheduleCallDraft?.date] ?? [] : [];
+    const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
