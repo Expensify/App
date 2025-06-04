@@ -453,7 +453,7 @@ function ReportActionCompose({
         if (isTransactionThreadView && transactionID) {
             replaceReceipt({transactionID, file: file as File, source});
         } else {
-            initMoneyRequest(reportID, undefined, false, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
+            initMoneyRequest({reportID, newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
             setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report).then(() => {
@@ -625,7 +625,7 @@ function ReportActionCompose({
                                             />
                                         </DragAndDropConsumer>
                                     )}
-                                    {!canUseMultiFilesDragAndDrop && (
+                                    {!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && (
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {
