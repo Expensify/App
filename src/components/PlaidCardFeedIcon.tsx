@@ -10,7 +10,7 @@ import Image from './Image';
 type PlaidCardFeedIconProps = {
     plaidUrl: string;
     style?: StyleProp<ViewStyle>;
-    isLarge?: boolean
+    isLarge?: boolean;
 };
 
 function PlaidCardFeedIcon({plaidUrl, style, isLarge}: PlaidCardFeedIconProps) {
@@ -19,13 +19,13 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge}: PlaidCardFeedIconProps) {
         <View style={[style]}>
             <Image
                 source={{uri: plaidUrl}}
-                style={isLarge ? styles.plaidIcon: styles.plaidIconSmall}
+                style={isLarge ? styles.plaidIcon : styles.plaidIconSmall}
                 cachePolicy="memory-disk"
             />
             <Icon
-                src={isLarge ? Illustrations.PlaidCompanyCardDetailLarge: Illustrations.PlaidCompanyCardDetail}
-                height={isLarge ? variables.cardPreviewHeight: variables.cardIconHeight}
-                width={isLarge ? variables.cardPreviewWidth: variables.cardIconWidth}
+                src={isLarge ? Illustrations.PlaidCompanyCardDetailLarge : Illustrations.PlaidCompanyCardDetail}
+                height={isLarge ? variables.cardPreviewHeight : variables.cardIconHeight}
+                width={isLarge ? variables.cardPreviewWidth : variables.cardIconWidth}
             />
         </View>
     );
