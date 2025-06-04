@@ -7114,7 +7114,7 @@ const CONST = {
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
-        MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal'
+        MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,

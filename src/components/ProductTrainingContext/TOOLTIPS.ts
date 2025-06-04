@@ -20,10 +20,7 @@ const {
     MULTI_SCAN_EDUCATIONAL_MODAL,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
-type ProductTrainingTooltipName = Exclude<
-    ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>,
-    typeof MULTI_SCAN_EDUCATIONAL_MODAL
->;
+type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof MULTI_SCAN_EDUCATIONAL_MODAL>;
 
 type ShouldShowConditionProps = {
     shouldUseNarrowLayout: boolean;

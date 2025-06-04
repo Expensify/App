@@ -106,7 +106,7 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the MultiScan product training tooltip, we store the timestamp here.
      */
-    [MULTI_SCAN_EDUCATIONAL_MODAL]: DismissedProductTrainingElement
+    [MULTI_SCAN_EDUCATIONAL_MODAL]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
