@@ -10601,7 +10601,7 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
  */
 function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
+    const managerLogin = getLoginByAccountID(report?.managerID ?? CONST.DEFAULT_NUMBER_ID);
     // We can't move the iou report to the workspace if both users from the iou report create the expense
     if (doesReportContainRequestsFromMultipleUsers(report)) {
         return false;
