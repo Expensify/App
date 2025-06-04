@@ -88,8 +88,8 @@ function CardTypeStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
     const [isError, setIsError] = useState(false);
-    const {canUsePlaidCompanyCards} = usePermissions();
-    const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3, canUsePlaidCompanyCards});
+    const {isBetaEnabled} = usePermissions();
+    const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3, canUsePlaidCompanyCards: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)});
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;

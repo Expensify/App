@@ -57,7 +57,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useCardsList(policyID, selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const {canUsePlaidCompanyCards} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const {cardList, ...cards} = cardsList ?? {};
 
@@ -185,7 +185,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}
                         />
                     )}
-                    {isGB && !!canUsePlaidCompanyCards && (isNoFeed || (isFeedAdded && !isPending)) && (
+                    {isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || (isFeedAdded && !isPending)) && (
                         <View style={[styles.sidebarFooter, styles.mb5]}>
                             <Text style={[styles.chatItemMessageHeaderTimestamp]}>{translate('workspace.companyCards.ukRegulation')}</Text>
                         </View>
