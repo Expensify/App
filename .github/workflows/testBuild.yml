@@ -37,7 +37,7 @@ on:
 
 env:
   # This variable is needed for fastlane to construct correct path
-  PULL_REQUEST_NUMBER: ${{ inputs.APP_PULL_REQUEST_NUMBER }}
+  PULL_REQUEST_NUMBER: ${{ inputs.APP_PULL_REQUEST_NUMBER || github.event.number }}
 
 jobs:
   prep:
