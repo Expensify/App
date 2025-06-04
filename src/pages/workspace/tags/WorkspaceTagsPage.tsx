@@ -11,10 +11,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -35,7 +35,6 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -84,7 +83,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -111,7 +109,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = !!backTo;
-    const {canUseMultiLevelTags} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -188,22 +186,28 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     enabled: true,
                     required: policyTagList.required,
-                    rightElement: (
-                        <Switch
-                            isOn={isSwitchEnabled}
-                            accessibilityLabel={translate('workspace.tags.requiresTag')}
-                            onToggle={(newValue: boolean) => {
-                                if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
-                                    setIsCannotMakeLastTagOptionalModalVisible(true);
-                                    return;
-                                }
+                    rightElement:
+                        isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) && hasDependentTags ? (
+                            <ListItemRightCaretWithLabel
+                                labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})}
+                                shouldShowCaret
+                            />
+                        ) : (
+                            <Switch
+                                isOn={isSwitchEnabled}
+                                accessibilityLabel={translate('workspace.tags.requiresTag')}
+                                onToggle={(newValue: boolean) => {
+                                    if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
+                                        setIsCannotMakeLastTagOptionalModalVisible(true);
+                                        return;
+                                    }
 
-                                updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
-                            }}
-                            disabled={isSwitchDisabled}
-                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
-                        />
-                    ),
+                                    updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
+                                }}
+                                disabled={isSwitchDisabled}
+                                showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
+                            />
+                        ),
                 };
             });
         }
@@ -232,7 +236,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy, policyTags]);
+    }, [isMultiLevelTags, policyTagLists, isBetaEnabled, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
@@ -267,6 +271,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const getCustomListHeader = () => {
+        if (isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) && hasDependentTags) {
+            return (
+                <CustomListHeader
+                    canSelectMultiple={false}
+                    leftHeaderText={translate('common.name')}
+                    rightHeaderText={translate('common.count')}
+                    rightHeaderMinimumWidth={120}
+                />
+            );
+        }
+
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -276,9 +291,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const navigateToTagsSettings = () => {
+    const navigateToTagsSettings = useCallback(() => {
         Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
-    };
+    }, [isQuickSettingsFlow, policyID, backTo]);
 
     const navigateToCreateTagPage = () => {
         Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_CREATE.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
@@ -309,14 +324,81 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const isLoading = !isOffline && policyTags === undefined;
 
+    const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
+    const secondaryActions = useMemo(() => {
+        const menuItems = [];
+        menuItems.push({
+            icon: Expensicons.Gear,
+            text: translate('common.settings'),
+            onSelected: navigateToTagsSettings,
+            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+        });
+
+        if (!hasAccountingConnectionsPolicyUtils(policy)) {
+            menuItems.push({
+                icon: Expensicons.Table,
+                text: translate('spreadsheet.importSpreadsheet'),
+                onSelected: () => {
+                    if (isOffline) {
+                        close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    if (isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS)) {
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
+                        );
+                    } else {
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                        );
+                    }
+                },
+                value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            });
+        }
+
+        if (hasVisibleTags && !hasDependentTags) {
+            menuItems.push({
+                icon: Expensicons.Download,
+                text: translate('spreadsheet.downloadCSV'),
+                onSelected: () => {
+                    if (isOffline) {
+                        close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    close(() => {
+                        if (hasIndependentTags && isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS)) {
+                            downloadMultiLevelIndependentTagsCSV(policyID, () => {
+                                setIsDownloadFailureModalVisible(true);
+                            });
+                        } else {
+                            downloadTagsCSV(policyID, () => {
+                                setIsDownloadFailureModalVisible(true);
+                            });
+                        }
+                    });
+                },
+                value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            });
+        }
+
+        return menuItems;
+    }, [translate, navigateToTagsSettings, isBetaEnabled, hasDependentTags, policy, hasVisibleTags, isOffline, isQuickSettingsFlow, policyID, backTo, hasIndependentTags]);
+
     const getHeaderButtons = () => {
         const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTags.length === 0) {
+            const hasPrimaryActions = !hasAccountingConnections && !isMultiLevelTags;
             return (
                 <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                    {!hasAccountingConnections && !isMultiLevelTags && (
+                    {hasPrimaryActions && (
                         <Button
                             success
                             onPress={navigateToCreateTagPage}
@@ -325,11 +407,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             style={[shouldUseNarrowLayout && styles.flex1]}
                         />
                     )}
-                    <Button
-                        onPress={navigateToTagsSettings}
-                        icon={Expensicons.Gear}
-                        text={translate('common.settings')}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
+                    <ButtonWithDropdownMenu
+                        success={false}
+                        onPress={() => {}}
+                        shouldAlwaysShowDropdownMenu
+                        customText={translate('common.more')}
+                        options={secondaryActions}
+                        isSplitButton={false}
+                        wrapperStyle={hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
                     />
                 </View>
             );
@@ -416,55 +501,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-
-    const threeDotsMenuItems = useMemo(() => {
-        const menuItems: PopoverMenuItem[] = [];
-        if (!hasAccountingConnectionsPolicyUtils(policy)) {
-            menuItems.push({
-                icon: Expensicons.Table,
-                text: translate('spreadsheet.importSpreadsheet'),
-                onSelected: () => {
-                    if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                    );
-                },
-            });
-        }
-
-        if (hasVisibleTags) {
-            menuItems.push({
-                icon: Expensicons.Download,
-                text: translate('spreadsheet.downloadCSV'),
-                onSelected: () => {
-                    if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    close(() => {
-                        if (hasIndependentTags && canUseMultiLevelTags) {
-                            downloadMultiLevelIndependentTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
-                        } else {
-                            downloadTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
-                        }
-                    });
-                },
-            });
-        }
-
-        return menuItems;
-    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo, canUseMultiLevelTags, hasIndependentTags]);
-
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
@@ -494,6 +530,22 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             )}
         </>
+    );
+
+    const subtitleText = useMemo(
+        () => (
+            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+                {translate('workspace.tags.emptyTags.subtitle1')}
+                <TextLink
+                    style={[styles.textAlignCenter]}
+                    href={CONST.IMPORT_TAGS_EXPENSIFY_URL}
+                >
+                    {translate('workspace.tags.emptyTags.subtitle2')}
+                </TextLink>
+                {translate('workspace.tags.emptyTags.subtitle3')}
+            </Text>
+        ),
+        [styles.textAlignCenter, styles.textNormal, styles.textSupporting, translate],
     );
 
     return (
@@ -529,9 +581,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.popToSidebar();
                         }}
-                        shouldShowThreeDotsButton={canUseMultiLevelTags ? !hasDependentTags : !policy?.hasMultipleTagLists}
-                        threeDotsMenuItems={threeDotsMenuItems}
-                        threeDotsAnchorPosition={threeDotsAnchorPosition}
                     >
                         {!shouldUseNarrowLayout && getHeaderButtons()}
                     </HeaderWithBackButton>
@@ -575,10 +624,27 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                                 headerMedia={LottieAnimations.GenericEmptyState}
                                 title={translate('workspace.tags.emptyTags.title')}
-                                subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                                subtitleText={subtitleText}
                                 headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                                 headerContentStyles={styles.emptyStateFolderWebStyles}
+                                buttons={[
+                                    {
+                                        buttonText: translate('spreadsheet.importSpreadsheet'),
+                                        success: true,
+                                        buttonAction: () => {
+                                            if (isOffline) {
+                                                close(() => setIsOfflineModalVisible(true));
+                                                return;
+                                            }
+                                            Navigation.navigate(
+                                                isQuickSettingsFlow
+                                                    ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                                    : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
+                                            );
+                                        },
+                                    },
+                                ]}
                             />
                         </ScrollView>
                     )}
