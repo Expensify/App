@@ -31,8 +31,7 @@ You can create an expense by scanning a receipt, entering details manually, or t
 3. Drag and drop the receipt or click **Choose File** to upload.
 4. Enter the workspace or recipient’s email/phone number.
 5. Add details like description, category, tags, and tax.
-6. (Optional) Mark as billable if needed.
-7. Click **Create expense**.
+6. Click **Create expense**.
 
 💡 **Note:** You can also forward receipts to `receipts@expensify.com` using a verified email address.
 
@@ -43,10 +42,9 @@ You can create an expense by scanning a receipt, entering details manually, or t
 1. From the left-hand menu, click the green **+** button and select **Create expense**.
 2. Select **Manual**.
 3. Enter the amount and currency, then click **Next**.
-4. Choose a workspace or individual.
+4. Choose a workspace or an individual.
 5. Add optional fields like category, tags, or description.
-6. (Optional) Mark as billable.
-7. Click **Create expense**.
+6. Click **Create expense**.
 
 ---
 
