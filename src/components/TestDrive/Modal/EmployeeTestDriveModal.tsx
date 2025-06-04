@@ -56,7 +56,11 @@ function EmployeeTestDriveModal() {
                     (source, _, filename) => {
                         const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
                         const reportID = generateReportID();
-                        initMoneyRequest(reportID, undefined, false, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
+                        initMoneyRequest({
+                            reportID,
+                            isFromGlobalCreate: false,
+                            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
 
