@@ -10609,7 +10609,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
 
     // We can only move the iou report to the workspace if the manager is the payer of the new policy
     if (isIOUReport(report)) {
-        return isPaidGroupPolicyPolicyUtils(newPolicy) && isWorkspacePayer(managerLogin?.toString() ?? '', newPolicy);
+        return isPaidGroupPolicyPolicyUtils(newPolicy) && isWorkspacePayer(managerLogin ?? '', newPolicy);
     }
     return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies));
 }
