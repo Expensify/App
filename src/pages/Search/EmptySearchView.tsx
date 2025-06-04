@@ -82,7 +82,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
-    const {canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [modalVisible, setModalVisible] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -90,6 +90,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+
+    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
@@ -213,13 +215,12 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                               },
                           ]
                         : []),
-                    ...(canUseTableReportView && !!Object.keys(allPolicies ?? {})?.length
+                    ...(isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && groupPoliciesWithChatEnabled.length > 0
                         ? [
                               {
                                   buttonText: translate('quickAction.createReport'),
                                   buttonAction: () => {
                                       interceptAnonymousUser(() => {
-                                          const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
                                           let workspaceIDForReportCreation: string | undefined;
 
                                           if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
@@ -359,8 +360,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         styles.tripEmptyStateLottieWebView,
         introSelected?.choice,
         hasSeenTour,
-        canUseTableReportView,
-        allPolicies,
+        isBetaEnabled,
+        groupPoliciesWithChatEnabled,
         activePolicy,
         activePolicyID,
         currentUserPersonalDetails,

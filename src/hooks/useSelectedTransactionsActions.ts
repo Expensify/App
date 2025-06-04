@@ -1,7 +1,7 @@
 import {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
+import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {exportReportToCSV} from '@libs/actions/Report';
@@ -43,19 +43,19 @@ function useSelectedTransactionsActions({
     session?: Session;
     onExportFailed?: () => void;
 }) {
-    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
+    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
         () =>
-            selectedTransactionsID.reduce((acc, transactionID) => {
+            selectedTransactionIDs.reduce((acc, transactionID) => {
                 const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                 if (transaction) {
                     acc.push(transaction);
                 }
                 return acc;
             }, [] as Transaction[]),
-        [allTransactions, selectedTransactionsID],
+        [allTransactions, selectedTransactionIDs],
     );
 
     const {translate} = useLocalize();
@@ -74,7 +74,7 @@ function useSelectedTransactionsActions({
     const handleDeleteTransactions = useCallback(() => {
         const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
 
-        const transactionsWithActions = selectedTransactionsID.map((transactionID) => ({
+        const transactionsWithActions = selectedTransactionIDs.map((transactionID) => ({
             transactionID,
             action: iouActions.find((action) => {
                 const IOUTransactionID = (getOriginalMessage(action) as OriginalMessageIOU)?.IOUTransactionID;
@@ -83,12 +83,12 @@ function useSelectedTransactionsActions({
         }));
 
         transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
-        setSelectedTransactionsID([]);
+        clearSelectedTransactions(true);
         if (allTransactionsLength - transactionsWithActions.length <= 1) {
             turnOffMobileSelectionMode();
         }
         setIsDeleteModalVisible(false);
-    }, [allTransactionsLength, reportActions, selectedTransactionsID, setSelectedTransactionsID]);
+    }, [allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
@@ -99,7 +99,7 @@ function useSelectedTransactionsActions({
     }, []);
 
     const computedOptions = useMemo(() => {
-        if (!selectedTransactionsID.length) {
+        if (!selectedTransactionIDs.length) {
             return [];
         }
         const options = [];
@@ -145,14 +145,14 @@ function useSelectedTransactionsActions({
                 icon: Expensicons.Stopwatch,
                 value: UNHOLD,
                 onSelected: () => {
-                    selectedTransactionsID.forEach((transactionID) => {
+                    selectedTransactionIDs.forEach((transactionID) => {
                         const action = getIOUActionForTransactionID(reportActions, transactionID);
                         if (!action?.childReportID) {
                             return;
                         }
                         unholdRequest(transactionID, action?.childReportID);
                     });
-                    setSelectedTransactionsID([]);
+                    clearSelectedTransactions(true);
                 },
             });
         }
@@ -165,10 +165,10 @@ function useSelectedTransactionsActions({
                 if (!report) {
                     return;
                 }
-                exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionsID}, () => {
+                exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
                     onExportFailed?.();
                 });
-                setSelectedTransactionsID([]);
+                clearSelectedTransactions(true);
             },
         });
 
@@ -185,7 +185,7 @@ function useSelectedTransactionsActions({
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction) {
             options.push({
-                text: translate('iou.moveExpenses', {count: selectedTransactionsID.length}),
+                text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
                 icon: Expensicons.DocumentMerge,
                 value: MOVE,
                 onSelected: () => {
@@ -195,7 +195,7 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canAllSelectedTransactionsBeRemoved = selectedTransactionsID.every((transactionID) => {
+        const canAllSelectedTransactionsBeRemoved = selectedTransactionIDs.every((transactionID) => {
             const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
             const action = getIOUActionForTransactionID(reportActions, transactionID);
             const isActionDeleted = isDeletedAction(action);
@@ -216,12 +216,12 @@ function useSelectedTransactionsActions({
         }
         return options;
     }, [
-        selectedTransactionsID,
+        selectedTransactionIDs,
         report,
         selectedTransactions,
         translate,
         reportActions,
-        setSelectedTransactionsID,
+        clearSelectedTransactions,
         onExportFailed,
         iouType,
         session?.accountID,
