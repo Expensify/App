@@ -258,7 +258,7 @@ describe('actions/Policy', () => {
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
         });
 
-        it('creates a new workspace with BASIC approval mode if the introSelected is TRACK_WORKSPACE', async () => {
+        it('creates a new workspace with OPTIONAL approval mode if the introSelected is TRACK_WORKSPACE', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
@@ -274,8 +274,8 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Then the policy should have approval mode set to BASIC
-            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+            // Then the policy should have approval mode set to OPTIONAL
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
         });
 
         it('create a new workspace fails will reset hasCompletedGuidedSetupFlow to the correct value', async () => {
