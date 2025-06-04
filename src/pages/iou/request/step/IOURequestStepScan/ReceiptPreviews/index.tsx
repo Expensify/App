@@ -51,8 +51,8 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
     const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
             Object.values(items ?? {})
-                .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID, reportID: transaction.reportID} : undefined))
-                .filter((receipt): receipt is ReceiptWithTransactionID & {reportID: string} => !!receipt),
+                .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
+                .filter((receipt): receipt is ReceiptWithTransactionID => !!receipt),
         canBeMissing: true,
     });
     const receipts = useMemo(() => {
