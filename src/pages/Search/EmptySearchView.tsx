@@ -21,7 +21,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,7 +81,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
-    const {isBetaEnabled} = usePermissions();
     const [modalVisible, setModalVisible] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -215,7 +213,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                               },
                           ]
                         : []),
-                    ...(isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && groupPoliciesWithChatEnabled.length > 0
+                    ...(groupPoliciesWithChatEnabled.length > 0
                         ? [
                               {
                                   buttonText: translate('quickAction.createReport'),
@@ -360,7 +358,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         styles.tripEmptyStateLottieWebView,
         introSelected?.choice,
         hasSeenTour,
-        isBetaEnabled,
         groupPoliciesWithChatEnabled,
         activePolicy,
         activePolicyID,
