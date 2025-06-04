@@ -29,7 +29,7 @@ type EditTagPageProps =
 
 function EditTagPage({route}: EditTagPageProps) {
     const policyID = route.params.policyID;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
