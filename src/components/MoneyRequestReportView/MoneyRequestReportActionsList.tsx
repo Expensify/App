@@ -133,6 +133,7 @@ function MoneyRequestReportActionsList({
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
+    const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
@@ -542,13 +543,13 @@ function MoneyRequestReportActionsList({
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedTransactionsID.length === transactions.length}
-                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
+                            isChecked={selectedTransactionsID.length === transactionsWithoutPendingDelete.length}
+                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactionsWithoutPendingDelete.length}
                             onPress={() => {
                                 if (selectedTransactionsID.length !== 0) {
                                     setSelectedTransactionsID([]);
                                 } else {
-                                    setSelectedTransactionsID(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
+                                    setSelectedTransactionsID(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                                 }
                             }}
                         />
@@ -558,7 +559,7 @@ function MoneyRequestReportActionsList({
                                 if (selectedTransactionsID.length === transactions.length) {
                                     setSelectedTransactionsID([]);
                                 } else {
-                                    setSelectedTransactionsID(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
+                                    setSelectedTransactionsID(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={translate('workspace.people.selectAll')}

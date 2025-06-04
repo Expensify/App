@@ -128,6 +128,7 @@ function MoneyRequestReportTransactionList({
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
+    const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
 
     const pendingActionsOpacity = useMemo(() => {
         const pendingAction = transactions.some(getTransactionPendingAction);
@@ -219,12 +220,12 @@ function MoneyRequestReportTransactionList({
                                 if (selectedTransactionsID.length !== 0) {
                                     setSelectedTransactionsID([]);
                                 } else {
-                                    setSelectedTransactionsID(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
+                                    setSelectedTransactionsID(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
-                            isChecked={selectedTransactionsID.length === transactions.length}
+                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactionsWithoutPendingDelete.length}
+                            isChecked={selectedTransactionsID.length === transactionsWithoutPendingDelete.length}
                         />
                         {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
                     </View>

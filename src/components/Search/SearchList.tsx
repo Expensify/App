@@ -30,6 +30,7 @@ import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actio
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {isReportActionListItemType, isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -119,6 +120,7 @@ function SearchList(
 ) {
     const styles = useThemeStyles();
     const flattenedTransactions = shouldGroupByReports ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
+    const flattenedTransactionWithoutPendingDelete = flattenedTransactions.filter((t) => !isTransactionPendingDelete(t));
     const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
         return item?.isSelected ? acc + 1 : acc;
     }, 0);
@@ -441,8 +443,8 @@ function SearchList(
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={flattenedTransactions.length > 0 && selectedItemsLength === flattenedTransactions.length}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
+                            isChecked={flattenedTransactionWithoutPendingDelete.length > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length}
+                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactionWithoutPendingDelete.length}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
@@ -458,7 +460,7 @@ function SearchList(
                             onPress={onAllCheckboxPress}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedItemsLength === flattenedTransactions.length}}
+                            accessibilityState={{checked: selectedItemsLength === flattenedTransactionWithoutPendingDelete.length}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
