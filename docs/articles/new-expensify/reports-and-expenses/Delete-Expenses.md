@@ -27,7 +27,7 @@ You can delete any out-of-pocket expense that hasn’t been submitted yet:
 
 ---
 
-# The Expense Report is Submitted or Marked as `Done`
+# The Expense Report is Submitted or Marked as "Done"
 
 You’ll need to reopen the report first:
 
