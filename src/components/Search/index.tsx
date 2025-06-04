@@ -166,7 +166,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         () =>
             Object.values(reportActions ?? {})
                 .filter((reportAction) => !!reportAction)
-                .flatMap((fillteredReportActions) => Object.values(fillteredReportActions ?? {})),
+                .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
         [reportActions],
     );
     const {translate} = useLocalize();

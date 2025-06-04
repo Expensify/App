@@ -1094,6 +1094,7 @@ const CONST = {
     PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
+    IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
         'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20for%20a%20website%20on%20mobile%20browsers%3F',
@@ -1849,6 +1850,11 @@ const CONST = {
 
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags.
     VALIDATE_FOR_HTML_TAG_REGEX: /<\/?\w*((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g,
+
+    // Matches any content enclosed in angle brackets, including non-standard or symbolic tags like <✓>, <123>, etc.
+    // This is a stricter version of VALIDATE_FOR_HTML_TAG_REGEX, used to detect and block inputs that resemble HTML-like tags,
+    // even if they are not valid HTML, to match backend validation behavior.
+    STRICT_VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
@@ -6673,7 +6679,8 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
         },
-        EMPTY_VALUE: 'none',
+        TAG_EMPTY_VALUE: 'none',
+        CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
@@ -6825,6 +6832,15 @@ const CONST = {
                 description: 'workspace.upgrade.categories.description' as const,
                 icon: 'FolderOpen',
             },
+            multiLevelTags: {
+                id: 'multiLevelTags' as const,
+                alias: 'multiLevelTags',
+                name: 'multiLevelTags',
+                title: 'workspace.upgrade.multiLevelTags.title' as const,
+                description: 'workspace.upgrade.multiLevelTags.description' as const,
+                icon: 'Tag',
+            },
+
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
                 alias: 'netsuite',
