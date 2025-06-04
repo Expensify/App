@@ -16,6 +16,7 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import DownloadAppBanner from '@components/DownloadAppBanner';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -40,13 +41,13 @@ import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -127,7 +128,6 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -135,7 +135,7 @@ function IOURequestStepScan({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
+        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
@@ -148,8 +148,7 @@ function IOURequestStepScan({
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
-    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const platform = getPlatform(true);
 
@@ -536,6 +535,22 @@ function IOURequestStepScan({
     );
 
     /**
+     * Converts HEIC image to JPEG using promises
+     */
+    const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
+        return new Promise((resolve, reject) => {
+            convertHeicImage(file, {
+                onStart: () => setIsLoadingReceipt(true),
+                onSuccess: (convertedFile) => resolve(convertedFile),
+                onError: (nonConvertedFile) => {
+                    reject(nonConvertedFile);
+                },
+                onFinish: () => setIsLoadingReceipt(false),
+            });
+        });
+    };
+
+    /**
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
@@ -550,37 +565,60 @@ function IOURequestStepScan({
                 return;
             }
 
-            // With the image size > 24MB, we use manipulateAsync to resize the image.
-            // It takes a long time so we should display a loading indicator while the resize image progresses.
-            if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setIsLoadingReceipt(true);
-            }
-            resizeImageIfNeeded(originalFile).then((file) => {
-                setIsLoadingReceipt(false);
-                // Store the receipt on the transaction object in Onyx
-                const source = URL.createObjectURL(file as Blob);
-                const newReceiptFiles = [{file, source, transactionID: initialTransactionID}];
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                setMoneyRequestReceipt(initialTransactionID, source, file.name || '', !isEditing);
-
-                if (isEditing) {
-                    updateScanAndNavigate(file, source);
-                    return;
+            // Helper function to process the file after any conversion
+            const processFile = (file: FileObject) => {
+                // With the image size > 24MB, we use manipulateAsync to resize the image.
+                // It takes a long time so we should display a loading indicator while the resize image progresses.
+                if (Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                    setIsLoadingReceipt(true);
                 }
-                if (shouldSkipConfirmation) {
-                    setReceiptFiles(newReceiptFiles);
-                    const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                    if (gpsRequired) {
-                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                resizeImageIfNeeded(file).then((resizedFile) => {
+                    setIsLoadingReceipt(false);
+                    // Store the receipt on the transaction object in Onyx
+                    const source = URL.createObjectURL(resizedFile as Blob);
+                    const newReceiptFiles = [{file: resizedFile, source, transactionID: initialTransactionID}];
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    setMoneyRequestReceipt(initialTransactionID, source, resizedFile.name || '', !isEditing);
 
-                        if (beginLocationPermissionFlow) {
-                            setStartLocationPermissionFlow(true);
-                            return;
+                    if (isEditing) {
+                        updateScanAndNavigate(resizedFile, source);
+                        return;
+                    }
+                    if (shouldSkipConfirmation) {
+                        setReceiptFiles(newReceiptFiles);
+                        const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && resizedFile;
+                        if (gpsRequired) {
+                            const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+
+                            if (beginLocationPermissionFlow) {
+                                setStartLocationPermissionFlow(true);
+                                return;
+                            }
                         }
                     }
-                }
-                navigateToConfirmationStep(newReceiptFiles, false);
-            });
+                    navigateToConfirmationStep(newReceiptFiles, false);
+                });
+            };
+
+            // Check if the file is HEIC/HEIF and needs conversion
+            if (
+                originalFile?.type?.startsWith('image') &&
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                (originalFile.name?.toLowerCase().endsWith('.heic') || originalFile.name?.toLowerCase().endsWith('.heif'))
+            ) {
+                convertHeicImageToJpegPromise(originalFile)
+                    .then((convertedFile) => {
+                        processFile(convertedFile);
+                    })
+                    .catch((fallbackFile: FileObject) => {
+                        // Use the original file if conversion fails
+                        processFile(fallbackFile);
+                    });
+                return;
+            }
+
+            // Process the file directly if no conversion is needed
+            processFile(originalFile);
         });
     };
 
@@ -596,7 +634,7 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
+        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && isTabActive && !isUserInvitedToWorkspace(),
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
@@ -930,8 +968,8 @@ function IOURequestStepScan({
                                 {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                             </View>
                         </EducationalTooltip>
-                        {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
-                        {canUseMultiFilesDragAndDrop ? (
+                        {/* TODO: remove beta check after the feature is enabled */}
+                        {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
                             <DropZoneUI
                                 onDrop={(e) => {
                                     const file = e?.dataTransfer?.files[0];
@@ -958,6 +996,8 @@ function IOURequestStepScan({
                                 receiptImageTopPosition={receiptImageTopPosition}
                             />
                         )}
+                        {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
+                        {!isMobile() && <DownloadAppBanner />}
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                             onConfirm={hideReceiptModal}
