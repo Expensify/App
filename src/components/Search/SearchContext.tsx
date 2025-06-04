@@ -69,7 +69,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             if (data.length && data.every(isTransactionListItemType)) {
                 selectedReports = data
                     .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                    .map(({reportID, action, amount: total, policyID}) => ({reportID, action, total, policyID}));
+                    .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
             }
 
             setSearchContextData((prevState) => ({
