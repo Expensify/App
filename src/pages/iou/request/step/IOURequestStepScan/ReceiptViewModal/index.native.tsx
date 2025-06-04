@@ -5,6 +5,7 @@ import type PagerView from 'react-native-pager-view';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView/AttachmentCarouselView';
 import AttachmentCarouselPager from '@components/Attachments/AttachmentCarousel/Pager';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Modal from '@components/Modal';
@@ -30,6 +31,8 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
 
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptFile | null>();
     const [page, setPage] = useState<number>(0);
+    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
+
     const pagerRef = useRef<PagerView>(null);
 
     const [receipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -64,50 +67,68 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         [page, receipts],
     );
 
-    const handleDelete = useCallback(() => {
+    const handleDeleteReceipt = useCallback(() => {
         if (!currentReceipt) {
             return;
         }
-        Navigation.goBack();
+
         removeTransactionReceipt(currentReceipt.transactionID);
+        Navigation.goBack();
     }, [currentReceipt]);
 
+    const deleteReceiptAndCloseModal = useCallback(() => {
+        setIsDeleteReceiptConfirmModalVisible(false);
+        handleDeleteReceipt();
+    }, [handleDeleteReceipt]);
+
     return (
-        <Modal
-            type="centered"
-            isVisible
-            onClose={Navigation.goBack}
-        >
-            <HeaderWithBackButton
-                title={translate('common.receipt')}
-                onBackButtonPress={Navigation.goBack}
-                shouldShowThreeDotsButton
-                threeDotsMenuIcon={Expensicons.Trashcan}
-                onThreeDotsButtonPress={handleDelete}
-            />
-            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                <AttachmentCarouselView
-                    cycleThroughAttachments={cycleThroughReceipts}
-                    page={page}
-                    attachments={receipts ?? []}
-                    shouldShowArrows={shouldShowArrows}
-                    autoHideArrows={autoHideArrows}
-                    cancelAutoHideArrow={cancelAutoHideArrows}
-                    setShouldShowArrows={setShouldShowArrows}
-                >
-                    <AttachmentCarouselPager
-                        items={receipts ?? []}
-                        initialPage={page}
-                        activeAttachmentID={currentReceipt?.transactionID ?? ''}
+        <>
+            <Modal
+                type="centered"
+                isVisible
+                onClose={Navigation.goBack}
+            >
+                <HeaderWithBackButton
+                    title={translate('common.receipt')}
+                    onBackButtonPress={Navigation.goBack}
+                    shouldShowThreeDotsButton
+                    threeDotsMenuIcon={Expensicons.Trashcan}
+                    onThreeDotsButtonPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
+                />
+                <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+                    <AttachmentCarouselView
+                        cycleThroughAttachments={cycleThroughReceipts}
+                        page={page}
+                        attachments={receipts ?? []}
+                        shouldShowArrows={shouldShowArrows}
+                        autoHideArrows={autoHideArrows}
+                        cancelAutoHideArrow={cancelAutoHideArrows}
                         setShouldShowArrows={setShouldShowArrows}
-                        onPageSelected={({nativeEvent: {position: newPage}}) => setPage(newPage)}
-                        onClose={Navigation.goBack}
-                        ref={pagerRef}
-                        reportID={currentReceipt?.transactionID ?? ''}
-                    />
-                </AttachmentCarouselView>
-            </View>
-        </Modal>
+                    >
+                        <AttachmentCarouselPager
+                            items={receipts ?? []}
+                            initialPage={page}
+                            activeAttachmentID={currentReceipt?.transactionID ?? ''}
+                            setShouldShowArrows={setShouldShowArrows}
+                            onPageSelected={({nativeEvent: {position: newPage}}) => setPage(newPage)}
+                            onClose={Navigation.goBack}
+                            ref={pagerRef}
+                            reportID={currentReceipt?.transactionID ?? ''}
+                        />
+                    </AttachmentCarouselView>
+                </View>
+            </Modal>
+            <ConfirmModal
+                title={translate('receipt.deleteReceipt')}
+                isVisible={isDeleteReceiptConfirmModalVisible}
+                onConfirm={deleteReceiptAndCloseModal}
+                onCancel={() => setIsDeleteReceiptConfirmModalVisible(false)}
+                prompt={translate('receipt.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+        </>
     );
 }
 

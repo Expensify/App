@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
@@ -28,6 +29,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
 
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptFile | null>();
     const [page, setPage] = useState<number>(0);
+    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
     const [receipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
@@ -60,42 +62,60 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         [page, receipts],
     );
 
-    const handleDelete = useCallback(() => {
+    const handleDeleteReceipt = useCallback(() => {
         if (!currentReceipt) {
             return;
         }
-        Navigation.goBack();
+
         removeTransactionReceipt(currentReceipt.transactionID);
+        Navigation.goBack();
     }, [currentReceipt]);
 
+    const deleteReceiptAndCloseModal = useCallback(() => {
+        setIsDeleteReceiptConfirmModalVisible(false);
+        handleDeleteReceipt();
+    }, [handleDeleteReceipt]);
+
     return (
-        <Modal
-            type="centered"
-            isVisible
-            onClose={Navigation.goBack}
-        >
-            <HeaderWithBackButton
-                title={translate('common.receipt')}
-                onBackButtonPress={Navigation.goBack}
-                shouldShowThreeDotsButton
-                threeDotsMenuIcon={Expensicons.Trashcan}
-                onThreeDotsButtonPress={handleDelete}
-            />
-            <AttachmentCarouselView
-                attachments={receipts ?? []}
-                autoHideArrows={autoHideArrows}
-                cancelAutoHideArrow={cancelAutoHideArrows}
-                cycleThroughAttachments={cycleThroughReceipts}
-                shouldShowArrows={shouldShowArrows}
-                page={page}
-                setShouldShowArrows={setShouldShowArrows}
+        <>
+            <Modal
+                type="centered"
+                isVisible
+                onClose={Navigation.goBack}
             >
-                <Image
-                    style={[styles.flex1]}
-                    source={{uri: currentReceipt?.source ?? ''}}
+                <HeaderWithBackButton
+                    title={translate('common.receipt')}
+                    onBackButtonPress={Navigation.goBack}
+                    shouldShowThreeDotsButton
+                    threeDotsMenuIcon={Expensicons.Trashcan}
+                    onThreeDotsButtonPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
                 />
-            </AttachmentCarouselView>
-        </Modal>
+                <AttachmentCarouselView
+                    attachments={receipts ?? []}
+                    autoHideArrows={autoHideArrows}
+                    cancelAutoHideArrow={cancelAutoHideArrows}
+                    cycleThroughAttachments={cycleThroughReceipts}
+                    shouldShowArrows={shouldShowArrows}
+                    page={page}
+                    setShouldShowArrows={setShouldShowArrows}
+                >
+                    <Image
+                        style={[styles.flex1]}
+                        source={{uri: currentReceipt?.source ?? ''}}
+                    />
+                </AttachmentCarouselView>
+            </Modal>
+            <ConfirmModal
+                title={translate('receipt.deleteReceipt')}
+                isVisible={isDeleteReceiptConfirmModalVisible}
+                onConfirm={deleteReceiptAndCloseModal}
+                onCancel={() => setIsDeleteReceiptConfirmModalVisible(false)}
+                prompt={translate('receipt.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+        </>
     );
 }
 
