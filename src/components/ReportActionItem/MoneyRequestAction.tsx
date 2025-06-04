@@ -9,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
@@ -34,7 +35,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import MoneyRequestPreview from './MoneyRequestPreview';
 import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
@@ -59,9 +59,6 @@ type MoneyRequestActionProps = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
-    /** Callback for measuring child and running a defined callback/action later */
-    onShowContextMenu?: (callback: () => void) => void;
-
     /** Whether the IOU is hovered so we can modify its style */
     isHovered?: boolean;
 
@@ -82,7 +79,6 @@ function MoneyRequestAction({
     reportID,
     isMostRecentIOUReportAction,
     contextMenuAnchor,
-    onShowContextMenu = () => {},
     checkIfContextMenuActive = () => {},
     isHovered = false,
     style,
@@ -92,7 +88,7 @@ function MoneyRequestAction({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
-
+    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -119,6 +115,7 @@ function MoneyRequestAction({
         ],
         [previewWidth, styles.borderNone],
     );
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, undefined, true);
 
     const onMoneyRequestPreviewPressed = () => {
         if (contextMenuRef.current?.isContextMenuOpening) {
@@ -171,7 +168,34 @@ function MoneyRequestAction({
         return (shouldUseNarrowLayout && layoutWidth > variables.mobileResponsiveWidthBreakpoint) || (!shouldUseNarrowLayout && layoutWidth > variables.sideBarWidth);
     };
 
-    return renderCondition ? (
+    const singleTransactionPreviewWidth = shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width;
+    const singleTransactionPreviewStyles = [shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt2];
+
+    const TransactionPreviewComponent = (
+        <TransactionPreview
+            iouReportID={requestReportID}
+            chatReportID={chatReportID}
+            reportID={reportID}
+            action={action}
+            transactionPreviewWidth={renderCondition ? previewWidth : singleTransactionPreviewWidth}
+            isBillSplit={isSplitBillAction}
+            isTrackExpense={isTrackExpenseAction}
+            contextMenuAnchor={contextMenuAnchor}
+            checkIfContextMenuActive={checkIfContextMenuActive}
+            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+            onPreviewPressed={onMoneyRequestPreviewPressed}
+            containerStyles={renderCondition ? [containerStyles, transactionPreviewContainerStyles] : singleTransactionPreviewStyles}
+            isHovered={isHovered}
+            isWhisper={isWhisper}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
+        />
+    );
+
+    if (!renderCondition) {
+        return TransactionPreviewComponent;
+    }
+
+    return (
         <View
             onLayout={(e: LayoutChangeEvent) => {
                 if (isLayoutWidthInvalid(e.nativeEvent.layout.width)) {
@@ -188,43 +212,9 @@ function MoneyRequestAction({
                     />
                 </View>
             ) : (
-                <TransactionPreview
-                    iouReportID={requestReportID}
-                    chatReportID={chatReportID}
-                    reportID={reportID}
-                    action={action}
-                    transactionPreviewWidth={previewWidth}
-                    isBillSplit={isSplitBillAction}
-                    isTrackExpense={isTrackExpenseAction}
-                    contextMenuAnchor={contextMenuAnchor}
-                    checkIfContextMenuActive={checkIfContextMenuActive}
-                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                    onPreviewPressed={onMoneyRequestPreviewPressed}
-                    containerStyles={[containerStyles, transactionPreviewContainerStyles]}
-                    isHovered={isHovered}
-                    isWhisper={isWhisper}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
-                />
+                TransactionPreviewComponent
             )}
         </View>
-    ) : (
-        <MoneyRequestPreview
-            iouReportID={requestReportID}
-            chatReportID={chatReportID}
-            reportID={reportID}
-            isBillSplit={isSplitBillAction}
-            isTrackExpense={isTrackExpenseAction}
-            action={action}
-            contextMenuAnchor={contextMenuAnchor}
-            onShowContextMenu={onShowContextMenu}
-            checkIfContextMenuActive={checkIfContextMenuActive}
-            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-            onPreviewPressed={onMoneyRequestPreviewPressed}
-            containerStyles={containerStyles}
-            isHovered={isHovered}
-            isWhisper={isWhisper}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
-        />
     );
 }
 

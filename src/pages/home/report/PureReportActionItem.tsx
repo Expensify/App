@@ -827,7 +827,6 @@ function PureReportActionItem({
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
-                    onShowContextMenu={handleShowContextMenu}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
@@ -1008,6 +1007,20 @@ function PureReportActionItem({
                 );
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
+            }
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+            const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
+            const paymentType = getOriginalMessage(action)?.paymentType;
+            if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
+            } else if (wasAutoPaid) {
+                children = (
+                    <ReportActionItemBasicMessage>
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyPaidWithExpensify')}</muted-text></comment>`} />
+                    </ReportActionItemBasicMessage>
+                );
+            } else {
+                children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
             }
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
