@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import {setFocusModeNotification} from '@libs/actions/PriorityMode';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -9,6 +8,8 @@ import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import { updateChatPriorityMode } from '@libs/actions/User';
+import FocusModeNotification from './FocusModeNotification';
 
 /**
  * This component is used to automatically switch a user into #focus mode when they exceed a certain number of reports.
@@ -28,6 +29,8 @@ export default function PriorityModeController() {
     const [hasTriedFocusMode] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const currentRouteName = useCurrentRouteName();
+    const [shouldShowModal, setShouldShowModal] = useState(false);
+    const closeModal = useCallback(() => setShouldShowModal(false), []);
 
     const validReportCount = useMemo(() => {
         let count = 0;
@@ -68,11 +71,13 @@ export default function PriorityModeController() {
         }
 
         Log.info('[PriorityModeController] Switching user to focus mode', false, {validReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
-        setFocusModeNotification(true);
+        updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
+        setShouldShowModal(true);
         hasSwitched.current = true;
     }, [accountID, currentRouteName, hasTriedFocusMode, isInFocusMode, isLoadingReportData, validReportCount]);
 
-    return null;
+
+    return shouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
 }
 
 /**
