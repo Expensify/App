@@ -7,6 +7,7 @@ import OpenAI from 'openai';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts, {EmitHint} from 'typescript';
+import StringUtils from '../src/libs/StringUtils';
 import type Locale from '../src/types/onyx/Locale';
 import Prettier from './utils/Prettier';
 
@@ -69,11 +70,11 @@ class TranslationGenerator {
 
         for (const targetLanguage of this.targetLanguages) {
             // Extract strings
-            const stringsToTranslate = new Map<string, string>();
+            const stringsToTranslate = new Map<number, string>();
             this.extractStrings(sourceFile, stringsToTranslate);
 
             // Extract templateExpressions
-            const templatesToTranslate = new Map<string, TemplateExpression>();
+            const templatesToTranslate = new Map<number, TemplateExpression>();
             this.extractTemplateExpressions(sourceFile, templatesToTranslate);
 
             // Transform the template expressions to strings and add them to the map
@@ -81,7 +82,7 @@ class TranslationGenerator {
                 stringsToTranslate.set(key, this.templateExpressionToString(templateExpression));
             }
 
-            const translations = new Map<string, string>();
+            const translations = new Map<number, string>();
             for (const [key, value] of stringsToTranslate) {
                 translations.set(key, await this.translate(value, targetLanguage));
             }
@@ -175,9 +176,9 @@ class TranslationGenerator {
     /**
      * Recursively extract all string literals from the subtree rooted at the given node.
      */
-    private extractStrings(node: ts.Node, strings: Map<string, string>) {
+    private extractStrings(node: ts.Node, strings: Map<number, string>) {
         if (ts.isStringLiteral(node) && this.shouldNodeBeTranslated(node)) {
-            strings.set(node.text, node.text);
+            strings.set(StringUtils.hash(node.text), node.text);
         }
         node.forEachChild((child) => this.extractStrings(child, strings));
     }
@@ -185,9 +186,9 @@ class TranslationGenerator {
     /**
      * Recursively extract all template expressions from the subtree rooted at the given node.
      */
-    private extractTemplateExpressions(node: ts.Node, templateExpressions: Map<string, TemplateExpression>) {
+    private extractTemplateExpressions(node: ts.Node, templateExpressions: Map<number, TemplateExpression>) {
         if (this.isTemplateExpressionNode(node)) {
-            templateExpressions.set(this.templateExpressionToString(node), node);
+            templateExpressions.set(StringUtils.hash(this.templateExpressionToString(node)), node);
         }
         node.forEachChild((child) => this.extractTemplateExpressions(child, templateExpressions));
     }
@@ -248,17 +249,17 @@ class TranslationGenerator {
      * Generate an AST transformer for the given set of translations.
      * @param translations
      */
-    private createTransformer(translations: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
+    private createTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
             const visit: ts.Visitor = (node) => {
                 if (ts.isStringLiteral(node) && this.shouldNodeBeTranslated(node)) {
-                    const translatedText = translations.get(node.text);
+                    const translatedText = translations.get(StringUtils.hash(node.text));
                     return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
                 }
                 if (this.isTemplateExpressionNode(node)) {
                     const originalTemplateExpressionAsString = this.templateExpressionToString(node);
                     console.log(`🟡 Checking TemplateExpression: "${originalTemplateExpressionAsString}"`);
-                    const translatedTemplate = translations.get(originalTemplateExpressionAsString);
+                    const translatedTemplate = translations.get(StringUtils.hash(originalTemplateExpressionAsString));
                     if (translatedTemplate) {
                         console.log(`🔹 Found Translation: "${translatedTemplate}"`);
                         const translatedTemplateExpression = this.stringToTemplateExpression(translatedTemplate);
