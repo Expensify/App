@@ -1828,10 +1828,10 @@ function buildPolicyData(
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
     const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice ||
-        introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-        introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
-        introSelected.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+        !engagementChoice ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
@@ -4299,7 +4299,7 @@ function disableWorkspaceBillableExpenses(policyID: string) {
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
-function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
+function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
 
     const originalEReceipts = policy?.eReceipts;
@@ -4310,7 +4310,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    eReceipts,
+                    eReceipts: enabled,
                     pendingFields: {
                         eReceipts: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -4344,7 +4344,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
 
     const parameters = {
         policyID,
-        eReceipts,
+        enabled,
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);

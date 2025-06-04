@@ -734,13 +734,6 @@ jobs:
       # Note: by omitting PULL_REQUEST_URL, we are just doing a version bump and CP'ing it to staging
       TARGET: staging
 
-  updateChecklistWithVersionBump:
-    name: Update deploy checklist with the new version bump
-    needs: [prep, checkDeploymentSuccess, cherryPickExtraVersionBump]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-    uses: ./.github/workflows/createDeployChecklist.yml
-    secrets: inherit
-
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
