@@ -5,6 +5,7 @@ import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import {CompanyCardsEmptyState, CreditCardsNew, HandCard, MagnifyingGlassMoney} from '@components/Icon/Illustrations';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +35,11 @@ const companyCardFeatures: FeatureListItem[] = [
     },
 ];
 
-function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoadingProps) {
+type WorkspaceCompanyCardPageEmptyStateProps = {
+    shouldShowGBDisclaimer?: boolean;
+} & WithPolicyAndFullscreenLoadingProps;
+
+function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: WorkspaceCompanyCardPageEmptyStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -77,6 +82,7 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
+            {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
         </View>
     );
 }

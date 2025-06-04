@@ -6,11 +6,11 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
-import Image from '@components/Image';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -33,7 +33,6 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
-import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -113,20 +112,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                 <ScrollView addBottomSafeAreaPadding>
                     <View style={[styles.walletCard, styles.mb3]}>
                         {plaidUrl ? (
-                            <>
-                                <Image
-                                    source={{uri: plaidUrl}}
-                                    style={styles.plaidIcon}
-                                    cachePolicy="memory-disk"
-                                />
-                                <ImageSVG
-                                    contentFit="contain"
-                                    src={Illustrations.PlaidCompanyCardDetailLarge}
-                                    pointerEvents="none"
-                                    height={variables.cardPreviewHeight}
-                                    width={variables.cardPreviewWidth}
-                                />
-                            </>
+                            <PlaidCardFeedIcon
+                                plaidUrl={plaidUrl}
+                                isLarge
+                            />
                         ) : (
                             <ImageSVG
                                 contentFit="contain"

@@ -1,10 +1,9 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
-import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
@@ -58,6 +57,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [cardsList] = useCardsList(policyID, selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const {isBetaEnabled} = usePermissions();
+    const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
 
     const {cardList, ...cards} = cardsList ?? {};
 
@@ -82,6 +82,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
     const isGB = countryByIp === CONST.COUNTRY.GB;
+    const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
 
     useEffect(() => {
         fetchCompanyCards();
@@ -175,20 +176,21 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             handleAssignCard={handleAssignCard}
                         />
                     )}
-                    {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
+                    {isNoFeed && (
+                        <WorkspaceCompanyCardPageEmptyState
+                            route={route}
+                            shouldShowGBDisclaimer={shouldShowGBDisclaimer}
+                        />
+                    )}
                     {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
                     {isFeedAdded && !isPending && (
                         <WorkspaceCompanyCardsList
                             cardsList={cardsList}
+                            shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                             policyID={policyID}
                             handleAssignCard={handleAssignCard}
                             isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}
                         />
-                    )}
-                    {isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || (isFeedAdded && !isPending)) && (
-                        <View style={[styles.sidebarFooter, styles.mb5]}>
-                            <Text style={[styles.chatItemMessageHeaderTimestamp]}>{translate('workspace.companyCards.ukRegulation')}</Text>
-                        </View>
                     )}
                 </WorkspacePageWithSections>
             )}

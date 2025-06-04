@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
@@ -48,6 +49,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const translationKey = getCardInstructionHeader(feedProvider);
+    const {isBetaEnabled} = usePermissions();
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
@@ -69,7 +71,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        if (isAmexFeedProvider) {
+        if (isAmexFeedProvider && !isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
             setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED,
             });

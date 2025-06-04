@@ -5144,7 +5144,7 @@ const styles = (theme: ThemeColors) =>
             width: variables.iconSizeMegaLarge,
             position: 'absolute',
             right: 24,
-            top: 24,
+            top: 20,
             zIndex: 1,
         },
 

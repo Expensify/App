@@ -10,21 +10,22 @@ import Image from './Image';
 type PlaidCardFeedIconProps = {
     plaidUrl: string;
     style?: StyleProp<ViewStyle>;
+    isLarge?: boolean
 };
 
-function PlaidCardFeedIcon({plaidUrl, style}: PlaidCardFeedIconProps) {
+function PlaidCardFeedIcon({plaidUrl, style, isLarge}: PlaidCardFeedIconProps) {
     const styles = useThemeStyles();
     return (
         <View style={[style]}>
             <Image
                 source={{uri: plaidUrl}}
-                style={styles.plaidIconSmall}
+                style={isLarge ? styles.plaidIcon: styles.plaidIconSmall}
                 cachePolicy="memory-disk"
             />
             <Icon
-                src={Illustrations.PlaidCompanyCardDetail}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
+                src={isLarge ? Illustrations.PlaidCompanyCardDetailLarge: Illustrations.PlaidCompanyCardDetail}
+                height={isLarge ? variables.cardPreviewHeight: variables.cardIconHeight}
+                width={isLarge ? variables.cardPreviewWidth: variables.cardIconWidth}
             />
         </View>
     );

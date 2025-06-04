@@ -104,23 +104,6 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
         Log.hmmm('[PlaidLink] Error: ', error?.message);
     }, []);
 
-    if (isPlaidDisabled) {
-        return (
-            <ScreenWrapper
-                testID={PlaidConnectionStep.displayName}
-                enableEdgeToEdgeBottomSafeAreaPadding
-                shouldEnablePickerAvoiding={false}
-                shouldEnableMaxHeight
-            >
-                <HeaderWithBackButton
-                    title={translate('workspace.companyCards.addCards')}
-                    onBackButtonPress={handleBackButtonPress}
-                />
-                <Text style={[styles.formError, styles.ph5, styles.mv3]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
-            </ScreenWrapper>
-        );
-    }
-
     const renderPlaidLink = () => {
         if (plaidLinkToken) {
             return (
@@ -186,7 +169,24 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
         }
     };
 
-    return <FullPageOfflineBlockingView>{renderPlaidLink()}</FullPageOfflineBlockingView>;
+    return (
+        <ScreenWrapper
+            testID={PlaidConnectionStep.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={translate('workspace.companyCards.addCards')}
+                onBackButtonPress={handleBackButtonPress}
+            />
+            {isPlaidDisabled ? (
+                <Text style={[styles.formError, styles.ph5, styles.mv3]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
+            ) : (
+                <FullPageOfflineBlockingView>{renderPlaidLink()}</FullPageOfflineBlockingView>
+            )}
+        </ScreenWrapper>
+    );
 }
 
 PlaidConnectionStep.displayName = 'PlaidConnectionStep';
