@@ -31,7 +31,7 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
+import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -60,7 +60,6 @@ import {
 import {buildCannedSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {
-    getCurrency,
     getTaxAmount,
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
@@ -239,22 +238,21 @@ function isReportActionListItemType(item: SearchListItem): item is ReportActionL
     return reportActionListItem.reportActionID !== undefined;
 }
 
-function isAmountTooLong(amount: number, currencyCode: string, maxLength = 11): boolean {
-    const currencyLength = getCurrencySymbol(currencyCode)?.length ?? 0;
-    return Math.abs(amount).toString().length + currencyLength >= maxLength;
+function isAmountTooLong(amount: number, maxLength = 8): boolean {
+    return Math.abs(amount).toString().length >= maxLength;
 }
 
 function isFormattedAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const amount = Math.abs(transactionItem.modifiedAmount || transactionItem.amount);
-    return isAmountTooLong(amount, getCurrency(transactionItem));
+    return isAmountTooLong(amount);
 }
 
 function isTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
     const reportType = (transactionItem as TransactionListItemType)?.reportType;
     const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
     const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
-    return isAmountTooLong(taxAmount, getCurrency(transactionItem));
+    return isAmountTooLong(taxAmount);
 }
 
 /**
