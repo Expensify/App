@@ -1,9 +1,9 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -47,24 +47,6 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
             return action?.childReportID;
         })
         .filter((reportID): reportID is string => !!reportID);
-}
-
-/**
- * Filters all available transactions and returns the ones that belong to a specific report (by `reportID`).
- * It is used as an onyx selector, to make sure that report related views do not process all transactions in onyx.
- */
-function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction>, reportID: string | undefined, reportActions: ReportAction[]) {
-    if (!reportID) {
-        return [];
-    }
-
-    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
-        if (!transaction) {
-            return false;
-        }
-        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return transaction.reportID === reportID && !isDeletedParentAction(action);
-    });
 }
 
 /**
@@ -127,11 +109,4 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
-export {
-    isActionVisibleOnMoneyRequestReport,
-    getThreadReportIDsForTransactions,
-    getTotalAmountForIOUReportPreviewButton,
-    selectAllTransactionsForReport,
-    isSingleTransactionReport,
-    shouldDisplayReportTableView,
-};
+export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton, isSingleTransactionReport, shouldDisplayReportTableView};

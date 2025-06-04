@@ -5,17 +5,12 @@ import type {ReportTransactionsDerivedValue} from '@src/types/onyx';
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS,
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION],
-    compute: ([transactions], {sourceValues, currentValue}) => {
+    compute: ([transactions]) => {
         if (!transactions) {
             return {};
         }
 
-        let data = transactions;
-        if (sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION]) {
-            data = Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION]).map((key) => transactions[key]);
-        }
-
-        return Object.values(data).reduce<ReportTransactionsDerivedValue>((acc, transaction) => {
+        return Object.values(transactions).reduce<ReportTransactionsDerivedValue>((acc, transaction) => {
             const reportID = transaction?.reportID;
             if (!reportID) {
                 return acc;
@@ -28,6 +23,6 @@ export default createOnyxDerivedValueConfig({
             acc[reportID].push(transaction);
 
             return acc;
-        }, currentValue ?? {});
+        }, {});
     },
 });

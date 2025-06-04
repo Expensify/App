@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {selectAllTransactionsForReport, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
+import {shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
@@ -99,8 +99,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
+    const [transactions] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
+        selector: (allTransactions): OnyxTypes.Transaction[] => allTransactions?.[reportID] ?? [],
         canBeMissing: true,
     });
 

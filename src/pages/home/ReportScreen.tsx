@@ -31,7 +31,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {selectAllTransactionsForReport, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
+import {shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -299,8 +299,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
-    const [reportTransactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
+    const [reportTransactions = []] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
+        selector: (allTransactions): OnyxTypes.Transaction[] => allTransactions?.[reportIDFromRoute] ?? [],
         canBeMissing: false,
     });
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
