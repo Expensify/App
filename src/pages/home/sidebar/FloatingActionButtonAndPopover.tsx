@@ -486,7 +486,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () => {
+                      onSelected: interceptAnonymousUser(() => {
                           InteractionManager.runAfterInteractions(() => {
                               if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
                                   completeTestDriveTask(isAnonymousUser());
@@ -495,7 +495,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
                               }
                           });
-                      },
+                      }),
                   },
               ]
             : []),
