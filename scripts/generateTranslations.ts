@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 import fs from 'fs';
 import OpenAI from 'openai';
 import path from 'path';
-import type {StringLiteral, TemplateExpression} from 'typescript';
+import type {TemplateExpression} from 'typescript';
 import ts, {EmitHint} from 'typescript';
 import type Locale from '../src/types/onyx/Locale';
 import Prettier from './utils/Prettier';
@@ -142,16 +142,26 @@ class TranslationGenerator {
     }
 
     /**
-     * Check if the given node is a string literal that is not part of an import, export, or switch-case statement..
+     * A node should be translated only if:
+     *
+     * - It is not an import or export path.
+     * - It is not part of a control statement such as an if/else, binary expression (the conditional part of a ternary), or a switch/case.
+     * - It is not part of a log call
+     * - It is "dangling" (doesn't have a parent). This is an edge case we're unlikely to encounter in real code.
      */
-    private isPlainStringNode(node: ts.Node): node is StringLiteral {
+    private shouldNodeBeTranslated(node: ts.Node): boolean {
         return (
-            ts.isStringLiteral(node) &&
-            (!node.parent || // Ensure the node has a parent
-                (!ts.isImportDeclaration(node.parent) && // Ignore import paths
-                    !ts.isExportDeclaration(node.parent) && // Ignore export paths
-                    !ts.isCaseClause(node.parent) && // Ignore switch-case strings
-                    !ts.isBinaryExpression(node.parent))) // ignore conditional expressions (string is left-or-right-hand side of a conditional, and we want to ignore it)
+            !node.parent ||
+            (!ts.isImportDeclaration(node.parent) && // Ignore import paths
+                !ts.isExportDeclaration(node.parent) && // Ignore export paths
+                !ts.isCaseClause(node.parent) && // Ignore switch-case strings
+                !ts.isBinaryExpression(node.parent) && // ignore conditional expressions (string is left-or-right-hand side of a conditional, and we want to ignore it)
+                !(
+                    ts.isCallExpression(node.parent) &&
+                    ts.isPropertyAccessExpression(node.parent.expression) &&
+                    ((ts.isIdentifier(node.parent.expression.expression) && node.parent.expression.expression.getText() === 'console') ||
+                        (ts.isIdentifier(node.parent.expression.expression) && node.parent.expression.expression.getText() === 'Log'))
+                ))
         );
     }
 
@@ -166,7 +176,7 @@ class TranslationGenerator {
      * Recursively extract all string literals from the subtree rooted at the given node.
      */
     private extractStrings(node: ts.Node, strings: Map<string, string>) {
-        if (this.isPlainStringNode(node)) {
+        if (ts.isStringLiteral(node) && this.shouldNodeBeTranslated(node)) {
             strings.set(node.text, node.text);
         }
         node.forEachChild((child) => this.extractStrings(child, strings));
@@ -241,7 +251,7 @@ class TranslationGenerator {
     private createTransformer(translations: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
             const visit: ts.Visitor = (node) => {
-                if (this.isPlainStringNode(node)) {
+                if (ts.isStringLiteral(node) && this.shouldNodeBeTranslated(node)) {
                     const translatedText = translations.get(node.text);
                     return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
                 }

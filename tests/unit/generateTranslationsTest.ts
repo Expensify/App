@@ -80,6 +80,63 @@ describe('generateTranslations', () => {
             );
         });
 
+        it("doesn't translate strings or templates used in control flows", async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                StringUtils.dedent(`
+                    import Log from '@libs/Log';
+                    import CONST from '@src/CONST';
+
+                    if (CONST.REPORT.TYPE.EXPENSE == 'true') {
+                        Log.info('This should not be translated');
+                        console.log('This should not be translated either');
+                    }
+                    function myFunction(myVariable: string): boolean | string {
+                        if (myVariable === 'Hello world') {
+                            return true;
+                        } else {
+                            switch (myVariable) {
+                                case 'Hello':
+                                    return true;
+                                case 'Goodbye':
+                                    return false;
+                                default:
+                                    return myVariable === 'Goodnight' ? 'Moon' : 'Sun';
+                            }
+                        }
+                    }
+            `),
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            expect(itContent).toStrictEqual(
+                StringUtils.dedent(`
+                    import Log from '@libs/Log';
+                    import CONST from '@src/CONST';
+
+                    if (CONST.REPORT.TYPE.EXPENSE == 'true') {
+                        Log.info('This should not be translated');
+                        console.log('This should not be translated either');
+                    }
+                    function myFunction(myVariable: string): boolean | string {
+                        if (myVariable === 'Hello world') {
+                            return true;
+                        } else {
+                            switch (myVariable) {
+                                case 'Hello':
+                                    return true;
+                                case 'Goodbye':
+                                    return false;
+                                default:
+                                    return myVariable === 'Goodnight' ? '[it] Moon' : '[it] Sun';
+                            }
+                        }
+                    }
+            `),
+            );
+        });
+
         it('handles nested template expressions', async () => {
             fs.writeFileSync(
                 EN_PATH,
