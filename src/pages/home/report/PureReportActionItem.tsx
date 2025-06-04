@@ -181,6 +181,9 @@ type PureReportActionItemProps = {
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
+    /** The transactions for the report */
+    transactions: OnyxTypes.Transaction[];
+
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
     reportActions: OnyxTypes.ReportAction[];
@@ -356,6 +359,7 @@ function PureReportActionItem({
     action,
     report,
     transactionThreadReport,
+    transactions,
     linkedReportActionID,
     displayAsGroup,
     index,
@@ -879,6 +883,7 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    transactions={transactions}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -899,6 +904,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
+                    transactions={transactions}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
@@ -1330,7 +1336,12 @@ function PureReportActionItem({
     }
 
     if (isTripPreview(action) && isThreadReportParentAction) {
-        return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
+        return (
+            <TripSummary
+                reportID={getOriginalMessage(action)?.linkedReportID}
+                transactions={transactions}
+            />
+        );
     }
 
     if (isChronosOOOListAction(action)) {

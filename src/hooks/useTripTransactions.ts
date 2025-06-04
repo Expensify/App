@@ -12,26 +12,16 @@ import type {Transaction} from '@src/types/onyx';
  * @param reportID - The trip room's reportID.
  * @returns Transactions linked to the specified trip room.
  */
-function useTripTransactions(reportID: string | undefined): Transaction[] {
+function useTripTransactions(reportID: string | undefined, reportTransactions: Transaction[]): Transaction[] {
     const [tripTransactionReportIDs = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) =>
             Object.values(reports ?? {})
                 .filter((report) => report && report.chatReportID === reportID)
                 .map((report) => report?.reportID),
     });
-    const [tripTransactions = []] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            selector: (transactions) => {
-                if (!tripTransactionReportIDs.length) {
-                    return [];
-                }
 
-                return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && tripTransactionReportIDs.includes(transaction.reportID));
-            },
-        },
-        [tripTransactionReportIDs],
-    );
+    const tripTransactions = tripTransactionReportIDs.flatMap((transactionReportID) => reportTransactions[transactionReportID ?? 0] ?? []);
+
     return tripTransactions;
 }
 

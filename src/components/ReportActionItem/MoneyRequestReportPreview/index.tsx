@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
-import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +37,7 @@ function MoneyRequestReportPreview({
     shouldDisplayContextMenu = true,
     isInvoice = false,
     shouldShowBorder,
+    transactions,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -51,7 +52,7 @@ function MoneyRequestReportPreview({
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
         canBeMissing: true,
     });
-    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
+    const [iouReport, violations] = useReportTransactionViolations(iouReportID, transactions);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);

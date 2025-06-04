@@ -133,6 +133,11 @@ function MoneyRequestReportActionsList({
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
+    const [reportTransactions] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
+        canBeMissing: true,
+        selector: (transactionsByReportID) => transactionsByReportID?.[report.reportID],
+    });
+
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
@@ -477,6 +482,7 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
+                    transactions={reportTransactions ?? []}
                 />
             );
         },
@@ -490,6 +496,7 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
+            reportTransactions,
         ],
     );
 

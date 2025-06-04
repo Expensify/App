@@ -25,7 +25,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -140,6 +140,9 @@ type ReportPreviewProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
+
+    /** The transactions for the report */
+    transactions: Transaction[];
 };
 
 function ReportPreview({
@@ -156,10 +159,11 @@ function ReportPreview({
     onPaymentOptionsHide,
     onShowContextMenu = () => {},
     shouldDisplayContextMenu = true,
+    transactions,
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: false});
-    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
+    const [iouReport, violations] = useReportTransactionViolations(iouReportID, transactions);
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];

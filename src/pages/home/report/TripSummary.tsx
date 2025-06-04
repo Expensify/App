@@ -5,15 +5,19 @@ import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import useTripTransactions from '@hooks/useTripTransactions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 
 type TripSummaryProps = {
     /** The report ID */
     reportID: string | undefined;
+
+    /** The transactions for the report */
+    transactions: Transaction[];
 };
 
-function TripSummary({reportID}: TripSummaryProps) {
+function TripSummary({reportID, transactions}: TripSummaryProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const tripTransactions = useTripTransactions(reportID);
+    const tripTransactions = useTripTransactions(reportID, transactions);
 
     if (!reportID || tripTransactions.length === 0) {
         return null;

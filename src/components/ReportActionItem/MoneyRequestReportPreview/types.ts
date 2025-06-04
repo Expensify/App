@@ -59,6 +59,9 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
+
+    /** The transactions for the report */
+    transactions: Transaction[];
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {

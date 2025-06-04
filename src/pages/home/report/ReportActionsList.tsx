@@ -167,6 +167,10 @@ function ReportActionsList({
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
+    const [reportTransactions] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
+        canBeMissing: true,
+        selector: (transactions) => transactions?.[report.reportID],
+    });
     const participantsContext = useContext(PersonalDetailsContext);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
@@ -583,6 +587,7 @@ function ReportActionsList({
                     index={index}
                     report={report}
                     transactionThreadReport={transactionThreadReport}
+                    transactions={reportTransactions ?? []}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
                         !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
@@ -598,18 +603,19 @@ function ReportActionsList({
             );
         },
         [
+            sortedReportActions,
+            parentReportAction,
+            parentReportActionForTransactionThread,
             report,
+            transactionThreadReport,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
-            parentReportAction,
-            sortedReportActions,
-            transactionThreadReport,
-            parentReportActionForTransactionThread,
-            shouldUseThreadDividerLine,
-            firstVisibleReportActionID,
             unreadMarkerReportActionID,
+            firstVisibleReportActionID,
+            shouldUseThreadDividerLine,
+            reportTransactions,
         ],
     );
 
