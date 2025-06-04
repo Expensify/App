@@ -226,7 +226,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             {isEmptyObject(cardsList) ? (
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
-                <ScrollView>
+                <ScrollView
+                    addBottomSafeAreaPadding
+                    showsVerticalScrollIndicator={false}
+                >
                     <View style={{height: windowHeight - headerHeight}}>
                         <FlatList
                             data={filteredSortedCards}
