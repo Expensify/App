@@ -59,6 +59,8 @@ function Backdrop({
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}
+                style={[styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {isBackdropVisible && (
                     <Animated.View
@@ -75,6 +77,8 @@ function Backdrop({
             <Animated.View
                 entering={Entering}
                 exiting={Exiting}
+                style={[styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
             </Animated.View>
