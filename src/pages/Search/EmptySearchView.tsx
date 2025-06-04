@@ -200,6 +200,16 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
         if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+            if (hasResults) {
+                return {
+                    headerMedia: LottieAnimations.GenericEmptyState,
+                    title: translate('search.searchResults.emptyResults.title'),
+                    subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+                };
+            }
+
             return {
                 headerMedia: LottieAnimations.GenericEmptyState,
                 title: translate('search.searchResults.emptyReportResults.title'),
