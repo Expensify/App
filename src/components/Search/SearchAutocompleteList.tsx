@@ -163,8 +163,6 @@ function SearchAutocompleteList(
         return getSearchOptions(options, betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
-    const [isInitialRender, setIsInitialRender] = useState(true);
-
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
 
@@ -592,38 +590,34 @@ function SearchAutocompleteList(
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
     return (
-        // On page refresh, when the list is rendered before options are initialized the auto-focusing on initiallyFocusedOptionKey
-        // will fail because the list will be empty on first render so we only render after options are initialized.
-        areOptionsInitialized && (
-            <SelectionList<OptionData | SearchQueryItem>
-                showLoadingPlaceholder={!areOptionsInitialized}
-                fixedNumItemsForLoader={4}
-                loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                sections={sections}
-                onSelectRow={onListItemPress}
-                ListItem={SearchRouterItem}
-                containerStyle={[styles.mh100]}
-                sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
-                listItemWrapperStyle={[styles.pr0, styles.pl0]}
-                getItemHeight={getItemHeight}
-                onLayout={() => {
-                    setPerformanceTimersEnd();
-                    setIsInitialRender(false);
-                    if (!!textInputRef?.current && ref && 'current' in ref) {
-                        ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
-                    }
-                }}
-                showScrollIndicator={!shouldUseNarrowLayout}
-                sectionTitleStyles={styles.mhn2}
-                shouldSingleExecuteRowSelect
-                onArrowFocus={onArrowFocus}
-                ref={ref}
-                initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
-                shouldScrollToFocusedIndex={!isInitialRender}
-                shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
-                disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
-            />
-        )
+        <SelectionList<OptionData | SearchQueryItem>
+            showLoadingPlaceholder={!areOptionsInitialized}
+            fixedNumItemsForLoader={4}
+            loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+            sections={sections}
+            onSelectRow={onListItemPress}
+            ListItem={SearchRouterItem}
+            containerStyle={[styles.mh100]}
+            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
+            listItemWrapperStyle={[styles.pr0, styles.pl0]}
+            getItemHeight={getItemHeight}
+            onLayout={() => {
+                setPerformanceTimersEnd();
+                if (!!textInputRef?.current && ref && 'current' in ref) {
+                    ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
+                }
+            }}
+            showScrollIndicator={!shouldUseNarrowLayout}
+            sectionTitleStyles={styles.mhn2}
+            shouldSingleExecuteRowSelect
+            onArrowFocus={onArrowFocus}
+            ref={ref}
+            initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
+            shouldScrollToFocusedIndex={!areOptionsInitialized}
+            shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
+            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+            isReady={areOptionsInitialized}
+        />
     );
 }
 

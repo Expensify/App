@@ -145,6 +145,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUseDefaultRightHandSideCheckmark,
         selectedItems = [],
         isSelected,
+        isReady = true,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -167,6 +168,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
     const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
+    const previousIsReady = usePrevious(isReady);
 
     const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
         if (!itemKey) {
@@ -378,6 +380,13 @@ function BaseSelectionList<TItem extends ListItem>(
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
     });
+
+    useEffect(() => {
+        if (!isReady || previousIsReady === isReady) {
+            return;
+        }
+        setFocusedIndex(flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
+    }, [isReady, previousIsReady, initiallyFocusedOptionKey, setFocusedIndex, flattenedSections.allOptions]);
 
     useEffect(() => {
         addKeyDownPressListener(setHasKeyBeenPressed);
