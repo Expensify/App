@@ -21,6 +21,8 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
+import type {ListItem} from '@components/SelectionList/types';
 import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -29,6 +31,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
@@ -54,7 +57,8 @@ import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesListRow from './WorkspacesListRow';
 
-type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
+type WorkspaceItem = ListItem &
+    Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
     Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
     Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
     Pick<PolicyType, 'role' | 'type' | 'ownerAccountID' | 'employeeList'> & {
@@ -316,42 +320,6 @@ function WorkspacesListPage() {
         ],
     );
 
-    const listHeaderComponent = useCallback(() => {
-        if (isLessThanMediumScreen) {
-            return <View style={styles.mt3} />;
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
-                <View style={[styles.flexRow, styles.flex2]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceName')}
-                    </Text>
-                </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceOwner')}
-                    </Text>
-                </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceType')}
-                    </Text>
-                </View>
-                <View style={[styles.workspaceRightColumn, styles.mr2]} />
-            </View>
-        );
-    }, [isLessThanMediumScreen, styles, translate]);
-
     const policyRooms = useMemo(() => {
         if (!reports || isEmptyObject(reports)) {
             return;
@@ -422,7 +390,7 @@ function WorkspacesListPage() {
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         policyID: id,
                         role: CONST.POLICY.ROLE.USER,
-                        errors: null,
+                        errors: undefined,
                         action: () => null,
                         dismissError: () => null,
                         isJoinRequestPending: true,
@@ -457,6 +425,46 @@ function WorkspacesListPage() {
             })
             .sort((a, b) => localeCompare(a.title, b.title));
     }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, policyRooms, navigateToWorkspace]);
+
+    const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
+    const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems, []);
+    const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
+
+    const listHeaderComponent = useCallback(() => {
+        if (isLessThanMediumScreen) {
+            return <View style={styles.mt3} />;
+        }
+
+        return (
+            <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
+                <View style={[styles.flexRow, styles.flex2]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.flexGrow1, styles.textLabelSupporting]}
+                    >
+                        {translate('workspace.common.workspaceName')}
+                    </Text>
+                </View>
+                <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.flexGrow1, styles.textLabelSupporting]}
+                    >
+                        {translate('workspace.common.workspaceOwner')}
+                    </Text>
+                </View>
+                <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.flexGrow1, styles.textLabelSupporting]}
+                    >
+                        {translate('workspace.common.workspaceType')}
+                    </Text>
+                </View>
+                <View style={[styles.workspaceRightColumn, styles.mr2]} />
+            </View>
+        );
+    }, [isLessThanMediumScreen, styles, translate]);
 
     const getHeaderButton = () => (
         <Button
@@ -525,8 +533,16 @@ function WorkspacesListPage() {
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5]}>{getHeaderButton()}</View>}
+                {workspaces.length > CONST.SEARCH_ITEM_LIMIT - 15 && (
+                    <SearchBar
+                        label="Find workspace"
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
+                    />
+                )}
                 <FlatList
-                    data={workspaces}
+                    data={filteredWorkspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
                     stickyHeaderIndices={stickyHeaderIndices}
