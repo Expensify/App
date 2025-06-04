@@ -16,7 +16,6 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,7 +56,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
-    const {canUseSpotnanaTravel} = usePermissions();
 
     const backTo = route.params.backTo;
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -346,7 +344,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 />
                             </View>
                         </OfflineWithFeedback>
-                        {!!canUseSpotnanaTravel && shouldShowAddress && (
+                        {shouldShowAddress && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                                 <View>
                                     <MenuItemWithTopDescription
