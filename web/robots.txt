@@ -1,4 +1,6 @@
 User-agent: *
+
+Allow: /$
 Disallow: /
 
 Sitemap: https://help.expensify.com/sitemap.xml
