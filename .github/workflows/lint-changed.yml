@@ -31,8 +31,9 @@ jobs:
       - name: Count commits between merge base and HEAD
         id: count
         run: |
-          COMMIT_COUNT="$(gh api "repos/$REPO/compare/${BASE}...main" | jq -r '.total_commits')"
-          echo "count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
+          RAW_COUNT="$(gh api "repos/$REPO/compare/${BASE}...main" | jq -r '.total_commits')"
+          ADJUSTED_COUNT=$((RAW_COUNT + 2))
+          echo "count=$ADJUSTED_COUNT" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE: ${{ steps.merge_base.outputs.MERGE_BASE_SHA }}
@@ -42,7 +43,7 @@ jobs:
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          fetch-depth: ${{ fromJSON(steps.count.outputs.count) > 0 && steps.count.outputs.count || '1' }}
+          fetch-depth: ${{ fromJSON(steps.count.outputs.count) }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
