@@ -1608,11 +1608,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.COMPANY_CARDS_ASSIGN_CARD]:{
                     screens: {
-                        [SCREENS.COMPANY_CARDS_ASSIGN_CARD.ROOT]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
+                        [SCREENS.ASSIGN_COMPANY_CARD.ROOT]: {
+                            path: ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD.route,
                         },
-                        [SCREENS.COMPANY_CARDS_ASSIGN_CARD.COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD.route,
+                        [SCREENS.ASSIGN_COMPANY_CARD.CARD_SELECTION]: {
+                            path: ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_SELECT_CARD.route,
                         }
                     }
                 }

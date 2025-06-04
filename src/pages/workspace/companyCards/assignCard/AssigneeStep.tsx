@@ -66,7 +66,6 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
                 isEditing: false,
             });
-            policy && Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD.getRoute(policy?.id, feed));
             return;
         }
 
@@ -88,7 +87,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             data.encryptedCardNumber = Object.values(filteredCardList).at(0);
         }
 
-        setAssignCardStepAndData({
+        setAssignCardStisFeedExpiredepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
             data,
             isEditing: false,
@@ -103,10 +102,8 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             });
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
-            // policy && Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policy?.id, feed));
             return;
         }
-        Navigation.goBack();
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
@@ -214,3 +211,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
 AssigneeStep.displayName = 'AssigneeStep';
 
 export default AssigneeStep;
+function setAssignCardStisFeedExpiredepAndData(arg0: { currentStep: "Card" | "TransactionStartDate" | "Confirmation"; data: Partial<AssignCardData>; isEditing: boolean; }) {
+    throw new Error('Function not implemented.');
+}
+

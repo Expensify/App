@@ -328,9 +328,14 @@ const SCREENS = {
         DESCRIPTION: 'NewTask_Description',
     },
 
-    COMPANY_CARDS_ASSIGN_CARD:{
-        ROOT: 'CompanyCards_AssignCard_Root',
-        COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD: 'CompanyCards_AssignCard_SelectCard',
+    ASSIGN_COMPANY_CARD: {
+        ROOT: 'AssignCard_Root',
+        BANK_CONNECTION: 'AssignCard_BankConnection',
+        ASSIGNEE: 'AssignCard_Assignee',
+        CARD_SELECTION: 'AssignCard_CardSelection',
+        TRANSACTION_START_DATE: 'AssignCard_TransactionStartDate',
+        CARD_NAME: 'AssignCard_CardName',
+        CONFIRMATION: 'AssignCard_Confirmation',
     },
 
     TASK: {

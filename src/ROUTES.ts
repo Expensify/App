@@ -1644,11 +1644,11 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards/select-feed',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/select-feed` as const,
     },
-    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
+    WORKSPACE_ASSIGN_COMPANY_CARD: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
         getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card`, backTo),
     },
-    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD:{
+    WORKSPACE_ASSIGN_COMPANY_CARD_SELECT_CARD:{
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card/assignee',
         getRoute: (policyID: string, feed: string, backTo?: string) =>
             getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card/assignee`, backTo),

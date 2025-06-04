@@ -247,8 +247,8 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
 });
 
 const AssignCompanyCardsModalStackNavigator = createModalStackNavigator<AssignCompanyCardNavigatorParamList>({
-    [SCREENS.COMPANY_CARDS_ASSIGN_CARD.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssignCardFeedPage').default,
-    [SCREENS.COMPANY_CARDS_ASSIGN_CARD.COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardSelectionStep').default,
+    [SCREENS.ASSIGN_COMPANY_CARD.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssignCardFeedPage').default,
+    [SCREENS.ASSIGN_COMPANY_CARD.CARD_SELECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardSelectionStep').default,
 });
 
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({

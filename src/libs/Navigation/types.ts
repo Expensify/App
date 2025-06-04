@@ -1435,15 +1435,20 @@ type NewTaskNavigatorParamList = {
 };
 
 type AssignCompanyCardNavigatorParamList = {
-    [SCREENS.COMPANY_CARDS_ASSIGN_CARD.ROOT]: {
+    [SCREENS.ASSIGN_COMPANY_CARD.ROOT]: {
+        feed: string;
         policyID: string;
-        backTo?: Routes;
+        backTo?: string;
     };
-    [SCREENS.COMPANY_CARDS_ASSIGN_CARD.COMPANY_CARDS_ASSIGN_CARD_SELECT_CARD]: {
+    [SCREENS.ASSIGN_COMPANY_CARD.BANK_CONNECTION]: {
+        feed: string;
         policyID: string;
-        backTo?: Routes;
     };
-}
+    [SCREENS.ASSIGN_COMPANY_CARD.ASSIGNEE]: {
+        feed: string;
+        policyID: string;
+    };
+};
 
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
