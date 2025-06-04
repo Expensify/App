@@ -87,7 +87,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
