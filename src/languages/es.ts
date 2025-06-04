@@ -1514,7 +1514,7 @@ const translations = {
             beforeFirstEmail: 'No puedes fusionar ',
             beforeDomain: ' porque está controlado por ',
             afterDomain: '. Póngase ',
-            linkText: 'en contacto con Conserjería',
+            linkText: 'en contacto con Concierge',
             afterLink: ' si necesita ayuda.',
         },
         mergeFailureSAMLAccount: {
@@ -1532,7 +1532,7 @@ const translations = {
         mergeFailureAccountLocked: {
             beforeEmail: 'No puedes fusionar ',
             afterEmail: ' porque está bloqueado. Póngase ',
-            linkText: 'en contacto con Conserjería',
+            linkText: 'en contacto con Concierge',
             afterLink: ` si necesita ayuda.`,
         },
         mergeFailureUncreatedAccount: {
@@ -1879,7 +1879,7 @@ const translations = {
         error: {
             thatDidNotMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
             throttled:
-                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Conserjería para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
+                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Concierge para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
         },
     },
     getPhysicalCard: {
@@ -4851,7 +4851,7 @@ const translations = {
             successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
             errorTitle: '¡Ups! No tan rapido...',
             errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
-            errorDescriptionPartTwo: 'contacta con el conserje',
+            errorDescriptionPartTwo: 'contacta con Concierge',
             errorDescriptionPartThree: 'por ayuda.',
         },
 
