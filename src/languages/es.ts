@@ -5060,11 +5060,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
                 prohibitedExpenses: 'Gastos prohibidos',
-                alcohol: 'Alcohol',
-                hotelIncidentals: 'Gastos adicionales de hotel',
-                gambling: 'Juegos de apuestas',
-                tobacco: 'Tabaco',
-                adultEntertainment: 'Entretenimiento para adultos',
+                alcohol: 'alcohol',
+                hotelIncidentals: 'gastos adicionales de hotel',
+                gambling: 'juegos de apuestas',
+                tobacco: 'tabaco',
+                adultEntertainment: 'entretenimiento para adultos',
             },
             expenseReportRules: {
                 examples: 'Ejemplos:',
@@ -6680,10 +6680,7 @@ const translations = {
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Se renovará el ${date}.`,
             pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
             learnMore: {
-                part1: 'Obtén más información en nuestra ',
-                pricingPage: 'página de precios',
-                part2: ' o chatea con nuestro equipo en tu ',
-                adminsRoom: 'sala #admins.',
+                full: 'Obtén más información en nuestra <a>página de precios</a> o chatea con nuestro equipo en tu sala <a>#admins</a>.',
             },
             estimatedPrice: 'Precio estimado',
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',

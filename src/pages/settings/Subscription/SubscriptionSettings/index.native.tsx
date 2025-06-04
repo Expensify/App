@@ -1,6 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
+import {Linking, useWindowDimensions} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -27,7 +29,9 @@ import ROUTES from '@src/ROUTES';
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();
+    const {width} = useWindowDimensions();
     const styles = useThemeStyles();
+    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -58,6 +62,8 @@ function SubscriptionSettings() {
             />
         ) : null;
 
+    console.log(CONST.PRICING);
+
     return (
         <ScreenWrapper
             testID={SubscriptionSettings.displayName}
@@ -70,16 +76,38 @@ function SubscriptionSettings() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
-                <Text style={[styles.textSupporting, styles.mb5]}>
-                    {translate('subscription.subscriptionSettings.learnMore.part1')}
-                    <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
-                    {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    {adminsChatReportID ? (
-                        <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
-                    ) : (
-                        translate('subscription.subscriptionSettings.learnMore.adminsRoom')
-                    )}
-                </Text>
+                <RenderHtml
+                    contentWidth={width}
+                    systemFonts={systemFonts}
+                    source={{
+                        html: translate('subscription.subscriptionSettings.learnMore.full'),
+                    }}
+                    tagsStyles={{
+                        a: {...styles.link},
+                        body: {
+                            ...styles.textSupporting,
+                            ...styles.mb5,
+                        },
+                    }}
+                    renderers={{
+                        a: ({TDefaultRenderer, ...props}) => {
+                            // Determine which link to use based on the href or position
+                            const isAdminsRoom = !!adminsChatReportID && props?.tnode?.domNode?.children?.[0]?.data?.includes('#admins');
+                            if (isAdminsRoom) {
+                                return (
+                                    <TextLink onPress={openAdminsRoom}>
+                                        <TDefaultRenderer {...props} />
+                                    </TextLink>
+                                );
+                            }
+                            return (
+                                <TextLink onPress={() => Linking.openURL(CONST.PRICING)}>
+                                    <TDefaultRenderer {...props} />
+                                </TextLink>
+                            );
+                        },
+                    }}
+                />
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
                 <Text style={styles.mv1}>{priceDetails}</Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>
