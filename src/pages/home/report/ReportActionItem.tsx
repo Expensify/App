@@ -33,7 +33,12 @@ import type {ReportAction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-function ReportActionItem({action, report, shouldShowDraftMessage = true, ...props}: PureReportActionItemProps) {
+type ReportActionItemProps = PureReportActionItemProps & {
+    /** Whether to show the draft message or not */
+    shouldShowDraftMessage?: boolean;
+};
+
+function ReportActionItem({action, report, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
