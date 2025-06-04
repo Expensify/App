@@ -14,11 +14,11 @@ Duplicate Detection helps prevent accidental double-submission of expenses by fl
 # Manage and Resolve Duplicate Expenses
 
 1. From the left-hand menu, click the red dot or open the chat containing the flagged expense.
-2. Click the green **Review duplicates** button at the top of the request.
+2. Click the green **Review duplicates** button at the top of the expense.
 3. Review the list of matched expenses flagged as duplicates.
 4. Choose how to proceed:
    - **Keep all**: Retains all matched expenses and removes the hold.
-   - **Keep this one**: Keeps the current request and discards the duplicates.
+   - **Keep this one**: Keeps the current expense and discards the duplicates.
 5. If there are differences between the expenses (like categories or tags), choose which values to keep.
 6. Confirm your selection.
 
@@ -32,12 +32,12 @@ The hold is removed, and the expenses are either merged or kept separately, depe
 Yes, approvers can review previously discarded duplicates to ensure accuracy and detect potential fraud.
 
 ## Can I edit a duplicate expense after resolving it?
-Yes, you can edit a duplicate request once it has been resolved, but only after the hold is removed.
+Yes, you can edit a duplicate expense once it has been resolved, but only after the hold is removed.
 
 ## Will two SmartScanned receipts from the same day with the same amount be flagged?
 Yes, unless:
-- The expenses were split from a single request,
-- They were imported from a credit card, or
+- The expenses were split from a single expense.
+- They were imported from a credit card.
 - They came from matching email receipts with different timestamps.
 
 </div>
