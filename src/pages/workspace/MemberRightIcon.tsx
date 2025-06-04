@@ -2,7 +2,7 @@ import React from 'react';
 import Badge from '@components/Badge';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 
 type MemberRightIconProps = {
     owner?: string;
