@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import {updateChatPriorityMode} from '@libs/actions/User';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -8,7 +9,6 @@ import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import { updateChatPriorityMode } from '@libs/actions/User';
 import FocusModeNotification from './FocusModeNotification';
 
 /**
@@ -63,10 +63,10 @@ export default function PriorityModeController() {
             return;
         }
 
-        // We wait for the user to navigate back to the homescreen before triggering this switch
+        // We wait for the user to navigate back to the home screen before triggering this switch
         const isNarrowLayout = getIsNarrowLayout();
         if ((isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
-            Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the homescreen", false, {validReportCount, currentRouteName});
+            Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {validReportCount, currentRouteName});
             return;
         }
 
@@ -75,7 +75,6 @@ export default function PriorityModeController() {
         setShouldShowModal(true);
         hasSwitched.current = true;
     }, [accountID, currentRouteName, hasTriedFocusMode, isInFocusMode, isLoadingReportData, validReportCount]);
-
 
     return shouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
 }

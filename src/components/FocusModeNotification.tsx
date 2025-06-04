@@ -12,7 +12,7 @@ import TextLinkWithRef from './TextLink';
 
 type FocusModeNotificationProps = {
     onClose: () => void;
-}
+};
 
 function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     const styles = useThemeStyles();
