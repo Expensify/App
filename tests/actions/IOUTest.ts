@@ -1549,7 +1549,6 @@ describe('actions/IOU', () => {
             );
         });
         it('does not trigger notifyNewAction when doing the money request in a money request report and has a canUseTableReportView permission', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
             requestMoney({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
@@ -1570,7 +1569,6 @@ describe('actions/IOU', () => {
         });
 
         it('trigger notifyNewAction when doing the money request in a chat report', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
             requestMoney({
                 report: {reportID: '123'},
                 participantParams: {
@@ -1593,7 +1591,6 @@ describe('actions/IOU', () => {
 
     describe('createDistanceRequest', () => {
         it('does not trigger notifyNewAction when doing the money request in a money request report and has a canUseTableReportView permission', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
@@ -1611,7 +1608,6 @@ describe('actions/IOU', () => {
         });
 
         it('trigger notifyNewAction when doing the money request in a chat report', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
             createDistanceRequest({
                 report: {reportID: '123'},
                 participants: [],

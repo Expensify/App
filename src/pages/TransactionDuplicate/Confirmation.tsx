@@ -56,6 +56,7 @@ function Confirmation() {
         if (!reportAction?.childReportID) {
             return;
         }
+
         IOU.mergeDuplicates(transactionsMergeParams);
         Navigation.dismissModal();
     }, [reportAction?.childReportID, transactionsMergeParams]);
