@@ -115,7 +115,7 @@ function MoneyRequestAction({
         ],
         [previewWidth, styles.borderNone],
     );
-    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, undefined, true);
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
     const onMoneyRequestPreviewPressed = () => {
         if (contextMenuRef.current?.isContextMenuOpening) {
