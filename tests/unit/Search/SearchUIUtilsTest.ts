@@ -7,7 +7,6 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -240,6 +239,14 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID,
             transactionThreadReportID: '456',
             transactionType: 'cash',
+            receipt: undefined,
+            taxAmount: undefined,
+            mccGroup: undefined,
+            modifiedMCCGroup: undefined,
+            moneyRequestReportActionID: undefined,
+            pendingAction: undefined,
+            errors: undefined,
+            isActionLoading: false,
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
@@ -272,6 +279,14 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID: transactionID2,
             transactionThreadReportID: '456',
             transactionType: 'cash',
+            receipt: undefined,
+            taxAmount: undefined,
+            mccGroup: undefined,
+            modifiedMCCGroup: undefined,
+            moneyRequestReportActionID: undefined,
+            pendingAction: undefined,
+            errors: undefined,
+            isActionLoading: false,
         },
         [`transactionViolations_${transactionID2}`]: [
             {
@@ -308,6 +323,16 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID: transactionID3,
             transactionThreadReportID: '8287398995021380',
             transactionType: 'cash',
+            receipt: undefined,
+            taxAmount: undefined,
+            description: '',
+            mccGroup: undefined,
+            modifiedMCCGroup: undefined,
+            moneyRequestReportActionID: undefined,
+            pendingAction: undefined,
+            errors: undefined,
+            isActionLoading: false,
+            hasViolation: undefined,
         },
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
@@ -338,6 +363,16 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID: transactionID3,
             transactionThreadReportID: '1014872441234902',
             transactionType: 'cash',
+            description: '',
+            receipt: undefined,
+            taxAmount: undefined,
+            mccGroup: undefined,
+            modifiedMCCGroup: undefined,
+            moneyRequestReportActionID: undefined,
+            pendingAction: undefined,
+            errors: undefined,
+            isActionLoading: false,
+            hasViolation: undefined,
         },
     },
     search: {
@@ -384,7 +419,7 @@ const reportActionListItems = [
         ],
         reportActionID: 'Admin',
         reportID: '123456789',
-        reportName: 'Unavailable workspace owes $50.00',
+        reportName: 'Expense Report #123',
     },
 ] as ReportActionListItemType[];
 
@@ -401,7 +436,6 @@ const transactionsListItems = [
         created: '2024-12-21',
         currency: 'USD',
         date: '2024-12-21',
-        description: '',
         formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
         formattedTo: '',
@@ -413,7 +447,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        hasViolation: false,
         isFromOneTransactionReport: true,
         keyForList: '1',
         managerID: 18439984,
@@ -431,8 +464,6 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
-        isAmountColumnWide: false,
-        isTaxAmountColumnWide: false,
         tag: '',
         to: {
             accountID: 0,
@@ -443,6 +474,16 @@ const transactionsListItems = [
         transactionID: '1',
         transactionThreadReportID: '456',
         transactionType: 'cash',
+        receipt: undefined,
+        taxAmount: undefined,
+        description: '',
+        mccGroup: undefined,
+        modifiedMCCGroup: undefined,
+        moneyRequestReportActionID: undefined,
+        pendingAction: undefined,
+        errors: undefined,
+        isActionLoading: false,
+        hasViolation: false,
     },
     {
         accountID: 18439984,
@@ -456,7 +497,6 @@ const transactionsListItems = [
         created: '2024-12-21',
         currency: 'USD',
         date: '2024-12-21',
-        description: '',
         formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
         formattedTo: 'Admin',
@@ -468,7 +508,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        hasViolation: true,
         isFromOneTransactionReport: true,
         keyForList: '2',
         managerID: 18439984,
@@ -486,8 +525,6 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
-        isAmountColumnWide: false,
-        isTaxAmountColumnWide: false,
         tag: '',
         to: {
             accountID: 18439984,
@@ -498,6 +535,16 @@ const transactionsListItems = [
         transactionID: '2',
         transactionThreadReportID: '456',
         transactionType: 'cash',
+        receipt: undefined,
+        taxAmount: undefined,
+        description: '',
+        mccGroup: undefined,
+        modifiedMCCGroup: undefined,
+        moneyRequestReportActionID: undefined,
+        pendingAction: undefined,
+        errors: undefined,
+        isActionLoading: false,
+        hasViolation: true,
     },
     {
         accountID: 18439984,
@@ -549,8 +596,16 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
-        isAmountColumnWide: false,
-        isTaxAmountColumnWide: false,
+        receipt: undefined,
+        taxAmount: undefined,
+        description: '',
+        mccGroup: undefined,
+        modifiedMCCGroup: undefined,
+        moneyRequestReportActionID: undefined,
+        pendingAction: undefined,
+        errors: undefined,
+        isActionLoading: false,
+        hasViolation: undefined,
     },
     {
         accountID: 18439984,
@@ -602,8 +657,16 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
-        isAmountColumnWide: false,
-        isTaxAmountColumnWide: false,
+        receipt: undefined,
+        taxAmount: undefined,
+        description: '',
+        mccGroup: undefined,
+        modifiedMCCGroup: undefined,
+        moneyRequestReportActionID: undefined,
+        pendingAction: undefined,
+        errors: undefined,
+        isActionLoading: false,
+        hasViolation: undefined,
     },
 ] as TransactionListItemType[];
 
@@ -682,8 +745,6 @@ const reportsListItems = [
                 shouldShowTag: false,
                 shouldShowTax: false,
                 shouldShowYear: true,
-                isAmountColumnWide: false,
-                isTaxAmountColumnWide: false,
                 tag: '',
                 to: {
                     accountID: 0,
@@ -694,6 +755,14 @@ const reportsListItems = [
                 transactionID: '1',
                 transactionThreadReportID: '456',
                 transactionType: 'cash',
+                receipt: undefined,
+                taxAmount: undefined,
+                mccGroup: undefined,
+                modifiedMCCGroup: undefined,
+                moneyRequestReportActionID: undefined,
+                pendingAction: undefined,
+                errors: undefined,
+                isActionLoading: false,
             },
         ],
         type: 'expense',
@@ -773,8 +842,6 @@ const reportsListItems = [
                 shouldShowTag: false,
                 shouldShowTax: false,
                 shouldShowYear: true,
-                isAmountColumnWide: false,
-                isTaxAmountColumnWide: false,
                 tag: '',
                 to: {
                     accountID: 18439984,
@@ -785,6 +852,14 @@ const reportsListItems = [
                 transactionID: '2',
                 transactionThreadReportID: '456',
                 transactionType: 'cash',
+                receipt: undefined,
+                taxAmount: undefined,
+                mccGroup: undefined,
+                modifiedMCCGroup: undefined,
+                moneyRequestReportActionID: undefined,
+                pendingAction: undefined,
+                errors: undefined,
+                isActionLoading: false,
             },
         ],
         type: 'expense',
@@ -925,7 +1000,7 @@ describe('SearchUIUtils', () => {
                     ],
                     reportActionID: 'Admin',
                     reportID: '123456789',
-                    reportName: 'Unavailable workspace owes $50.00',
+                    reportName: 'Expense Report #123',
                 },
             ]);
         });
@@ -949,8 +1024,11 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuItems(null, undefined);
-            expect(menuItems).toHaveLength(5);
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, {})
+                .map((section) => section.menuItems)
+                .flat();
+
+            expect(menuItems).toHaveLength(3);
             expect(menuItems).toStrictEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
@@ -959,7 +1037,7 @@ describe('SearchUIUtils', () => {
                         icon: Expensicons.Receipt,
                     }),
                     expect.objectContaining({
-                        translationPath: 'common.expenseReports',
+                        translationPath: 'common.reports',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         icon: Expensicons.Document,
                     }),
@@ -968,33 +1046,23 @@ describe('SearchUIUtils', () => {
                         type: CONST.SEARCH.DATA_TYPES.CHAT,
                         icon: Expensicons.ChatBubbles,
                     }),
-                    expect.objectContaining({
-                        translationPath: 'common.tasks',
-                        type: CONST.SEARCH.DATA_TYPES.TASK,
-                        icon: Expensicons.Task,
-                    }),
-                    expect.objectContaining({
-                        translationPath: 'travel.trips',
-                        type: CONST.SEARCH.DATA_TYPES.TRIP,
-                        icon: Expensicons.Suitcase,
-                    }),
                 ]),
             );
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuItems(null, undefined);
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, {})
+                .map((section) => section.menuItems)
+                .flat();
 
-            const expectedRoutes = [
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc groupBy:reports'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:chat status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:task status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:trip status:all sortBy:date sortOrder:desc'}),
+            const expectedQueries = [
+                'type:expense status:all sortBy:date sortOrder:desc',
+                'type:expense status:all sortBy:date sortOrder:desc groupBy:reports',
+                'type:chat status:all sortBy:date sortOrder:desc',
             ];
 
             menuItems.forEach((item, index) => {
-                expect(item.getRoute()).toStrictEqual(expectedRoutes.at(index));
+                expect(item.getSearchQuery()).toStrictEqual(expectedQueries.at(index));
             });
         });
     });
@@ -1011,39 +1079,138 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    test('Should show `Approve` for report', () => {
+        Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+
+        const result: OnyxTypes.SearchResults = {
+            data: {
+                personalDetailsList: {
+                    adminAccountID: {
+                        accountID: adminAccountID,
+                        avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/fake.jpeg',
+                        displayName: 'You',
+                        login: 'you@expensifail.com',
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '2074551': {
+                        accountID: 2074551,
+                        avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/fake2.jpeg',
+                        displayName: 'Jason',
+                        login: 'jason@expensifail.com',
+                    },
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                policy_137DA25D273F2423: {
+                    approvalMode: 'ADVANCED',
+                    approver: '',
+                    autoReimbursement: {
+                        limit: 500000,
+                    },
+                    autoReimbursementLimit: 500000,
+                    autoReporting: true,
+                    autoReportingFrequency: 'immediate',
+                    harvesting: {
+                        enabled: true,
+                    },
+                    id: '137DA25D273F2423',
+                    name: 'Expenses - Expensify US',
+                    owner: 'accounting@expensifail.com',
+                    preventSelfApproval: true,
+                    reimbursementChoice: 'reimburseYes',
+                    role: 'user',
+                    rules: {
+                        approvalRules: [],
+                        expenseRules: [],
+                    },
+                    type: 'corporate',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                report_6523565988285061: {
+                    accountID: 2074551,
+                    chatReportID: '4128157185472356',
+                    created: '2025-05-26 19:49:56',
+                    currency: 'USD',
+                    isOneTransactionReport: true,
+                    isOwnPolicyExpenseChat: false,
+                    isPolicyExpenseChat: false,
+                    isWaitingOnBankAccount: false,
+                    managerID: adminAccountID,
+                    nonReimbursableTotal: 0,
+                    oldPolicyName: '',
+                    ownerAccountID: 2074551,
+                    parentReportActionID: '5568426544518647396',
+                    parentReportID: '4128157185472356',
+                    policyID: '137DA25D273F2423',
+                    private_isArchived: '',
+                    reportID: '6523565988285061',
+                    reportName: 'Expense Report #6523565988285061',
+                    stateNum: 1,
+                    statusNum: 1,
+                    total: -1000,
+                    type: 'expense',
+                    unheldTotal: -1000,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transactions_1805965960759424086: {
+                    accountID: 2074551,
+                    amount: 0,
+                    canDelete: false,
+                    canHold: true,
+                    canUnhold: false,
+                    category: 'Employee Meals Remote (Fringe Benefit)',
+                    action: 'approve',
+                    comment: {
+                        comment: '',
+                    },
+                    created: '2025-05-26',
+                    currency: 'USD',
+                    hasEReceipt: false,
+                    isFromOneTransactionReport: true,
+                    managerID: adminAccountID,
+                    merchant: '(none)',
+                    modifiedAmount: -1000,
+                    modifiedCreated: '2025-05-22',
+                    modifiedCurrency: 'USD',
+                    modifiedMerchant: 'Costco Wholesale',
+                    parentTransactionID: '',
+                    policyID: '137DA25D273F2423',
+                    receipt: {
+                        source: 'https://www.expensify.com/receipts/fake.jpg',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                    },
+                    reportID: '6523565988285061',
+                    reportType: 'expense',
+                    tag: '',
+                    transactionID: '1805965960759424086',
+                    transactionThreadReportID: '4139222832581831',
+                    transactionType: 'cash',
+                },
+            },
+            search: {
+                type: 'expense',
+                status: 'all',
+                offset: 0,
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                columnsToShow: {
+                    shouldShowCategoryColumn: true,
+                    shouldShowTagColumn: true,
+                    shouldShowTaxColumn: true,
+                },
+            },
+        };
+        return waitForBatchedUpdates().then(() => {
+            const action = SearchUIUtils.getAction(result.data, 'report_6523565988285061');
+            expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
+        });
+    });
+
     test('Should return true if the search result has valid type', () => {
         expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults.search.type)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
-        const inValidSearchType: SearchDataTypes = 'expensse' as SearchDataTypes;
+        const inValidSearchType: SearchDataTypes = 'expensify' as SearchDataTypes;
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchType)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults.search.type)).toBe(false);
-    });
-
-    test('Should determine whether the date, amount, and tax column require wide columns or not', () => {
-        // Test case 1: `isAmountLengthLong` should be false if the current symbol + amount length does not exceed 11 characters
-        // Should return true for `shouldShowYear` because transaction list contains a transaction create in year 2024 (!== currentYear)
-        const {isAmountLengthLong, shouldShowYear} = SearchUIUtils.getSearchTableYearAndAmountWidth(transactionsListItems);
-        expect(isAmountLengthLong).toBe(false);
-        expect(shouldShowYear).toBe(true);
-
-        const transaction = transactionsListItems.at(0);
-
-        // Test case 2: `isAmountLengthLong` should be true when the current symbol + amount length exceeds 11 characters
-        // `isTaxAmountLengthLong` should be false if current symbol + tax amount length does not exceed 11 characters
-        const {isAmountLengthLong: isAmountLengthLong2, isTaxAmountLengthLong} = SearchUIUtils.getSearchTableYearAndAmountWidth([
-            ...transactionsListItems,
-            {...transaction, amount: 99999999.99, taxAmount: 2332.77},
-        ] as TransactionListItemType[]);
-        expect(isAmountLengthLong2).toBe(true);
-        expect(isTaxAmountLengthLong).toBe(false);
-
-        // Test case 3: Both `isAmountLengthLong` and `isTaxAmountLengthLong` should be true
-        // when the current symbol + amount and current symbol + tax amount lengths exceed 11 characters
-        const {isAmountLengthLong: isAmountLengthLong3, isTaxAmountLengthLong: isTaxAmountLengthLong2} = SearchUIUtils.getSearchTableYearAndAmountWidth([
-            ...transactionsListItems,
-            {...transaction, amount: 99999999.99, taxAmount: 45555555.55},
-        ] as TransactionListItemType[]);
-        expect(isAmountLengthLong3).toBe(true);
-        expect(isTaxAmountLengthLong2).toBe(true);
     });
 });
