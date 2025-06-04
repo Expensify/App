@@ -257,8 +257,11 @@ describe('getReportPreviewAction', () => {
 
     it('canReview should return true for reports where there are violations, user is submitter or approver and Workflows are enabled', async () => {
         (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
-        const report = {
+        const report: Report = {
             ...createRandomReport(REPORT_ID),
+            statusNum: 0,
+            stateNum: 0,
+            type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             isWaitingOnBankAccount: false,
         };
@@ -288,8 +291,11 @@ describe('getReportPreviewAction', () => {
 
     it('canReview should return true for reports with RTER violations regardless of workspace workflow configuration', async () => {
         (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
-        const report = {
+        const report: Report = {
             ...createRandomReport(REPORT_ID),
+            statusNum: 0,
+            stateNum: 0,
+            type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             isWaitingOnBankAccount: false,
         };
