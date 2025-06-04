@@ -75,7 +75,7 @@ type AttachmentModalProps = {
     attachmentID?: string;
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
-    onConfirm?: ((file: FileObject) => void) | null;
+    onConfirm?: ((file: FileObject | FileObject[]) => void) | null;
 
     /** Whether the modal should be open by default */
     defaultOpen?: boolean;
@@ -212,6 +212,7 @@ function AttachmentModal({
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
     const [file, setFile] = useState<FileObject | undefined>(
@@ -295,7 +296,11 @@ function AttachmentModal({
         }
 
         if (onConfirm) {
-            onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
+            if (validFilesToUpload) {
+                onConfirm(validFilesToUpload)
+            } else {
+                onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
+            }
         }
 
         setIsModalOpen(false);
@@ -345,23 +350,50 @@ function AttachmentModal({
         return true;
     }, []);
 
+    const handleOpenModal = useCallback(
+        (inputSource: string, fileObject: FileObject) => {
+            const inputModalType = getModalType(inputSource, fileObject);
+            setIsModalOpen(true);
+            setSourceState(inputSource);
+            setFile(fileObject);
+            setModalType(inputModalType);
+        },
+        [getModalType, setSourceState, setFile, setModalType],
+    );
+
     const validateAndDisplayMultipleFilesToUpload = useCallback(
         (data: FileObject[]) => {
             if (!data?.length || data.some((fileObject) => !isDirectoryCheck(fileObject))) {
                 return;
             }
+            let validFiles: FileObject[] = [];
             if (data.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
+                validFiles = data.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+                setValidFilesToUpload(validFiles);
                 setFileError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            data.forEach((fileToUpload) =>
-                isValidFile(fileToUpload).then((isValid) => {
-                    console.log(fileToUpload, isValid);
-                }),
-            );
+
+            // Validate all files in parallel and collect valid ones
+            Promise.all(
+                data.map((fileToUpload) =>
+                    isValidFile(fileToUpload)
+                        .then((isValid) => isValid ? fileToUpload : null)
+                )
+            ).then((results) => {
+                // Filter out null values (invalid files)
+                validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
+                setValidFilesToUpload(validFiles);
+
+                // Only open modal if we have valid files
+                if (validFiles.length > 0) {
+                    // eslint-disable-next-line
+                    const fileToDisplay = validFiles.at(0) as FileObject;
+                    handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
+                }
+            });
         },
-        [isDirectoryCheck, isValidFile],
+        [handleOpenModal, isDirectoryCheck, isValidFile],
     );
 
     const validateAndDisplayFileToUpload = useCallback(
@@ -393,21 +425,13 @@ function AttachmentModal({
                     }
                     const inputSource = URL.createObjectURL(updatedFile);
                     updatedFile.uri = inputSource;
-                    const inputModalType = getModalType(inputSource, updatedFile);
-                    setIsModalOpen(true);
-                    setSourceState(inputSource);
-                    setFile(updatedFile);
-                    setModalType(inputModalType);
+                    handleOpenModal(inputSource, updatedFile);
                 } else if (fileObject.uri) {
-                    const inputModalType = getModalType(fileObject.uri, fileObject);
-                    setIsModalOpen(true);
-                    setSourceState(fileObject.uri);
-                    setFile(fileObject);
-                    setModalType(inputModalType);
+                    handleOpenModal(fileObject.uri, fileObject);
                 }
             });
         },
-        [isValidFile, getModalType, isDirectoryCheck],
+        [isDirectoryCheck, isValidFile, handleOpenModal],
     );
 
     /**

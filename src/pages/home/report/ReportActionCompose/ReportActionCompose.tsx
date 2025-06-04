@@ -242,8 +242,9 @@ function ReportActionCompose({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, []);
 
-    const attachmentFileRef = useRef<FileObject | null>(null);
-    const addAttachment = useCallback((file: FileObject) => {
+    const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
+
+    const addAttachment = useCallback((file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
         const clear = composerRef.current?.clear;
         if (!clear) {
@@ -269,7 +270,15 @@ function ReportActionCompose({
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed, true);
+                if (Array.isArray(attachmentFileRef.current)) {
+                    // Handle multiple files
+                    attachmentFileRef.current.forEach((file) => {
+                        addAttachmentReportActions(reportID, file, newCommentTrimmed, true);
+                    });
+                } else {
+                    // Handle single file
+                    addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed, true);
+                }
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
@@ -507,7 +516,7 @@ function ReportActionCompose({
                                                 if (isAttachmentPreviewActive) {
                                                     return;
                                                 }
-                                                if (canUseMultiFilesDragAndDrop && event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
+                                                if (isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
                                                     const files = Array.from(event.dataTransfer?.files).map((file) => {
                                                         // eslint-disable-next-line no-param-reassign
                                                         file.uri = URL.createObjectURL(file);
