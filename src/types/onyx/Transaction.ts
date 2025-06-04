@@ -3,7 +3,7 @@ import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMo
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type {Accountant, Attendee, Participant, Split} from './IOU';
+import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
@@ -83,6 +83,9 @@ type Comment = {
 
     /** In split transactions this is a collection of participant split data */
     splits?: Split[];
+
+    /** Collection of split expenses */
+    splitExpenses?: SplitExpense[];
 
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
