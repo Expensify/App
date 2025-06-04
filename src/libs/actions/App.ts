@@ -167,6 +167,7 @@ const isReadyToOpenApp = new Promise<void>((resolve) => {
 });
 
 function confirmReadyToOpenApp() {
+    Timing.end(CONST.TIMING.OPEN_APP);
     resolveIsReadyPromise();
 }
 
@@ -220,7 +221,6 @@ function setSidebarLoaded() {
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
-    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
 }
 
 function setAppLoading(isLoading: boolean) {
