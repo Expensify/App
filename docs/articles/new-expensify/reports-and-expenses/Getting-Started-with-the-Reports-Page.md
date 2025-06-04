@@ -52,11 +52,11 @@ Each row represents an expense and includes:
 
 ## Available Actions on the Table
 - **Click an expense** to view or edit it in the right-hand panel  
-- **Select multiple expenses** using checkboxes, then apply bulk actions like:
-  - Move to another report: When you need to have two reports or break across multiple months
-  - Download: For exporting to a CSV file for analysis or to share with your accountant
-  - Hold: To keep the expenses of someone you are approving, back until they are complete
-  - Delete: To remove your own expenses from the workflow
+- **Select multiple expenses** using checkboxes, then apply bulk actions such as:
+  - **Move to another report:** When you need to have multiple reports or need to break up expenses across multiple weeks or months.
+  - **Download:** For exporting to a CSV file for analysis or to share with your accountant.
+  - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
+  - **Delete:** To remove expenses from the expense report.
 
 **Note:** The bulk action menu appears after selecting at least one expense.
 
