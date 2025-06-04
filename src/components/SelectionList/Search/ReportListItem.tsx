@@ -81,10 +81,6 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    if (isEmptyReport) {
-        return null;
-    }
-
     const sampleTransaction = reportItem.transactions.at(0);
     const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
 
