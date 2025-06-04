@@ -1,6 +1,6 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,25 +21,26 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID} = route.params;
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
+    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
 
     const selectReport = (item: ReportListItem) => {
-        if (selectedTransactionsID.length === 0) {
+        if (selectedTransactionIDs.length === 0) {
             return;
         }
         if (item.value !== transactionReport?.reportID) {
-            changeTransactionsReport(selectedTransactionsID, item.value);
-            setSelectedTransactionsID([]);
+            changeTransactionsReport(selectedTransactionIDs, item.value);
+            clearSelectedTransactions(true);
         }
         Navigation.dismissModalWithReport({reportID: item.value});
     };
 
     const removeFromReport = () => {
-        if (!transactionReport || selectedTransactionsID.length === 0) {
+        if (!transactionReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionsID, CONST.REPORT.UNREPORTED_REPORT_ID);
+        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID);
         Navigation.dismissModal();
     };
 
