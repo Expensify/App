@@ -1,6 +1,6 @@
 import type JSZip from 'jszip';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Alert} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import {useOnyx} from 'react-native-onyx';
@@ -37,7 +37,8 @@ type BaseRecordTroubleshootDataToolMenuProps = {
     /** Locally created file */
     file?: File;
     /** Action to run when disabling the switch */
-    onDisableLogging: (logs: OnyxLog[]) => void;
+    // onDisableLogging: (logs: OnyxLog[]) => void;
+    onDisableLogging: (logs: OnyxLog[]) => Promise<void>;
     /** Action to run when enabling logging */
     onEnableLogging?: () => void;
     /** Path used to save the file */
@@ -143,14 +144,15 @@ function BaseRecordTroubleshootDataToolMenu({
         getAppInfo().then((appInfo) => {
             zipRef.current.file(infoFileName, appInfo);
 
-            onDisableLogging(logsWithParsedMessages);
-            Console.disableLoggingAndFlushLogs();
-            Troubleshoot.setShouldRecordTroubleshootData(false);
-            onDisableSwitch();
+            onDisableLogging(logsWithParsedMessages).then(() => {
+                Console.disableLoggingAndFlushLogs();
+                Troubleshoot.setShouldRecordTroubleshootData(false);
+                // onDisableSwitch();
+            });
         });
     };
 
-    function onDisableSwitch() {
+    const onDisableSwitch = useCallback(() => {
         if (getPlatform() === CONST.PLATFORM.WEB) {
             stopProfiling(true, newFileName).then(() => {
                 onDownloadZip();
@@ -165,26 +167,35 @@ function BaseRecordTroubleshootDataToolMenu({
                             return;
                         }
 
-                        RNFS.unlink(newFilePath).then(() => {
+                        return RNFS.unlink(newFilePath).then(() => {
                             Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
                         });
                     })
                     .catch((error) => {
                         const typedError = error as Error;
                         Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
-                    });
-
-                RNFS.copyFile(path, newFilePath)
+                    })
                     .then(() => {
-                        Log.hmmm('[ProfilingToolMenu] file copied successfully');
-                        setShareUrls([`file://${newFilePath}`, `file://${file?.path}`]);
+                        RNFS.copyFile(path, newFilePath).then(() => {
+                            Log.hmmm('[ProfilingToolMenu] file copied successfully');
+                            setShareUrls([`file://${newFilePath}`, `file://${file?.path}`]);
+                        });
                     })
                     .catch((error: Record<string, unknown>) => {
+                        console.error('[ProfilingToolMenu] error copying file: ', error);
                         Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
                     });
             });
         }
-    }
+    }, [file, onDownloadZip, pathToBeUsed]);
+
+    useEffect(() => {
+        if (!file) {
+            return;
+        }
+
+        onDisableSwitch();
+    }, [file, onDisableSwitch]);
 
     const onShare = () => {
         Share.open({

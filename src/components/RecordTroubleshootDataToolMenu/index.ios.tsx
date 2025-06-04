@@ -24,21 +24,20 @@ function RecordTroubleshootDataToolMenu() {
         const dir = RNFetchBlob.fs.dirs.DocumentDir;
         const zipFileName = 'troubleshoot.zip';
 
-        zipRef.current
-            .generateAsync({type: 'base64'}) // Generate ZIP as base64
+        return zipRef.current
+            .generateAsync({type: 'base64'})
             .then((base64zip) => {
                 const zipPath = `${dir}/${zipFileName}`;
-
-                return RNFetchBlob.fs.writeFile(zipPath, base64zip, 'base64').then(() =>
-                    RNFetchBlob.fs.stat(zipPath).then(({size}) => ({
+                return RNFetchBlob.fs.writeFile(zipPath, base64zip, 'base64').then(() => {
+                    return RNFetchBlob.fs.stat(zipPath).then(({size}) => ({
                         path: zipPath,
                         newFileName: zipFileName,
                         size,
-                    })),
-                );
+                    }));
+                });
             })
             .then((localZipFile) => {
-                setFile(localZipFile); // Update state or use the file path
+                return setFile(localZipFile);
             })
             .catch((err) => {
                 console.error('Failed to write ZIP file:', err);

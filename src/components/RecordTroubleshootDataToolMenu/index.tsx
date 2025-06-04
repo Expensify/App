@@ -19,6 +19,8 @@ function RecordTroubleshootDataToolMenu() {
         });
         const newFileName = appendTimeToFileName('logs.txt');
         zipRef.current.file(newFileName, data);
+
+        return Promise.resolve();
     };
     const hideShareButton = () => {
         setFile(undefined);
@@ -33,9 +35,7 @@ function RecordTroubleshootDataToolMenu() {
             const zipUrl = URL.createObjectURL(zipBlob);
             const link = document.createElement('a');
             link.href = zipUrl;
-            const zipArchiveName = appendTimeToFileName('troubleshoot.zip');
-            // link.download = 'troubleshoot.zip';
-            link.download = zipArchiveName;
+            link.download = 'troubleshoot.zip';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

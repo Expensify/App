@@ -14,39 +14,35 @@ function RecordTroubleshootDataToolMenu() {
     const zipRef = useRef(new JSZip());
 
     const createAndSaveFile = (logs: Log[]) => {
-        // localFileCreate('logs', JSON.stringify(logs, null, 2)).then((localFile) => {
-        //     RNFetchBlob.MediaCollection.copyToMediaStore(
-        //         {
-        //             name: localFile.newFileName,
-        //             parentFolder: '',
-        //             mimeType: 'text/plain',
-        //         },
-        //         'Download',
-        //         localFile.path,
-        //     );
-        //     setFile(localFile);
-        // });
         const newFileName = appendTimeToFileName('logs.txt');
         const zipFileName = 'troubleshoot.zip';
         const dir = RNFetchBlob.fs.dirs.DocumentDir;
 
         zipRef.current.file(newFileName, JSON.stringify(logs, null, 2));
 
-        zipRef.current
+        return zipRef.current
             .generateAsync({type: 'base64'}) // Generate ZIP as base64
             .then((base64zip) => {
                 const zipPath = `${dir}/${zipFileName}`;
 
-                return RNFetchBlob.fs.writeFile(zipPath, base64zip, 'base64').then(() =>
-                    RNFetchBlob.fs.stat(zipPath).then(({size}) => ({
+                return RNFetchBlob.MediaCollection.copyToMediaStore(
+                    {
+                        name: zipFileName,
+                        parentFolder: '',
+                        mimeType: 'application/zip',
+                    },
+                    'Download',
+                    zipPath,
+                ).then(() => {
+                    return RNFetchBlob.fs.stat(zipPath).then(({size}) => ({
                         path: zipPath,
                         newFileName: zipFileName,
                         size,
-                    })),
-                );
+                    }));
+                });
             })
             .then((localZipFile) => {
-                setFile(localZipFile); // Update state or use the file path
+                return setFile(localZipFile); // Update state or use the file path
             })
             .catch((err) => {
                 console.error('Failed to write ZIP file:', err);
