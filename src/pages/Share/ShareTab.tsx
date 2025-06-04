@@ -45,7 +45,7 @@ function ShareTab() {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], false);
+        return getSearchOptions(options, betas ?? [], false, false);
     }, [areOptionsInitialized, betas, options]);
 
     const {search: filterOptions} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});

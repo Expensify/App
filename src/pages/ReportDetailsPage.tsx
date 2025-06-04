@@ -142,7 +142,7 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseTrackFlows} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
@@ -409,7 +409,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SUBMIT, actionableWhisperReportActionID);
                 },
             });
-            if (canUseTrackFlows) {
+            if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
                     translationKey: 'actionableMentionTrackExpense.categorize',
@@ -518,6 +518,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         participants.length,
         report,
         isSystemChat,
+        activeChatMembers.length,
         isPolicyExpenseChat,
         shouldShowMenuItem,
         isTrackExpenseReport,
@@ -529,17 +530,16 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         shouldShowGoToWorkspace,
         shouldShowLeaveButton,
         isDebugModeEnabled,
-        activeChatMembers.length,
         shouldOpenRoomMembersPage,
         backTo,
         parentReportAction,
         iouTransactionID,
         moneyRequestReport?.reportID,
+        isBetaEnabled,
         session,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
-        canUseTrackFlows,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
