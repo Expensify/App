@@ -76,7 +76,7 @@ Each row represents an expense and includes:
 
 # Filters
 
-Filters help you quickly find specific expenses or reports, especially helpful for large datasets.
+Filters help you quickly find specific expenses or reports, which is especially helpful for large datasets.
 
 ## Filter Placement
 
