@@ -21,6 +21,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -56,6 +57,8 @@ function CategorySettingsPage({
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
+    const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
+    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = !!backTo;
 
@@ -115,7 +118,11 @@ function CategorySettingsPage({
         return <NotFoundPage />;
     }
 
-    const updateWorkspaceRequiresCategory = (value: boolean) => {
+    const updateWorkspaceCategoryEnabled = (value: boolean) => {
+        if (shouldPreventDisableOrDelete) {
+            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+            return;
+        }
         setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
     };
 
@@ -160,6 +167,15 @@ function CategorySettingsPage({
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                <ConfirmModal
+                    isVisible={isCannotDeleteOrDisableLastCategoryModalVisible}
+                    onConfirm={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    title={translate('workspace.categories.cannotDeleteOrDisableAllCategories.title')}
+                    prompt={translate('workspace.categories.cannotDeleteOrDisableAllCategories.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
                 <ScrollView
                     contentContainerStyle={[styles.flexGrow1]}
                     addBottomSafeAreaPadding
@@ -176,7 +192,8 @@ function CategorySettingsPage({
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                    onToggle={updateWorkspaceRequiresCategory}
+                                    onToggle={updateWorkspaceCategoryEnabled}
+                                    showLockIcon={shouldPreventDisableOrDelete}
                                 />
                             </View>
                         </View>
@@ -328,12 +345,17 @@ function CategorySettingsPage({
                             </OfflineWithFeedback>
                         </>
                     )}
-
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => setDeleteCategoryConfirmModalVisible(true)}
+                            onPress={() => {
+                                if (shouldPreventDisableOrDelete) {
+                                    setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                                    return;
+                                }
+                                setDeleteCategoryConfirmModalVisible(true);
+                            }}
                         />
                     )}
                 </ScrollView>

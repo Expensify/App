@@ -20,7 +20,6 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -253,8 +252,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
             return acc;
         }, {}),
     };
-    const shouldDisableRequiredTag = !OptionsListUtils.hasEnabledOptions({...policyTag.tags, ...optimisticPolicyTagsData});
-
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -262,7 +259,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {required: false, pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
                         tags: optimisticPolicyTagsData,
                     },
                 },
@@ -274,7 +270,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
@@ -301,7 +296,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}, required: policyTag.required} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
@@ -743,7 +737,6 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 
 function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -788,25 +781,23 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
         ],
     };
 
-    if (isMultiLevelTags) {
-        const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
-                    acc[key] = {
-                        ...acc[key],
-                        required,
-                    };
-                    return acc;
-                }, {}),
-            },
-        });
+    const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
+        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+        onyxMethod: Onyx.METHOD.MERGE,
+        value: {
+            ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                acc[key] = {
+                    ...acc[key],
+                    required,
+                };
+                return acc;
+            }, {}),
+        },
+    });
 
-        onyxData.optimisticData?.push(getUpdatedTagsData(requiresTag));
-        onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
-        onyxData.successData?.push(getUpdatedTagsData(requiresTag));
-    }
+    onyxData.optimisticData?.push(getUpdatedTagsData(requiresTag));
+    onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
+    onyxData.successData?.push(getUpdatedTagsData(requiresTag));
 
     const parameters = {
         policyID,

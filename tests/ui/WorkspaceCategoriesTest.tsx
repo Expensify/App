@@ -9,7 +9,7 @@ import OnyxProvider from '@components/OnyxProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceCategoriesPage from '@pages/workspace/categories/WorkspaceCategoriesPage';
@@ -125,7 +125,7 @@ describe('WorkspaceCategories', () => {
 
         // Wait for menu items to be visible
         await waitFor(() => {
-            const deleteText = Localize.translateLocal('workspace.categories.deleteCategories');
+            const deleteText = translateLocal('workspace.categories.deleteCategories');
             expect(screen.getByText(deleteText)).toBeOnTheScreen();
         });
 
@@ -146,18 +146,18 @@ describe('WorkspaceCategories', () => {
 
         // After clicking delete categories dropdown menu item, verify the confirmation modal appears
         await waitFor(() => {
-            const confirmModalPrompt = Localize.translateLocal('workspace.categories.deleteCategoriesPrompt');
+            const confirmModalPrompt = translateLocal('workspace.categories.deleteCategoriesPrompt');
             expect(screen.getByText(confirmModalPrompt)).toBeOnTheScreen();
         });
 
         // Verify the delete button in the modal is visible
         await waitFor(() => {
-            const deleteConfirmButton = screen.getByLabelText(Localize.translateLocal('common.delete'));
+            const deleteConfirmButton = screen.getByLabelText(translateLocal('common.delete'));
             expect(deleteConfirmButton).toBeOnTheScreen();
         });
 
         // Click the delete button in the confirmation modal
-        const deleteConfirmButton = screen.getByLabelText(Localize.translateLocal('common.delete'));
+        const deleteConfirmButton = screen.getByLabelText(translateLocal('common.delete'));
         fireEvent.press(deleteConfirmButton);
 
         await waitForBatchedUpdatesWithAct();
@@ -168,6 +168,92 @@ describe('WorkspaceCategories', () => {
         });
         await waitFor(() => {
             expect(screen.queryByText(SECOND_CATEGORY)).not.toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+    it('should show a blocking modal when trying to disable the only enabled category when policy has requiresCategory set to true', async () => {
+        await TestHelper.signInWithTestUser();
+
+        const policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areCategoriesEnabled: true,
+            requiresCategory: true,
+        };
+
+        const categories = {
+            [FIRST_CATEGORY]: {
+                name: FIRST_CATEGORY,
+                enabled: true,
+            },
+            [SECOND_CATEGORY]: {
+                name: SECOND_CATEGORY,
+                enabled: true,
+            },
+        };
+
+        // Initialize categories
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, categories);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Wait for initial render and verify categories are visible
+        await waitFor(() => {
+            expect(screen.getByText(FIRST_CATEGORY)).toBeOnTheScreen();
+        });
+        await waitFor(() => {
+            expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
+        });
+
+        // Select categories to delete by clicking their checkboxes
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+
+        const dropdownMenuButtonTestID = `${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`;
+
+        // Wait for selection mode to be active and click the dropdown menu button
+        await waitFor(() => {
+            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
+        });
+
+        // Click the "2 selected" button to open the menu
+        const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
+        fireEvent.press(dropdownButton);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Wait for menu items to be visible
+        await waitFor(() => {
+            const disableText = translateLocal('workspace.categories.disableCategories');
+            expect(screen.getByText(disableText)).toBeOnTheScreen();
+        });
+
+        // Find and verify "Disable categories" dropdown menu item
+        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable categories');
+        expect(disableMenuItem).toBeOnTheScreen();
+
+        // Create a mock event object that matches GestureResponderEvent. Needed for onPress in MenuItem to be called
+        const mockEvent = {
+            nativeEvent: {},
+            type: 'press',
+            target: disableMenuItem,
+            currentTarget: disableMenuItem,
+        };
+        fireEvent.press(disableMenuItem, mockEvent);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // After clicking disable categories dropdown menu item, verify the blocking modal appears
+        await waitFor(() => {
+            const blockingPrompt = translateLocal('workspace.categories.cannotDeleteOrDisableAllCategories.title');
+            expect(screen.getByText(blockingPrompt)).toBeOnTheScreen();
         });
 
         unmount();

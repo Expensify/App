@@ -35,13 +35,13 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getBankAccountRoute,
     getDisplayNameForParticipant,
     getInvoicePayerName,
+    getMoneyReportPreviewName,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
@@ -59,6 +59,8 @@ import {
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
+import shouldAdjustScroll from '@libs/shouldAdjustScroll';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasPendingUI, isCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -330,6 +332,14 @@ function MoneyRequestReportPreviewContent({
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const carouselTransactions = transactions.slice(0, 11);
+    const prevCarouselTransactionLength = useRef(0);
+
+    useEffect(() => {
+        return () => {
+            prevCarouselTransactionLength.current = carouselTransactions.length;
+        };
+    }, [carouselTransactions.length]);
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const [currentVisibleItems, setCurrentVisibleItems] = useState([0]);
     const [footerWidth, setFooterWidth] = useState(0);
@@ -398,7 +408,7 @@ function MoneyRequestReportPreviewContent({
 
     // The button should expand up to transaction width
     const buttonMaxWidth =
-        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW_WIDTH_WIDE
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDTH_WIDE
             ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width}
             : {};
 
@@ -427,14 +437,6 @@ function MoneyRequestReportPreviewContent({
         setOptimisticIndex(undefined);
     }, [carouselTransactions.length, currentIndex, currentVisibleItems, currentVisibleItems.length, optimisticIndex, visibleItemsOnEndCount]);
 
-    const getPreviewName = () => {
-        if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
-            const originalMessage = getOriginalMessage(action);
-            return originalMessage && translate('iou.invoiceReportName', originalMessage);
-        }
-        return action.childReportName;
-    };
-
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID) {
             return;
@@ -449,8 +451,8 @@ function MoneyRequestReportPreviewContent({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, reportActions);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions]);
+        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy);
+    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy]);
 
     const addExpenseDropdownOptions = useMemo(
         () => [
@@ -462,6 +464,10 @@ function MoneyRequestReportPreviewContent({
                     if (!iouReport?.reportID) {
                         return;
                     }
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReport?.reportID, undefined, false, chatReportID);
                 },
             },
@@ -470,11 +476,15 @@ function MoneyRequestReportPreviewContent({
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
                 onSelected: () => {
-                    openUnreportedExpense(iouReport?.reportID);
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
+                    openUnreportedExpense(iouReport?.reportID, iouReport?.parentReportID);
                 },
             },
         ],
-        [chatReportID, iouReport?.reportID, translate],
+        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, translate],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -504,6 +514,7 @@ function MoneyRequestReportPreviewContent({
                 formattedAmount={getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)}
                 currency={iouReport?.currency}
                 chatReportID={chatReportID}
+                policyID={policy?.id}
                 iouReport={iouReport}
                 wrapperStyle={buttonMaxWidth}
                 onPress={confirmPayment}
@@ -570,6 +581,18 @@ function MoneyRequestReportPreviewContent({
         ),
     };
 
+    const adjustScroll = useCallback(() => {
+        // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
+        // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
+        // To fix this, we detect when onEndReached is triggered due to an item deletion,
+        // and programmatically scroll to the end to fill the space.
+        if (carouselTransactions.length >= prevCarouselTransactionLength.current || !shouldAdjustScroll) {
+            return;
+        }
+        prevCarouselTransactionLength.current = carouselTransactions.length;
+        carouselRef.current?.scrollToEnd();
+    }, [carouselTransactions.length]);
+
     return (
         <View onLayout={onWrapperLayout}>
             <OfflineWithFeedback
@@ -628,7 +651,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getPreviewName()}
+                                                            {getMoneyReportPreviewName(action, iouReport, isInvoice)}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
                                                     </Text>
@@ -698,6 +721,7 @@ function MoneyRequestReportPreviewContent({
                                             showsHorizontalScrollIndicator={false}
                                             renderItem={renderFlatlistItem}
                                             onViewableItemsChanged={onViewableItemsChanged}
+                                            onEndReached={adjustScroll}
                                             viewabilityConfig={viewabilityConfig}
                                             ListFooterComponent={<View style={styles.pl2} />}
                                             ListHeaderComponent={<View style={styles.pr2} />}

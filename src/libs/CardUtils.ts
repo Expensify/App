@@ -42,6 +42,14 @@ Onyx.connect({
     },
 });
 
+let customCardNames: OnyxEntry<Record<string, string>> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
+    callback: (value) => {
+        customCardNames = value;
+    },
+});
+
 /**
  * @returns string with a month in MM format
  */
@@ -263,8 +271,8 @@ function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, poli
 
 function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
-        const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
-        const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
+        const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
+        const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
         const aName = getDisplayNameOrDefault(userA);
         const bName = getDisplayNameOrDefault(userB);
         return localeCompare(aName, bName);
@@ -441,6 +449,18 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
 
     return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
 };
+
+function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) {
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
+        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
+    }
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
+        return CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION;
+    }
+
+    return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
+}
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
     const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeed | undefined;
@@ -629,6 +649,10 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
+function getCustomCardName(cardID: string) {
+    return customCardNames?.[cardID];
+}
+
 export {
     isExpensifyCard,
     getDomainCards,
@@ -674,4 +698,6 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
+    getCorrectStepForPlaidSelectedBank,
+    getCustomCardName,
 };

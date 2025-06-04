@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useImperativeHandle, useRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -11,7 +11,6 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,10 +49,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {canUsePrivateDomainOnboarding} = usePermissions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
-    const isPrivateDomainAndHasAccesiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     const theme = useTheme();
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
@@ -87,7 +85,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     return;
                 }
 
-                if (isPrivateDomainAndHasAccesiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
+                if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
                     completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: CONST.ONBOARDING_MESSAGES[choice],
@@ -96,6 +94,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
                         onboardingPolicyID,
                     });
+
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                    });
+
                     return;
                 }
 
@@ -126,7 +129,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 <HeaderWithBackButton
                     shouldShowBackButton={false}
                     iconFill={theme.iconColorfulBackground}
-                    progressBarPercentage={isPrivateDomainAndHasAccesiblePolicies ? 60 : 20}
+                    progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 60 : 20}
                 />
             </View>
             <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
