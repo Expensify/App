@@ -3776,12 +3776,12 @@ function isWorkspacePayer(memberLogin: string, policy: OnyxEntry<Policy>): boole
     const isAdmin = policy?.employeeList?.[memberLogin]?.role === CONST.POLICY.ROLE.ADMIN;
     if (isPaidGroupPolicyPolicyUtils(policy)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            // If we get here without a reimburser only show the pay button if we are the admin.
+            // If we get here without a reimburser only admin is the payer.
             if (!policy?.achAccount?.reimburser) {
                 return isAdmin;
             }
 
-            // If we are the reimburser and the report is approved or we are the manager then we can pay it.
+            // If we are the reimburser then we are the payer.
             const isReimburser = memberLogin === policy?.achAccount?.reimburser;
             return isReimburser;
         }
