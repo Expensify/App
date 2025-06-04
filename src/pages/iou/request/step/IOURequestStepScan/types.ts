@@ -25,7 +25,7 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
 
 type ReceiptFile = {
     source: string;
-    file: FileObject;
+    file?: FileObject;
     transactionID: string;
 };
 

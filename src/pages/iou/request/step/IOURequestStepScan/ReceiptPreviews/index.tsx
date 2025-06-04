@@ -32,8 +32,6 @@ type ReceiptPreviewsProps = {
     setTabSwipeDisabled?: (isDisabled: boolean) => void;
 };
 
-// TODO: remove the lint disable when submit method will be used in the code below
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -115,6 +113,11 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
         };
     });
 
+    const submitReceipts = () => {
+        const transactionReceipts = (optimisticTransactionsReceipts ?? []).filter((receipt): receipt is ReceiptWithTransactionID & {source: string} => !!receipt.source);
+        submit(transactionReceipts);
+    };
+
     return (
         <Animated.View style={slideInStyle}>
             <View style={styles.pr4}>
@@ -143,7 +146,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                             // TODO: uncomment the submit call when necessary updates for the confirmation page and bulk expense creation are implemented
                             // https://github.com/Expensify/App/issues/61183
                             // https://github.com/Expensify/App/issues/61184
-                            // submit(optimisticTransactionsReceipts ?? []);
+                            submitReceipts();
                         }}
                     />
                 </SubmitButtonShadow>

@@ -13,6 +13,7 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PDFThumbnail from '@components/PDFThumbnail';
+import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
@@ -102,6 +103,7 @@ function IOURequestStepConfirmation({
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
+    const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
     const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${currentTransactionID}`, {canBeMissing: true});
     const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${currentTransactionID}`, {canBeMissing: true});
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
@@ -1000,6 +1002,20 @@ function IOURequestStepConfirmation({
         />
     ) : null;
 
+    const showNextTransaction = () => {
+        const nextTransaction = transactions.at(currentTransactionIndex + 1);
+        if (nextTransaction) {
+            setCurrentTransactionID(nextTransaction.transactionID);
+        }
+    };
+
+    const showPreviousTransaction = () => {
+        const previousTransaction = transactions.at(currentTransactionIndex - 1);
+        if (previousTransaction) {
+            setCurrentTransactionID(previousTransaction.transactionID);
+        }
+    };
+
     const shouldShowThreeDotsButton =
         requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
 
@@ -1019,6 +1035,7 @@ function IOURequestStepConfirmation({
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
+                        subtitle={transactions.length > 1 ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                         onBackButtonPress={navigateBack}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                         threeDotsAnchorPosition={threeDotsAnchorPosition}
@@ -1029,7 +1046,16 @@ function IOURequestStepConfirmation({
                                 onSelected: navigateToAddReceipt,
                             },
                         ]}
-                    />
+                    >
+                        {transactions.length > 1 ? (
+                            <PrevNextButtons
+                                isPrevButtonDisabled={currentTransactionIndex === 0}
+                                isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
+                                onNext={showNextTransaction}
+                                onPrevious={showPreviousTransaction}
+                            />
+                        ) : null}
+                    </HeaderWithBackButton>
                     {(isLoading || isLoadingReceipt || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFThumbnailView}
                     {/* TODO: remove beta check after the feature is enabled */}
