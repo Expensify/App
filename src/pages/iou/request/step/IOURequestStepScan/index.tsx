@@ -2,10 +2,11 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
-import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
+import {ActivityIndicator, PanResponder, PixelRatio, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type Webcam from 'react-webcam';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
@@ -37,7 +38,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
@@ -54,6 +55,7 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import type {GpsPoint} from '@userActions/IOU';
 import {
+    checkIfScanFileCanBeRead,
     getMoneyRequestParticipantsFromReport,
     replaceReceipt,
     requestMoney,
@@ -65,7 +67,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {generateTransactionID} from '@userActions/Transaction';
-import {createDraftTransaction} from '@userActions/TransactionEdit';
+import {createDraftTransaction, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,6 +79,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
+import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
 import type {ReceiptFile} from './types';
 
@@ -88,9 +91,13 @@ function IOURequestStepScan({
     transaction: initialTransaction,
     currentUserPersonalDetails,
     onLayout,
+    setTabSwipeDisabled,
+    isMultiScanEnabled = false,
+    setIsMultiScanEnabled,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -120,6 +127,10 @@ function IOURequestStepScan({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    // TODO: use correct canUseMultiScan value when all multi-scan functionality is implemented
+    // const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
+    const canUseMultiScan = false;
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
@@ -133,14 +144,23 @@ function IOURequestStepScan({
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();
 
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
-
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
-    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+
+    const blinkOpacity = useSharedValue(0);
+    const blinkStyle = useAnimatedStyle(() => ({
+        opacity: blinkOpacity.get(),
+    }));
+
+    const showBlink = useCallback(() => {
+        blinkOpacity.set(
+            withTiming(0.4, {duration: 10}, () => {
+                blinkOpacity.set(withTiming(0, {duration: 50}));
+            }),
+        );
+    }, [blinkOpacity]);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -206,6 +226,39 @@ function IOURequestStepScan({
                 setVideoConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
+    }, []);
+
+    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, make the user star scanning flow from scratch.
+    // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
+    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
+    useEffect(() => {
+        let isAllScanFilesCanBeRead = true;
+
+        Promise.all(
+            transactions.map((item) => {
+                const itemReceiptPath = item.receipt?.source;
+                const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
+
+                if (!isLocalFile) {
+                    return;
+                }
+
+                const onFailure = () => {
+                    isAllScanFilesCanBeRead = false;
+                };
+
+                return checkIfScanFileCanBeRead(item.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
+            }),
+        ).then(() => {
+            if (isAllScanFilesCanBeRead) {
+                return;
+            }
+            setIsMultiScanEnabled?.(false);
+            removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+            removeDraftTransactions(true);
+        });
+        // We want this hook to run on mounting only
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -634,6 +687,23 @@ function IOURequestStepScan({
         setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
     };
 
+    const submitReceipts = useCallback(
+        (files: ReceiptFile[]) => {
+            if (shouldSkipConfirmation) {
+                const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+                if (gpsRequired) {
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                    if (beginLocationPermissionFlow) {
+                        setStartLocationPermissionFlow(true);
+                        return;
+                    }
+                }
+            }
+            navigateToConfirmationStep(files, false);
+        },
+        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+    );
+
     const getScreenshot = useCallback(() => {
         if (!cameraRef.current) {
             requestCameraPermission();
@@ -646,43 +716,50 @@ function IOURequestStepScan({
             return;
         }
 
+        if (isMultiScanEnabled) {
+            showBlink();
+        }
+
         const filename = `receipt_${Date.now()}.png`;
         const file = base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
-        const transaction = receiptFiles.length > 0 ? buildOptimisticTransaction() : initialTransaction;
+        const transaction = initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
         const transactionID = transaction?.transactionID ?? initialTransactionID;
         const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
         setMoneyRequestReceipt(transactionID, source, file.name, !isEditing);
+        setReceiptFiles(newReceiptFiles);
+
+        if (isMultiScanEnabled) {
+            return;
+        }
 
         if (isEditing) {
             updateScanAndNavigate(file, source);
             return;
         }
-        if (shouldSkipConfirmation) {
-            setReceiptFiles(newReceiptFiles);
-            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-            if (gpsRequired) {
-                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                if (beginLocationPermissionFlow) {
-                    setStartLocationPermissionFlow(true);
-                    return;
-                }
-            }
-        }
-        navigateToConfirmationStep(newReceiptFiles, false);
+
+        submitReceipts(newReceiptFiles);
     }, [
         receiptFiles,
+        showBlink,
         buildOptimisticTransaction,
         initialTransaction,
         initialTransactionID,
         isEditing,
-        shouldSkipConfirmation,
-        navigateToConfirmationStep,
+        isMultiScanEnabled,
+        submitReceipts,
         requestCameraPermission,
         updateScanAndNavigate,
-        iouType,
     ]);
+
+    const toggleMultiScan = () => {
+        if (isMultiScanEnabled) {
+            removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+            removeDraftTransactions(true);
+        }
+        setIsMultiScanEnabled?.(!isMultiScanEnabled);
+    };
 
     const clearTorchConstraints = useCallback(() => {
         if (!trackRef.current) {
@@ -792,23 +869,46 @@ function IOURequestStepScan({
                     </View>
                 )}
                 {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
-                    <NavigationAwareCamera
-                        onUserMedia={setupCameraPermissionsAndCapabilities}
-                        onUserMediaError={() => setCameraPermissionState('denied')}
-                        style={{
-                            ...styles.videoContainer,
-                            display: cameraPermissionState !== 'granted' ? 'none' : 'block',
-                        }}
-                        ref={cameraRef}
-                        screenshotFormat="image/png"
-                        videoConstraints={videoConstraints}
-                        forceScreenshotSourceSize
-                        audio={false}
-                        disablePictureInPicture={false}
-                        imageSmoothing={false}
-                        mirrored={false}
-                        screenshotQuality={0}
-                    />
+                    <View style={styles.flex1}>
+                        <NavigationAwareCamera
+                            onUserMedia={setupCameraPermissionsAndCapabilities}
+                            onUserMediaError={() => setCameraPermissionState('denied')}
+                            style={{
+                                ...styles.videoContainer,
+                                display: cameraPermissionState !== 'granted' ? 'none' : 'block',
+                            }}
+                            ref={cameraRef}
+                            screenshotFormat="image/png"
+                            videoConstraints={videoConstraints}
+                            forceScreenshotSourceSize
+                            audio={false}
+                            disablePictureInPicture={false}
+                            imageSmoothing={false}
+                            mirrored={false}
+                            screenshotQuality={0}
+                        />
+                        {canUseMultiScan && isMobile() ? (
+                            <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
+                                <PressableWithFeedback
+                                    role={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={translate('receipt.flash')}
+                                    disabled={!isTorchAvailable}
+                                    onPress={toggleFlashlight}
+                                >
+                                    <Icon
+                                        height={16}
+                                        width={16}
+                                        src={Expensicons.Bolt}
+                                        fill={theme.white}
+                                    />
+                                </PressableWithFeedback>
+                            </View>
+                        ) : null}
+                        <Animated.View
+                            pointerEvents="none"
+                            style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                        />
+                    </View>
                 )}
             </View>
 
@@ -818,6 +918,7 @@ function IOURequestStepScan({
                         <PressableWithFeedback
                             accessibilityLabel={translate('common.chooseFile')}
                             role={CONST.ROLE.BUTTON}
+                            style={isMultiScanEnabled && styles.opacity0}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
@@ -844,21 +945,44 @@ function IOURequestStepScan({
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
-                <PressableWithFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.flash')}
-                    style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
-                    onPress={toggleFlashlight}
-                    disabled={!isTorchAvailable}
-                >
-                    <Icon
-                        height={32}
-                        width={32}
-                        src={isFlashLightOn ? Expensicons.Bolt : Expensicons.boltSlash}
-                        fill={theme.textSupporting}
-                    />
-                </PressableWithFeedback>
+                {canUseMultiScan && isMobile() ? (
+                    <PressableWithFeedback
+                        accessibilityRole="button"
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.multiScan')}
+                        style={styles.alignItemsEnd}
+                        onPress={toggleMultiScan}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={Expensicons.ReceiptMultiple}
+                            fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
+                ) : (
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
+                        onPress={toggleFlashlight}
+                        disabled={!isTorchAvailable}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={isFlashLightOn ? Expensicons.Bolt : Expensicons.boltSlash}
+                            fill={theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
+                )}
             </View>
+
+            <ReceiptPreviews
+                isMultiScanEnabled={isMultiScanEnabled}
+                submit={submitReceipts}
+                setTabSwipeDisabled={setTabSwipeDisabled}
+            />
         </>
     );
 
@@ -925,8 +1049,8 @@ function IOURequestStepScan({
                         <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                             {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                         </View>
-                        {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
-                        {canUseMultiFilesDragAndDrop ? (
+                        {/* TODO: remove beta check after the feature is enabled */}
+                        {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
                             <DropZoneUI
                                 onDrop={(e) => {
                                     const file = e?.dataTransfer?.files[0];

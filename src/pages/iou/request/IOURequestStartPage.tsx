@@ -57,6 +57,12 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [isSwipeDisabled, setSwipeDisabled] = useState(false);
+    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: (items) => Object.values(items ?? {}),
+        canBeMissing: true,
+    });
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((optimisticTransactions ?? []).length > 1);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -89,7 +95,14 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
+            setIsMultiScanEnabled(false);
+            initMoneyRequest({
+                reportID,
+                policy,
+                isFromGlobalCreate,
+                currentIouRequestType: transaction?.iouRequestType,
+                newIouRequestType: newIOUType,
+            });
         },
         [policy, reportID, isFromGlobalCreate, transaction],
     );
@@ -129,11 +142,12 @@ function IOURequestStartPage({
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
+    const {isBetaEnabled} = usePermissions();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const setTestReceiptAndNavigateRef = useRef<() => void>();
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && selectedTab === CONST.TAB_REQUEST.SCAN && !isUserInvitedToWorkspace(),
+        !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !isUserInvitedToWorkspace(),
         {
             onConfirm: () => {
                 setTestReceiptAndNavigateRef?.current?.();
@@ -143,7 +157,7 @@ function IOURequestStartPage({
             },
         },
     );
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    
 
     return (
         <AccessOrNotFoundWrapper
@@ -156,7 +170,7 @@ function IOURequestStartPage({
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.receiptDropHeaderGap] : []}
+                headerGapStyles={isDraggingOver ? [isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? styles.dropWrapper : styles.receiptDropHeaderGap] : []}
                 testID={IOURequestStartPage.displayName}
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
@@ -186,6 +200,8 @@ function IOURequestStartPage({
                                 shouldShowLabelWhenInactive={!shouldShowPerDiemOption}
                                 shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                                 renderProductTrainingTooltip={renderProductTrainingTooltip}
+                                lazyLoadEnabled
+                                disableSwipe={isSwipeDisabled}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -207,6 +223,9 @@ function IOURequestStartPage({
                                                 onLayout={(setTestReceiptAndNavigate) => {
                                                     setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
                                                 }}
+                                                setTabSwipeDisabled={setSwipeDisabled}
+                                                isMultiScanEnabled={isMultiScanEnabled}
+                                                setIsMultiScanEnabled={setIsMultiScanEnabled}
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}

@@ -15,6 +15,14 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
          * Receives a function (`setTestReceiptAndNavigate`) as an argument,
          */
         onLayout: (setTestReceiptAndNavigate: () => void) => void;
+        /** Disable tab swipe */
+        setTabSwipeDisabled?: (isDisabled: boolean) => void;
+
+        /** If the receipts preview should be shown */
+        isMultiScanEnabled?: boolean;
+
+        /** Updates isMultiScanEnabled flag */
+        setIsMultiScanEnabled?: (value: boolean) => void;
     };
 
 type ReceiptFile = {
