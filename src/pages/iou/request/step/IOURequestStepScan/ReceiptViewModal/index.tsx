@@ -1,14 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView/AttachmentCarouselView';
+import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import Image from '@components/Image';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeTransactionReceipt} from '@userActions/TransactionEdit';
@@ -24,7 +22,6 @@ type ReceiptViewModalProps = {
 
 function ReceiptViewModal({route}: ReceiptViewModalProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
 
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptFile | null>();
@@ -51,17 +48,6 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         setPage(activeReceiptIndex);
     }, [receipts, route?.params?.transactionID]);
 
-    const cycleThroughReceipts = useCallback(
-        (deltaSlide: number) => {
-            const nextIndex = page + deltaSlide;
-            const nextItem = receipts?.at(nextIndex);
-
-            setPage(nextIndex);
-            setCurrentReceipt(nextItem);
-        },
-        [page, receipts],
-    );
-
     const handleDeleteReceipt = useCallback(() => {
         if (!currentReceipt) {
             return;
@@ -75,6 +61,9 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         setIsDeleteReceiptConfirmModalVisible(false);
         handleDeleteReceipt();
     }, [handleDeleteReceipt]);
+
+    // TODO: Implement the logic to handle attachment errors
+    const handleAttachmentError = () => {};
 
     return (
         <>
@@ -92,18 +81,17 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                 />
                 <AttachmentCarouselView
                     attachments={receipts ?? []}
+                    source={currentReceipt?.source ?? ''}
+                    page={page}
+                    setPage={setPage}
+                    attachmentID={currentReceipt?.transactionID ?? ''}
+                    onClose={Navigation.goBack}
                     autoHideArrows={autoHideArrows}
                     cancelAutoHideArrow={cancelAutoHideArrows}
-                    cycleThroughAttachments={cycleThroughReceipts}
-                    shouldShowArrows={shouldShowArrows}
-                    page={page}
                     setShouldShowArrows={setShouldShowArrows}
-                >
-                    <Image
-                        style={[styles.flex1]}
-                        source={{uri: currentReceipt?.source ?? ''}}
-                    />
-                </AttachmentCarouselView>
+                    onAttachmentError={handleAttachmentError}
+                    shouldShowArrows={shouldShowArrows}
+                />
             </Modal>
             <ConfirmModal
                 title={translate('receipt.deleteReceipt')}
