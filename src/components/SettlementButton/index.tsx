@@ -434,7 +434,7 @@ function SettlementButton({
         return translate('iou.settlePayment', {formattedAmount});
     };
 
-    const getSecondLineText = (): string | undefined => {
+    const getSecondaryText = (): string | undefined => {
         if (
             shouldUseShortForm ||
             lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ||
@@ -452,7 +452,7 @@ function SettlementButton({
             const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
 
             if (bankAccountToDisplay && isInvoiceReportUtil(iouReport)) {
-                const translationKey = bankAccountToDisplay.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS ? 'iou.invoiceBussinessBank' : 'iou.invoicePersonalBank';
+                const translationKey = bankAccountToDisplay.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank';
                 return translate(translationKey, {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? ''});
             }
 
@@ -492,7 +492,7 @@ function SettlementButton({
     };
 
     const customText = getCustomText();
-    const secondlineText = getSecondLineText();
+    const secondlineText = getSecondaryText();
 
     const defaultSelectedIndex = paymentButtonOptions.findIndex((paymentOption) => {
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
