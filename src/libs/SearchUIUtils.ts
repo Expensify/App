@@ -581,7 +581,12 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
-    if (canApproveIOU(report, policy, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
+    if (
+        canApproveIOU(report, policy, allReportTransactions) &&
+        isAllowedToApproveExpenseReport &&
+        !hasOnlyPendingCardOrScanningTransactions &&
+        !hasOnlyHeldExpenses(report.reportID, allReportTransactions)
+    ) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
