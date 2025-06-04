@@ -205,7 +205,7 @@ function MoneyRequestAction({
             }}
         >
             {!previewWidth ? (
-                <View style={[{height: CONST.REPORT.TRANSACTION_PREVIEW.DUPLICATE.HEIGHT_WIDE}, styles.justifyContentCenter]}>
+                <View style={[{height: CONST.REPORT.TRANSACTION_PREVIEW.DUPLICATE.WIDE_HEIGHT}, styles.justifyContentCenter]}>
                     <ActivityIndicator
                         color={theme.spinner}
                         size={40}
