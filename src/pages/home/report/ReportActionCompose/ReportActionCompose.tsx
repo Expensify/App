@@ -48,7 +48,7 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isChatRoom,
-    isConciergeChatReport,
+    isConciergeChatReport, isGroupChat,
     isInvoiceReport,
     isReportTransactionThread,
     isUserCreatedPolicyRoom,
@@ -218,7 +218,14 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const shouldDisplayDualDropZone = useMemo(
-        () => !isChatRoom(report) && !isUserCreatedPolicyRoom(report) && !isAnnounceRoom(report) && !isAdminRoom(report) && !isConciergeChatReport(report) && !isInvoiceReport(report) && !isGroupChat(report),
+        () =>
+            !isChatRoom(report) &&
+            !isUserCreatedPolicyRoom(report) &&
+            !isAnnounceRoom(report) &&
+            !isAdminRoom(report) &&
+            !isConciergeChatReport(report) &&
+            !isInvoiceReport(report) &&
+            !isGroupChat(report),
         [report],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
