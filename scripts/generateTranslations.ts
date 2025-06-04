@@ -158,14 +158,35 @@ class TranslationGenerator {
     }
 
     /**
-     * Recursively extract all string literals and templates from the subtree rooted at the given node.
+     * Is the given template expression "simple"? (i.e: can it be sent directly to ChatGPT to be translated)
+     * We define a template expression as "simple" if its spans include only identifiers or property access expressions.
+     *
+     * @example isSimpleTemplateExpression(`Hello, ${name}!`) => true
+     * @example isSimpleTemplateExpression(`Welcome ${user.firstName}`) => true
+     * @example isSimpleTemplateExpression(`Submit ${CONST.REPORT.TYPES.EXPENSE} report`) => true
+     * @example isSimpleTemplateExpression(`Pay ${name ?? 'someone'}`) => false
+     * @example isSimpleTemplateExpression(`Edit ${condition ? 'A' : 'B'}`) => false
+     */
+    private isSimpleTemplateExpression(node: ts.TemplateExpression): boolean {
+        return node.templateSpans.every((span) => ts.isIdentifier(span.expression) || ts.isPropertyAccessExpression(span.expression) || ts.isElementAccessExpression(span.expression));
+    }
+
+    /**
+     * Recursively extract all string literals and templates to translate from the subtree rooted at the given node.
+     * Simple templates (as defined by this.isSimpleTemplateExpression) can be translated directly.
+     * Complex templates must have each of their spans recursively translated first.
      */
     private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, string>) {
         if (this.shouldNodeBeTranslated(node)) {
             if (ts.isStringLiteral(node)) {
                 stringsToTranslate.set(StringUtils.hash(node.text), node.text);
             } else if (ts.isTemplateExpression(node)) {
-                stringsToTranslate.set(StringUtils.hash(this.templateExpressionToString(node)), this.templateExpressionToString(node));
+                if (this.isSimpleTemplateExpression(node)) {
+                    stringsToTranslate.set(StringUtils.hash(node.getText()), this.templateExpressionToString(node));
+                } else {
+                    console.log('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
+                    node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
+                }
             }
         }
         node.forEachChild((child) => this.extractStringsToTranslate(child, stringsToTranslate));
@@ -175,7 +196,7 @@ class TranslationGenerator {
      * Convert a template expression into a plain string representation, without the backticks.
      */
     private templateExpressionToString(expression: TemplateExpression): string {
-        return expression.getFullText().trim().slice(1, -1);
+        return expression.getText().trim().slice(1, -1);
     }
 
     /**
@@ -237,9 +258,8 @@ class TranslationGenerator {
                     }
 
                     if (ts.isTemplateExpression(node)) {
-                        const originalTemplateExpressionAsString = this.templateExpressionToString(node);
-                        console.log(`🟡 Checking TemplateExpression: "${originalTemplateExpressionAsString}"`);
-                        const translatedTemplate = translations.get(StringUtils.hash(originalTemplateExpressionAsString));
+                        console.log(`🟡 Checking TemplateExpression: "${node.getText()}"`);
+                        const translatedTemplate = translations.get(StringUtils.hash(node.getText()));
                         if (translatedTemplate) {
                             console.log(`🔹 Found Translation: "${translatedTemplate}"`);
                             const translatedTemplateExpression = this.stringToTemplateExpression(translatedTemplate);
@@ -254,7 +274,7 @@ class TranslationGenerator {
 
                             return translatedTemplateExpression;
                         }
-                        console.warn('⚠️ No translation found for template expression', originalTemplateExpressionAsString);
+                        console.warn('⚠️ No translation found for template expression', node.getText());
                         return node;
                     }
                 }
