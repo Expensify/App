@@ -396,7 +396,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length > CONST.SEARCH_ITEM_LIMIT && !isLoading && (
+                {tagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress

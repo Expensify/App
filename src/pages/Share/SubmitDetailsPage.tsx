@@ -38,15 +38,15 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
-    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
+    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
+    const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {canBeMissing: true});
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`);
-    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
+    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
@@ -62,7 +62,12 @@ function SubmitDetailsPage({
     }, [errorTitle, errorMessage]);
 
     useEffect(() => {
-        initMoneyRequest(reportOrAccountID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
+        initMoneyRequest({
+            reportID: reportOrAccountID,
+            policy,
+            currentIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        });
     }, [reportOrAccountID, policy]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);

@@ -14,8 +14,8 @@ const defaultSearchContext: SearchContext = {
     setCurrentSearchHash: () => {},
     setSelectedTransactions: () => {},
     clearSelectedTransactions: () => {},
-    shouldShowStatusBarLoading: false,
-    setShouldShowStatusBarLoading: () => {},
+    shouldShowFiltersBarLoading: false,
+    setShouldShowFiltersBarLoading: () => {},
     lastSearchType: undefined,
     setLastSearchType: () => {},
     shouldShowExportModeOption: false,
@@ -54,8 +54,8 @@ function getReportsFromSelectedTransactions(
             .filter((transaction) => transaction.keyForList != null && selectedTransactions[transaction.keyForList]?.isSelected)
             .map((transaction) => ({
                 reportID: transaction.reportID,
-                action: 'action' in transaction ? transaction.action ?? CONST.SEARCH.ACTION_TYPES.VIEW : CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: 'amount' in transaction ? transaction.amount ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID,
+                action: 'action' in transaction ? (transaction.action ?? CONST.SEARCH.ACTION_TYPES.VIEW) : CONST.SEARCH.ACTION_TYPES.VIEW,
+                total: 'amount' in transaction ? (transaction.amount ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID,
                 policyID: transaction.policyID,
             }));
     }
@@ -116,7 +116,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         [searchContextData.currentSearchHash],
     );
 
-    const [shouldShowStatusBarLoading, setShouldShowStatusBarLoading] = useState(false);
+    const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
 
     const searchContext = useMemo<SearchContext>(
@@ -125,8 +125,8 @@ function SearchContextProvider({children}: ChildrenProps) {
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
-            shouldShowStatusBarLoading,
-            setShouldShowStatusBarLoading,
+            shouldShowFiltersBarLoading,
+            setShouldShowFiltersBarLoading,
             lastSearchType,
             setLastSearchType,
             shouldShowExportModeOption,
@@ -139,7 +139,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
-            shouldShowStatusBarLoading,
+            shouldShowFiltersBarLoading,
             lastSearchType,
             shouldShowExportModeOption,
             setShouldShowExportModeOption,
