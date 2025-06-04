@@ -236,9 +236,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
-                    shouldUseScrollView
                     scrollContainerStyle={shouldUseNarrowLayout && styles.pv4}
-                    shouldUseModalPaddingStyle={false}
                     anchorAlignment={anchorAlignment}
                     shouldUseModalPaddingStyle={false}
                     headerText={menuHeaderText}
