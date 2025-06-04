@@ -10603,7 +10603,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
     // We can't move the iou report to the workspace if both users from the iou report create the expense
-    if (isBothUserCreateExpenseFromIOUReport(report)) {
+    if (doesReportContainRequestsFromMultipleUsers(report)) {
         return false;
     }
 
