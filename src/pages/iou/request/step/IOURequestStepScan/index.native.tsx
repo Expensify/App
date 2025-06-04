@@ -47,7 +47,6 @@ import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@lib
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -101,16 +100,16 @@ function IOURequestStepScan({
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
+    const {isBetaEnabled} = usePermissions();
 
     const [elementTop, setElementTop] = useState(0);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
-    // TODO: remove when multi-scan functionality is removed from beta
-    const {canUseMultiScan: canUseMultiScanBeta} = usePermissions();
-    const canUseMultiScan = canUseMultiScanBeta && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
-
+    // TODO: use correct canUseMultiScan value when all multi-scan functionality is implemented
+    // const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
+    const canUseMultiScan = false;
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -119,7 +118,6 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
@@ -138,7 +136,7 @@ function IOURequestStepScan({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
+        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
@@ -536,7 +534,7 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
+        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && isTabActive && !isUserInvitedToWorkspace(),
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
@@ -627,19 +625,22 @@ function IOURequestStepScan({
         processFile(originalFile);
     };
 
-    const submitReceipts = useCallback(() => {
-        if (shouldSkipConfirmation) {
-            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-            if (gpsRequired) {
-                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                if (beginLocationPermissionFlow) {
-                    setStartLocationPermissionFlow(true);
-                    return;
+    const submitReceipts = useCallback(
+        (files: ReceiptFile[]) => {
+            if (shouldSkipConfirmation) {
+                const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+                if (gpsRequired) {
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                    if (beginLocationPermissionFlow) {
+                        setStartLocationPermissionFlow(true);
+                        return;
+                    }
                 }
             }
-        }
-        navigateToConfirmationStep(receiptFiles, false);
-    }, [initialTransaction, iouType, navigateToConfirmationStep, receiptFiles, shouldSkipConfirmation]);
+            navigateToConfirmationStep(files, false);
+        },
+        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+    );
 
     const capturePhoto = useCallback(() => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
@@ -713,7 +714,7 @@ function IOURequestStepScan({
                                     return;
                                 }
 
-                                submitReceipts();
+                                submitReceipts(newReceiptFiles);
                             },
                             () => {
                                 setDidCapturePhoto(false);

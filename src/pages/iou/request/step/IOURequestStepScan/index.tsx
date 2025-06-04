@@ -49,7 +49,6 @@ import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@lib
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -106,6 +105,7 @@ function IOURequestStepScan({
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -135,12 +135,11 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
-    // TODO: remove when multi-scan functionality is removed from beta
-    const {canUseMultiScan: canUseMultiScanBeta} = usePermissions();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const canUseMultiScan = canUseMultiScanBeta && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
+    // TODO: use correct canUseMultiScan value when all multi-scan functionality is implemented
+    // const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
+    const canUseMultiScan = false;
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
@@ -157,9 +156,6 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
-
-    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     const platform = getPlatform(true);
 
@@ -691,7 +687,7 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
+        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && isTabActive && !isUserInvitedToWorkspace(),
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
@@ -712,19 +708,22 @@ function IOURequestStepScan({
         setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
     };
 
-    const submitReceipts = useCallback(() => {
-        if (shouldSkipConfirmation) {
-            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-            if (gpsRequired) {
-                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                if (beginLocationPermissionFlow) {
-                    setStartLocationPermissionFlow(true);
-                    return;
+    const submitReceipts = useCallback(
+        (files: ReceiptFile[]) => {
+            if (shouldSkipConfirmation) {
+                const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+                if (gpsRequired) {
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                    if (beginLocationPermissionFlow) {
+                        setStartLocationPermissionFlow(true);
+                        return;
+                    }
                 }
             }
-        }
-        navigateToConfirmationStep(receiptFiles, false);
-    }, [initialTransaction, iouType, navigateToConfirmationStep, receiptFiles, shouldSkipConfirmation]);
+            navigateToConfirmationStep(files, false);
+        },
+        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+    );
 
     const getScreenshot = useCallback(() => {
         if (!cameraRef.current) {
@@ -761,7 +760,7 @@ function IOURequestStepScan({
             return;
         }
 
-        submitReceipts();
+        submitReceipts(newReceiptFiles);
     }, [
         receiptFiles,
         showBlink,
@@ -1093,8 +1092,8 @@ function IOURequestStepScan({
                                 {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                             </View>
                         </EducationalTooltip>
-                        {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
-                        {canUseMultiFilesDragAndDrop ? (
+                        {/* TODO: remove beta check after the feature is enabled */}
+                        {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
                             <DropZoneUI
                                 onDrop={(e) => {
                                     const file = e?.dataTransfer?.files[0];

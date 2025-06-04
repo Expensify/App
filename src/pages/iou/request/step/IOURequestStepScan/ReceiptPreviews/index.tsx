@@ -14,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,7 +25,7 @@ type ReceiptWithTransactionID = Receipt & {transactionID: string};
 
 type ReceiptPreviewsProps = {
     /** Submit method */
-    submit: () => void;
+    submit: (files: ReceiptFile[]) => void;
 
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
@@ -33,6 +34,8 @@ type ReceiptPreviewsProps = {
     setTabSwipeDisabled?: (isDisabled: boolean) => void;
 };
 
+// TODO: remove the lint disable when submit method will be used in the code below
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -137,7 +140,12 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                         innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
                         icon={Expensicons.ArrowRight}
                         iconFill={theme.white}
-                        onPress={submit}
+                        onPress={() => {
+                            // TODO: uncomment the submit call when necessary updates for the confirmation page and bulk expense creation are implemented
+                            // https://github.com/Expensify/App/issues/61183
+                            // https://github.com/Expensify/App/issues/61184
+                            // submit(optimisticTransactionsReceipts ?? []);
+                        }}
                     />
                 </SubmitButtonShadow>
             </View>
