@@ -64,7 +64,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         }
 
         const singleLevelTags = policyTagLists.at(0)?.tags ?? {};
-        return Object.values(singleLevelTags).some((tag) => tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        return Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [isMultiLevelTags, policyTagLists]);
 
     if (hasAccountingConnections) {
