@@ -105,7 +105,7 @@ type MoneyRequestAmountInputProps = {
     allowFlippingAmount?: boolean;
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
-} & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
+} & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace' | 'submitBehavior'>;
 
 type Selection = {
     start: number;
@@ -147,6 +147,7 @@ function MoneyRequestAmountInput(
         toggleNegative,
         clearNegative,
         testID,
+        submitBehavior,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -368,6 +369,7 @@ function MoneyRequestAmountInput(
             contentWidth={contentWidth}
             isNegative={isNegative}
             testID={testID}
+            submitBehavior={submitBehavior}
         />
     );
 }
