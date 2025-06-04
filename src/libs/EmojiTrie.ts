@@ -99,7 +99,7 @@ function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<Emoji
             addKeywordsToTrie(trie, nameParts, item, localeName);
 
             // Add keywords for both the locale language and English to enable users to search using either language.
-            const keywords = (langEmojis?.[item.code]?.keywords ?? []).concat(isDefaultLocale ? [] : defaultLangEmojis?.[item.code]?.keywords ?? []);
+            const keywords = (langEmojis?.[item.code]?.keywords ?? []).concat(isDefaultLocale ? [] : (defaultLangEmojis?.[item.code]?.keywords ?? []));
             addKeywordsToTrie(trie, keywords, item, localeName);
 
             /**
