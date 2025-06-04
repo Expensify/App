@@ -5427,7 +5427,7 @@ function changeReportPolicy(reportID: string, policyID: string) {
     if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
         const workspaceChatReportID = reportToMove.parentReportID;
         const reportPreviewActionID = reportToMove.parentReportActionID;
-        const oldReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`]?.[reportPreviewActionID];
+        const oldReportPreviewAction = allReportActions?.[workspaceChatReportID]?.[reportPreviewActionID];
         const deletedTime = DateUtils.getDBTime();
         const firstMessage = Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.at(0) : null;
         const updatedReportPreviewAction = {
@@ -5459,7 +5459,14 @@ function changeReportPolicy(reportID: string, policyID: string) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
-            value: {[reportPreviewActionID]: oldReportPreviewAction},
+            value: {
+                [reportPreviewActionID]: {
+                    ...oldReportPreviewAction,
+                    originalMessage: {
+                        deleted: null,
+                    },
+                },
+            },
         });
 
         // Update the expense chat report
