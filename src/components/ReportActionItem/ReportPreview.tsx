@@ -83,7 +83,7 @@ import {
     isCardTransaction,
     isPartialMerchant,
     isPending,
-    isReceiptBeingScanned,
+    isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -235,11 +235,11 @@ function ReportPreview({
     const numberOfRequests = transactions?.length ?? 0;
     const moneyRequestComment = numberOfRequests < 2 ? (action?.childLastMoneyRequestComment ?? '') : '';
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => isReceiptBeingScanned(transaction)).length;
+    const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => isScanning(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
 
     const hasReceipts = transactionsWithReceipts.length > 0;
-    const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
+    const areAllTransactionsScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors =
         (hasMissingSmartscanFields && !iouSettled) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -307,7 +307,7 @@ function ReportPreview({
         if (totalDisplaySpend) {
             return convertToDisplayString(totalDisplaySpend, iouReport?.currency);
         }
-        if (isScanning) {
+        if (areAllTransactionsScanning) {
             return translate('iou.receiptStatusTitle');
         }
         if (hasOnlyTransactionsWithPendingRoutes) {
@@ -343,7 +343,7 @@ function ReportPreview({
     }
 
     const previewMessage = useMemo(() => {
-        if (isScanning) {
+        if (areAllTransactionsScanning) {
             return totalDisplaySpend ? `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('common.scanning')}` : `${translate('common.receipt')}`;
         }
         if (numberOfPendingRequests === 1 && numberOfRequests === 1) {
@@ -374,7 +374,7 @@ function ReportPreview({
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
-        isScanning,
+        areAllTransactionsScanning,
         numberOfPendingRequests,
         numberOfRequests,
         showRTERViolationMessage,
@@ -409,7 +409,7 @@ function ReportPreview({
      */
     const shouldShowSingleRequestMerchantOrDescription =
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
-    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
+    const shouldShowSubtitle = !areAllTransactionsScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
 
     const isPayAtEndExpense = isPayAtEndExpenseReport(iouReportID, transactions);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: getArchiveReason, canBeMissing: false});
@@ -661,7 +661,7 @@ function ReportPreview({
                     isNested
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
-                    <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                    <View style={[styles.reportPreviewBox, isHovered || areAllTransactionsScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         {lastThreeReceipts.length > 0 && (
                             <ReportActionItemImages
                                 images={lastThreeReceipts}
