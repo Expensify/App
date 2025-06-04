@@ -50,6 +50,7 @@ import {
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     hasDuplicateTransactions,
@@ -58,7 +59,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
-    isReceiptBeingScanned,
+    isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
@@ -110,10 +111,10 @@ import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import {useMoneyRequestReportContext} from './MoneyRequestReportView/MoneyRequestReportContext';
 import type {PopoverMenuItem} from './PopoverMenu';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
+import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
 
@@ -210,7 +211,7 @@ function MoneyReportHeader({
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getValidConnectedIntegration(policy);
-    const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
+    const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isScanning(t));
     const hasOnlyPendingTransactions = useMemo(() => {
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
@@ -263,7 +264,7 @@ function MoneyReportHeader({
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
+    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
     const {
         options: selectedTransactionsOptions,
@@ -486,6 +487,10 @@ function MoneyReportHeader({
                     if (!moneyRequestReport?.reportID) {
                         return;
                     }
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
                 },
             },
@@ -494,11 +499,15 @@ function MoneyReportHeader({
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
                 onSelected: () => {
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
                     openUnreportedExpense(moneyRequestReport?.reportID);
                 },
             },
         ],
-        [moneyRequestReport?.reportID, translate],
+        [moneyRequestReport?.reportID, policy, translate],
     );
 
     const primaryActionsImplementation = {
@@ -620,7 +629,7 @@ function MoneyReportHeader({
         ),
     };
 
-    const {canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
@@ -639,11 +648,11 @@ function MoneyReportHeader({
             reportNameValuePairs,
             reportActions,
             policies,
-            canUseRetractNewDot,
-            canUseTableReportView,
-            canUseNewDotSplits,
+            isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
+            isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
+            isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
         );
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -818,7 +827,7 @@ function MoneyReportHeader({
                     setIsDeleteReportModalVisible(true);
                 }
             },
-            shouldShow: canUseTableReportView,
+            shouldShow: isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
             text: translate('iou.undoSubmit'),
@@ -850,6 +859,10 @@ function MoneyReportHeader({
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
+                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
                 startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
             },
         },
@@ -868,8 +881,8 @@ function MoneyReportHeader({
         if (!transactionThreadReportID) {
             return;
         }
-        setSelectedTransactionsID([]);
-        // We don't need to run the effect on change of setSelectedTransactionsID since it can cause the infinite loop.
+        clearSelectedTransactions(true);
+        // We don't need to run the effect on change of clearSelectedTransactions since it can cause the infinite loop.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionThreadReportID]);
@@ -896,7 +909,7 @@ function MoneyReportHeader({
             <HeaderWithBackButton
                 title={translate('common.selectMultiple')}
                 onBackButtonPress={() => {
-                    setSelectedTransactionsID([]);
+                    clearSelectedTransactions(true);
                     turnOffMobileSelectionMode();
                 }}
             />
@@ -969,7 +982,7 @@ function MoneyReportHeader({
                                 <ButtonWithDropdownMenu
                                     onPress={() => null}
                                     options={selectedTransactionsOptions}
-                                    customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                                     isSplitButton={false}
                                     shouldAlwaysShowDropdownMenu
                                 />
@@ -991,7 +1004,7 @@ function MoneyReportHeader({
                             <ButtonWithDropdownMenu
                                 onPress={() => null}
                                 options={selectedTransactionsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                                 isSplitButton={false}
                                 shouldAlwaysShowDropdownMenu
                                 wrapperStyle={styles.w100}
@@ -1087,11 +1100,11 @@ function MoneyReportHeader({
                 shouldEnableNewFocusManagement
             />
             <ConfirmModal
-                title={translate('iou.deleteExpense', {count: selectedTransactionsID.length})}
+                title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
                 isVisible={hookDeleteModalVisible}
                 onConfirm={handleDeleteTransactions}
                 onCancel={hideDeleteModal}
-                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsID.length})}
+                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
