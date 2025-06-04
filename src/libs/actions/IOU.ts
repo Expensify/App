@@ -878,6 +878,9 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouReque
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
 
+    // We remove draft transactions created during multi scanning if there are some
+    removeDraftTransactions(true);
+
     // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
     // we should keep most of the existing data by using the ONYX MERGE operation
     if (currentIouRequestType === newIouRequestType) {
@@ -10820,6 +10823,16 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
 }
 
+function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string) {
+    transactionsID.forEach((transactionID) => {
+        const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
+        if (!childReportID) {
+            return;
+        }
+        putOnHold(transactionID, comment, childReportID);
+    });
+}
+
 /**
  * Remove expense from HOLD
  */
@@ -11877,6 +11890,7 @@ export {
     payInvoice,
     payMoneyRequest,
     putOnHold,
+    putTransactionsOnHold,
     replaceReceipt,
     requestMoney,
     resetSplitShares,
