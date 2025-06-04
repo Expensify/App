@@ -18,7 +18,6 @@ import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTa
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isReportOutstanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
-import {saveReportDraft} from '@userActions/Report';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
