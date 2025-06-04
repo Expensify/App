@@ -435,6 +435,10 @@ function WorkspacesListPage() {
             return <View style={styles.mt3} />;
         }
 
+        if (filteredWorkspaces.length === 0) {
+            return null;
+        }
+
         return (
             <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
                 <View style={[styles.flexRow, styles.flex2]}>
@@ -464,7 +468,7 @@ function WorkspacesListPage() {
                 <View style={[styles.workspaceRightColumn, styles.mr2]} />
             </View>
         );
-    }, [isLessThanMediumScreen, styles, translate]);
+    }, [isLessThanMediumScreen, styles, filteredWorkspaces, translate]);
 
     const getHeaderButton = () => (
         <Button
