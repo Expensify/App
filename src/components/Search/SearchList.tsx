@@ -28,7 +28,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -111,7 +110,7 @@ function SearchList(
 ) {
     const styles = useThemeStyles();
     const flattenedTransactions = shouldGroupByReports ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
-    const flattenedTransactionWithoutPendingDelete = flattenedTransactions.filter((t) => !isTransactionPendingDelete(t));
+    const flattenedTransactionWithoutPendingDelete = flattenedTransactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
         return item?.isSelected ? acc + 1 : acc;
     }, 0);
