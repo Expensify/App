@@ -60,10 +60,7 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                    marginLeft: shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize,
-                },
+                cardStyle: StyleUtils.getNavigationModalCardStyle(),
             },
         },
         fullScreen: {

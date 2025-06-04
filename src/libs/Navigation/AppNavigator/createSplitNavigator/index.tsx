@@ -11,6 +11,7 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import SidebarSpacerWrapper from './SidebarSpacerWrapper';
 import SplitRouter from './SplitRouter';
 import usePreserveNavigatorState from './usePreserveNavigatorState';
 
@@ -39,6 +40,7 @@ const SplitNavigatorComponent = createPlatformStackNavigatorComponent('SplitNavi
     useCustomEffects,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomState: useCustomSplitNavigatorState,
+    NavigationContentWrapper: SidebarSpacerWrapper,
 });
 
 function createSplitNavigator<ParamList extends ParamListBase>() {
