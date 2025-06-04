@@ -11,13 +11,7 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {
-    OriginalMessageChangePolicy,
-    OriginalMessageExportIntegration,
-    OriginalMessageIOU,
-    OriginalMessageModifiedExpense,
-    OriginalMessageMovedTransaction,
-} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
@@ -173,7 +167,6 @@ import {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
-    isApprovedAction,
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
     isClosedAction,
@@ -182,7 +175,6 @@ import {
     isDeletedAction,
     isDeletedParentAction,
     isExportIntegrationAction,
-    isForwardedAction,
     isIntegrationMessageAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -199,8 +191,6 @@ import {
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction as isSplitBillReportAction,
-    isSubmittedAction,
-    isSubmittedAndClosedAction,
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
@@ -4742,8 +4732,6 @@ function getReportNameInternal({
     reportNameValuePairs,
     policies,
 }: GetReportNameParams): string {
-    const reportID = report?.reportID;
-
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
     if (parentReportActionParam) {
@@ -5766,26 +5754,6 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         : {};
     optimisticEmptyReport.ownerAccountID = accountID;
     return optimisticEmptyReport;
-}
-
-function getFormattedAmount(reportAction: ReportAction, report?: Report | null) {
-    if (
-        !isSubmittedAction(reportAction) &&
-        !isForwardedAction(reportAction) &&
-        !isApprovedAction(reportAction) &&
-        !isUnapprovedAction(reportAction) &&
-        !isSubmittedAndClosedAction(reportAction) &&
-        !isMarkAsClosedAction(reportAction)
-    ) {
-        return '';
-    }
-    const originalMessage = getOriginalMessage(reportAction);
-
-    // Expense reports can have a negative amount and we need to display it as negative in the UI
-    // the amount found in originalMessage does not accurately track this so we need to use the total from the report instead
-    const amount = report && isExpenseReport(report) ? (report?.total ?? 0) * -1 : Math.abs(originalMessage?.amount ?? 0);
-    const formattedAmount = convertToDisplayString(amount, originalMessage?.currency);
-    return formattedAmount;
 }
 
 function getRejectedReportMessage() {
