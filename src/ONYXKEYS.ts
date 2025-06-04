@@ -275,9 +275,6 @@ const ONYXKEYS = {
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
-    /** Boolean flag used to display the focus mode notification */
-    FOCUS_MODE_NOTIFICATION: 'focusModeNotification',
-
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
 
