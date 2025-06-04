@@ -1546,9 +1546,21 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import` as const,
     },
+    WORKSPACE_MULTI_LEVEL_TAGS_IMPORT_SETTINGS: {
+        route: 'settings/workspaces/:policyID/tags/import/multi-level',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import/multi-level` as const,
+    },
+    WORKSPACE_TAGS_IMPORT_OPTIONS: {
+        route: 'settings/workspaces/:policyID/tags/import/import-options',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import/import-options` as const,
+    },
     WORKSPACE_TAGS_IMPORTED: {
         route: 'settings/workspaces/:policyID/tags/imported',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/imported` as const,
+    },
+    WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL: {
+        route: 'settings/workspaces/:policyID/tags/imported/multi-level',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/imported/multi-level` as const,
     },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
