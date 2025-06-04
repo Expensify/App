@@ -129,7 +129,7 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID});
-                const backTo = Navigation.getActiveRouteWithoutParams() !== ROUTES.REPORT_WITH_ID.getRoute(String(reportID)) ? Navigation.getActiveRoute() : undefined;
+                const backTo = Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(String(reportID))) ? undefined : Navigation.getActiveRoute();
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID), undefined, undefined, undefined, undefined, backTo));
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
