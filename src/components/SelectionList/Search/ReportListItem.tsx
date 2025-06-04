@@ -36,7 +36,7 @@ function ReportListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
@@ -83,7 +83,7 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    if (isEmptyReport && !canUseTableReportView) {
+    if (isEmptyReport && !isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
         return null;
     }
 
@@ -100,7 +100,6 @@ function ReportListItem<TItem extends ListItem>({
         ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
         ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
-        COLUMNS.COMMENTS,
         COLUMNS.TOTAL_AMOUNT,
         COLUMNS.ACTION,
     ] as Array<ValueOf<typeof COLUMNS>>;

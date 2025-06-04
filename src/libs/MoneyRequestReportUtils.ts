@@ -109,8 +109,8 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
     // Split the total spend into different categories as needed.
     const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    if (isPayOrApproveAction) {
-        // Return empty string if there are only held expenses which cannot be paid or approved.
+    if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
+        // Return empty string if there are only held expenses which cannot be paid.
         if (hasOnlyHeldExpenses) {
             return '';
         }

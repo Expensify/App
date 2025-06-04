@@ -6,6 +6,7 @@ import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
+import ArrowSplit from '@assets/images/arrow-split.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
@@ -172,6 +173,7 @@ import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
+import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
@@ -238,6 +240,7 @@ export {
     AnnounceRoomAvatar,
     Apple,
     AppleLogo,
+    ArrowSplit,
     ArrowCollapse,
     ArrowRight,
     ArrowRightLong,
@@ -383,6 +386,7 @@ export {
     RemoveMembers,
     ReceiptSearch,
     ReplaceReceipt,
+    ReceiptMultiple,
     Rotate,
     RotateLeft,
     Scan,
