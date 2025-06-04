@@ -39,6 +39,7 @@ import {
     isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
+    isIOUActionMatchingTransactionList,
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
@@ -123,6 +124,7 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const reportTransactionIDs = transactions.map((transaction) => transaction.transactionID);
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -135,7 +137,7 @@ function MoneyRequestReportActionsList({
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
+    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
@@ -165,12 +167,13 @@ function MoneyRequestReportActionsList({
             return (
                 isActionVisibleOnMoneyReport &&
                 (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction)
+                shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
+                isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)
             );
         });
 
         return filteredActions.toReversed();
-    }, [reportActions, isOffline, canPerformWriteAction]);
+    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs]);
 
     const reportActionSize = useRef(visibleReportActions.length);
     const lastAction = visibleReportActions.at(-1);
