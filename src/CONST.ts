@@ -74,7 +74,7 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     sap: 'SAP',
     oracle: 'Oracle',
     microsoftDynamics: 'Microsoft Dynamics',
-    other: 'Other',
+    other: 'accounting software',
 };
 
 const connectionsVideoPaths = {
@@ -5522,9 +5522,10 @@ const CONST = {
                         [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
                         [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
-                    title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
+                    title: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'to'}[${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other && 'your'} ${integrationName}](${workspaceAccountingLink})`,
                     description: ({integrationName, workspaceAccountingLink}) =>
-                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'to'} ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other && 'your'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
