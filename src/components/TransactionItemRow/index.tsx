@@ -227,7 +227,7 @@ function TransactionItemRow({
                     {!!transactionItem.action && (
                         <ActionCell
                             action={transactionItem.action}
-                            isSelected={false}
+                            isSelected={isSelected}
                             isChildListItem={isReportItemChild}
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
