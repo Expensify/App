@@ -158,13 +158,6 @@ class TranslationGenerator {
     }
 
     /**
-     * Check if the given node is a template expression.
-     */
-    private isTemplateExpressionNode(node: ts.Node): node is TemplateExpression {
-        return ts.isTemplateExpression(node) && !!node.parent;
-    }
-
-    /**
      * Recursively extract all string literals and templates from the subtree rooted at the given node.
      */
     private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, string>) {
