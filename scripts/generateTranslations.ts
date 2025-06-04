@@ -147,10 +147,11 @@ class TranslationGenerator {
     private isPlainStringNode(node: ts.Node): node is StringLiteral {
         return (
             ts.isStringLiteral(node) &&
-            !!node.parent && // Ensure the node has a parent
-            !ts.isImportDeclaration(node.parent) && // Ignore import paths
-            !ts.isExportDeclaration(node.parent) && // Ignore export paths
-            !ts.isCaseClause(node.parent) // Ignore switch-case strings
+            (!node.parent || // Ensure the node has a parent
+                (!ts.isImportDeclaration(node.parent) && // Ignore import paths
+                    !ts.isExportDeclaration(node.parent) && // Ignore export paths
+                    !ts.isCaseClause(node.parent) && // Ignore switch-case strings
+                    !ts.isBinaryExpression(node.parent))) // ignore conditional expressions (string is left-or-right-hand side of a conditional, and we want to ignore it)
         );
     }
 

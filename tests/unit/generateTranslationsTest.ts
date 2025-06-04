@@ -126,7 +126,7 @@ describe('generateTranslations', () => {
                         simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
                         simpleWithNullishCoalesce: (name: string) => \`[it] Pay \${name ?? '[it] someone'}\`,
                         simpleWithFalsyCoalesce: (name: string) => \`[it] Pay \${name || '[it] someone'}\`,
-                        complex: (action: {actionName: string}) => \`[it] Edit \${action.actionName === 'expense' ? '[it] expense' : '[it] comment'}\`,
+                        complex: (action: {actionName: string}) => \`[it] Edit \${action.actionName === 'shouldNotBeTranslated' ? '[it] expense' : '[it] comment'}\`,
                         extraComplex: (payer: string) => \`[it] \${payer ? \`[it] \${payer} as payer \` : ''}paid elsewhere\`\`,
                         extraComplexButJustWhitespace: (payer: string) => \`[it] \${payer ? \`\${payer} \` : ''}paid elsewhere\`\`,
                         evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`[it] \${someBool ? \`[it] \${someOtherBool ? '[it] Hello' : '[it] Goodbye'} moon\` : '[it] Goodnight, moon' }, kupo\`,
