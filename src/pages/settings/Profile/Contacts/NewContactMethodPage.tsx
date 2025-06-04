@@ -53,7 +53,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
 
-    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE.getRoute();
+    const navigateBackTo = route?.params?.backTo;
 
     const hasFailedToSendVerificationCode = !!pendingContactAction?.errorFields?.actionVerified;
 
@@ -122,10 +122,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     );
 
     const onBackButtonPress = useCallback(() => {
-        if (navigateBackTo === ROUTES.SETTINGS_PROFILE.getRoute()) {
-            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
-            return;
-        }
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 

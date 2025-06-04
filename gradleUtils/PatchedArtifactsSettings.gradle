@@ -132,7 +132,7 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
 
     if(config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) {
         config.buildFromSource = true
-        ExpensiLog.lifecycle("No matching artifacts version found for ${config.packageName}. Buillding react-native from source.")
+        ExpensiLog.lifecycle("No matching artifacts version found for ${config.packageName}. Building react-native from source.")
     }
     else {
         config.buildFromSource = false

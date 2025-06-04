@@ -1721,7 +1721,7 @@ function getValidOptions(
         [CONST.EMAIL.MANAGER_MCTEST]:
             !canShowManagerMcTest ||
             (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
-            !Permissions.canUseManagerMcTest(config.betas) ||
+            !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
             isUserInvitedToWorkspace(),
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
@@ -1809,7 +1809,7 @@ function getValidOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatFinder = true): Options {
+function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatFinder = true, includeReadOnly = true): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getValidOptions(options, {
@@ -1822,6 +1822,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeThreads: true,
         includeMoneyRequests: true,
         includeTasks: true,
+        includeReadOnly,
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
         excludeHiddenThreads: true,

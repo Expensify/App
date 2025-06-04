@@ -118,6 +118,7 @@ describe('AssignCardFeedPage', () => {
                     email: 'testaccount+1@gmail.com',
                     cardName: "Test 1's card",
                     cardNumber: '490901XXXXXX1234',
+                    // cspell:disable-next-line
                     encryptedCardNumber: 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF',
                     dateOption: 'fromBeginning',
                     startDate: '2024-12-27',
@@ -184,6 +185,7 @@ describe('AssignCardFeedPage', () => {
                     email: 'testaccount+1@gmail.com',
                     cardName: "Test 1's card",
                     cardNumber: '490901XXXXXX1234',
+                    // cspell:disable-next-line
                     encryptedCardNumber: 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF',
                     dateOption: 'fromBeginning',
                     startDate: '2024-12-27',

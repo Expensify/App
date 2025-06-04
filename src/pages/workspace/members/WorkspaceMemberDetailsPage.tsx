@@ -76,6 +76,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
@@ -401,7 +402,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             >
                                                 <MenuItem
                                                     key={memberCard.cardID}
-                                                    title={memberCard.nameValuePairs?.cardTitle ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
+                                                    title={
+                                                        memberCard.nameValuePairs?.cardTitle ??
+                                                        customCardNames?.[memberCard.cardID] ??
+                                                        maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)
+                                                    }
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
                                                     badgeText={memberCard.bank === CONST.EXPENSIFY_CARD.BANK ? convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit) : ''}
                                                     icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations)}
