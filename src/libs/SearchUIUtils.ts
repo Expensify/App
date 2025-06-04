@@ -1060,11 +1060,11 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
     ];
 
     // Begin adding conditional sections, based on the policies the user has access to
-    const showSubmitSuggestion = Object.values(policies).filter((p) => p?.type && p.type !== CONST.POLICY.TYPE.PERSONAL).length > 0;
+    const showSubmitSuggestion = Object.values(policies).filter((p) => isPaidGroupPolicy(p)).length > 0;
 
     const showApproveSuggestion =
         Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !email || policy.type === CONST.POLICY.TYPE.PERSONAL) {
+            if (!policy || !email || !isPaidGroupPolicy(policy)) {
                 return false;
             }
 
@@ -1078,7 +1078,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
     const showPaySuggestion =
         Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL) {
+            if (!policy || !isPaidGroupPolicy(policy)) {
                 return false;
             }
 
