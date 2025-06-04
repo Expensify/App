@@ -139,7 +139,7 @@ function IOURequestStepScan({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // TODO: use correct canUseMultiScan value when all multi-scan functionality is implemented
     // const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
-    const canUseMultiScan = true;
+    const canUseMultiScan = false;
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
