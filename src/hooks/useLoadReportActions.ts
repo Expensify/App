@@ -44,12 +44,44 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
-    const reportActionIDMap = useMemo(() => {
-        return reportActions.map((action) => ({
-            reportActionID: action.reportActionID,
-            reportID: allReportActionIDs?.includes(action.reportActionID) ? reportID : transactionThreadReport?.reportID,
-        }));
-    }, [reportActions, allReportActionIDs, reportID, transactionThreadReport?.reportID]);
+    // Track oldest/newest actions per report in a single pass
+    const {currentReportOldest, currentReportNewest, transactionThreadOldest, transactionThreadNewest} = useMemo(() => {
+        let currentReportNewestAction = null;
+        let currentReportOldestAction = null;
+        let transactionThreadNewestAction = null;
+        let transactionThreadOldestAction = null;
+
+        const allReportActionIDsSet = new Set(allReportActionIDs);
+
+        for (const action of reportActions) {
+            // Determine which report this action belongs to
+            const isCurrentReport = allReportActionIDsSet.has(action.reportActionID);
+            const targetReportID = isCurrentReport ? reportID : transactionThreadReport?.reportID;
+
+            // Track newest/oldest per report
+            if (targetReportID === reportID) {
+                // Newest = first matching action we encounter
+                if (!currentReportNewestAction) {
+                    currentReportNewestAction = action;
+                }
+                // Oldest = last matching action we encounter
+                currentReportOldestAction = action;
+            } else if (!isEmptyObject(transactionThreadReport) && transactionThreadReport?.reportID === targetReportID) {
+                // Same logic for transaction thread
+                if (!transactionThreadNewestAction) {
+                    transactionThreadNewestAction = action;
+                }
+                transactionThreadOldestAction = action;
+            }
+        }
+
+        return {
+            currentReportOldest: currentReportOldestAction,
+            currentReportNewest: currentReportNewestAction,
+            transactionThreadOldest: transactionThreadOldestAction,
+            transactionThreadNewest: transactionThreadNewestAction,
+        };
+    }, [reportActions, allReportActionIDs, reportID, transactionThreadReport]);
 
     /**
      * Retrieves the next set of reportActions for the chat once we are nearing the end of what we are currently
@@ -70,19 +102,13 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
             didLoadOlderChats.current = true;
 
             if (!isEmptyObject(transactionThreadReport)) {
-                // Get older actions based on the oldest reportAction for the current report
-                const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-                getOlderActions(oldestActionCurrentReport?.reportID, oldestActionCurrentReport?.reportActionID);
-
-                // Get older actions based on the oldest reportAction for the transaction thread report
-                const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-                getOlderActions(oldestActionTransactionThreadReport?.reportID, oldestActionTransactionThreadReport?.reportActionID);
+                getOlderActions(reportID, currentReportOldest?.reportActionID);
+                getOlderActions(transactionThreadReport.reportID, transactionThreadOldest?.reportActionID);
             } else {
-                // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-                getOlderActions(reportID, oldestReportAction.reportActionID);
+                getOlderActions(reportID, currentReportOldest?.reportActionID);
             }
         },
-        [isOffline, oldestReportAction, reportID, reportActionIDMap, transactionThreadReport, hasOlderActions],
+        [isOffline, oldestReportAction, hasOlderActions, transactionThreadReport, reportID, currentReportOldest?.reportActionID, transactionThreadOldest?.reportActionID],
     );
 
     const loadNewerChats = useCallback(
@@ -104,20 +130,24 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
 
             didLoadNewerChats.current = true;
 
-            // If this is a one transaction report, ensure we load newer actions for both this report and the report associated with the transaction
             if (!isEmptyObject(transactionThreadReport)) {
-                // Get newer actions based on the newest reportAction for the current report
-                const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
-                getNewerActions(newestActionCurrentReport?.reportID, newestActionCurrentReport?.reportActionID);
-
-                // Get newer actions based on the newest reportAction for the transaction thread report
-                const newestActionTransactionThreadReport = reportActionIDMap.find((item) => item.reportID === transactionThreadReport.reportID);
-                getNewerActions(newestActionTransactionThreadReport?.reportID, newestActionTransactionThreadReport?.reportActionID);
+                getNewerActions(reportID, currentReportNewest?.reportActionID);
+                getNewerActions(transactionThreadReport.reportID, transactionThreadNewest?.reportActionID);
             } else if (newestReportAction) {
                 getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
+        [
+            reportActionID,
+            isFocused,
+            newestReportAction,
+            hasNewerActions,
+            isOffline,
+            transactionThreadReport,
+            reportID,
+            currentReportNewest?.reportActionID,
+            transactionThreadNewest?.reportActionID,
+        ],
     );
 
     return {
