@@ -1,28 +1,25 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import type {Attachment} from '@components/Attachments/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import AttachmentCarouselView from './AttachmentCarouselView/AttachmentCarouselView';
+import AttachmentCarouselView from './AttachmentCarouselView';
 import extractAttachments from './extractAttachments';
-import type {AttachmentCarouselPagerHandle} from './Pager';
-import AttachmentCarouselPager from './Pager';
 import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID, onAttachmentError}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
-    const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
+
     const compareImage = useCallback((attachment: Attachment) => (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source), [attachmentID, source]);
 
     useEffect(() => {
@@ -67,44 +64,6 @@ function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownlo
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportActions, compareImage, report]);
 
-    /** Updates the page state when the user navigates between attachments */
-    const updatePage = useCallback(
-        (newPageIndex: number) => {
-            Keyboard.dismiss();
-            setShouldShowArrows(true);
-
-            const item = attachments.at(newPageIndex);
-
-            setPage(newPageIndex);
-            if (newPageIndex >= 0 && item) {
-                setActiveAttachmentID(item.attachmentID ?? item.source);
-                if (onNavigate) {
-                    onNavigate(item);
-                }
-                onNavigate?.(item);
-            }
-        },
-        [setShouldShowArrows, attachments, onNavigate],
-    );
-
-    /**
-     * Increments or decrements the index to get another selected item
-     * @param {Number} deltaSlide
-     */
-    const cycleThroughAttachments = useCallback(
-        (deltaSlide: number) => {
-            if (page === undefined) {
-                return;
-            }
-            const nextPageIndex = page + deltaSlide;
-            updatePage(nextPageIndex);
-            pagerRef.current?.setPage(nextPageIndex);
-
-            autoHideArrows();
-        },
-        [autoHideArrows, page, updatePage],
-    );
-
     if (page == null) {
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
@@ -115,26 +74,18 @@ function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownlo
 
     return (
         <AttachmentCarouselView
-            cycleThroughAttachments={cycleThroughAttachments}
             page={page}
+            setPage={setPage}
             attachments={attachments}
             shouldShowArrows={shouldShowArrows}
             autoHideArrows={autoHideArrows}
             cancelAutoHideArrow={cancelAutoHideArrows}
             setShouldShowArrows={setShouldShowArrows}
-        >
-            <AttachmentCarouselPager
-                items={attachments}
-                initialPage={page}
-                onAttachmentError={onAttachmentError}
-                activeAttachmentID={activeAttachmentID}
-                setShouldShowArrows={setShouldShowArrows}
-                onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                onClose={onClose}
-                ref={pagerRef}
-                reportID={report.reportID}
-            />
-        </AttachmentCarouselView>
+            onClose={onClose}
+            source={source}
+            onAttachmentError={onAttachmentError}
+            attachmentID={attachmentID}
+        />
     );
 }
 
