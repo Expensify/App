@@ -73,7 +73,7 @@ function ExpensifyCardPage({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {canUseInAppProvisioning} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [currentCardID, setCurrentCardID] = useState<number>(-1);
     const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
@@ -339,7 +339,7 @@ function ExpensifyCardPage({
                         />
                     </>
                 )}
-                {!!canUseInAppProvisioning && cardToAdd !== undefined && (
+                {!!isBetaEnabled(CONST.BETAS.WALLET) && cardToAdd !== undefined && (
                     <AddToWalletButton
                         card={cardToAdd}
                         buttonStyle={styles.alignSelfCenter}
