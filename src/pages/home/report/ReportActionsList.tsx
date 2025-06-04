@@ -166,12 +166,7 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
 
-    const debouncedReadNewestAction = useDebounce(
-        useCallback((reportID: string) => {
-            readNewestAction(reportID);
-        }, []),
-        CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME,
-    );
+    const debouncedReadNewestAction = useDebounce(readNewestAction, CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});

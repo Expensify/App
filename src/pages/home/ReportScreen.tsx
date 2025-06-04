@@ -152,12 +152,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
 
-    const debouncedReadNewestAction = useDebounce(
-        useCallback((reportID: string | undefined) => {
-            readNewestAction(reportID);
-        }, []),
-        CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME,
-    );
+    const debouncedReadNewestAction = useDebounce(readNewestAction, CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
