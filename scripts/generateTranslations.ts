@@ -237,30 +237,33 @@ class TranslationGenerator {
     private createTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
             const visit: ts.Visitor = (node) => {
-                if (ts.isStringLiteral(node) && this.shouldNodeBeTranslated(node)) {
-                    const translatedText = translations.get(StringUtils.hash(node.text));
-                    return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
-                }
-                if (this.isTemplateExpressionNode(node)) {
-                    const originalTemplateExpressionAsString = this.templateExpressionToString(node);
-                    console.log(`🟡 Checking TemplateExpression: "${originalTemplateExpressionAsString}"`);
-                    const translatedTemplate = translations.get(StringUtils.hash(originalTemplateExpressionAsString));
-                    if (translatedTemplate) {
-                        console.log(`🔹 Found Translation: "${translatedTemplate}"`);
-                        const translatedTemplateExpression = this.stringToTemplateExpression(translatedTemplate);
-                        try {
-                            // Try printing the expression to validate it
-                            const printedCode = this.tsPrinter.printNode(EmitHint.Unspecified, translatedTemplateExpression, this.debugFile);
-                            console.log(`🪇 Transforming translated template back to TemplateExpression: ${printedCode}`);
-                        } catch (e) {
-                            console.warn(`⚠️ Unhandled TemplateExpression: ${translatedTemplate}`);
-                            return node;
-                        }
-
-                        return translatedTemplateExpression;
+                if (this.shouldNodeBeTranslated(node)) {
+                    if (ts.isStringLiteral(node)) {
+                        const translatedText = translations.get(StringUtils.hash(node.text));
+                        return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
                     }
-                    console.warn('⚠️ No translation found for template expression', originalTemplateExpressionAsString);
-                    return node;
+
+                    if (ts.isTemplateExpression(node)) {
+                        const originalTemplateExpressionAsString = this.templateExpressionToString(node);
+                        console.log(`🟡 Checking TemplateExpression: "${originalTemplateExpressionAsString}"`);
+                        const translatedTemplate = translations.get(StringUtils.hash(originalTemplateExpressionAsString));
+                        if (translatedTemplate) {
+                            console.log(`🔹 Found Translation: "${translatedTemplate}"`);
+                            const translatedTemplateExpression = this.stringToTemplateExpression(translatedTemplate);
+                            try {
+                                // Try printing the expression to validate it
+                                const printedCode = this.tsPrinter.printNode(EmitHint.Unspecified, translatedTemplateExpression, this.debugFile);
+                                console.log(`🪇 Transforming translated template back to TemplateExpression: ${printedCode}`);
+                            } catch (e) {
+                                console.warn(`⚠️ Unhandled TemplateExpression: ${translatedTemplate}`);
+                                return node;
+                            }
+
+                            return translatedTemplateExpression;
+                        }
+                        console.warn('⚠️ No translation found for template expression', originalTemplateExpressionAsString);
+                        return node;
+                    }
                 }
                 return ts.visitEachChild(node, visit, context);
             };
