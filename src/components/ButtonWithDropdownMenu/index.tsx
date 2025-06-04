@@ -231,7 +231,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     shouldUseScrollView
-                    scrollContainerStyle={shouldUseNarrowLayout ? styles.pv4 : undefined}
+                    scrollContainerStyle={shouldUseNarrowLayout && styles.pv4}
                     shouldUseModalPaddingStyle={false}
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
