@@ -464,7 +464,7 @@ function IOURequestStepConfirmation({
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
     const requestMoney = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, gpsPoints?: GpsPoint) => {
+        (selectedParticipants: Participant[], gpsPoints?: GpsPoint) => {
             if (!transactions.length) {
                 return;
             }
@@ -503,7 +503,7 @@ function IOURequestStepConfirmation({
                         currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
                         created: item.created,
                         merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant,
-                        comment: trimmedComment,
+                        comment: item?.comment?.comment?.trim() ?? '',
                         receipt,
                         category: item.category,
                         tag: item.tag,
@@ -577,7 +577,7 @@ function IOURequestStepConfirmation({
     );
 
     const trackExpense = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, gpsPoints?: GpsPoint) => {
+        (selectedParticipants: Participant[], gpsPoints?: GpsPoint) => {
             if (!report || !transactions.length) {
                 return;
             }
@@ -605,7 +605,7 @@ function IOURequestStepConfirmation({
                         currency: item.currency,
                         created: item.created,
                         merchant: item.merchant,
-                        comment: trimmedComment,
+                        comment: item?.comment?.comment?.trim() ?? '',
                         receipt: receiptFiles[item.transactionID],
                         category: item.category,
                         tag: item.tag,
@@ -811,7 +811,7 @@ function IOURequestStepConfirmation({
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                         if (userLocation) {
-                            trackExpense(selectedParticipants, trimmedComment, {
+                            trackExpense(selectedParticipants, {
                                 lat: userLocation.latitude,
                                 long: userLocation.longitude,
                             });
@@ -820,7 +820,7 @@ function IOURequestStepConfirmation({
 
                         getCurrentPosition(
                             (successData) => {
-                                trackExpense(selectedParticipants, trimmedComment, {
+                                trackExpense(selectedParticipants, {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 });
@@ -828,7 +828,7 @@ function IOURequestStepConfirmation({
                             (errorData) => {
                                 Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                trackExpense(selectedParticipants, trimmedComment);
+                                trackExpense(selectedParticipants);
                             },
                             {
                                 maximumAge: CONST.GPS.MAX_AGE,
@@ -839,10 +839,10 @@ function IOURequestStepConfirmation({
                     }
 
                     // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                    trackExpense(selectedParticipants, trimmedComment);
+                    trackExpense(selectedParticipants);
                     return;
                 }
-                trackExpense(selectedParticipants, trimmedComment);
+                trackExpense(selectedParticipants);
                 return;
             }
 
@@ -861,7 +861,7 @@ function IOURequestStepConfirmation({
                     !selectedParticipants.some((participant) => isSelectedManagerMcTest(participant.login))
                 ) {
                     if (userLocation) {
-                        requestMoney(selectedParticipants, trimmedComment, {
+                        requestMoney(selectedParticipants, {
                             lat: userLocation.latitude,
                             long: userLocation.longitude,
                         });
@@ -870,7 +870,7 @@ function IOURequestStepConfirmation({
 
                     getCurrentPosition(
                         (successData) => {
-                            requestMoney(selectedParticipants, trimmedComment, {
+                            requestMoney(selectedParticipants, {
                                 lat: successData.coords.latitude,
                                 long: successData.coords.longitude,
                             });
@@ -878,7 +878,7 @@ function IOURequestStepConfirmation({
                         (errorData) => {
                             Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            requestMoney(selectedParticipants, trimmedComment);
+                            requestMoney(selectedParticipants);
                         },
                         {
                             maximumAge: CONST.GPS.MAX_AGE,
@@ -889,11 +889,11 @@ function IOURequestStepConfirmation({
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                requestMoney(selectedParticipants, trimmedComment);
+                requestMoney(selectedParticipants);
                 return;
             }
 
-            requestMoney(selectedParticipants, trimmedComment);
+            requestMoney(selectedParticipants);
         },
         [
             iouType,
