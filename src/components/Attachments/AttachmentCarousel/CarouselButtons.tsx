@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Tooltip from '@components/Tooltip';
@@ -13,11 +12,11 @@ type CarouselButtonsProps = {
     /** Where the arrows should be visible */
     shouldShowArrows: boolean;
 
-    /** The current page index */
-    page: number;
+    /** Whether the back button is disabled */
+    isBackDisabled: boolean;
 
-    /** The attachments from the carousel */
-    attachments: Attachment[];
+    /** Whether the forward button is disabled */
+    isForwardDisabled: boolean;
 
     /** Callback to go one page back */
     onBack: () => void;
@@ -32,11 +31,9 @@ type CarouselButtonsProps = {
     cancelAutoHideArrow?: () => void;
 };
 
-function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow}: CarouselButtonsProps) {
+function CarouselButtons({isBackDisabled, isForwardDisabled, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow}: CarouselButtonsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isBackDisabled = page === 0;
-    const isForwardDisabled = page === attachments.length - 1;
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 

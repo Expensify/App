@@ -49,6 +49,9 @@ function AttachmentCarouselView({
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
 
+    const isBackDisabled = page === 0;
+    const isForwardDisabled = page === attachments.length - 1;
+
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
@@ -66,8 +69,8 @@ function AttachmentCarouselView({
                 <>
                     <CarouselButtons
                         shouldShowArrows={shouldShowArrows}
-                        page={page}
-                        attachments={attachments}
+                        isBackDisabled={isBackDisabled}
+                        isForwardDisabled={isForwardDisabled}
                         onBack={() => cycleThroughAttachments(-1)}
                         onForward={() => cycleThroughAttachments(1)}
                         autoHideArrow={autoHideArrows}
