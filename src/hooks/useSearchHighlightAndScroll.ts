@@ -66,22 +66,6 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
-            // If we're not focused, don't trigger search
-            if (!isFocused) {
-                return;
-            }
-
-            const newIDs = isChat ? reportActionsIDs : transactionsIDs;
-            const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDs.includes(id));
-
-            // Only skip search if there are no new items AND search results aren't empty
-            // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && existingSearchResultIDs.length > 0) {
-                const hasDeletedID = existingSearchResultIDs.some((id) => !newIDs.includes(id));
-                if (!hasDeletedID) {
-                    return;
-                }
-            }
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
@@ -96,7 +80,12 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
         }
-    }, [isFocused, transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, searchResults?.data, existingSearchResultIDs]);
+
+        // Reset the ref when transactions or report actions in chat search type are updated
+        return () => {
+            searchTriggeredRef.current = false;
+        };
+    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
