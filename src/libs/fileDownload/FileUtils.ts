@@ -385,11 +385,7 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
-const validateReceiptFile = (file: FileObject) => {
-    if (!isValidReceiptExtension(file)) {
-        return CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
-    }
-
+const validateAttachment = (file: FileObject) => {
     if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
         return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
@@ -452,7 +448,7 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
-    validateReceiptFile,
+    validateAttachment,
     isValidReceiptExtension,
     getFileValidationErrorText,
 };

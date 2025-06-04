@@ -14,7 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import {cleanFileName, getFileName, getFileValidationErrorText, validateImageForCorruption, validateReceiptFile} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileName, getFileValidationErrorText, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -194,6 +194,7 @@ function AttachmentModal({
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | undefined>(undefined);
+    const [isFileErrorModalVisible, setIsFileErrorModalVisible] = useState(false);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
@@ -230,6 +231,13 @@ function AttachmentModal({
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
     }, [originalFileName]);
+
+    useEffect(() => {
+        if (!fileError) {
+            return;
+        }
+        setIsFileErrorModalVisible(true);
+    }, [fileError]);
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
@@ -297,7 +305,8 @@ function AttachmentModal({
 
         if (onConfirm) {
             if (validFilesToUpload) {
-                onConfirm(validFilesToUpload)
+                onConfirm(validFilesToUpload);
+                setValidFilesToUpload([]);
             } else {
                 onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
             }
@@ -311,8 +320,11 @@ function AttachmentModal({
      * Close the confirm modals.
      */
     const closeConfirmModal = useCallback(() => {
-        setFileError(undefined);
+        setIsFileErrorModalVisible(false);
         setIsDeleteReceiptConfirmModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            setFileError(undefined);
+        })
     }, []);
 
     /**
@@ -328,7 +340,7 @@ function AttachmentModal({
         (fileObject: FileObject) =>
             validateImageForCorruption(fileObject)
                 .then(() => {
-                    const error = validateReceiptFile(fileObject);
+                    const error = validateAttachment(fileObject);
                     if (error) {
                         setFileError(error);
                         return false;
@@ -361,39 +373,46 @@ function AttachmentModal({
         [getModalType, setSourceState, setFile, setModalType],
     );
 
+    const validateFiles = (data: FileObject[]) => {
+        let validFiles: FileObject[] = [];
+        // Validate all files in parallel and collect valid ones
+        Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
+            // Filter out null values (invalid files)
+            validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
+            setValidFilesToUpload(validFiles);
+
+            // Only open modal if we have valid files
+            if (validFiles.length > 0) {
+                // eslint-disable-next-line
+                const fileToDisplay = validFiles.at(0) as FileObject;
+                handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
+            }
+        });
+    };
+
+    const confirmAndContinue = () => {
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+            validateFiles(validFilesToUpload);
+        } else {
+            setValidFilesToUpload([]);
+        }
+        closeConfirmModal();
+    };
+
     const validateAndDisplayMultipleFilesToUpload = useCallback(
         (data: FileObject[]) => {
             if (!data?.length || data.some((fileObject) => !isDirectoryCheck(fileObject))) {
                 return;
             }
-            let validFiles: FileObject[] = [];
             if (data.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
-                validFiles = data.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+                const validFiles = data.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
                 setValidFilesToUpload(validFiles);
                 setFileError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
                 return;
             }
-
-            // Validate all files in parallel and collect valid ones
-            Promise.all(
-                data.map((fileToUpload) =>
-                    isValidFile(fileToUpload)
-                        .then((isValid) => isValid ? fileToUpload : null)
-                )
-            ).then((results) => {
-                // Filter out null values (invalid files)
-                validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
-                setValidFilesToUpload(validFiles);
-
-                // Only open modal if we have valid files
-                if (validFiles.length > 0) {
-                    // eslint-disable-next-line
-                    const fileToDisplay = validFiles.at(0) as FileObject;
-                    handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
-                }
-            });
+            validateFiles(data);
         },
-        [handleOpenModal, isDirectoryCheck, isValidFile],
+        [isDirectoryCheck, validateFiles],
     );
 
     const validateAndDisplayFileToUpload = useCallback(
@@ -705,12 +724,13 @@ function AttachmentModal({
             {!isReceiptAttachment && (
                 <ConfirmModal
                     title={fileError ? translate(getFileValidationErrorText(fileError).title) : ''}
-                    onConfirm={closeConfirmModal}
+                    onConfirm={confirmAndContinue}
                     onCancel={closeConfirmModal}
-                    isVisible={!!fileError}
+                    isVisible={isFileErrorModalVisible}
                     prompt={fileError ? translate(getFileValidationErrorText(fileError).reason) : ''}
-                    confirmText={translate('common.close')}
-                    shouldShowCancelButton={false}
+                    confirmText={translate(validFilesToUpload.length ? 'common.continue' : 'common.close')}
+                    shouldShowCancelButton={!!validFilesToUpload.length}
+                    cancelText={translate('common.cancel')}
                     onModalHide={() => {
                         if (!isPDFLoadError.current) {
                             return;
