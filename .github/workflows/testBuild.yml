@@ -129,12 +129,38 @@ jobs:
 
   postGitHubCommentBuildStarted:
     name: Post build started comment
-    uses: ./.github/workflows/postBuildStartedComment.yml
+    runs-on: ubuntu-latest
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
-    secrets: inherit
-    with:
-      APP_PULL_REQUEST_NUMBER: ${{ inputs.APP_PULL_REQUEST_NUMBER }}
-      MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER }}
+    steps:
+      - name: Add build start comment to Expensify/App PR
+        if: ${{ inputs.APP_PULL_REQUEST_NUMBER != ''}}
+        # v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          github-token: ${{ github.token }}
+          script: |
+              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+              github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.APP_PULL_REQUEST_NUMBER }},
+              body: `🚧 @${{ github.actor }} has triggered a test Expensify/App build. You can view the [workflow run here](${workflowURL}).`
+              });
+
+      - name: Add build start comment to Expensify/Mobile-Expensify PR
+        if: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR != '' }}
+        # v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          script: |
+              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+              github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: 'Mobile-Expensify',
+              issue_number: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }},
+              body: `🚧 @${{ github.actor }} has triggered a test Expensify/Mobile-Expensify build. You can view the [workflow run here](${workflowURL}).`
+              });
 
   desktop:
     name: Build and deploy Desktop for testing
