@@ -65,7 +65,7 @@ type BaseFeatureTrainingModalProps = {
     secondaryDescription?: string;
 
     /** Style for the title */
-    titleStyles: StyleProp<TextStyle>;
+    titleStyles?: StyleProp<TextStyle>;
 
     /** Whether to show `Don't show me this again` option */
     shouldShowDismissModalOption?: boolean;
