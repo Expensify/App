@@ -5100,8 +5100,8 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     const parameters: MoveIOUReportToExistingPolicyParams = {
         iouReportID,
         policyID,
-        changePolicyReportAction: changePolicyReportAction.reportActionID,
-        dmMovedReportAction: movedReportAction.reportActionID,
+        changePolicyReportActionID: changePolicyReportAction.reportActionID,
+        dmMovedReportActionID: movedReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
@@ -5351,8 +5351,8 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         policyID,
         policyExpenseChatReportID: optimisticPolicyExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
         policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
-        changePolicyReportAction: changePolicyReportAction.reportActionID,
-        dmMovedReportAction: movedReportAction.reportActionID,
+        changePolicyReportActionID: changePolicyReportAction.reportActionID,
+        dmMovedReportActionID: movedReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER, parameters, {optimisticData, successData, failureData});

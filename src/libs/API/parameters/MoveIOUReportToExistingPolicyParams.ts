@@ -1,8 +1,8 @@
 type MoveIOUReportToExistingPolicyParams = {
     iouReportID: string;
     policyID: string;
-    changePolicyReportAction: string;
-    dmMovedReportAction: string;
+    changePolicyReportActionID: string;
+    dmMovedReportActionID: string;
 };
 
 export default MoveIOUReportToExistingPolicyParams;

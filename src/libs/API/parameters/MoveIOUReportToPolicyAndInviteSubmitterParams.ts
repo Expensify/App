@@ -3,8 +3,8 @@ type MoveIOUReportToPolicyAndInviteSubmitterParams = {
     policyID: string;
     policyExpenseChatReportID: string;
     policyExpenseCreatedReportActionID: string;
-    changePolicyReportAction: string;
-    dmMovedReportAction: string;
+    changePolicyReportActionID: string;
+    dmMovedReportActionID: string;
 };
 
 export default MoveIOUReportToPolicyAndInviteSubmitterParams;
