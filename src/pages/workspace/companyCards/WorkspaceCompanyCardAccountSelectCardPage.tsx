@@ -17,6 +17,7 @@ import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
 import {getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -51,7 +52,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank as CompanyCardFeed]);
 
     const searchedListOptions = useMemo(() => {
-        return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
+        return tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
     }, [exportMenuItem?.data, searchText]);
 
     const listEmptyContent = useMemo(

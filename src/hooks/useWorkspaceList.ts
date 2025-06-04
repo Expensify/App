@@ -4,6 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -59,9 +60,9 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyID, searchT
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
-            usersWorkspaces
-                .filter((policy) => policy.text?.toLowerCase().includes(searchTerm?.toLowerCase() ?? ''))
-                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyID)),
+            tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) =>
+                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyID),
+            ),
         [searchTerm, usersWorkspaces, selectedPolicyID],
     );
 

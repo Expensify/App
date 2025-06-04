@@ -250,6 +250,7 @@ import {
     isPending,
     isPerDiemRequest,
     isReceiptBeingScanned,
+    isScanning,
     isScanRequest as isScanRequestTransactionUtils,
 } from './TransactionUtils';
 import {addTrailingForwardSlash} from './Url';
@@ -4030,7 +4031,6 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const isApprover = isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && currentUserPersonalDetails?.accountID === moneyRequestReport?.managerID;
     const isAdmin = isPolicyAdmin(moneyRequestReport.policyID, allPolicies);
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isScanning = hasReceiptTransactionUtils(transaction) && isReceiptBeingScanned(transaction);
     const isClosed = isClosedReport(moneyRequestReport);
 
     const isSubmitted = isProcessingReport(moneyRequestReport);
@@ -4039,7 +4039,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const isDeletedParentActionLocal = isEmptyObject(parentReportAction) || isDeletedAction(parentReportAction);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed && !isDeletedParentAction(reportAction);
-    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning && (isSubmitted || isActionOwner);
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning(transaction) && (isSubmitted || isActionOwner);
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
     return {canHoldRequest, canUnholdRequest};
@@ -4096,7 +4096,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
     if (getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
     }
-    return transactionsWithReceipts.every((transaction) => isReceiptBeingScanned(transaction));
+    return transactionsWithReceipts.every((transaction) => isScanning(transaction));
 }
 
 /**
@@ -4178,7 +4178,7 @@ function getTransactionReportName({
         return isTrackExpenseAction(reportAction) ? translateLocal('iou.createExpense') : translateLocal('iou.expense');
     }
 
-    if (hasReceiptTransactionUtils(transaction) && isReceiptBeingScanned(transaction)) {
+    if (isScanning(transaction)) {
         return translateLocal('iou.receiptScanning', {count: 1});
     }
 
@@ -4232,7 +4232,7 @@ function getReportPreviewMessage(
 
     const allReportTransactions = getReportTransactions(report.reportID);
     const transactionsWithReceipts = allReportTransactions.filter(hasReceiptTransactionUtils);
-    const numberOfScanningReceipts = transactionsWithReceipts.filter(isReceiptBeingScanned).length;
+    const numberOfScanningReceipts = transactionsWithReceipts.filter(isScanning).length;
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
@@ -4242,7 +4242,7 @@ function getReportPreviewMessage(
         }
 
         if (!isEmptyObject(linkedTransaction)) {
-            if (isReceiptBeingScanned(linkedTransaction)) {
+            if (isScanning(linkedTransaction)) {
                 return translateLocal('iou.receiptScanning', {count: 1});
             }
 
@@ -4264,7 +4264,7 @@ function getReportPreviewMessage(
         }
 
         if (!isEmptyObject(linkedTransaction)) {
-            if (isReceiptBeingScanned(linkedTransaction)) {
+            if (isScanning(linkedTransaction)) {
                 return translateLocal('iou.receiptScanning', {count: 1});
             }
 
@@ -4294,12 +4294,12 @@ function getReportPreviewMessage(
         });
     }
 
-    let linkedTransaction;
+    let linkedTransaction: OnyxEntry<Transaction>;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
         linkedTransaction = getLinkedTransaction(iouReportAction);
     }
 
-    if (!isEmptyObject(linkedTransaction) && hasReceiptTransactionUtils(linkedTransaction) && isReceiptBeingScanned(linkedTransaction)) {
+    if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
         return translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
     }
 
@@ -7630,7 +7630,7 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
     }
 
     // For all other cases, just check that the user belongs to the default rooms beta
-    return Permissions.canUseDefaultRooms(betas ?? []);
+    return Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, betas ?? []);
 }
 
 function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
@@ -8377,7 +8377,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     const isPolicyOwnedByExpensifyAccounts = policyOwnerAccountID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID) : false;
     if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
         // Allow create expense option for Manager McTest report
-        if (reportParticipants.some((accountID) => accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) && Permissions.canUseManagerMcTest(allBetas)) {
+        if (reportParticipants.some((accountID) => accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) && Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, allBetas)) {
             return [CONST.IOU.TYPE.SUBMIT];
         }
         return [];
@@ -10838,6 +10838,14 @@ function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportA
     return reportActionList.some((action) => isReopenedAction(action));
 }
 
+function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean) {
+    if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
+        const originalMessage = getOriginalMessage(action);
+        return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
+    }
+    return getReportName(iouReport) || action.childReportName;
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11214,6 +11222,7 @@ export {
     isWorkspaceEligibleForReportChange,
     navigateOnDeleteExpense,
     hasReportBeenReopened,
+    getMoneyReportPreviewName,
 };
 
 export type {

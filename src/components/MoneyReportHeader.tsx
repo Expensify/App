@@ -50,6 +50,7 @@ import {
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     hasDuplicateTransactions,
@@ -58,7 +59,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
-    isReceiptBeingScanned,
+    isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
@@ -210,7 +211,7 @@ function MoneyReportHeader({
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getValidConnectedIntegration(policy);
-    const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
+    const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isScanning(t));
     const hasOnlyPendingTransactions = useMemo(() => {
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
@@ -486,6 +487,10 @@ function MoneyReportHeader({
                     if (!moneyRequestReport?.reportID) {
                         return;
                     }
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
                 },
             },
@@ -494,11 +499,15 @@ function MoneyReportHeader({
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
                 onSelected: () => {
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
                     openUnreportedExpense(moneyRequestReport?.reportID);
                 },
             },
         ],
-        [moneyRequestReport?.reportID, translate],
+        [moneyRequestReport?.reportID, policy, translate],
     );
 
     const primaryActionsImplementation = {
@@ -620,7 +629,7 @@ function MoneyReportHeader({
         ),
     };
 
-    const {canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
@@ -639,11 +648,11 @@ function MoneyReportHeader({
             reportNameValuePairs,
             reportActions,
             policies,
-            canUseRetractNewDot,
-            canUseTableReportView,
-            canUseNewDotSplits,
+            isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
+            isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
+            isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
         );
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, canUseRetractNewDot, canUseTableReportView, canUseNewDotSplits]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -818,7 +827,7 @@ function MoneyReportHeader({
                     setIsDeleteReportModalVisible(true);
                 }
             },
-            shouldShow: canUseTableReportView,
+            shouldShow: isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
             text: translate('iou.undoSubmit'),
@@ -848,6 +857,10 @@ function MoneyReportHeader({
             subMenuItems: addExpenseDropdownOptions,
             onSelected: () => {
                 if (!moneyRequestReport?.reportID) {
+                    return;
+                }
+                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
                 startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
