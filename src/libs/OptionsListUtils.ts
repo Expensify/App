@@ -1696,9 +1696,7 @@ function getValidPersonalDetailOptions(
 /**
  * Returns a list of logins that should be restricted (i.e., hidden or excluded in the UI)
  * based on dynamic business logic and feature flags.
- *
  * Centralizes restriction logic to avoid scattering conditions across the codebase.
- * Add new restricted accounts by extending the returned object.
  */
 function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
     const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
