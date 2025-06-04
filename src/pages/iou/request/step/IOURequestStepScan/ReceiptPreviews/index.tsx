@@ -142,12 +142,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                         innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
                         icon={Expensicons.ArrowRight}
                         iconFill={theme.white}
-                        onPress={() => {
-                            // TODO: uncomment the submit call when necessary updates for the confirmation page and bulk expense creation are implemented
-                            // https://github.com/Expensify/App/issues/61183
-                            // https://github.com/Expensify/App/issues/61184
-                            submitReceipts();
-                        }}
+                        onPress={submitReceipts}
                     />
                 </SubmitButtonShadow>
             </View>
