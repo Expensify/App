@@ -18,10 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch merge base SHA from API
-        id: merge_base
+        id: count_this_branch
         run: |
-          MERGE_BASE_SHA="$(gh api "repos/$REPO/compare/${PR_BASE_SHA}...${PR_HEAD_SHA}" | jq -r '.merge_base_commit.sha')"
-          echo "MERGE_BASE_SHA=$MERGE_BASE_SHA" >> "$GITHUB_OUTPUT"
+          COMMITS_THIS_BRANCH="$(gh api "repos/$REPO/compare/${PR_BASE_SHA}...${PR_HEAD_SHA}" | jq -r '.total_commits')"
+          echo "count=$COMMITS_THIS_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "Total commits this branch: $COMMITS_THIS_BRANCH"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -33,12 +34,14 @@ jobs:
         run: |
           RAW_COUNT="$(gh api "repos/$REPO/compare/${BASE}...main" | jq -r '.total_commits')"
           ADJUSTED_COUNT=$((RAW_COUNT + 2))
+          echo "Commits since main: $RAW_COUNT"
+          echo "Adjusted count: $ADJUSTED_COUNT"
           echo "count=$ADJUSTED_COUNT" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BASE: ${{ steps.merge_base.outputs.MERGE_BASE_SHA }}
+          BASE: ${{ github.event.pull_request.base.sha }}
           REPO: ${{ github.repository }}
-          
+
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
@@ -49,7 +52,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           IS_DESKTOP_BUILD: true
- 
+
       - name: Run ESLint to check for deprecation warnings
         run: |
           # shellcheck disable=SC2046
