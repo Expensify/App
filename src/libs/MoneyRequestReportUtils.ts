@@ -102,7 +102,7 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
 const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => {
     // Determine whether the non-held amount is appropriate to display for the PAY or APPROVE button.
     const isPayOrApproveAction: boolean = reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY || reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
-    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, isPayOrApproveAction);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(report?.reportID);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
