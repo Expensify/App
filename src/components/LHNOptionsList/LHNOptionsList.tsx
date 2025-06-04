@@ -15,8 +15,8 @@ import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
-import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
@@ -266,7 +266,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             activePolicyID,
             introSelected?.choice,
             isFullscreenVisible,
-            isReportsSplitNavigatorLast
+            isReportsSplitNavigatorLast,
         ],
     );
 
