@@ -204,19 +204,21 @@ function MoneyRequestReportTransactionList({
 
     useEffect(() => {
         const lastFullScreenRoute = navigationRef.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
+        // Only setActiveTransactionThreadIDs if current full screen report route is this report
         if (lastFullScreenRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR && lastFullScreenRoute?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
             return;
         }
 
         const lastRoute = lastFullScreenRoute?.state?.routes?.at(-1);
-        // Only setActiveTransactionThreadIDs if the last route is a Report screen and reportID matches the current report
+        // Check params contain reportID
         if (!lastRoute?.params || !('reportID' in lastRoute.params)) {
             return;
         }
+        // Check lastRoute is a report screen
         if (lastRoute?.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT && lastRoute?.name !== SCREENS.REPORT) {
             return;
         }
-
+        // Check lastRoute params has reportID equal with this reportID
         if (lastRoute.params.reportID !== report.reportID) {
             return;
         }
