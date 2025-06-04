@@ -4688,7 +4688,7 @@ const styles = (theme: ThemeColors) =>
         moneyRequestImage: {
             height: 200,
             borderRadius: 16,
-            margin: 20,
+            marginHorizontal: 20,
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
@@ -4866,7 +4866,6 @@ const styles = (theme: ThemeColors) =>
 
         moneyRequestViewImage: {
             ...spacing.mh5,
-            ...spacing.mv3,
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
@@ -4905,6 +4904,7 @@ const styles = (theme: ThemeColors) =>
         moneyRequestAttachReceiptThumbnail: {
             backgroundColor: theme.hoverComponentBG,
             borderWidth: 0,
+            width: '100%',
         },
 
         receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
@@ -5792,8 +5792,9 @@ const styles = (theme: ThemeColors) =>
             // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
             // and never expand over the max height
             const height = Math.min(ESTIMATED_LIST_HEIGHT, CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * 0.9);
+            const width = shouldUseNarrowLayout ? sizing.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH};
 
-            return {height};
+            return {height, ...width};
         },
 
         earlyDiscountButton: {
