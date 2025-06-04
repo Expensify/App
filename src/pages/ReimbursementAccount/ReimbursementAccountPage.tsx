@@ -67,7 +67,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
-    const {canUseGlobalReimbursementsOnND} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
     const backTo = route.params.backTo;
@@ -78,7 +78,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, canUseGlobalReimbursementsOnND ?? false);
+    const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
