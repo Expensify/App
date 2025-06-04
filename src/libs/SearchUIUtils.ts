@@ -364,7 +364,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const transactionItem = data[key];
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const shouldShowBlankTo = isOpenExpenseReport(report);
+        const shouldShowBlankTo = !report || isOpenExpenseReport(report);
 
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
@@ -414,6 +414,16 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             transactionThreadReportID: transactionItem.transactionThreadReportID,
             isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
             tag: transactionItem.tag,
+            receipt: transactionItem.receipt,
+            taxAmount: transactionItem.taxAmount,
+            description: transactionItem.description,
+            mccGroup: transactionItem.mccGroup,
+            modifiedMCCGroup: transactionItem.modifiedMCCGroup,
+            moneyRequestReportActionID: transactionItem.moneyRequestReportActionID,
+            pendingAction: transactionItem.pendingAction,
+            errors: transactionItem.errors,
+            isActionLoading: transactionItem.isActionLoading,
+            hasViolation: transactionItem.hasViolation,
         };
 
         transactionsSections.push(transactionSection);
@@ -530,7 +540,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     }
 
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcut the logic for performance reasons
-    if (!isMoneyRequestReport(report)) {
+    if (!isMoneyRequestReport(report) && !isInvoiceReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
@@ -745,7 +755,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-            const shouldShowBlankTo = isOpenExpenseReport(report);
+            const shouldShowBlankTo = !report || isOpenExpenseReport(report);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
@@ -1055,7 +1065,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
             const isPolicyApprover = policy.approver === email;
             const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-                return employee.submitsTo === email;
+                return employee.submitsTo === email || employee.forwardsTo === email;
             });
 
             return isPolicyApprover || isSubmittedTo;

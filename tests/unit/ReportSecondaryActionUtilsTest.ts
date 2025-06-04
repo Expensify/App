@@ -2,11 +2,10 @@ import Onyx from 'react-native-onyx';
 import {getSecondaryReportActions, getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
-import {getOriginalMessage} from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
-import {actionR14932} from '../../__mocks__/reportData/actions';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import {actionR14932, originalMessageR14932} from '../../__mocks__/reportData/actions';
 
 const EMPLOYEE_ACCOUNT_ID = 1;
 const EMPLOYEE_EMAIL = 'employee@mail.com';
@@ -400,7 +399,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
 
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
-        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce((getOriginalMessage(actionR14932) as OriginalMessageIOU).IOUTransactionID);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, [actionR14932]);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
