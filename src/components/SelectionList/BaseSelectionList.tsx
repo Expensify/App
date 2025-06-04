@@ -145,6 +145,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUseDefaultRightHandSideCheckmark,
         selectedItems = [],
         isSelected,
+        shouldScrollSelectedItemToTop = true,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -270,6 +271,15 @@ function BaseSelectionList<TItem extends ListItem>(
         };
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 
+    const focusedOptionKey = useMemo(() => {
+        if (shouldScrollSelectedItemToTop === false && canSelectMultiple && !initiallyFocusedOptionKey && flattenedSections.allOptions.length > 0) {
+            const firstSelectedItem = flattenedSections.allOptions.find((item) => isItemSelected(item));
+
+            return firstSelectedItem ? firstSelectedItem.keyForList : '';
+        }
+        return initiallyFocusedOptionKey;
+    }, [shouldScrollSelectedItemToTop, canSelectMultiple, flattenedSections.allOptions, initiallyFocusedOptionKey, isItemSelected]);
+
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const processedSections = getSectionsWithIndexOffset(
@@ -362,7 +372,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
+        initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === focusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
         isActive: shouldSubscribeToArrowKeyEvents && isFocused,
@@ -386,8 +396,8 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [setHasKeyBeenPressed]);
 
     const selectedItemIndex = useMemo(
-        () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex(isItemSelected) : -1),
-        [flattenedSections.allOptions, initiallyFocusedOptionKey, isItemSelected],
+        () => (focusedOptionKey ? flattenedSections.allOptions.findIndex(isItemSelected) : -1),
+        [flattenedSections.allOptions, focusedOptionKey, isItemSelected],
     );
 
     useEffect(() => {
@@ -419,7 +429,7 @@ function BaseSelectionList<TItem extends ListItem>(
             }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                if (sections.length > 1 && !isItemSelected(item)) {
+                if (sections.length > 1 && !isItemSelected(item) && shouldScrollSelectedItemToTop) {
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(0, true);
                 }
