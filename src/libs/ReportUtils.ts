@@ -10834,7 +10834,6 @@ function generateReportAttributes({
     // so if we don't already have the reason, we need to get the newer actions
     // and then try to get the reason again. if currentArchiveReason is null,
     // it means we've already fetched it and it's not archived.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (!archiveReason && chatIncludesConcierge(report) && currentArchiveReason !== null) {
         getNewerActions(report?.reportID, getLastVisibleAction(report?.reportID)?.reportActionID);
         archiveReason = getArchiveReason(reportActionsList);
