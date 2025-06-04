@@ -917,6 +917,7 @@ const translations = {
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
         flash: 'flash',
+        multiScan: 'escaneo múltiple',
         shutter: 'obturador',
         gallery: 'galería',
         deleteReceipt: 'Eliminar recibo',
@@ -6427,7 +6428,7 @@ const translations = {
         keepThisOne: 'Mantener éste',
         confirmDetails: 'Confirma los detalles que conservas',
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
-        hold: 'Retenido',
+        hold: 'Este gasto está retenido',
         resolvedDuplicates: 'resolvió el duplicado',
     },
     reportViolations: {

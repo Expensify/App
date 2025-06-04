@@ -53,6 +53,12 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [isSwipeDisabled, setSwipeDisabled] = useState(false);
+    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: (items) => Object.values(items ?? {}),
+        canBeMissing: true,
+    });
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((optimisticTransactions ?? []).length > 1);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -85,6 +91,7 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
+            setIsMultiScanEnabled(false);
             initMoneyRequest({
                 reportID,
                 policy,
@@ -173,6 +180,7 @@ function IOURequestStartPage({
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                                 shouldShowLabelWhenInactive={!shouldShowPerDiemOption}
                                 lazyLoadEnabled
+                                disableSwipe={isSwipeDisabled}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -191,6 +199,9 @@ function IOURequestStartPage({
                                             <IOURequestStepScan
                                                 route={route}
                                                 navigation={navigation}
+                                                setTabSwipeDisabled={setSwipeDisabled}
+                                                isMultiScanEnabled={isMultiScanEnabled}
+                                                setIsMultiScanEnabled={setIsMultiScanEnabled}
                                                 isTooltipAllowed
                                             />
                                         </TabScreenWithFocusTrapWrapper>
