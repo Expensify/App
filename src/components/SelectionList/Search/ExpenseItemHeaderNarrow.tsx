@@ -52,7 +52,7 @@ function ExpenseItemHeaderNarrow({
     const theme = useTheme();
 
     // It might happen that we are missing display names for `From` or `To`, we only display arrow icon if both names exist
-    const shouldShowToRecipient = isCorrectSearchUserName(participantFromDisplayName) && isCorrectSearchUserName(participantToDisplayName);
+    const shouldShowToRecipient = isCorrectSearchUserName(participantFromDisplayName) && isCorrectSearchUserName(participantToDisplayName) && !!participantTo?.accountID;
     const shouldShowAction = useMemo(() => action !== CONST.SEARCH.ACTION_TYPES.VIEW && action !== CONST.SEARCH.ACTION_TYPES.REVIEW, [action]);
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb3, styles.gap2, containerStyle]}>

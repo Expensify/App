@@ -27,11 +27,14 @@ function useOptions() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const existingDelegates = useMemo(
         () =>
-            account?.delegatedAccess?.delegates?.reduce((prev, {email}) => {
-                // eslint-disable-next-line no-param-reassign
-                prev[email] = true;
-                return prev;
-            }, {} as Record<string, boolean>),
+            account?.delegatedAccess?.delegates?.reduce(
+                (prev, {email}) => {
+                    // eslint-disable-next-line no-param-reassign
+                    prev[email] = true;
+                    return prev;
+                },
+                {} as Record<string, boolean>,
+            ),
         [account?.delegatedAccess?.delegates],
     );
 
