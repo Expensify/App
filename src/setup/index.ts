@@ -1,5 +1,6 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
+import CacheAPI from '@libs/CacheAPI';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -52,6 +53,8 @@ export default function () {
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
+
+    CacheAPI.init(['attachment']);
 
     initOnyxDerivedValues();
 

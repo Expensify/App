@@ -1,4 +1,5 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
+import CacheAPI from '@libs/CacheAPI';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 
@@ -13,13 +14,11 @@ function uploadAttachment(attachmentID: string, url: string) {
     if (!attachmentID || !url) {
         return;
     }
-    fetchFile(url)?.then((file) => {
-        if (!file) {
+    fetch(url)?.then((response) => {
+        if (!response.ok) {
             return;
         }
-        Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-            source: file,
-        });
+        CacheAPI.put('attachment', attachmentID, response);
     });
 }
 
