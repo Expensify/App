@@ -226,7 +226,7 @@ describe('getReportPreviewAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        // Simulate how components determind if a chat report is archived by using this hook
+        // Simulate how components determined if a chat report is archived by using this hook
         const {result: isChatReportArchived} = renderHook(() => useReportIsArchived(report?.chatReportID));
 
         // Then the getReportPreviewAction should return the View action
