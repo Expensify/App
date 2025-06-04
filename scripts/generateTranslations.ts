@@ -69,18 +69,9 @@ class TranslationGenerator {
         const sourceFile = ts.createSourceFile(this.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
 
         for (const targetLanguage of this.targetLanguages) {
-            // Extract strings
+            // Extract strings to translate
             const stringsToTranslate = new Map<number, string>();
-            this.extractStrings(sourceFile, stringsToTranslate);
-
-            // Extract templateExpressions
-            const templatesToTranslate = new Map<number, TemplateExpression>();
-            this.extractTemplateExpressions(sourceFile, templatesToTranslate);
-
-            // Transform the template expressions to strings and add them to the map
-            for (const [key, templateExpression] of templatesToTranslate) {
-                stringsToTranslate.set(key, this.templateExpressionToString(templateExpression));
-            }
+            this.extractStringsToTranslate(sourceFile, stringsToTranslate);
 
             const translations = new Map<number, string>();
             for (const [key, value] of stringsToTranslate) {
@@ -174,23 +165,17 @@ class TranslationGenerator {
     }
 
     /**
-     * Recursively extract all string literals from the subtree rooted at the given node.
+     * Recursively extract all string literals and templates from the subtree rooted at the given node.
      */
-    private extractStrings(node: ts.Node, strings: Map<number, string>) {
-        if (ts.isStringLiteral(node) && this.shouldNodeBeTranslated(node)) {
-            strings.set(StringUtils.hash(node.text), node.text);
+    private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, string>) {
+        if (this.shouldNodeBeTranslated(node)) {
+            if (ts.isStringLiteral(node)) {
+                stringsToTranslate.set(StringUtils.hash(node.text), node.text);
+            } else if (ts.isTemplateExpression(node)) {
+                stringsToTranslate.set(StringUtils.hash(this.templateExpressionToString(node)), this.templateExpressionToString(node));
+            }
         }
-        node.forEachChild((child) => this.extractStrings(child, strings));
-    }
-
-    /**
-     * Recursively extract all template expressions from the subtree rooted at the given node.
-     */
-    private extractTemplateExpressions(node: ts.Node, templateExpressions: Map<number, TemplateExpression>) {
-        if (this.isTemplateExpressionNode(node)) {
-            templateExpressions.set(StringUtils.hash(this.templateExpressionToString(node)), node);
-        }
-        node.forEachChild((child) => this.extractTemplateExpressions(child, templateExpressions));
+        node.forEachChild((child) => this.extractStringsToTranslate(child, stringsToTranslate));
     }
 
     /**
