@@ -101,9 +101,7 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
  */
 const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => {
     // Determine whether the non-held amount is appropriate to display for the PAY or APPROVE button.
-    const isPayAction: boolean = reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
-    const isPayOrApproveAction: boolean = isPayAction || reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
-
+    const isPayOrApproveAction: boolean = reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY || reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, isPayOrApproveAction);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(report?.reportID);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
@@ -123,7 +121,7 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
         }
 
         // Default to reimbursable spend for PAY button if above conditions are not met.
-        if (isPayAction){
+        else if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
             return convertToDisplayString(reimbursableSpend, report?.currency);
         }
     }
