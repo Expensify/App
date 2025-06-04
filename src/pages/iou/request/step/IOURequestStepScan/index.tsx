@@ -48,7 +48,6 @@ import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@lib
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -129,7 +128,6 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -150,8 +148,7 @@ function IOURequestStepScan({
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
-    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const platform = getPlatform(true);
 
@@ -637,7 +634,7 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
+        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && isTabActive && !isUserInvitedToWorkspace(),
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
@@ -971,8 +968,8 @@ function IOURequestStepScan({
                                 {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                             </View>
                         </EducationalTooltip>
-                        {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
-                        {canUseMultiFilesDragAndDrop ? (
+                        {/* TODO: remove beta check after the feature is enabled */}
+                        {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
                             <DropZoneUI
                                 onDrop={(e) => {
                                     const file = e?.dataTransfer?.files[0];

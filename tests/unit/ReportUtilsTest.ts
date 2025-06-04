@@ -32,6 +32,7 @@ import {
     getGroupChatName,
     getIconsForParticipants,
     getInvoiceChatByParticipants,
+    getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParticipantsList,
     getPolicyExpenseChat,
@@ -2797,6 +2798,30 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             expect(isReportOutstanding(report, policy.id)).toBe(false);
+        });
+    });
+
+    describe('getMoneyReportPreviewName', () => {
+        it('should return the report name if present', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe('Five, Four, One, Three, Two...');
+        });
+
+        it('should return the child report name if the report name is not present', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: 'Child Report',
+            };
+            const result = getMoneyReportPreviewName(action, undefined);
+            expect(result).toBe('Child Report');
         });
     });
 
