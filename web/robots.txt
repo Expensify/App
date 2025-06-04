@@ -2,3 +2,4 @@ User-agent: *
 Disallow: /
 
 Sitemap: https://help.expensify.com/sitemap.xml
+Sitemap: https://use.expensify.com/sitemap.xml
