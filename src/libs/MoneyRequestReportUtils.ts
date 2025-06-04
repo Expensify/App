@@ -121,7 +121,7 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
         }
 
         // Default to reimbursable spend for PAY button if above conditions are not met.
-        else if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
+        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
             return convertToDisplayString(reimbursableSpend, report?.currency);
         }
     }

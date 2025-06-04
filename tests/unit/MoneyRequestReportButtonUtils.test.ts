@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+// Import after mocks so we get the mocked versions
+import {getMoneyRequestSpendBreakdown, getNonHeldAndFullAmount, hasHeldExpenses} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policy420A as mockPolicy} from '../../__mocks__/reportData/policies';
@@ -25,9 +27,6 @@ jest.mock('@libs/CurrencyUtils', () => ({
     convertToDisplayString: jest.fn().mockImplementation((amountInCents = 0): string => `$${amountInCents}.00`),
 }));
 
-// Import after mocks so we get the mocked versions
-const ReportUtils = require('@libs/ReportUtils');
-
 describe('ReportButtonUtils', () => {
     describe('getTotalAmountForIOUReportPreviewButton', () => {
         beforeAll(async () => {
@@ -40,20 +39,20 @@ describe('ReportButtonUtils', () => {
         });
 
         it('returns total reimbursable spend for PAY & total value for other buttons', () => {
-            ReportUtils.getMoneyRequestSpendBreakdown.mockImplementation(() => ({
+            (getMoneyRequestSpendBreakdown as jest.Mock).mockImplementation(() => ({
                 nonReimbursableSpend: 50,
                 reimbursableSpend: 50,
                 totalDisplaySpend: 100,
             }));
 
-            ReportUtils.getNonHeldAndFullAmount.mockImplementation(() => ({
+            (getNonHeldAndFullAmount as jest.Mock).mockImplementation(() => ({
                 hasValidNonHeldAmount: true,
                 nonHeldAmount: `$${50}.00`,
                 fullAmount: `$100.00`,
                 currency: 'USD',
             }));
 
-            ReportUtils.hasHeldExpenses.mockImplementation(() => true);
+            (hasHeldExpenses as jest.Mock).mockImplementation(() => true);
 
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY)).toBe(`$50.00`);
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW)).toBe(`$100.00`);
@@ -61,21 +60,21 @@ describe('ReportButtonUtils', () => {
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT)).toBe(`$100.00`);
         });
 
-        it('returns $0.00 for PAY and full total for other buttons when reimbursableSpend is 0', () => {
-            ReportUtils.getMoneyRequestSpendBreakdown.mockImplementation(() => ({
+        it('returns reimbursable spend for PAY & spend for other buttons when reimbursableSpend and nonHeldAmount is 0', () => {
+            (getMoneyRequestSpendBreakdown as jest.Mock).mockImplementation(() => ({
                 nonReimbursableSpend: 100,
                 reimbursableSpend: 0,
                 totalDisplaySpend: 100,
             }));
 
-            ReportUtils.getNonHeldAndFullAmount.mockImplementation(() => ({
+            (getNonHeldAndFullAmount as jest.Mock).mockImplementation(() => ({
                 hasValidNonHeldAmount: true,
                 nonHeldAmount: `$${0}.00`,
                 fullAmount: `$100.00`,
                 currency: 'USD',
             }));
 
-            ReportUtils.hasHeldExpenses.mockImplementation(() => false);
+            (hasHeldExpenses as jest.Mock).mockImplementation(() => false);
 
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY)).toBe(`$0.00`);
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW)).toBe(`$100.00`);
