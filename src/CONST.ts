@@ -7175,7 +7175,7 @@ const CONST = {
         SCHEDULE_CALL: 'scheduleCall',
         EVENT_TIME: 'eventTime',
         RESCHEDULE: 'reschedule',
-        CENCEL: 'cencel',
+        CANCEL: 'cancel',
         TALK_TO_SALES: 'talkToSales',
         REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },

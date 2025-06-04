@@ -91,7 +91,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         });
         options.push({
             text: translate('common.cancel'),
-            value: CONST.ONBOARDING_HELP.CENCEL,
+            value: CONST.ONBOARDING_HELP.CANCEL,
             onSelected: () => cancelBooking(latestScheduledCall),
             icon: Close,
         });
