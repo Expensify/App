@@ -36,7 +36,7 @@ function ReportListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
@@ -83,7 +83,7 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    if (isEmptyReport && !canUseTableReportView) {
+    if (isEmptyReport && !isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
         return null;
     }
 
