@@ -102,7 +102,7 @@ function EmptyStateComponent({
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.w100]}>
+                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn]}>
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style}) => (
                                     <Button
                                         key={buttonText}
