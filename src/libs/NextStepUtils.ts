@@ -12,7 +12,15 @@ import {getNextApproverAccountID} from './actions/IOU';
 import EmailUtils from './EmailUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
+import {
+    getDisplayNameForParticipant,
+    getMoneyRequestSpendBreakdown,
+    getPersonalDetailsForAccountID,
+    hasViolations as hasViolationsReportUtils,
+    isExpenseReport,
+    isInvoiceReport,
+    isPayer,
+} from './ReportUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';
@@ -146,6 +154,7 @@ function buildNextStep(
         ((report.total !== 0 && report.total !== undefined) ||
             (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
     const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
@@ -436,7 +445,8 @@ function buildNextStep(
                         email: currentUserEmail,
                     },
                     report,
-                )
+                ) ||
+                reimbursableSpend === 0
             ) {
                 optimisticNextStep = noActionRequired;
 

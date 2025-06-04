@@ -235,7 +235,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
     const shouldShowReimbursable =
-        isPolicyExpenseChat && (!!transactionReimbursable || !(policy?.disabledFields?.reimbursable ?? true) || !!updatedTransaction?.reimbursable) && !isCardTransaction;
+        isPolicyExpenseChat && (!!transactionReimbursable || !(policy?.disabledFields?.reimbursable ?? true) || !!updatedTransaction?.reimbursable) && !isCardTransaction && !isInvoice;
     const canEditReimbursable = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 

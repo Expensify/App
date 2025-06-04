@@ -2984,6 +2984,12 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+        CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
+            REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
+            NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
+            ALWAYS_REIMBURSABLE: 'alwaysReimbursable', // Always Reimbursable
+            ALWAYS_NON_REIMBURSABLE: 'alwaysNonReimbursable', // Always Non Reimbursable
+        },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
         SECONDARY_ACTIONS: {
