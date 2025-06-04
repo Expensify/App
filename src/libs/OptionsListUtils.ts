@@ -95,7 +95,6 @@ import {
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
     getIcons,
-    getIOUForwardedMessage,
     getMoneyRequestSpendBreakdown,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
@@ -103,7 +102,6 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyForwardedMessage,
     getReportLastMessage,
     getReportName,
     getReportNotificationPreference,
@@ -790,9 +788,9 @@ function getLastMessageTextForReport(
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
-            lastMessageTextFromReport = getReportAutomaticallyForwardedMessage(lastReportAction, reportID);
+            lastMessageTextFromReport = translateLocal('iou.automaticallyForwarded');
         } else {
-            lastMessageTextFromReport = getIOUForwardedMessage(lastReportAction, report);
+            lastMessageTextFromReport = translateLocal('iou.forwarded');
         }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         lastMessageTextFromReport = getRejectedReportMessage();

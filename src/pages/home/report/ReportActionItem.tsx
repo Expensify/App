@@ -11,7 +11,6 @@ import {
     getIndicatedMissingPaymentMethod,
     getOriginalReportID,
     getReimbursementDeQueuedOrCanceledActionMessage,
-    getReportAutomaticallyForwardedMessage,
     getTransactionsWithReceipts,
     isArchivedNonExpenseReportWithID,
     isChatThread,
@@ -102,7 +101,6 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
-            reportAutomaticallyForwardedMessage={getReportAutomaticallyForwardedMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportID)}
         />
     );
 }
