@@ -492,7 +492,7 @@ function SettlementButton({
     };
 
     const customText = getCustomText();
-    const secondlineText = getSecondaryText();
+    const secondaryText = getSecondaryText();
 
     const defaultSelectedIndex = paymentButtonOptions.findIndex((paymentOption) => {
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -540,7 +540,7 @@ function SettlementButton({
                     defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
                     success={!hasOnlyHeldExpenses}
-                    secondLineText={secondlineText}
+                    secondLineText={secondaryText}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     onOptionSelected={(option) => handlePaymentSelection(undefined, option.value, triggerKYCFlow)}
