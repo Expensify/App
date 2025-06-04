@@ -24,7 +24,6 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
