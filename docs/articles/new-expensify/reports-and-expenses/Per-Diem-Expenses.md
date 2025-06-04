@@ -1,7 +1,7 @@
 ---
 title: Create a Per Diem Expense
 description: Learn how to create and submit a per diem expense by selecting a workspace, destination, time period, and eligible sub-rates.
-keywords: [per diem, per diem expense, create per diem, per diem submission, business travel, expensify per diem, meal reimbursement, travel expense, daily allowance]
+keywords: [New Expensify, per diem, per diem expense, create per diem, per diem submission, business travel, expensify per diem, meal reimbursement, travel expense, daily allowance]
 ---
 <div id="new-expensify" markdown="1">
 
@@ -13,9 +13,9 @@ Per diem expenses let you claim daily allowances for meals, lodging, and inciden
 
 **To create a per diem expense:**
 
-1. In the left-hand menu, click the green **+** button and select **Create expense**.
-2. If your selected workspace supports Per Diem, you'll have the option to choose **Per Diem**.
-3. Select the **workspace** you want to create under (if you're in more than one).
+1. In the left-hand menu, click the green **+** button and click **Create expense**.
+2. If your workspace supports Per Diem, you'll have the option to choose **Per Diem**.
+3. Choose the **workspace** you want to create under (if you're in more than one).
 4. Choose the **destination** (country or region where the Per Diem applies).
 5. Set the **Start Date/Time** and **End Date/Time**.
 6. Choose the **sub-rate** (e.g., Full Day, Breakfast, Dinner) and enter the **quantity** (e.g., number of days or meals).
@@ -31,7 +31,7 @@ Per diem expenses let you claim daily allowances for meals, lodging, and inciden
 # FAQ
 
 ## Why don’t I see the per diem option?  
-The option only appears if your selected workspace has Per Diem enabled. It won't show if you’re submitting an expense in a group chat or direct message.
+The option only appears if the workspace you're submitting the expense on has Per Diem enabled. It won't show if you’re submitting an expense in a group chat, direct message, or if your workspace doesn't have that setting enabled.
 
 ## Can I create per diem expenses for multiple days?
 Yes! Just set your Start and End dates across the full period and add one or more sub-rates for each day or meal.
