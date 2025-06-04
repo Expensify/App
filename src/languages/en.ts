@@ -560,8 +560,21 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        explore: 'Explore',
+        todo: 'To-do',
+        invoice: 'Invoice',
+        expense: 'Expense',
+        chat: 'Chat',
+        task: 'Task',
+        trip: 'Trip',
+        apply: 'Apply',
+        status: 'Status',
+        on: 'On',
+        before: 'Before',
+        after: 'After',
         reschedule: 'Reschedule',
         general: 'General',
+        never: 'Never',
         workspacesTabTitle: 'Workspaces',
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',
@@ -666,6 +679,7 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
+        searchForSomeone: 'Search for someone',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -906,6 +920,7 @@ const translations = {
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
+        multiScan: 'multi-scan',
         shutter: 'shutter',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
@@ -964,7 +979,7 @@ const translations = {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report, ${merchant} - ${amount}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense to ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : '[deleted]'}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'moved this expense to your personal space',
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatch: 'Pending match',
@@ -4988,11 +5003,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                alcohol: 'alcohol',
-                hotelIncidentals: 'hotel incidentals',
-                gambling: 'gambling',
-                tobacco: 'tobacco',
-                adultEntertainment: 'adult entertainment',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Hotel incidentals',
+                gambling: 'Gambling',
+                tobacco: 'Tobacco',
+                adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
@@ -5091,6 +5106,8 @@ const translations = {
         scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
+        registerForWebinar: 'Register for webinar',
+        onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
@@ -5261,6 +5278,7 @@ const translations = {
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
+            markAllMessagesAsRead: 'Mark all messages as read',
             escape: 'Escape dialogs',
             search: 'Open search dialog',
             newChat: 'New chat screen',
@@ -5286,6 +5304,11 @@ const translations = {
                 subtitle: 'Create an expense or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to create an expense.',
             },
+            emptyReportResults: {
+                title: "You haven't created any reports yet",
+                subtitle: 'Create a report or take a test drive of Expensify to learn more.',
+                subtitleWithOnlyCreateButton: 'Use the green button below to create a report.',
+            },
             emptyInvoiceResults: {
                 title: "You haven't created any \ninvoices yet",
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
@@ -5295,6 +5318,23 @@ const translations = {
                 title: 'No trips to display',
                 subtitle: 'Get started by booking your first trip below.',
                 buttonText: 'Book a trip',
+            },
+            emptySubmitResults: {
+                title: 'No expenses to submit',
+                subtitle: "You're all clear. Take a victory lap!",
+                buttonText: 'Create report',
+            },
+            emptyApproveResults: {
+                title: 'No expenses to approve',
+                subtitle: 'Zero expenses. Maximum chill. Well done!',
+            },
+            emptyPayResults: {
+                title: 'No expenses to pay',
+                subtitle: 'Congrats! You crossed the finish line.',
+            },
+            emptyExportResults: {
+                title: 'No expenses to export',
+                subtitle: 'Time to take it easy, nice work.',
             },
         },
         saveSearch: 'Save search',
@@ -5316,6 +5356,7 @@ const translations = {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
+                on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
             },
             status: 'Status',
             keyword: 'Keyword',
@@ -5847,7 +5888,7 @@ const translations = {
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
-        hold: 'Hold',
+        hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
     },
     reportViolations: {

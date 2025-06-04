@@ -53,6 +53,12 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [isSwipeDisabled, setSwipeDisabled] = useState(false);
+    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: (items) => Object.values(items ?? {}),
+        canBeMissing: true,
+    });
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((optimisticTransactions ?? []).length > 1);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -66,7 +72,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
     const transactionRequestType = useMemo(
-        () => (transaction?.iouRequestType ?? shouldUseTab ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL),
+        () => ((transaction?.iouRequestType ?? shouldUseTab) ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL),
         [transaction?.iouRequestType, shouldUseTab, selectedTab],
     );
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
@@ -85,7 +91,14 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
+            setIsMultiScanEnabled(false);
+            initMoneyRequest({
+                reportID,
+                policy,
+                isFromGlobalCreate,
+                currentIouRequestType: transaction?.iouRequestType,
+                newIouRequestType: newIOUType,
+            });
         },
         [policy, reportID, isFromGlobalCreate, transaction],
     );
@@ -125,7 +138,7 @@ function IOURequestStartPage({
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     return (
         <AccessOrNotFoundWrapper
@@ -138,7 +151,7 @@ function IOURequestStartPage({
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.receiptDropHeaderGap] : []}
+                headerGapStyles={isDraggingOver ? [isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? styles.dropWrapper : styles.receiptDropHeaderGap] : []}
                 testID={IOURequestStartPage.displayName}
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
@@ -166,6 +179,8 @@ function IOURequestStartPage({
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                                 shouldShowLabelWhenInactive={!shouldShowPerDiemOption}
+                                lazyLoadEnabled
+                                disableSwipe={isSwipeDisabled}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -184,6 +199,9 @@ function IOURequestStartPage({
                                             <IOURequestStepScan
                                                 route={route}
                                                 navigation={navigation}
+                                                setTabSwipeDisabled={setSwipeDisabled}
+                                                isMultiScanEnabled={isMultiScanEnabled}
+                                                setIsMultiScanEnabled={setIsMultiScanEnabled}
                                                 isTooltipAllowed
                                             />
                                         </TabScreenWithFocusTrapWrapper>

@@ -14,9 +14,10 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import {getPolicy} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
+import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,10 +39,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
-    const [draftTransactioWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
-    const splitExpensesList = draftTransactioWithSplitExpenses?.comment?.splitExpenses;
+    const [draftTransactionWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
+    const splitExpensesList = draftTransactionWithSplitExpenses?.comment?.splitExpenses;
 
     const currentAmount = transactionDetailsAmount >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
+    const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
     const report = getReportOrDraftReport(reportID);
     const policy = getPolicy(report?.policyID);
@@ -57,12 +59,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         })}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
-                    <View>
+                    <View style={[styles.flex1]}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
+                            shouldRenderAsHTML
                             key={translate('common.description')}
                             description={translate('common.description')}
-                            title={splitExpenseDraftTransactionDetails?.comment}
+                            title={currentDescription}
                             onPress={() => {
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
@@ -75,7 +78,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 );
                             }}
                             style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
+                            titleWrapperStyle={styles.flex1}
                             numberOfLinesTitle={2}
                         />
                         {!!policy?.areCategoriesEnabled && (
@@ -152,7 +155,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 style={[styles.w100, styles.mb4]}
                                 text={translate('iou.removeSplit')}
                                 onPress={() => {
-                                    removeSplitExpenseField(draftTransactioWithSplitExpenses, splitExpenseTransactionID);
+                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID);
                                     Navigation.goBack(backTo);
                                 }}
                                 pressOnEnter

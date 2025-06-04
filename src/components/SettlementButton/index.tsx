@@ -531,7 +531,7 @@ function SettlementButton({
                     onOptionsMenuShow={onPaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
-                    shouldAlwaysShowDropdownMenu={isInvoiceReport}
+                    shouldAlwaysShowDropdownMenu={isInvoiceReport && !onlyShowPayElsewhere}
                     customText={customText}
                     menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
                     isSplitButton={shouldUseSplitButton}
