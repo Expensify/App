@@ -368,10 +368,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 />
             );
         }
-
+        const shouldShowAddCategory = !policyHasAccountingConnections && hasVisibleCategories;
         return (
             <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                {!policyHasAccountingConnections && hasVisibleCategories && (
+                {shouldShowAddCategory && (
                     <Button
                         success
                         onPress={navigateToCreateCategoryPage}
@@ -387,7 +387,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     customText={translate('common.more')}
                     options={secondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={policyHasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
+                    wrapperStyle={shouldShowAddCategory ? styles.flexGrow0 : styles.flexGrow1}
                 />
             </View>
         );
