@@ -34,12 +34,18 @@ Onyx.connect({
     },
 });
 
+type GetOnboardingInitialPathParamsType = {
+    isUserFromPublicDomain: boolean;
+    hasAccessiblePolicies: boolean;
+    onboardingValuesParam?: Onboarding;
+};
+
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
-function startOnboardingFlow(isPrivateDomain?: boolean, onboardingValuesParam?: Onboarding, isUserFromPublicDomain?: boolean) {
+function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain, onboardingValuesParam, isUserFromPublicDomain), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -51,7 +57,8 @@ function startOnboardingFlow(isPrivateDomain?: boolean, onboardingValuesParam?: 
     } as PartialState<NavigationState>);
 }
 
-function getOnboardingInitialPath(isPrivateDomain?: boolean, onboardingValuesParam?: Onboarding, isUserFromPublicDomain?: boolean): string {
+function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingInitialPathParamsType): string {
+    const {isUserFromPublicDomain, hasAccessiblePolicies, onboardingValuesParam} = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -72,15 +79,16 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean, onboardingValuesPar
     if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
+
+    if (!isUserFromPublicDomain && hasAccessiblePolicies) {
+        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
+    }
+
     if (isVsb) {
         return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
     }
     if (isSmb) {
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
-    }
-
-    if (isPrivateDomain) {
-        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {

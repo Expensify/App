@@ -10,7 +10,6 @@ import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-method
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
-import {RequestError} from '@octokit/request-error';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arrayDifference from '@src/utils/arrayDifference';
 import CONST from './CONST';
@@ -22,12 +21,6 @@ type ListForRepoResult = RestEndpointMethodTypes['issues']['listForRepo']['respo
 type OctokitIssueItem = OctokitComponents['schemas']['issue'];
 
 type ListForRepoMethod = RestEndpointMethods['issues']['listForRepo'];
-
-type CommitType = {
-    commit: string;
-    subject: string;
-    authorName: string;
-};
 
 type StagingDeployCashPR = {
     url: string;
@@ -60,7 +53,6 @@ type StagingDeployCashData = {
     PRList: StagingDeployCashPR[];
     deployBlockers: StagingDeployCashBlocker[];
     internalQAPRList: StagingDeployCashBlocker[];
-    isTimingDashboardChecked: boolean;
     isFirebaseChecked: boolean;
     isGHStatusChecked: boolean;
     version: string;
@@ -202,7 +194,6 @@ class GithubUtils {
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
                 version,
@@ -287,7 +278,6 @@ class GithubUtils {
         deployBlockers: string[] = [],
         resolvedDeployBlockers: string[] = [],
         resolvedInternalQAPRs: string[] = [],
-        isTimingDashboardChecked = false,
         isFirebaseChecked = false,
         isGHStatusChecked = false,
     ): Promise<void | StagingDeployCashBody> {
@@ -358,10 +348,6 @@ class GithubUtils {
                     }
 
                     issueBody += '**Deployer verifications:**';
-                    // eslint-disable-next-line max-len
-                    issueBody += `\r\n- [${
-                        isTimingDashboardChecked ? 'x' : ' '
-                    }] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${
                         isFirebaseChecked ? 'x' : ' '
@@ -569,38 +555,7 @@ class GithubUtils {
             })
             .then((response) => response.url);
     }
-
-    /**
-     * Get commits between two tags via the GitHub API
-     */
-    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
-        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-
-        try {
-            const comparison = await this.paginate(this.octokit.repos.compareCommitsWithBasehead, {
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                basehead: `${fromTag}...${toTag}`,
-            });
-
-            // Map API response to our CommitType format
-            return comparison.commits.map((commit) => ({
-                commit: commit.sha,
-                subject: commit.commit.message,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                authorName: commit.commit.author?.name || 'Unknown',
-            }));
-        } catch (error) {
-            if (error instanceof RequestError && error.status === 404) {
-                console.error(
-                    `❓Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡`,
-                );
-            }
-            // Re-throw the error after logging
-            throw error;
-        }
-    }
 }
 
 export default GithubUtils;
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData, CommitType};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};

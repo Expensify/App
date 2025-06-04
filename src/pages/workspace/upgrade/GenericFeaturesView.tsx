@@ -59,7 +59,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
                     {translate('workspace.upgrade.commonFeatures.benefits.startsAt')}
                     <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
-                    {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}
+                    {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}{' '}
                     <TextLink
                         style={[styles.link]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
@@ -90,7 +90,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     large
                 />
             )}

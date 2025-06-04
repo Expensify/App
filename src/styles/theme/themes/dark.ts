@@ -102,6 +102,7 @@ const darkTheme = {
     transparentWhite: `${colors.white}51`,
     emptyFolderBG: colors.yellow600,
     travelBG: colors.blue600,
+    todoBG: colors.blue800,
     trialTimer: colors.green500,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
@@ -125,7 +126,7 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.WORKSPACES]: {
+        [SCREENS.WORKSPACES_LIST]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -138,10 +139,6 @@ const darkTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
-            backgroundColor: colors.productDark100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },

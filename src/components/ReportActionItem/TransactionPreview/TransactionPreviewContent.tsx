@@ -2,6 +2,7 @@ import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -11,6 +12,7 @@ import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCel
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -25,10 +27,11 @@ import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isIOURepor
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUData, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {hasReceipt as hasReceiptTransactionUtils, isReceiptBeingScanned} from '@libs/TransactionUtils';
+import {isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -50,17 +53,20 @@ function TransactionPreviewContent({
     reportPreviewAction,
     shouldHideOnDelete = true,
     shouldShowIOUData,
+    navigateToReviewFields,
+    isReviewDuplicateTransactionPage = false,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {canBeMissing: true});
+    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
     const managerID = iouReport?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
-    const reportActions = useMemo(() => (iouReport ? getReportActions(iouReport) ?? {} : {}), [iouReport]);
+    const reportActions = useMemo(() => (iouReport ? (getReportActions(iouReport) ?? {}) : {}), [iouReport]);
 
     const transactionPreviewCommonArguments = useMemo(
         () => ({
@@ -101,7 +107,7 @@ function TransactionPreviewContent({
             }),
         [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions],
     );
-    const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');
+    const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
     const previewHeaderText = previewText.previewHeaderText.reduce((text, currentKey) => {
         return `${text}${getTranslatedText(currentKey)}`;
@@ -121,15 +127,14 @@ function TransactionPreviewContent({
     const shouldShowIOUHeader = !!from && !!to;
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const hasReceipt = hasReceiptTransactionUtils(transaction);
     const isApproved = isReportApproved({report: iouReport});
     const isIOUSettled = isSettled(iouReport?.reportID);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
-    const isScanning = hasReceipt && isReceiptBeingScanned(transaction);
+    const isTransactionScanning = isScanning(transaction);
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
     const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
-    const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isReportAPolicyExpenseChat && isBillSplit) {
@@ -140,8 +145,8 @@ function TransactionPreviewContent({
     const splitShare = useMemo(
         () =>
             shouldShowSplitShare
-                ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID)
+                ? (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
+                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID))
                 : 0,
         [
             shouldShowSplitShare,
@@ -155,7 +160,7 @@ function TransactionPreviewContent({
         ],
     );
 
-    const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isScanning);
+    const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
     const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
 
@@ -173,11 +178,11 @@ function TransactionPreviewContent({
                 shouldDisableOpacity={isDeleted}
                 shouldHideOnDelete={shouldHideOnDelete}
             >
-                <View style={[(isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
+                <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
                     <ReportActionItemImages
                         images={receiptImages}
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isHovered={isHovered || isScanning}
+                        isHovered={isHovered || isTransactionScanning}
                         size={1}
                         shouldUseAspectRatio
                     />
@@ -189,7 +194,7 @@ function TransactionPreviewContent({
                                 {shouldShowIOUHeader && (
                                     <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
                                         <UserInfoCellsWithArrow
-                                            shouldDisplayArrowIcon
+                                            shouldShowToRecipient
                                             participantFrom={from}
                                             participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
                                             participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
@@ -326,6 +331,14 @@ function TransactionPreviewContent({
                                 )}
                             </View>
                         </View>
+                    )}
+                    {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && areThereDuplicates && (
+                        <Button
+                            text={translate('violations.keepThisOne')}
+                            success
+                            style={[styles.ph4, styles.pb4]}
+                            onPress={navigateToReviewFields}
+                        />
                     )}
                 </View>
             </OfflineWithFeedback>

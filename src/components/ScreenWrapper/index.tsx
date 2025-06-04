@@ -418,8 +418,8 @@ function ScreenWrapper(
         [isSoftKeyNavigation, smallScreenOfflineIndicatorBackgroundStyle, offlineIndicatorStyle, styles.pl5],
     );
 
-    // This context allows us to disable the safe area padding offseting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
-    // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offseting the offline indicator because we only show the offline indicator on small screens.
+    // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
+    // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offsetting the offline indicator because we only show the offline indicator on small screens.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
     const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => {
@@ -433,7 +433,7 @@ function ScreenWrapper(
 
         return {
             // Allows for individual screens to disable the offline indicator safe area padding for the screen and all nested ScreenWrapper components.
-            addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? newAddSafeAreaPadding ?? true : !disableOfflineIndicatorSafeAreaPadding,
+            addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? (newAddSafeAreaPadding ?? true) : !disableOfflineIndicatorSafeAreaPadding,
             // Prevent any nested ScreenWrapper components from rendering another offline indicator.
             showOnSmallScreens: false,
             showOnWideScreens: false,

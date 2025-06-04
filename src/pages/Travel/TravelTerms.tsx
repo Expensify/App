@@ -29,10 +29,10 @@ type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
+    const {isBlockedFromSpotnanaTravel} = usePermissions();
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
+    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
 
@@ -81,7 +81,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             shouldEnableMaxHeight
             testID={TravelTerms.displayName}
         >
-            <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && (!canUseSpotnanaTravel || isBlockedFromSpotnanaTravel)}>
+            <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
                 <HeaderWithBackButton
                     title={translate('travel.termsAndConditions.header')}
                     onBackButtonPress={() => Navigation.goBack()}

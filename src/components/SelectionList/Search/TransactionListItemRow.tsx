@@ -27,11 +27,10 @@ import {
     getTaxAmount,
     getCurrency as getTransactionCurrency,
     getDescription as getTransactionDescription,
-    hasReceipt,
     hasReceiptSource,
     isExpensifyCardTransaction,
     isPending,
-    isReceiptBeingScanned,
+    isScanning,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
@@ -100,7 +99,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         const isReceiptPDF = Str.isPDF(filename);
-        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
+        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? (receiptURIs.thumbnail ?? '') : (receiptURIs.image ?? ''));
     }
 
     return (
@@ -141,7 +140,7 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     }
     let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
-    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
+    if (isScanning(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
     const merchantToDisplay = StringUtils.getFirstLine(merchant);
@@ -160,7 +159,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
     const currency = getTransactionCurrency(transactionItem);
     let amount = convertToDisplayString(transactionItem.formattedTotal, currency);
 
-    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem)) {
+    if (isScanning(transactionItem)) {
         amount = translate('iou.receiptStatusTitle');
     }
 
@@ -407,15 +406,15 @@ function TransactionListItemRow({
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        accountID={item.from.accountID}
-                        avatar={item.from.avatar}
+                        accountID={item.from?.accountID}
+                        avatar={item.from?.avatar}
                         displayName={item.formattedFrom}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        accountID={item.to.accountID}
-                        avatar={item.to.avatar}
+                        accountID={item.to?.accountID}
+                        avatar={item.to?.avatar}
                         displayName={item.formattedTo}
                     />
                 </View>

@@ -17,12 +17,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {search, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
+import {updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {generateReportID} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
@@ -44,11 +45,12 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
-import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
+import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -56,9 +58,10 @@ type SearchProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
+    handleSearch: (value: SearchParams) => void;
 };
 
-function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
+function mapTransactionItemToSelectedEntry(item: TransactionListItemType, reportActions: ReportAction[]): [string, SelectedTransactionInfo] {
     return [
         item.keyForList,
         {
@@ -67,6 +70,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [stri
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
+            canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
@@ -100,11 +104,11 @@ function mapToItemWithSelectionInfo(item: SearchListItem, selectedTransactions: 
               ...item,
               shouldAnimateInHighlight,
               transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
-              isSelected: item.transactions.length > 0 && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
+              isSelected: item?.transactions?.length > 0 && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
 
-function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
+function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, reportActions: ReportAction[]) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
@@ -119,6 +123,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
+            canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
@@ -127,7 +132,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     };
 }
 
-function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onSearchListScroll, contentContainerStyle}: SearchProps) {
+function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onSearchListScroll, contentContainerStyle, handleSearch}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -142,7 +147,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         selectedTransactions,
         clearSelectedTransactions,
         shouldTurnOffSelectionMode,
-        setShouldShowStatusBarLoading,
+        setShouldShowFiltersBarLoading,
         lastSearchType,
         setShouldShowExportModeOption,
         isExportMode,
@@ -157,12 +162,19 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const previousReportActions = usePrevious(reportActions);
+    const reportActionsArray = useMemo(
+        () =>
+            Object.values(reportActions ?? {})
+                .filter((reportAction) => !!reportAction)
+                .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
+        [reportActions],
+    );
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
-    const {canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -173,10 +185,18 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
         if (selectedKeys.length === 0 && selectionMode?.isEnabled && shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
+
+        // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTransactions, selectionMode?.isEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
@@ -201,8 +221,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             return;
         }
 
-        search({queryJSON, offset});
-    }, [isOffline, offset, queryJSON]);
+        handleSearch({queryJSON, offset});
+    }, [handleSearch, isOffline, offset, queryJSON]);
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
@@ -223,16 +243,16 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const data = useMemo(() => {
-        if (searchResults === undefined) {
+        if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
         return getSections(type, status, searchResults.data, searchResults.search, shouldGroupByReports);
-    }, [searchResults, type, status, shouldGroupByReports]);
+    }, [searchResults, isDataLoaded, type, status, shouldGroupByReports]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowStatusBarLoading(shouldShowLoadingState && lastSearchType !== type);
-    }, [lastSearchType, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
+        setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -255,6 +275,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     canHold: transaction.canHold,
                     isHeld: isOnHold(transaction),
                     canUnhold: transaction.canUnhold,
+                    canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
@@ -277,6 +298,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         canHold: transaction.canHold,
                         isHeld: isOnHold(transaction),
                         canUnhold: transaction.canUnhold,
+                        canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
@@ -343,7 +365,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     return;
                 }
 
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions), data);
+                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray), data);
                 return;
             }
 
@@ -361,12 +383,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             setSelectedTransactions(
                 {
                     ...selectedTransactions,
-                    ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
+                    ...Object.fromEntries(item.transactions.map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
                 },
                 data,
             );
         },
-        [data, selectedTransactions, setSelectedTransactions],
+        [data, reportActionsArray, selectedTransactions, setSelectedTransactions],
     );
 
     const openReport = useCallback(
@@ -378,8 +400,28 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
+            const backTo = Navigation.getActiveRoute();
 
-            let reportID =
+            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const transactionThreadReportID = generateReportID();
+                const reportAction = getReportAction(item.reportID, item.moneyRequestReportActionID);
+                const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+
+                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReportID);
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({
+                        reportID: transactionThreadReportID,
+                        backTo,
+                        moneyRequestReportActionID: item.moneyRequestReportActionID,
+                        transactionID: item.transactionID,
+                        iouReportID,
+                    }),
+                );
+                return;
+            }
+
+            const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
                     ? item.transactionThreadReportID
                     : item.reportID;
@@ -388,26 +430,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 return;
             }
 
-            const backTo = Navigation.getActiveRoute();
             const shouldHandleTransactionAsReport = isReportListItemType(item) || (isTransactionItem && isOpenedAsReport);
 
-            if (canUseTableReportView && shouldHandleTransactionAsReport) {
+            if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && shouldHandleTransactionAsReport) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
-                return;
-            }
-
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                reportID = generateReportID();
-                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, reportID);
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({
-                        reportID,
-                        backTo,
-                        moneyRequestReportActionID: item.moneyRequestReportActionID,
-                        transactionID: item.transactionID,
-                    }),
-                );
                 return;
             }
 
@@ -419,7 +445,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [canUseTableReportView, hash, selectionMode?.isEnabled, toggleTransaction],
+        [isBetaEnabled, hash, selectionMode?.isEnabled, toggleTransaction],
     );
 
     const onViewableItemsChanged = useCallback(
@@ -498,7 +524,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
+                    hash={hash}
                     type={type}
+                    groupBy={groupBy}
                     hasResults={searchResults.search.hasResults}
                 />
             </View>
@@ -522,12 +550,20 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
 
         if (areItemsOfReportType) {
-            setSelectedTransactions(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))), data);
+            setSelectedTransactions(
+                Object.fromEntries(
+                    (data as ReportListItemType[]).flatMap((item) => item.transactions.map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+                ),
+                data,
+            );
 
             return;
         }
 
-        setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)), data);
+        setSelectedTransactions(
+            Object.fromEntries((data as TransactionListItemType[]).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+            data,
+        );
     };
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {

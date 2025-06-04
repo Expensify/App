@@ -176,6 +176,7 @@ function WorkspaceReportFieldsPage({
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={Navigation.popToSidebar}
                 />
                 {isLoading && (
                     <ActivityIndicator
@@ -207,7 +208,7 @@ function WorkspaceReportFieldsPage({
                             <OfflineWithFeedback pendingAction={reportTitlePendingFields.defaultValue}>
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.rules.expenseReportRules.customNameTitle')}
-                                    title={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue}
+                                    title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                                     onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}

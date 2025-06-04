@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -32,11 +33,9 @@ import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -166,9 +165,6 @@ type MoneyRequestConfirmationListProps = {
     /** The action to take */
     action?: IOUAction;
 
-    /** Should play sound on confirmation */
-    shouldPlaySound?: boolean;
-
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
 
@@ -219,7 +215,6 @@ function MoneyRequestConfirmationList({
     reportActionID,
     action = CONST.IOU.ACTION.CREATE,
     shouldDisplayReceipt = false,
-    shouldPlaySound = true,
     isConfirmed,
     isConfirming,
     onPDFLoadError,
@@ -236,15 +231,23 @@ function MoneyRequestConfirmationList({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const {isBetaEnabled} = usePermissions();
 
     const isTestReceipt = useMemo(() => {
         return transaction?.receipt?.isTestReceipt ?? false;
     }, [transaction?.receipt?.isTestReceipt]);
 
+    const isTestDriveReceipt = useMemo(() => {
+        return transaction?.receipt?.isTestDriveReceipt ?? false;
+    }, [transaction?.receipt?.isTestDriveReceipt]);
+
+    const isManagerMcTestReceipt = useMemo(() => {
+        return isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
+    }, [isBetaEnabled, selectedParticipantsProp]);
+
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
-        Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login)),
+        isTestDriveReceipt ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
+        isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
     const policy = policyReal ?? policyDraft;
@@ -888,9 +891,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -900,9 +900,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onSendMoney?.(paymentMethod);
             }
         },
@@ -924,7 +921,6 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             onConfirm,
-            shouldPlaySound,
             transactionID,
             reportID,
             policy,

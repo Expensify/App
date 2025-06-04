@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {Connection, OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import {getDraftTransactions} from './Transaction';
 
 let connection: Connection;
 
@@ -85,4 +86,32 @@ function removeDraftTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup, createDraftTransaction, removeDraftTransaction};
+function removeDraftSplitTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+function removeDraftTransactions() {
+    const draftTransactions = getDraftTransactions();
+    const draftTransactionsSet = draftTransactions.reduce(
+        (acc, item) => {
+            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
+            return acc;
+        },
+        {} as Record<string, null>,
+    );
+    Onyx.multiSet(draftTransactionsSet);
+}
+
+export {
+    createBackupTransaction,
+    removeBackupTransaction,
+    restoreOriginalTransactionFromBackup,
+    createDraftTransaction,
+    removeDraftTransaction,
+    removeDraftTransactions,
+    removeDraftSplitTransaction,
+};

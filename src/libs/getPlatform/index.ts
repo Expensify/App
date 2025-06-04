@@ -4,7 +4,7 @@ import type Platform from './types';
 
 export default function getPlatform(shouldMobileWebBeDistinctFromWeb = false): Platform {
     if (shouldMobileWebBeDistinctFromWeb && Browser.isMobile()) {
-        return CONST.PLATFORM.MOBILEWEB;
+        return CONST.PLATFORM.MOBILE_WEB;
     }
     return CONST.PLATFORM.WEB;
 }
