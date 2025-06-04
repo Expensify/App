@@ -18,11 +18,15 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
+import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import type DotLottieAnimation from './LottieAnimations/types';
 import Modal from './Modal';
+import OfflineIndicator from './OfflineIndicator';
+import RenderHTML from './RenderHTML';
+import ScrollView from './ScrollView';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
 
@@ -98,6 +102,24 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether the modal image is a SVG */
     shouldRenderSVG?: boolean;
+
+    /** Whether the modal description is written in HTML */
+    shouldRenderHTMLDescription?: boolean;
+
+    /** Whether the modal will be closed on confirm */
+    shouldCloseOnConfirm?: boolean;
+
+    /** Whether the modal should avoid the keyboard */
+    avoidKeyboard?: boolean;
+
+    /** Whether the modal content is scrollable */
+    shouldUseScrollView?: boolean;
+
+    /** Whether the modal is displaying a confirmation loading spinner (useful when fetching data from API during confirmation) */
+    shouldShowConfirmationLoader?: boolean;
+
+    /** Whether the user can confirm the tutorial while offline */
+    canConfirmWhileOffline?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -155,6 +177,12 @@ function FeatureTrainingModal({
     imageHeight,
     isModalDisabled = true,
     shouldRenderSVG = true,
+    shouldRenderHTMLDescription = false,
+    shouldCloseOnConfirm = true,
+    avoidKeyboard = false,
+    shouldUseScrollView = false,
+    shouldShowConfirmationLoader = false,
+    canConfirmWhileOffline = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -297,9 +325,11 @@ function FeatureTrainingModal({
     }, [onClose, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
-        closeModal();
+        if (shouldCloseOnConfirm) {
+            closeModal();
+        }
         onConfirm?.();
-    }, [onConfirm, closeModal]);
+    }, [shouldCloseOnConfirm, onConfirm, closeModal]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
@@ -309,14 +339,18 @@ function FeatureTrainingModal({
      */
     useLayoutEffect(parseFSAttributes, []);
 
+    const Wrapper = shouldUseScrollView ? ScrollView : View;
+
     return (
         <Modal
+            id="FeatureTrainingModal"
+            avoidKeyboard={avoidKeyboard}
             isVisible={isModalVisible}
             type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={closeModal}
             innerContainerStyle={{
                 boxShadow: 'none',
-                paddingBottom: 20,
+                ...(shouldUseScrollView ? styles.pb0 : styles.pb5),
                 paddingTop: onboardingIsMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
                 ...(onboardingIsMediumOrLargerScreenWidth
                     ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
@@ -329,8 +363,10 @@ function FeatureTrainingModal({
                 ...modalInnerContainerStyle,
             }}
         >
-            <View
+            <Wrapper
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
+                contentContainerStyle={shouldUseScrollView ? styles.pb5 : undefined}
+                keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
             >
@@ -341,7 +377,13 @@ function FeatureTrainingModal({
                     {!!title && !!description && (
                         <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
                             {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
-                            <Text style={styles.textSupporting}>{description}</Text>
+                            {shouldRenderHTMLDescription ? (
+                                <Text>
+                                    <RenderHTML html={description} />
+                                </Text>
+                            ) : (
+                                <Text style={styles.textSupporting}>{description}</Text>
+                            )}
                             {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                             {children}
                         </View>
@@ -363,17 +405,19 @@ function FeatureTrainingModal({
                             text={helpText}
                         />
                     )}
-                    <Button
-                        large
-                        success
-                        pressOnEnter
-                        onPress={closeAndConfirmModal}
-                        text={confirmText}
+                    <FormAlertWithSubmitButton
+                        onSubmit={closeAndConfirmModal}
+                        isLoading={shouldShowConfirmationLoader}
+                        buttonText={confirmText}
+                        enabledWhenOffline={canConfirmWhileOffline}
                     />
+                    {!canConfirmWhileOffline && <OfflineIndicator />}
                 </View>
-            </View>
+            </Wrapper>
         </Modal>
     );
 }
 
 export default FeatureTrainingModal;
+
+export type {FeatureTrainingModalProps};

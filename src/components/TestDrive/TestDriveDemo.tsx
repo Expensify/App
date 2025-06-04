@@ -5,12 +5,16 @@ import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
+import {isAdminRoom} from '@libs/ReportUtils';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import TestDriveBanner from './TestDriveBanner';
 
 function TestDriveDemo() {
@@ -18,6 +22,8 @@ function TestDriveDemo() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isVisible, setIsVisible] = useState(false);
     const styles = useThemeStyles();
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
+    const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -30,8 +36,12 @@ function TestDriveDemo() {
         setIsVisible(false);
         InteractionManager.runAfterInteractions(() => {
             Navigation.goBack();
+
+            if (isAdminRoom(onboardingReport)) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
+            }
         });
-    }, []);
+    }, [onboardingReport]);
 
     return (
         <SafeAreaConsumer>

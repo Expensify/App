@@ -25,11 +25,14 @@ type RequestMoneyParams = {
     taxAmount: number;
     billable?: boolean;
     receiptGpsPoints?: string;
-    transactionThreadReportID: string;
-    createdReportActionIDForThread: string | undefined;
+    transactionThreadReportID?: string;
+    createdReportActionIDForThread?: string | undefined;
     reimbursible?: boolean;
     description?: string;
     attendees?: string;
+    isTestDrive?: boolean;
+    guidedSetupData?: string;
+    testDriveCommentReportActionID?: string;
 };
 
 export default RequestMoneyParams;

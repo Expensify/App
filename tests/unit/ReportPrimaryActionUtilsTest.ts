@@ -408,4 +408,31 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
     });
+
+    it('Should return empty string when we are waiting for user to add a bank account', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            isWaitingOnBankAccount: true,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            connections: {
+                intacct: {
+                    config: {
+                        export: {
+                            exporter: CURRENT_USER_EMAIL,
+                        },
+                    },
+                },
+            },
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe('');
+    });
 });

@@ -8,8 +8,6 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 // Wrapper component with OnyxProvider
 function Wrapper({children}: {children: React.ReactNode}) {
     return (

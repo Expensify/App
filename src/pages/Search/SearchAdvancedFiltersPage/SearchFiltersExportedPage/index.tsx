@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,20 +14,12 @@ type SearchFiltersExportedPageValues = Record<SearchDateModifier, string | null>
 function SearchFiltersExportedPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
-    // Get all of the initial values from the advanced filters form and store them locally so we can modify
-    // them without mutating the original form
-    const initialState = useMemo(() => {
-        return Object.values(CONST.SEARCH.DATE_MODIFIERS).reduce((acc, dateType) => {
-            acc[dateType] = searchAdvancedFiltersForm?.[`${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED}${dateType}`] ?? null;
-            return acc;
-        }, {} as SearchFiltersExportedPageValues);
-        // The initial value of a useState only gets calculated once, so we dont need to keep calculating this initial state
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const [view, setView] = useState<SearchDateModifier | null>(null);
-    const [localDateValues, setLocalDateValues] = useState<SearchFiltersExportedPageValues>(initialState);
+    const [localDateValues, setLocalDateValues] = useState<SearchFiltersExportedPageValues>({
+        After: searchAdvancedFiltersForm?.exportedAfter ?? null,
+        Before: searchAdvancedFiltersForm?.exportedBefore ?? null,
+        On: searchAdvancedFiltersForm?.exportedOn ?? null,
+    });
 
     const setDateValue = (key: SearchDateModifier, dateValue: string | null) => {
         setLocalDateValues((currentValue) => {
@@ -69,9 +61,9 @@ function SearchFiltersExportedPage() {
 
     const applyChanges = useCallback(() => {
         updateAdvancedFilters({
-            [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED}${CONST.SEARCH.DATE_MODIFIERS.ON}`]: localDateValues?.[CONST.SEARCH.DATE_MODIFIERS.ON],
-            [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: localDateValues?.[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-            [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`]: localDateValues?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+            exportedOn: localDateValues?.[CONST.SEARCH.DATE_MODIFIERS.ON],
+            exportedAfter: localDateValues?.[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+            exportedBefore: localDateValues?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
         });
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [localDateValues]);

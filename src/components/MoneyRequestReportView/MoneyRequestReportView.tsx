@@ -9,7 +9,6 @@ import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePrevious from '@hooks/usePrevious';
@@ -51,7 +50,7 @@ type MoneyRequestReportViewProps = {
     backToRoute: Route | undefined;
 };
 
-function goBackFromSearchMoneyRequest(policyID: string | undefined) {
+function goBackFromSearchMoneyRequest() {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
 
@@ -65,8 +64,7 @@ function goBackFromSearchMoneyRequest(policyID: string | undefined) {
         return;
     }
 
-    const query = buildCannedSearchQuery({policyID});
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query}));
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 }
 
 function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
@@ -90,7 +88,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID} = useActiveWorkspace();
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -129,9 +126,9 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
 
     const dismissReportCreationError = useCallback(() => {
-        goBackFromSearchMoneyRequest(activeWorkspaceID);
+        goBackFromSearchMoneyRequest();
         InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
-    }, [activeWorkspaceID, reportID]);
+    }, [reportID]);
 
     // Special case handling a report that is a transaction thread
     // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
@@ -141,7 +138,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const isTransactionDataReady = transactions !== undefined;
     const isStillLoadingData = !!isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
-    const shouldWaitForData = (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) && !isTransactionThreadView;
+    const shouldWaitForData =
+        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
+        !isTransactionThreadView &&
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
     const isEmptyTransactionReport = transactions && transactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, transactions ?? []);
@@ -155,7 +155,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     parentReportAction={parentReportAction}
                     onBackButtonPress={() => {
                         if (!backToRoute) {
-                            goBackFromSearchMoneyRequest(activeWorkspaceID);
+                            goBackFromSearchMoneyRequest();
                             return;
                         }
                         Navigation.goBack(backToRoute);
@@ -167,17 +167,18 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     policy={policy}
                     reportActions={reportActions}
                     transactionThreadReportID={transactionThreadReportID}
+                    isLoadingInitialReportActions={isLoadingInitialReportActions}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
-                            goBackFromSearchMoneyRequest(activeWorkspaceID);
+                            goBackFromSearchMoneyRequest();
                             return;
                         }
                         Navigation.goBack(backToRoute);
                     }}
                 />
             ),
-        [activeWorkspaceID, backToRoute, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForData) {

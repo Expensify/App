@@ -66,7 +66,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                                 groupID: mccKey,
                                 tabIndex: -1,
                                 pendingAction: mccGroup?.pendingAction,
-                            } as ListItem),
+                            }) as ListItem,
                     ),
                 },
             ],
