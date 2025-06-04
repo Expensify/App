@@ -62,8 +62,6 @@ function SubscriptionSettings() {
             />
         ) : null;
 
-    console.log(CONST.PRICING);
-
     return (
         <ScreenWrapper
             testID={SubscriptionSettings.displayName}

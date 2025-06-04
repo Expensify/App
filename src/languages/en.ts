@@ -918,6 +918,7 @@ const translations = {
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
+        multiScan: 'multi-scan',
         shutter: 'shutter',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
@@ -5875,7 +5876,7 @@ const translations = {
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
-        hold: 'Hold',
+        hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
     },
     reportViolations: {
