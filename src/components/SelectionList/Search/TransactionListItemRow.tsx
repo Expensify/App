@@ -405,20 +405,24 @@ function TransactionListItemRow({
                         isLargeScreenWidth
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                    <UserInfoCell
-                        accountID={item.from.accountID}
-                        avatar={item.from.avatar}
-                        displayName={item.formattedFrom}
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                    <UserInfoCell
-                        accountID={item.to.accountID}
-                        avatar={item.to.avatar}
-                        displayName={item.formattedTo}
-                    />
-                </View>
+                {item.shouldShowTo && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                        <UserInfoCell
+                            accountID={item.from.accountID}
+                            avatar={item.from.avatar}
+                            displayName={item.formattedFrom}
+                        />
+                    </View>
+                )}
+                {item.shouldShowFrom && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                        <UserInfoCell
+                            accountID={item.to.accountID}
+                            avatar={item.to.avatar}
+                            displayName={item.formattedTo}
+                        />
+                    </View>
+                )}
                 {item.shouldShowCategory && (
                     <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                         <CategoryCell

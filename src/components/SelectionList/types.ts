@@ -246,6 +246,10 @@ type TransactionListItemType = ListItem &
         /** Whether we should show the tag column */
         shouldShowTag: boolean;
 
+        shouldShowFrom: boolean;
+
+        shouldShowTo: boolean;
+
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
 

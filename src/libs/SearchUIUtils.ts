@@ -344,6 +344,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
                 shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
+                shouldShowFrom: metadata?.columnsToShow?.shouldShowFromColumn,
+                shouldShowTo: metadata?.columnsToShow?.shouldShowToColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
