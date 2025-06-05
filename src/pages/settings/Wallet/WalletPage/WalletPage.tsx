@@ -195,7 +195,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
             return;
-        } else if (isAccountLocked) {
+        }
+        if (isAccountLocked) {
             setIsLockedAccountModalOpen(true);
             return;
         }

@@ -337,6 +337,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         route.params.policyID,
         updateApprovalMode,
         isBetaEnabled,
+        isAccountLocked,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
