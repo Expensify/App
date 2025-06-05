@@ -955,6 +955,7 @@ function MoneyReportHeader({
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
+                    shouldUseModalPaddingStyle={false}
                 />
             )}
         </KYCWall>
