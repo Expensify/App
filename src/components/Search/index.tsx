@@ -348,7 +348,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     // Add animation values - start visible for proper fade out
     const fadeOpacity = useSharedValue(1);
     const [isInitialMount, setIsInitialMount] = useState(true);
-    const [isUnmounting, setIsUnmounting] = useState(false);
+    const hashRef = useRef(hash);
 
     const fadeAnimatedStyle = useAnimatedStyle(() => ({
         opacity: fadeOpacity.get(),
@@ -374,29 +374,50 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         });
 
         setIsInitialMount(false);
-    }, [fadeOpacity, isInitialMount]);
+        hashRef.current = hash;
+    }, [fadeOpacity, isInitialMount, hash]);
 
-    // Handle fade out when component loses focus (before unmount)
+    // Handle fade out/in when filters change (hash changes)
     useEffect(() => {
-        if (!isFocused && !isInitialMount && !isUnmounting) {
-            setIsUnmounting(true);
+        // Skip if this is initial mount
+        if (isInitialMount) {
+            return;
+        }
+
+        // Check if hash actually changed
+        if (hashRef.current !== hash) {
+            // Hash changed - filters changed, start fade out
             fadeOpacity.set(
                 withTiming(0, {
-                    duration: 150,
+                    duration: 3000,
                     easing: Easing.inOut(Easing.ease),
                 }),
             );
-        } else if (isFocused && isUnmounting) {
-            // Reset if component regains focus
-            setIsUnmounting(false);
-            fadeOpacity.set(
-                withTiming(1, {
-                    duration: 200,
-                    easing: Easing.inOut(Easing.ease),
-                }),
-            );
+
+            // Update hash ref
+            hashRef.current = hash;
         }
-    }, [isFocused, isInitialMount, isUnmounting, fadeOpacity]);
+    }, [hash, isInitialMount, fadeOpacity]);
+
+    // Handle fade in when new data is loaded after filter change
+    useEffect(() => {
+        // Skip if this is initial mount
+        if (isInitialMount) {
+            return;
+        }
+
+        // If data is loaded and we're not showing loading state, fade in
+        if (isDataLoaded && !shouldShowLoadingState) {
+            InteractionManager.runAfterInteractions(() => {
+                fadeOpacity.set(
+                    withTiming(1, {
+                        duration: 200,
+                        easing: Easing.inOut(Easing.ease),
+                    }),
+                );
+            });
+        }
+    }, [isDataLoaded, shouldShowLoadingState, isInitialMount, fadeOpacity]);
 
     const toggleTransaction = useCallback(
         (item: SearchListItem) => {
