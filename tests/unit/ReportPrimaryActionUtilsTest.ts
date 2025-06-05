@@ -89,6 +89,33 @@ describe('getPrimaryAction', () => {
         expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
     });
 
+    it('should return empty for report being processed but transactions are scanning', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            comment: {
+                hold: 'Hold',
+            },
+            receipt: {
+                state: CONST.IOU.RECEIPT_STATE.SCANNING,
+            },
+        } as unknown as Transaction;
+
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe('');
+    });
+
     it('should return PAY for submitted invoice report', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -209,7 +236,7 @@ describe('getPrimaryAction', () => {
                 },
             ],
             originalMessage: {
-                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 IOUTransactionID: TRANSACTION_ID,
             },
         } as unknown as ReportAction;
@@ -407,5 +434,32 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as TransactionViolation;
 
         expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
+    });
+
+    it('Should return empty string when we are waiting for user to add a bank account', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            isWaitingOnBankAccount: true,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            connections: {
+                intacct: {
+                    config: {
+                        export: {
+                            exporter: CURRENT_USER_EMAIL,
+                        },
+                    },
+                },
+            },
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe('');
     });
 });

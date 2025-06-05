@@ -28,13 +28,9 @@ jobs:
 
       - name: Verify there's no Prettier diff
         run: |
-          npm run prettier -- --loglevel silent
+          npm run prettier -- --log-level silent
           if ! git diff --name-only --exit-code; then
             # shellcheck disable=SC2016
             echo 'Error: Prettier diff detected! Please run `npm run prettier` and commit the changes.'
             exit 1
           fi
-
-      - name: Run unused style searcher
-        shell: bash
-        run: ./.github/scripts/findUnusedKeys.sh

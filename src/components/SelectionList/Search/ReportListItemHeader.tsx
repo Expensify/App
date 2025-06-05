@@ -13,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -181,9 +182,13 @@ function ReportListItemHeader<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showArrowComponent = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
+    const participantToDisplayName = useMemo(
+        () => reportItem?.to?.displayName ?? reportItem?.to?.login ?? translate('common.hidden'),
+        [reportItem?.to?.displayName, reportItem?.to?.login, translate],
+    );
     const shouldShowToRecipient = useMemo(
-        () => thereIsFromAndTo && reportItem?.from?.accountID !== reportItem?.to?.accountID,
-        [thereIsFromAndTo, reportItem?.from?.accountID, reportItem?.to?.accountID],
+        () => thereIsFromAndTo && !!reportItem?.to?.accountID && reportItem?.from?.accountID !== reportItem?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName),
+        [thereIsFromAndTo, reportItem?.from?.accountID, reportItem?.to?.accountID, participantToDisplayName],
     );
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
@@ -217,11 +222,10 @@ function ReportListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                     {showArrowComponent && (
                         <UserInfoCellsWithArrow
-                            shouldDisplayArrowIcon={shouldShowToRecipient}
                             shouldShowToRecipient={shouldShowToRecipient}
                             participantFrom={reportItem?.from}
                             participantFromDisplayName={reportItem?.from?.displayName ?? reportItem?.from?.login ?? translate('common.hidden')}
-                            participantToDisplayName={reportItem?.to?.displayName ?? reportItem?.to?.login ?? translate('common.hidden')}
+                            participantToDisplayName={participantToDisplayName}
                             participantTo={reportItem?.to}
                             avatarSize="mid-subscript"
                             infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
