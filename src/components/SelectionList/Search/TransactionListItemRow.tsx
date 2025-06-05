@@ -339,7 +339,7 @@ function TransactionListItemRow({
                             </View>
                         )}
                     </View>
-                    <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1, styles.justifyContentBetween]}>
+                    <View style={[styles.alignItemsEnd, styles.gap1, styles.justifyContentBetween, styles.flexShrink0]}>
                         <TotalCell
                             showTooltip={showTooltip}
                             transactionItem={item}
@@ -437,7 +437,7 @@ function TransactionListItemRow({
                     </View>
                 )}
                 {item.shouldShowTax && (
-                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, item.isTaxAmountColumnWide)]}>
                         <TaxCell
                             transactionItem={item}
                             isLargeScreenWidth
@@ -446,7 +446,7 @@ function TransactionListItemRow({
                     </View>
                 )}
 
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, item.isAmountColumnWide)]}>
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}

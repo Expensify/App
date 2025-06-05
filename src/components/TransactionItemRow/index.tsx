@@ -57,6 +57,8 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    amountColumnSize,
+    taxAmountColumnSize,
     onCheckboxPress,
     shouldShowCheckbox = false,
     columns,
@@ -71,6 +73,8 @@ function TransactionItemRow({
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
+    amountColumnSize: TableColumnSize;
+    taxAmountColumnSize: TableColumnSize;
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
@@ -91,6 +95,8 @@ function TransactionItemRow({
     const createdAt = getTransactionCreated(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: transactionItem.shouldBeHighlighted ?? false,
@@ -220,7 +226,7 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}>
                     <TotalCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
@@ -229,7 +235,7 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, isAmountColumnWide, isTaxAmountColumnWide)]}>
                     <TaxCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
@@ -237,7 +243,7 @@ function TransactionItemRow({
                 </View>
             ),
         }),
-        [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
+        [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem, isAmountColumnWide, isTaxAmountColumnWide],
     );
     const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     return (
