@@ -420,12 +420,11 @@ function WorkspacesListPage() {
                     type: policy.type,
                     employeeList: policy.employeeList,
                 };
-            })
-            .sort((a, b) => localeCompare(a.title, b.title));
+            });
     }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, policyRooms, navigateToWorkspace]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
-    const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems, []);
+    const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), []);
     const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
 
     const listHeaderComponent = (
