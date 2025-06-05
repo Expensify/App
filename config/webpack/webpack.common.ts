@@ -114,6 +114,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'web/apple-touch-icon.png'},
+                {from: 'web/robots.txt'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
                 {from: 'web/thirdPartyScripts.js'},
