@@ -29,7 +29,7 @@ PODS:
   - AppLogs (0.1.0)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
-  - EXAV (15.1.4):
+  - EXAV (15.1.5):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
   - EXImageLoader (5.1.0):
@@ -1953,7 +1953,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-key-command (1.0.12):
+  - react-native-key-command (1.0.14):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3676,7 +3676,7 @@ SPEC CHECKSUMS:
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
-  EXAV: 0809cbb31eba2111d5413f2dbb547ba9727478ee
+  EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 47792ed07f5a1a6d1fe27eaff09148f033321f46
   Expo: 28d2e49ab68e9823a8c452b2ad125b76a6209bac
@@ -3700,7 +3700,7 @@ SPEC CHECKSUMS:
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
   fullstory_react-native: 86d27070ffd12056ffb70d215cfc41f851f9c2f3
-  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
+  glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -3767,7 +3767,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: 62aa7710adea39153a3e9c268a471ff59c581715
   react-native-geolocation: 39ed0f7fb573661bf4922bc55a7d81fe5410a10d
   react-native-image-picker: 93ea6f8f49d30fe03f69a565665ea60b2278d4da
-  react-native-key-command: 0db5319034acde9839d6b35ff92a1dd2dcedbbfd
+  react-native-key-command: d59da9dbb2dd5855091333aede38aa481bd7037d
   react-native-keyboard-controller: 98971543d6c70d5232f4122aa04483d2dfa9c970
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6aa96b58130ce8de834c2f6c00878b69703d9e10
