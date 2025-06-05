@@ -284,15 +284,16 @@ function MoneyRequestConfirmationListFooter({
      */
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
+    const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const reportOwnerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
     const outstandingReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {});
     const firstOutstandingReport = outstandingReports.at(0);
 
-    let reportName = getReportName(shouldUseTransactionReport ? transactionReport : firstOutstandingReport, policy);
+    let reportName = getReportName(shouldUseTransactionReport ? transactionReport : firstOutstandingReport, selectedPolicy);
     if (!reportName) {
-        const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
-        reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
+        const optimisticReport = buildOptimisticExpenseReport(reportID, policyID, selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
+        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
     }
 
     const shouldReportBeEditable = outstandingReports.length > 1 || (outstandingReports.length === 1 && firstOutstandingReport?.reportID !== transaction?.reportID);
