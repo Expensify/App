@@ -87,7 +87,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                     source={currentReceipt?.source ?? ''}
                     page={page}
                     setPage={setPage}
-                    attachmentID={currentReceipt?.transactionID ?? ''}
+                    attachmentID={currentReceipt?.transactionID}
                     onClose={Navigation.goBack}
                     autoHideArrows={autoHideArrows}
                     cancelAutoHideArrow={cancelAutoHideArrows}
