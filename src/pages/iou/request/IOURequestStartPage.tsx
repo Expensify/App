@@ -71,11 +71,34 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
-    const transactionRequestType = useMemo(
-        () => ((transaction?.iouRequestType ?? shouldUseTab) ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL),
-        [transaction?.iouRequestType, shouldUseTab, selectedTab],
-    );
+
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
+    const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
+    const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
+    const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
+    const currentPolicyPerDiemUnit = getPerDiemCustomUnit(policy);
+    const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit) && !!currentPolicyPerDiemUnit.enabled;
+    const shouldShowPerDiemOption =
+        iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
+
+    const transactionRequestType = useMemo(
+        () => {
+            if (!transaction?.iouRequestType) {
+                if (shouldUseTab) {
+                    if (selectedTab === CONST.TAB_REQUEST.PER_DIEM && !shouldShowPerDiemOption) {
+                        return undefined;
+                    }
+                    return selectedTab;
+                }
+
+                return CONST.IOU.REQUEST_TYPE.MANUAL
+            }
+
+            return transaction.iouRequestType;
+        },
+        [transaction?.iouRequestType, shouldUseTab, selectedTab, shouldShowPerDiemOption],
+    );
+
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
     useEffect(() => {
@@ -110,6 +133,7 @@ function IOURequestStartPage({
             if (
                 (transaction?.reportID === reportID && iouType !== CONST.IOU.TYPE.CREATE && iouType !== CONST.IOU.TYPE.SUBMIT) ||
                 isLoadingSelectedTab ||
+                !transactionRequestType ||
                 prevTransactionReportID !== transaction?.reportID
             ) {
                 return;
@@ -125,18 +149,6 @@ function IOURequestStartPage({
     const focusTrapContainerElements = useMemo(() => {
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
-
-    const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
-    const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
-
-    const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
-
-    const currentPolicyPerDiemUnit = getPerDiemCustomUnit(policy);
-
-    const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit) && !!currentPolicyPerDiemUnit.enabled;
-
-    const shouldShowPerDiemOption =
-        iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
     const {isBetaEnabled} = usePermissions();
 
