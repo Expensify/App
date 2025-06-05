@@ -97,12 +97,13 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
-
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
         canBeMissing: true,
     });
+
+    const reportTransactionIDs = transactions?.map((transaction) => transaction.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
 
     const prevTransactions = usePrevious(transactions);
 
@@ -138,7 +139,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const isTransactionDataReady = transactions !== undefined;
     const isStillLoadingData = !!isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
-    const shouldWaitForData = (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) && !isTransactionThreadView;
+    const shouldWaitForData =
+        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
+        !isTransactionThreadView &&
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
     const isEmptyTransactionReport = transactions && transactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, transactions ?? []);
