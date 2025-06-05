@@ -288,7 +288,6 @@ function MoneyRequestConfirmationListFooter({
     const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
     const outstandingReportID = isPolicyExpenseChat ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID : reportID;
-    const outstandingReports = getOutstandingReportsForUser(policyID, selectedParticipants?.at(0)?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, allReports ?? {}, reportNameValuePairs);
 
     let reportName = getReportName(shouldUseTransactionReport ? transactionReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${outstandingReportID}`], selectedPolicy);
     if (!reportName) {
@@ -296,7 +295,8 @@ function MoneyRequestConfirmationListFooter({
         reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
     }
 
-    const shouldReportBeEditable = outstandingReports.length > 1;
+    const availableOutstandingReports = getOutstandingReportsForUser(policyID, selectedParticipants?.at(0)?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, allReports ?? {}, reportNameValuePairs);
+    const shouldReportBeEditable = availableOutstandingReports.length > 1;
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;

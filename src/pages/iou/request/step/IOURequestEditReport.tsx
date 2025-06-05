@@ -22,13 +22,14 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const selectedReportID = report?.iouReportID ?? reportID;
 
     const selectReport = (item: ReportListItem) => {
         if (selectedTransactionIDs.length === 0) {
             return;
         }
-        if (item.value !== transactionReport?.reportID) {
+        if (item.value !== report?.reportID) {
             changeTransactionsReport(selectedTransactionIDs, item.value);
             clearSelectedTransactions(true);
         }
@@ -38,7 +39,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionsReports={transactionReport ? [transactionReport] : []}
+            selectedReportID={selectedReportID}
             selectReport={selectReport}
         />
     );

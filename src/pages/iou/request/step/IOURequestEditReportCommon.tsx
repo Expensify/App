@@ -8,7 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser, isPolicyExpenseChat as isPolicyExpenseChatReportUtils} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -38,48 +38,31 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 
 type Props = {
     backTo: Route | undefined;
-    transactionsReports: Report[];
+    selectedReportID: string | undefined;
     selectReport: (item: ReportListItem) => void;
 };
 
-function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}: Props) {
+function IOURequestEditReportCommon({backTo, selectedReportID, selectReport}: Props) {
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
-
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const selectedReportID = useMemo(() => {
-        if (transactionsReports.length > 1) {
-            const firstReport = transactionsReports.at(0);
-            return transactionsReports.every((report) => report.reportID === firstReport?.reportID) ? firstReport?.reportID : undefined;
+    const selectedReport = useMemo(() => {
+        if (!selectedReportID) {
+            return undefined;
         }
-
-        const report = transactionsReports.at(0);
-        const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
-        return isPolicyExpenseChat ? report?.iouReportID : report?.reportID;
-    }, [transactionsReports]);
+        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
+    }, [allReports, selectedReportID]);
 
     const expenseReports = useMemo(() => {
-        if (selectedReportID) {
-            return getOutstandingReportsForUser(
-                transactionsReports.at(0)?.policyID,
-                transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
-                allReports ?? {},
-                reportNameValuePairs,
-            );
+        if (!selectedReportID) {
+            return Object.values(allPoliciesID ?? {}).flatMap((policyID) => getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs));
         }
-
-        return Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-            if (!policyID) {
-                return [];
-            }
-            const reports = getOutstandingReportsForUser(policyID, transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs);
-            return reports;
-        });
-    }, [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, selectedReportID]);
+        return getOutstandingReportsForUser(selectedReport?.policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs);
+    }, [allReports, currentUserPersonalDetails.accountID, selectedReport, reportNameValuePairs, allPoliciesID, selectedReportID]);
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
@@ -121,7 +104,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 textInputLabel={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                 shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
-                initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
+                initiallyFocusedOptionKey={selectedReportID}
                 ListItem={UserListItem}
             />
         </StepScreenWrapper>
