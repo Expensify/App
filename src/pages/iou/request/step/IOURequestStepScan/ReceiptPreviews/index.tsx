@@ -116,6 +116,10 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
         };
     });
 
+    if (!isMultiScanEnabled) {
+        return;
+    }
+
     return (
         <Animated.View style={slideInStyle}>
             <View style={styles.pr4}>

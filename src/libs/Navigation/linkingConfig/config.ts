@@ -826,8 +826,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_IMPORT]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORT.route,
                         },
+                        [SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_MULTI_LEVEL_TAGS_IMPORT_SETTINGS.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORTED.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.route,
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
