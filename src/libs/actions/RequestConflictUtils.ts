@@ -197,9 +197,7 @@ function resolveReadNewestActionConflicts(persistedRequests: OnyxRequest[], para
     const reportID = parameters.reportID;
     const newLastReadTime = parameters.lastReadTime;
 
-    const existingRequestIndex = persistedRequests.findIndex(
-        (request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === reportID
-    );
+    const existingRequestIndex = persistedRequests.findIndex((request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === reportID);
 
     if (existingRequestIndex === -1) {
         return {

@@ -1,7 +1,6 @@
-import {useCallback, useState} from 'react';
+import {useState} from 'react';
 import type {MutableRefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 
@@ -34,7 +33,6 @@ export default function useReportUnreadMessageScrollTracking({
     onTrackScrolling,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(floatingMessageVisibleInitialValue);
-
 
     /**
      * On every scroll event we want to:
