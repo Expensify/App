@@ -13,4 +13,4 @@
 - Reason: There was a visible glitching on initial load. The glitch was visible because two animated values: position and translateX were equal to 0 for a brief moment before changing to a proper value.
 - Upstream PR/issue: N/A
 - E/App issue: https://github.com/Expensify/App/issues/62346
-- PR Introducing Patch: [#???](https://???)
+- PR Introducing Patch: [#63570](https://github.com/Expensify/App/pull/63570)
