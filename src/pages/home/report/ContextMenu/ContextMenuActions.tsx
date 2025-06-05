@@ -126,7 +126,7 @@ import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
-    const message = Array.isArray(reportAction?.message) ? reportAction?.message?.at(-1) ?? null : reportAction?.message ?? null;
+    const message = Array.isArray(reportAction?.message) ? (reportAction?.message?.at(-1) ?? null) : (reportAction?.message ?? null);
     return message?.html ?? '';
 }
 
@@ -559,7 +559,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
                     isMarkAsClosedAction(reportAction)
                 ) {
-                    const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
+                    const harvesting = !isMarkAsClosedAction(reportAction) ? (getOriginalMessage(reportAction)?.harvesting ?? false) : false;
                     if (harvesting) {
                         setClipboardMessage(translateLocal('iou.automaticallySubmitted'));
                     } else {

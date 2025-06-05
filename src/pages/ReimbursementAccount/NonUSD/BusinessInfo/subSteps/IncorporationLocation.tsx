@@ -21,15 +21,21 @@ type IncorporationLocationProps = SubStepProps;
 const {FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE, COMPANY_COUNTRY_CODE, COMPANY_STATE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE];
 
-const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
-    acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
-    return acc;
-}, {} as Record<string, string>);
+const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce(
+    (acc, key) => {
+        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
+        return acc;
+    },
+    {} as Record<string, string>,
+);
 
-const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce((acc, key) => {
-    acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
-    return acc;
-}, {} as Record<string, string>);
+const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce(
+    (acc, key) => {
+        acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
+        return acc;
+    },
+    {} as Record<string, string>,
+);
 
 const isCountryWithSelectableState = (countryCode: string) => countryCode === CONST.COUNTRY.US || countryCode === CONST.COUNTRY.CA;
 

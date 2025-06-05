@@ -38,7 +38,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isReceiptBeingScanned, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {allHavePendingRTERViolation, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
@@ -52,7 +52,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         hasViolations(report.reportID, violations) ||
         hasNoticeTypeViolations(report.reportID, violations, true) ||
         hasWarningTypeViolations(report.reportID, violations, true);
-    const isAnyReceiptBeingScanned = transactions?.some((transaction) => isReceiptBeingScanned(transaction));
+    const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
@@ -77,6 +77,11 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
         hasNoticeTypeViolations(report.reportID, violations, true) ||
         hasWarningTypeViolations(report.reportID, violations, true);
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
+    const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -188,7 +193,9 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     if (
         !hasAnyViolations ||
         isReimbursed ||
-        (!(isSubmitter && isOpen) && !canApprove(report, violations, policy, transactions, false) && !canPay(report, violations, policy, isReportArchived, policy, false))
+        (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
+            !canApprove(report, violations, policy, transactions, false) &&
+            !canPay(report, violations, policy, isReportArchived, policy, false))
     ) {
         return false;
     }
@@ -204,7 +211,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     }
 
     if (policy) {
-        return !!policy.areWorkflowsEnabled;
+        return !!policy.areWorkflowsEnabled || isSubmitter;
     }
 
     return true;
