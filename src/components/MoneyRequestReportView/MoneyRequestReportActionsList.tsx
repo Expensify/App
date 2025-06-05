@@ -82,8 +82,8 @@ type MoneyRequestReportListProps = {
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
 
-    /** List of transactions belonging to this report */
-    reportTransactions?: OnyxTypes.Transaction[];
+    /** All transactions grouped by reportID */
+    transactionsByReportID: OnyxTypes.ReportTransactionsDerivedValue;
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
@@ -109,7 +109,7 @@ function MoneyRequestReportActionsList({
     report,
     policy,
     reportActions = [],
-    reportTransactions = [],
+    transactionsByReportID,
     newTransactions,
     hasNewerActions,
     hasOlderActions,
@@ -124,7 +124,8 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const reportTransactionIDs = reportTransactions.map((transaction) => transaction.transactionID);
+    const reportTransactions = transactionsByReportID?.[report.reportID] ?? [];
+    const reportTransactionIDs = useMemo(() => reportTransactions.map((transaction) => transaction.transactionID), [reportTransactions]);
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -480,7 +481,7 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
-                    transactions={reportTransactions ?? []}
+                    transactionsByReportID={transactionsByReportID}
                 />
             );
         },
@@ -494,7 +495,7 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            reportTransactions,
+            transactionsByReportID,
         ],
     );
 
@@ -547,8 +548,8 @@ function MoneyRequestReportActionsList({
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedTransactionIDs.length === reportTransactions.length}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== reportTransactions.length}
+                            isChecked={selectedTransactionIDs.length === reportTransactionIDs.length}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== reportTransactionIDs.length}
                             onPress={() => {
                                 if (selectedTransactionIDs.length !== 0) {
                                     clearSelectedTransactions(true);

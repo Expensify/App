@@ -2,7 +2,7 @@ import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'reac
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportTransactionsDerivedValue, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -60,15 +60,14 @@ type MoneyRequestReportPreviewProps = {
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
 
-    /** The transactions for the report */
-    transactions: Transaction[];
+    /** All transactions grouped by reportID */
+    transactionsByReportID: ReportTransactionsDerivedValue;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
     chatReport: OnyxEntry<Report>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
-    transactions: Transaction[];
     violations: OnyxCollection<TransactionViolation[]>;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;

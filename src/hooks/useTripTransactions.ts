@@ -1,6 +1,7 @@
 import {useOnyx} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {ReportTransactionsDerivedValue, Transaction} from '@src/types/onyx';
 
 /**
  * Hook to fetch transactions associated with a specific `tripRoom` report.
@@ -12,7 +13,7 @@ import type {Transaction} from '@src/types/onyx';
  * @param reportID - The trip room's reportID.
  * @returns Transactions linked to the specified trip room.
  */
-function useTripTransactions(reportID: string | undefined, reportTransactions: Transaction[]): Transaction[] {
+function useTripTransactions(reportID: string | undefined, transactionsByReportID: ReportTransactionsDerivedValue): Transaction[] {
     const [tripTransactionReportIDs = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) =>
             Object.values(reports ?? {})
@@ -20,7 +21,7 @@ function useTripTransactions(reportID: string | undefined, reportTransactions: T
                 .map((report) => report?.reportID),
     });
 
-    const tripTransactions = tripTransactionReportIDs.flatMap((transactionReportID) => reportTransactions[transactionReportID ?? 0] ?? []);
+    const tripTransactions = tripTransactionReportIDs.flatMap((transactionReportID) => transactionsByReportID[transactionReportID ?? CONST.DEFAULT_NUMBER_ID]);
 
     return tripTransactions;
 }

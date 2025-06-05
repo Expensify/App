@@ -49,8 +49,8 @@ type MoneyRequestReportViewProps = {
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
 
-    /** The reportTransactions for the report */
-    reportTransactions: OnyxTypes.Transaction[];
+    /** All transactions grouped by reportID */
+    transactionsByReportID: OnyxTypes.ReportTransactionsDerivedValue;
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -88,7 +88,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, reportTransactions}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, transactionsByReportID}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -101,7 +101,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
-
+    const reportTransactions = transactionsByReportID[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? [];
     const prevTransactions = usePrevious(reportTransactions);
 
     const newTransactions = useMemo(() => {
@@ -229,7 +229,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         <MoneyRequestReportActionsList
                             report={report}
                             policy={policy}
-                            reportTransactions={reportTransactions}
+                            transactionsByReportID={transactionsByReportID}
                             newTransactions={newTransactions}
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
@@ -245,7 +245,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             hasOlderActions={hasOlderActions}
                             parentReportAction={parentReportAction}
                             transactionThreadReportID={transactionThreadReportID}
-                            reportTransactions={reportTransactions}
+                            transactionsByReportID={transactionsByReportID}
                         />
                     )}
                     {shouldDisplayReportFooter ? (

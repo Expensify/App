@@ -29,7 +29,7 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction, Transaction} from '@src/types/onyx';
+import type {ReportAction, ReportTransactionsDerivedValue} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
 type TripRoomPreviewProps = {
@@ -55,7 +55,7 @@ type TripRoomPreviewProps = {
     shouldDisplayContextMenu?: boolean;
 
     /** The transactions for the report */
-    transactions: Transaction[];
+    transactionsByReportID: ReportTransactionsDerivedValue;
 };
 
 type ReservationViewProps = {
@@ -128,13 +128,13 @@ function TripRoomPreview({
     isHovered = false,
     checkIfContextMenuActive = () => {},
     shouldDisplayContextMenu = true,
-    transactions,
+    transactionsByReportID,
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {canBeMissing: true});
-    const tripTransactions = useTripTransactions(chatReportID, transactions);
+    const tripTransactions = useTripTransactions(chatReportID, transactionsByReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
     const dateInfo =

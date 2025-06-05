@@ -883,14 +883,12 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
-                    transactions={[]}
+                    transactionsByReportID={transactionsByReportID}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
             children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
-            const iouReportID = getIOUReportIDFromReportActionPreview(action) ?? CONST.DEFAULT_NUMBER_ID;
-            const transactions = transactionsByReportID[iouReportID] ?? [];
             children = (
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -906,12 +904,10 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
-                    transactions={transactions}
+                    transactionsByReportID={transactionsByReportID}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-            const iouReportID = getIOUReportIDFromReportActionPreview(action) ?? CONST.DEFAULT_NUMBER_ID;
-            const transactions = transactionsByReportID[iouReportID] ?? [];
             children = (
                 <ReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -927,7 +923,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     isWhisper={isWhisper}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
-                    transactions={transactions}
+                    transactionsByReportID={transactionsByReportID}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1344,7 +1340,7 @@ function PureReportActionItem({
         return (
             <TripSummary
                 reportID={getOriginalMessage(action)?.linkedReportID}
-                transactions={[]}
+                transactionsByReportID={transactionsByReportID}
             />
         );
     }

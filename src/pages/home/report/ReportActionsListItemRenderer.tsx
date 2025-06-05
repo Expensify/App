@@ -161,6 +161,7 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                transactionsByReportID={transactionsByReportID}
             />
         );
     }

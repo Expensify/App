@@ -95,7 +95,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {ReportAction, ReportTransactionsDerivedValue} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
@@ -142,7 +142,7 @@ type ReportPreviewProps = {
     shouldDisplayContextMenu?: boolean;
 
     /** The transactions for the report */
-    transactions: Transaction[];
+    transactionsByReportID: ReportTransactionsDerivedValue;
 };
 
 function ReportPreview({
@@ -159,11 +159,12 @@ function ReportPreview({
     onPaymentOptionsHide,
     onShowContextMenu = () => {},
     shouldDisplayContextMenu = true,
-    transactions,
+    transactionsByReportID,
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: false});
-    const [iouReport, violations] = useReportTransactionViolations(iouReportID, transactions);
+    const transactions = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? [], [transactionsByReportID, iouReportID]);
+    const [iouReport, violations] = useReportTransactionViolations(iouReportID, transactionsByReportID);
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];

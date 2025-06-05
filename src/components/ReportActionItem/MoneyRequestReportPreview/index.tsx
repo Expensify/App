@@ -37,7 +37,7 @@ function MoneyRequestReportPreview({
     shouldDisplayContextMenu = true,
     isInvoice = false,
     shouldShowBorder,
-    transactions,
+    transactionsByReportID,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -52,8 +52,9 @@ function MoneyRequestReportPreview({
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
         canBeMissing: true,
     });
-    const [iouReport, violations] = useReportTransactionViolations(iouReportID, transactions);
+    const [iouReport, violations] = useReportTransactionViolations(iouReportID, transactionsByReportID);
     const policy = usePolicy(policyID);
+    const transactions = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? [], [transactionsByReportID, iouReportID]);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
@@ -121,7 +122,7 @@ function MoneyRequestReportPreview({
             checkIfContextMenuActive={checkIfContextMenuActive}
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
-            transactions={transactions}
+            transactionsByReportID={transactionsByReportID}
             violations={violations}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}

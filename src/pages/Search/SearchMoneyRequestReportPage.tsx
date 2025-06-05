@@ -49,10 +49,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
-    const [reportTransactions = []] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
-        canBeMissing: true,
-        selector: (transactions) => transactions?.[reportIDFromRoute ?? CONST.DEFAULT_NUMBER_ID],
-    });
+    const [transactionsByReportID = {}] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {canBeMissing: true});
 
     const {reportActions: reportActionsWithDeletedExpenses} = usePaginatedReportActions(reportIDFromRoute);
     const reportActions = reportActionsWithDeletedExpenses.filter((value) => !isDeletedParentAction(value));
@@ -134,7 +131,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                 policy={policy}
                                 shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                 backToRoute={route.params.backTo}
-                                reportTransactions={reportTransactions}
+                                transactionsByReportID={transactionsByReportID}
                             />
                         </FullPageNotFoundView>
                     </ScreenWrapper>
@@ -169,7 +166,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         backToRoute={route.params.backTo}
-                                        reportTransactions={reportTransactions}
+                                        transactionsByReportID={transactionsByReportID}
                                     />
                                 </View>
                                 <PortalHost name="suggestions" />
