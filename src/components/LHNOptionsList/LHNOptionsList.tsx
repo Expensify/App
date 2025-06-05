@@ -178,7 +178,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
             const transactionID = isMoneyRequestAction(itemParentReportAction)
-                ? getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
+                ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
@@ -189,7 +189,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             // Get the transaction for the last report action
             const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
-                ? getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
+                ? (getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 

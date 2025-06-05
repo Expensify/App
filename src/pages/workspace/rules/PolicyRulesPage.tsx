@@ -19,7 +19,7 @@ type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorPara
 
 function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {translate} = useLocalize();
-    const {canUseCustomRules} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -44,7 +44,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
                     <ExpenseReportRulesSection policyID={policyID} />
-                    {canUseCustomRules ? <CustomRulesSection policyID={policyID} /> : null}
+                    {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? <CustomRulesSection policyID={policyID} /> : null}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

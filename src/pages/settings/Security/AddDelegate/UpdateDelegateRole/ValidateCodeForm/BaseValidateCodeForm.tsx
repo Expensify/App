@@ -162,7 +162,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                     name="validateCode"
                     value={validateCode}
                     onChangeText={onTextInput}
-                    errorText={formError?.validateCode ? translate(formError?.validateCode) : Object.values(validateLoginError ?? {}).at(0) ?? ''}
+                    errorText={formError?.validateCode ? translate(formError?.validateCode) : (Object.values(validateLoginError ?? {}).at(0) ?? '')}
                     hasError={!isEmptyObject(validateLoginError)}
                     onFulfill={validateAndSubmitForm}
                     autoFocus={false}

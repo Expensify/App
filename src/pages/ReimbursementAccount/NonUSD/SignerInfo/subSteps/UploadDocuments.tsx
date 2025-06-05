@@ -50,10 +50,10 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const codiceFiscaleInputID = CODICE_FISCALE;
 
     const defaultValues: Record<string, FileObject[]> = {
-        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? reimbursementAccountDraft?.[copyOfIDInputID] ?? [] : [],
-        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? reimbursementAccountDraft?.[addressProofInputID] ?? [] : [],
-        [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? reimbursementAccountDraft?.[directorsProofInputID] ?? [] : [],
-        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? reimbursementAccountDraft?.[codiceFiscaleInputID] ?? [] : [],
+        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] ?? []) : [],
+        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? (reimbursementAccountDraft?.[addressProofInputID] ?? []) : [],
+        [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? (reimbursementAccountDraft?.[directorsProofInputID] ?? []) : [],
+        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? (reimbursementAccountDraft?.[codiceFiscaleInputID] ?? []) : [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);
