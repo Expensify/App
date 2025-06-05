@@ -1,5 +1,7 @@
 import type {
     DefaultNavigatorOptions,
+    EventMapBase,
+    NavigationListBase,
     NavigationProp,
     ParamListBase,
     RouteProp,
@@ -12,7 +14,7 @@ import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type {StackNavigationConfig} from '@react-navigation/stack/lib/typescript/src/types';
 import type CommonProperties from '@src/types/utils/CommonProperties';
-import type {PlatformStackNavigationOptions} from './NavigationOptions';
+import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions} from './NavigationOptions';
 
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
@@ -66,7 +68,7 @@ type PlatformStackNavigatorProps<
     ParamList extends ParamListBase,
     RouteName extends keyof ParamList = keyof ParamList,
     RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
+> = DefaultNavigatorOptions<ParamList, string | undefined, PlatformStackNavigationState<ParamList>, PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, NavigationListBase<ParamList>, RouteName> &
     RouterOptions &
     StackNavigationConfig & {
         persistentScreens?: Array<Extract<keyof ParamList, string>>;
