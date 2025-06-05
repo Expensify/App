@@ -502,7 +502,7 @@ function WorkspacesListPage() {
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     <ScrollView
-                        contentContainerStyle={styles.pt3}
+                        contentContainerStyle={styles.pt2}
                         addBottomSafeAreaPadding
                     >
                         <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -536,7 +536,7 @@ function WorkspacesListPage() {
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{getHeaderButton()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
                 {workspaces.length > CONST.SEARCH_ITEM_LIMIT - 15 && (
                     <SearchBar
                         label="Find workspace"
