@@ -50,6 +50,7 @@ function ButtonWithDropdownMenu<IValueType>({
     testID,
     secondLineText = '',
     icon,
+    shouldUseModalPaddingStyle = true,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -232,7 +233,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     withoutOverlay
                     shouldUseScrollView
                     scrollContainerStyle={shouldUseNarrowLayout && styles.pv4}
-                    shouldUseModalPaddingStyle={false}
+                    shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({

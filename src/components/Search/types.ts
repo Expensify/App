@@ -87,6 +87,7 @@ type SearchContext = SearchContextData & {
         (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
         (clearIDs: true, unused?: undefined): void;
     };
+    removeTransaction: (transactionID: string | undefined) => void;
     shouldShowFiltersBarLoading: boolean;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
