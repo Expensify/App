@@ -43,25 +43,11 @@ class TranslationGenerator {
      */
     private readonly openai: OpenAI | undefined;
 
-    /**
-     * A typescript util that can print an AST to a string of source code.
-     */
-    private readonly tsPrinter: ts.Printer;
-
-    /**
-     * A debug utility that we use to validate at runtime that `stringToTemplateExpression` works for all use-cases.
-     *
-     * TODO: Remove this once recursive template processing is done and unit tested.
-     */
-    private readonly debugFile: ts.SourceFile;
-
     constructor(config: {targetLanguages: Locale[]; languagesDir: string; sourceFile: string; openai?: OpenAI}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         this.sourceFile = config.sourceFile;
         this.openai = config.openai;
-        this.tsPrinter = ts.createPrinter();
-        this.debugFile = ts.createSourceFile('tempDebug.ts', '', ts.ScriptTarget.Latest);
     }
 
     public async generateTranslations(): Promise<void> {
