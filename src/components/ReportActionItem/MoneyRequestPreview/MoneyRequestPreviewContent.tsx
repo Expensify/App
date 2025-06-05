@@ -183,19 +183,14 @@ function MoneyRequestPreviewContent({
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = isMoneyRequestActionReportActionsUtils(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
     const [reviewingTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewingTransactionID}`, {canBeMissing: true});
-    const [reviewingTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (allTransactionViolations) => allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`],
+    const [reviewingTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`, {canBeMissing: true});
+    const reviewingTransactionDuplicateIDs = reviewingTransactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const [allDuplicates] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        selector: (allTransactions) => allDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
         canBeMissing: true,
     });
-    const duplicateIDs = reviewingTransactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-
-    const [[allDuplicates, reviewingTransactionDuplicates] = []] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
-        selector: (allTransactions) => {
-            return [
-                allDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
-                duplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
-            ];
-        },
+    const [reviewingTransactionDuplicates] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        selector: (allTransactions) => reviewingTransactionDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
         canBeMissing: true,
     });
     // Remove settled transactions from duplicates
