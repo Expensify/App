@@ -56,13 +56,20 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 fontSize: 13, // TODO: should be 15 if inside h1, see StyleUtils.getCodeFontSize
                 color: theme.text,
-                backgroundColor: 'transparent',
+                paddingVertical: 0,
+                paddingHorizontal: 5,
+                borderColor: theme.border,
+                backgroundColor: theme.textBackground,
+                h1NestedFontSize: 15,
             },
             pre: {
                 ...FontUtils.fontFamily.platform.MONOSPACE,
                 fontSize: 13,
                 color: theme.text,
-                backgroundColor: 'transparent',
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                borderColor: theme.border,
+                backgroundColor: theme.textBackground,
             },
             mentionHere: {
                 color: theme.ourMentionText,
