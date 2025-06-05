@@ -31,7 +31,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -296,7 +296,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [transactionsByReportID = {}] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
         canBeMissing: false,
     });
-    const reportTransactions = transactionsByReportID?.[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? [];
+    const reportTransactions = getAllNonDeletedTransactions(transactionsByReportID?.[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? [], reportActions);
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});

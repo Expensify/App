@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -47,6 +47,19 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
             return action?.childReportID;
         })
         .filter((reportID): reportID is string => !!reportID);
+}
+
+/**
+ * Filters all available transactions and returns the ones that belong to not removed parent action.
+ */
+function getAllNonDeletedTransactions(transactions: Transaction[], reportActions: ReportAction[]) {
+    return transactions.filter((transaction): transaction is Transaction => {
+        if (!transaction) {
+            return false;
+        }
+        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        return !isDeletedParentAction(action);
+    });
 }
 
 /**
@@ -109,4 +122,11 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
-export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton, isSingleTransactionReport, shouldDisplayReportTableView};
+export {
+    isActionVisibleOnMoneyRequestReport,
+    getThreadReportIDsForTransactions,
+    getTotalAmountForIOUReportPreviewButton,
+    getAllNonDeletedTransactions,
+    isSingleTransactionReport,
+    shouldDisplayReportTableView,
+};
