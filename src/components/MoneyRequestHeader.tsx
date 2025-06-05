@@ -47,8 +47,8 @@ import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import {useMoneyRequestReportContext} from './MoneyRequestReportView/MoneyRequestReportContext';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
+import {useSearchContext} from './Search/SearchContext';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
@@ -92,7 +92,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
     const reportID = report?.reportID;
     const {isBetaEnabled} = usePermissions();
-    const {removeTransaction} = useMoneyRequestReportContext();
+    const {removeTransaction} = useSearchContext();
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
