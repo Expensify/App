@@ -21,7 +21,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {canCreateTaskInReport, getOutstandingReportsForUser, getPayeeName, isMoneyRequestReport, isPaidGroupPolicy, isPolicyExpenseChat, isReportOutstanding, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
@@ -34,6 +34,7 @@ import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type MoneyRequestOptions = Record<
     Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
@@ -132,6 +133,7 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
 
     const selectOption = useCallback(
@@ -149,6 +151,7 @@ function AttachmentPickerWithMenuItems({
      * Returns the list of IOU Options
      */
     const moneyRequestOptions = useMemo(() => {
+        const moneyRequestReportID = (isMoneyRequestReport(report) ? report?.reportID : getOutstandingReportsForUser(policy?.id, currentUserPersonalDetails.accountID, allReports)?.at(0)?.reportID) ?? report?.reportID;
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Transfer,
@@ -160,7 +163,7 @@ function AttachmentPickerWithMenuItems({
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                 text: translate('iou.createExpense'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
             },
             [CONST.IOU.TYPE.PAY]: {
                 icon: getIconForAction(CONST.IOU.TYPE.SEND),
