@@ -14,7 +14,7 @@ const CONTACT_FIELDS: Record<ContactFields, ContactFields> = {
     PHONE_NUMBERS: 'PHONE_NUMBERS',
     EMAIL_ADDRESSES: 'EMAIL_ADDRESSES',
     IMAGE_DATA: 'IMAGE_DATA',
-} as const;
+};
 
 type Contact = {
     firstName?: string;
