@@ -26,7 +26,6 @@ import CONST from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
-import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,18 +57,18 @@ function Confirmation() {
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
-        const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
-
         if (!reportAction?.childReportID) {
-            transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
+            return;
         }
-
         IOU.mergeDuplicates(transactionsMergeParams);
         if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
             Navigation.dismissModal();
             return;
         }
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(transactionThreadReportID), {compareParams: false});
+        if (!reportAction?.childReportID) {
+            return;
+        }
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID), {compareParams: false});
     }, [reportAction?.childReportID, transactionsMergeParams, isBetaEnabled]);
 
     const resolveDuplicates = useCallback(() => {
