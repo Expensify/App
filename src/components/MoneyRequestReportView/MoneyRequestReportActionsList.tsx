@@ -96,6 +96,9 @@ type MoneyRequestReportListProps = {
 
     /** Whether report actions are still loading */
     isLoadingInitialReportActions?: boolean;
+
+    /** Whether we should show loading state of report actions, they should be shown only when opening the report for the first time */
+    shouldShowReportActionsLoadingState?: boolean;
 };
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
@@ -114,6 +117,7 @@ function MoneyRequestReportActionsList({
     hasNewerActions,
     hasOlderActions,
     isLoadingInitialReportActions,
+    shouldShowReportActionsLoadingState,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -623,7 +627,7 @@ function MoneyRequestReportActionsList({
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
-                                    isLoadingInitialReportActions={isLoadingInitialReportActions}
+                                    isLoadingInitialReportActions={isLoadingInitialReportActions && shouldShowReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                 />
                             </>
@@ -632,7 +636,7 @@ function MoneyRequestReportActionsList({
                         onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
                         ref={reportScrollManager.ref}
-                        ListEmptyComponent={!isOffline && isLoadingInitialReportActions ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
+                        ListEmptyComponent={!isOffline && isLoadingInitialReportActions && shouldShowReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                     />
                 )}
             </View>
