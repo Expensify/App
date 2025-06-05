@@ -142,19 +142,22 @@ type ImportColumnProps = {
     columnName: string;
 
     /** Array of all possible column roles for specific data import */
-    columnRoles: ColumnRole[];
+    columnRoles?: ColumnRole[];
 
     /** Index of the column in the spreadsheet */
     columnIndex: number;
+
+    /** Whether to show the dropdown menu */
+    shouldShowDropdownMenu?: boolean;
 };
 
-function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColumnProps) {
+function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowDropdownMenu = true}: ImportColumnProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const {containsHeader = true} = spreadsheet ?? {};
 
-    const options: Array<DropdownOption<string>> = columnRoles.map((item) => ({
+    const options: Array<DropdownOption<string>> = (columnRoles ?? []).map((item) => ({
         text: item.text,
         value: item.value,
         description: item.description ?? (item.isRequired ? translate('common.required') : undefined),
@@ -164,7 +167,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
     const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');
 
     const colName = findColumnName(column.at(0) ?? '');
-    const defaultSelectedIndex = columnRoles.findIndex((item) => item.value === colName);
+    const defaultSelectedIndex = columnRoles?.findIndex((item) => item.value === colName);
     const finalIndex = defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0;
 
     useEffect(() => {
@@ -194,20 +197,22 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
                     {columnValuesString}
                 </Text>
 
-                <View style={styles.ml2}>
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                        shouldShowSelectedItemCheck
-                        menuHeaderText={columnHeader}
-                        isSplitButton={false}
-                        onOptionSelected={(option) => {
-                            setColumnName(columnIndex, option.value);
-                        }}
-                        defaultSelectedIndex={finalIndex}
-                        options={options}
-                    />
-                </View>
+                {shouldShowDropdownMenu && (
+                    <View style={styles.ml2}>
+                        <ButtonWithDropdownMenu
+                            onPress={() => {}}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            shouldShowSelectedItemCheck
+                            menuHeaderText={columnHeader}
+                            isSplitButton={false}
+                            onOptionSelected={(option) => {
+                                setColumnName(columnIndex, option.value);
+                            }}
+                            defaultSelectedIndex={finalIndex}
+                            options={options}
+                        />
+                    </View>
+                )}
             </View>
         </View>
     );
