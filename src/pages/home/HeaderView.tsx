@@ -127,8 +127,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
-    const shouldShowTalkToSales = !!isBetaEnabled(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) && isAdminRoom(report);
     const isNativePlatform = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
+    const shouldShowTalkToSales = !!isBetaEnabled(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) && isAdminRoom(report) && !isNativePlatform;
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
@@ -222,8 +222,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || isAdminRoom(report));
-    const shouldShowOnBoardingHelpDropdownButton =
-        ((shouldShowTalkToSales && !isNativePlatform) || shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isArchivedReport(reportNameValuePairs);
+    const shouldShowOnBoardingHelpDropdownButton = (shouldShowTalkToSales || shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isArchivedReport(reportNameValuePairs);
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
