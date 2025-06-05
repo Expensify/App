@@ -160,7 +160,7 @@ function AttachmentPickerWithMenuItems({
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                 text: translate('iou.createExpense'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, String(CONST.DEFAULT_NUMBER_ID)), true),
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
             },
             [CONST.IOU.TYPE.PAY]: {
                 icon: getIconForAction(CONST.IOU.TYPE.SEND),
