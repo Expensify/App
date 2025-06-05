@@ -163,10 +163,7 @@ function MoneyRequestReportTransactionList({
                 }
                 clearSelectedTransactions(true);
             };
-            // We don't need to run the effect on change of clearSelectedTransactions on every focus.
-            // eslint-disable-next-line react-compiler/react-compiler
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []),
+        }, [clearSelectedTransactions]),
     );
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
