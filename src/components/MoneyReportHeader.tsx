@@ -510,6 +510,8 @@ function MoneyReportHeader({
         [moneyRequestReport?.reportID, policy, translate],
     );
 
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+
     const exportDropdownOptions: Record<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>>> = useMemo(
         () => ({
             [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
@@ -518,6 +520,10 @@ function MoneyReportHeader({
                 value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
                 onSelected: () => {
                     if (!moneyRequestReport) {
+                        return;
+                    }
+                    if (isOffline) {
+                        setOfflineModalVisible(true);
                         return;
                     }
                     exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs}, () => {
@@ -559,7 +565,7 @@ function MoneyReportHeader({
                 },
             },
         }),
-        [moneyRequestReport, translate, transactionIDs, connectedIntegration, styles.integrationIcon, isExported],
+        [translate, connectedIntegration, styles.integrationIcon, moneyRequestReport, isOffline, transactionIDs, isExported],
     );
 
     const primaryActionsImplementation = {
@@ -975,6 +981,7 @@ function MoneyReportHeader({
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
+                    shouldUseModalPaddingStyle={false}
                 />
             )}
         </KYCWall>
@@ -1192,6 +1199,15 @@ function MoneyReportHeader({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={offlineModalVisible}
+                onClose={() => setOfflineModalVisible(false)}
             />
             <Modal
                 onClose={() => setIsPDFModalVisible(false)}
