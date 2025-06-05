@@ -9072,9 +9072,9 @@ function canApproveIOU(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
     iouTransactions?: OnyxTypes.Transaction[],
-    violations?: OnyxCollection<OnyxTypes.TransactionViolation[]>
+    violations?: OnyxCollection<OnyxTypes.TransactionViolation[]>,
 ) {
-    if (!iouReport || isSubmitAndClose(policy) || (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy)))) {
+    if (!iouReport || isSubmitAndClose(policy) || !isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
         return false;
     }
 
@@ -9089,18 +9089,25 @@ function canApproveIOU(
     if (hasOnlyPendingCardOrScanningTransactions || isAnyReceiptBeingScanned) {
         return false;
     }
-    
+
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport?.reportID, reportTransactions);
-    const hasAnyViolations = !isEmptyObject(violations) && (
-        hasMissingSmartscanFields(iouReport.reportID, iouTransactions) ||
-        hasViolations(iouReport.reportID, violations) ||
-        hasNoticeTypeViolations(iouReport.reportID, violations, true) ||
-        hasWarningTypeViolations(iouReport.reportID, violations, true));
+    const hasAnyViolations =
+        !isEmptyObject(violations) &&
+        (hasMissingSmartscanFields(iouReport.reportID, iouTransactions) ||
+            hasViolations(iouReport.reportID, violations) ||
+            hasNoticeTypeViolations(iouReport.reportID, violations, true) ||
+            hasWarningTypeViolations(iouReport.reportID, violations, true));
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(iouReport.reportID);
 
     return (
-        (reportTransactions.length > 0) && isCurrentUserManager && isProcessing && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !hasAnyViolations && !(isPreventSelfApprovalEnabled && isReportSubmitter)
+        reportTransactions.length > 0 &&
+        isCurrentUserManager &&
+        isProcessing &&
+        !isArchivedExpenseReport &&
+        !isPayAtEndExpenseReport &&
+        !hasAnyViolations &&
+        !(isPreventSelfApprovalEnabled && isReportSubmitter)
     );
 }
 
