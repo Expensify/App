@@ -20,7 +20,9 @@ jobs:
       - name: Count commits between merge base and HEAD
         id: count
         run: |
+          # Fetch the number of commits from base up to and including main.
           RAW_COUNT="$(gh api "repos/$REPO/compare/${BASE}...main" | jq -r '.total_commits')"
+          # When fetching we need to fetch the history + base + temp merge commit, thus +2.
           ADJUSTED_COUNT=$((RAW_COUNT + 2))
           echo "count=$ADJUSTED_COUNT" >> "$GITHUB_OUTPUT"
         env:
