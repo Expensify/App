@@ -15,7 +15,7 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
          * Receives a function (`setTestReceiptAndNavigate`) as an argument,
          */
         onLayout?: (setTestReceiptAndNavigate: () => void) => void;
-        
+
         /** Disable tab swipe */
         setTabSwipeDisabled?: (isDisabled: boolean) => void;
 
