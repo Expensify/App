@@ -8,7 +8,7 @@ import {clearSignInData, setAccountError} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
 
-const PRIVATE_DOMAINS_SET = new Set(PUBLIC_DOMAINS);
+const PUBLIC_DOMAINS_SET = new Set<string>(PUBLIC_DOMAINS);
 
 let countryCodeByIP: number;
 Onyx.connect({
@@ -42,7 +42,7 @@ function appendCountryCode(phone: string): string {
  */
 function isEmailPublicDomain(email: string): boolean {
     const emailDomain = Str.extractEmailDomain(email).toLowerCase();
-    return PRIVATE_DOMAINS_SET.has(emailDomain);
+    return PUBLIC_DOMAINS_SET.has(emailDomain);
 }
 
 /**
