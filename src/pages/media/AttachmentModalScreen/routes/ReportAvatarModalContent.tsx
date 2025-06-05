@@ -38,7 +38,7 @@ function ReportAvatarModalContent({navigation, reportID, policyID}: AttachmentMo
                 fallbackRoute: ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID),
                 shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
                 isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
-            } satisfies Partial<AttachmentModalBaseContentProps>),
+            }) satisfies Partial<AttachmentModalBaseContentProps>,
         [attachment, isLoadingApp, policy?.id, report?.reportID, reportID],
     );
 
