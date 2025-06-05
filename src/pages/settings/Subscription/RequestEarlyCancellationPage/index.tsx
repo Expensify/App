@@ -1,6 +1,8 @@
 import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {Linking, useWindowDimensions} from 'react-native';
+import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -23,7 +25,9 @@ import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
     const {translate} = useLocalize();
+    const {width} = useWindowDimensions();
     const styles = useThemeStyles();
+    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -36,11 +40,27 @@ function RequestEarlyCancellationPage() {
 
     const acknowledgementText = useMemo(
         () => (
-            <Text>
-                {translate('subscription.requestEarlyCancellation.acknowledgement.part1')}
-                <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{translate('subscription.requestEarlyCancellation.acknowledgement.link')}</TextLink>
-                {translate('subscription.requestEarlyCancellation.acknowledgement.part2')}
-            </Text>
+            <RenderHtml
+                contentWidth={width}
+                systemFonts={systemFonts}
+                source={{
+                    html: translate('subscription.requestEarlyCancellation.acknowledgement.full').replace(
+                        '<a>',
+                        `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}" style="text-decoration: none;">`,
+                    ),
+                }}
+                tagsStyles={{
+                    a: {...styles.link, textDecorationLine: 'none'},
+                    body: {...styles.textNormalThemeText},
+                }}
+                renderers={{
+                    a: ({TDefaultRenderer, ...props}) => (
+                        <TextLink onPress={() => Linking.openURL(CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL)}>
+                            <TDefaultRenderer {...props} />
+                        </TextLink>
+                    ),
+                }}
+            />
         ),
         [translate],
     );
