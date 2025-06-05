@@ -1268,7 +1268,7 @@ describe('ReportUtils', () => {
             expect(shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
         });
 
-        describe('only deleted actions with a child visible count of 0 should be disabled', () => {
+        describe('deleted threads', () => {
             it('should be enabled if the report action is not-deleted and visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
                 const reportAction = {
@@ -1290,7 +1290,7 @@ describe('ReportUtils', () => {
                 expect(result).toBeFalsy();
             });
 
-            it('thread should be enabled if the report action is not-deleted and visible action count is 0', () => {
+            it('should be enabled if the report action is not-deleted and visible action count is 0', () => {
                 // Given a normal report action with zero child visible action count
                 const reportAction = {
                     message: [
@@ -1310,7 +1310,7 @@ describe('ReportUtils', () => {
                 // Then the thread should be enabled
                 expect(result).toBeFalsy();
             });
-            it('thread should be enabled if the report action is deleted and visible action count is 1', () => {
+            it('should be enabled if the report action is deleted and visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
                 const reportAction = {
                     message: [
@@ -1331,7 +1331,7 @@ describe('ReportUtils', () => {
                 expect(result).toBeFalsy();
             });
 
-            it('thread should be disabled if the report action is deleted and visible action count is 0', () => {
+            it('should be disabled if the report action is deleted and visible action count is 0', () => {
                 // Given a normal report action with zero child visible action count
                 const reportAction = {
                     message: [
