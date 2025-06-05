@@ -114,8 +114,6 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     clearErrors(policyID);
 }
 
-const stickyHeaderIndices = [0];
-
 function WorkspacesListPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -430,45 +428,48 @@ function WorkspacesListPage() {
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems, []);
     const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
 
-    const listHeaderComponent = useCallback(() => {
-        if (isLessThanMediumScreen) {
-            return <View style={styles.mt3} />;
-        }
-
-        if (filteredWorkspaces.length === 0) {
-            return null;
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
-                <View style={[styles.flexRow, styles.flex2]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceName')}
-                    </Text>
+    const listHeaderComponent = (
+        <>
+            {isLessThanMediumScreen && <View style={styles.mt3} />}
+            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label="Find workspace"
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
+                />
+            )}
+            {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
+                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
+                    <View style={[styles.flexRow, styles.flex2]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceName')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceOwner')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceType')}
+                        </Text>
+                    </View>
+                    <View style={[styles.workspaceRightColumn, styles.mr2]} />
                 </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceOwner')}
-                    </Text>
-                </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceType')}
-                    </Text>
-                </View>
-                <View style={[styles.workspaceRightColumn, styles.mr2]} />
-            </View>
-        );
-    }, [isLessThanMediumScreen, styles, filteredWorkspaces, translate]);
+            )}
+        </>
+    );
 
     const getHeaderButton = () => (
         <Button
@@ -537,19 +538,10 @@ function WorkspacesListPage() {
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
-                {workspaces.length > CONST.SEARCH_ITEM_LIMIT - 15 && (
-                    <SearchBar
-                        label="Find workspace"
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
-                    />
-                )}
                 <FlatList
                     data={filteredWorkspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
-                    stickyHeaderIndices={stickyHeaderIndices}
                 />
             </View>
             <ConfirmModal
