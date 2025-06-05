@@ -46,7 +46,6 @@ function OptionRowLHNData({
             oneTransactionThreadReport,
             reportNameValuePairs,
             personalDetails,
-            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
             lastMessageTextFromReport,

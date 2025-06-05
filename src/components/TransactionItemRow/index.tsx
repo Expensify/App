@@ -16,7 +16,7 @@ import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMerchant, getCreated as getTransactionCreated, getTransactionPendingAction, isPartialMerchant} from '@libs/TransactionUtils';
+import {getMerchant, getCreated as getTransactionCreated, getTransactionPendingAction, isPartialMerchant, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
@@ -84,6 +84,7 @@ function TransactionItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const pendingAction = getTransactionPendingAction(transactionItem);
+    const isPendingDelete = isTransactionPendingDelete(transactionItem);
     const viewRef = useRef<View>(null);
 
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
@@ -246,10 +247,7 @@ function TransactionItemRow({
             onMouseEnter={bindHover.onMouseEnter}
             ref={viewRef}
         >
-            <OfflineWithFeedback
-                pendingAction={pendingAction}
-                shouldForceOpacity={!!pendingAction}
-            >
+            <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldUseNarrowLayout ? (
                     <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
                         <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
@@ -257,6 +255,7 @@ function TransactionItemRow({
                                 {shouldShowCheckbox && (
                                     <View style={[styles.mr3, styles.justifyContentCenter]}>
                                         <Checkbox
+                                            disabled={isPendingDelete}
                                             onPress={() => {
                                                 onCheckboxPress(transactionItem.transactionID);
                                             }}
@@ -344,6 +343,7 @@ function TransactionItemRow({
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                                 <View style={[styles.mr1]}>
                                     <Checkbox
+                                        disabled={isPendingDelete}
                                         onPress={() => {
                                             onCheckboxPress(transactionItem.transactionID);
                                         }}
