@@ -133,6 +133,7 @@ function AttachmentPickerWithMenuItems({
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
 
     const selectOption = useCallback(
@@ -150,7 +151,7 @@ function AttachmentPickerWithMenuItems({
      * Returns the list of IOU Options
      */
     const moneyRequestOptions = useMemo(() => {
-        const moneyRequestReportID = (isMoneyRequestReport(report) ? report?.reportID : getOutstandingReportsForUser(policy?.id, currentUserPersonalDetails.accountID, allReports)?.at(0)?.reportID) ?? report?.reportID;
+        const moneyRequestReportID = (isMoneyRequestReport(report) ? report?.reportID : getOutstandingReportsForUser(policy?.id, currentUserPersonalDetails.accountID, allReports, reportNameValuePairs)?.at(0)?.reportID) ?? report?.reportID;
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Transfer,
