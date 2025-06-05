@@ -14,6 +14,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
+import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -29,16 +30,14 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {generateReportID, getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -99,8 +98,6 @@ type SortedTransactions = {
     sortOrder: SortOrder;
 };
 
-type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
 const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
@@ -117,6 +114,7 @@ function MoneyRequestReportTransactionList({
     isLoadingInitialReportActions: isLoadingReportActions,
     scrollToNewTransaction,
 }: MoneyRequestReportTransactionListProps) {
+    useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -164,10 +162,7 @@ function MoneyRequestReportTransactionList({
                 }
                 clearSelectedTransactions(true);
             };
-            // We don't need to run the effect on change of clearSelectedTransactions on every focus.
-            // eslint-disable-next-line react-compiler/react-compiler
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []),
+        }, [clearSelectedTransactions]),
     );
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -195,27 +190,19 @@ function MoneyRequestReportTransactionList({
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
-            const reportIDToNavigate = iouAction?.childReportID ?? generateReportID();
+            const reportIDToNavigate = iouAction?.childReportID;
+            if (!reportIDToNavigate) {
+                return;
+            }
 
-            const backTo = Navigation.getActiveRoute() as Route;
+            const backTo = Navigation.getActiveRoute();
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigating between transactions
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
 
-            const routeParams = {
-                reportID: reportIDToNavigate,
-                backTo,
-            } as ReportScreenNavigationProps;
-
-            if (!iouAction?.childReportID) {
-                routeParams.moneyRequestReportActionID = iouAction?.reportActionID;
-                routeParams.transactionID = activeTransaction.transactionID;
-                routeParams.iouReportID = activeTransaction.reportID;
-            }
-
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
         },
         [reportActions, sortedTransactions],
     );
