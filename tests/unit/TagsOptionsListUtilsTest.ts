@@ -7,6 +7,7 @@ describe('TagsOptionsListUtils', () => {
         const search = 'ing';
         const emptySearch = '';
         const wrongSearch = 'bla bla';
+        const employeeSearch = 'Employee Office';
         const recentlyUsedTags = ['Engineering', 'HR'];
 
         const selectedOptions: SelectedTagOption[] = [
@@ -38,6 +39,11 @@ describe('TagsOptionsListUtils', () => {
                 accountID: undefined,
                 pendingAction: 'delete',
             },
+            EmployeeMealsOffice: {
+                enabled: true,
+                name: 'Employee Meals Office',
+                accountID: undefined,
+            },
         };
         const smallResultList: Section[] = [
             {
@@ -50,6 +56,15 @@ describe('TagsOptionsListUtils', () => {
                         keyForList: 'Accounting',
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -85,6 +100,23 @@ describe('TagsOptionsListUtils', () => {
                         keyForList: 'Accounting',
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                ],
+            },
+        ];
+        const employeeSearchResultList: Section[] = [
+            {
+                title: '',
+                shouldShow: true,
+                data: [
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -299,6 +331,9 @@ describe('TagsOptionsListUtils', () => {
         const smallSearchResult = getTagListSections({searchValue: search, tags: smallTagsList});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
+        const employeeSearchResult = getTagListSections({searchValue: employeeSearch, tags: smallTagsList});
+        expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
+
         const smallWrongSearchResult = getTagListSections({searchValue: wrongSearch, tags: smallTagsList});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
@@ -321,13 +356,13 @@ describe('TagsOptionsListUtils', () => {
         const createTagObjects = (names: string[]) => names.map((name) => ({name, enabled: true}));
 
         const unorderedTagNames = ['10bc', 'b', '0a', '1', '中国', 'b10', '!', '2', '0', '@', 'a1', 'a', '3', 'b1', '日本', '$', '20', '20a', '#', 'a20', 'c', '10'];
-        const expectedOrderNames = ['!', '#', '$', '0', '0a', '1', '10', '10bc', '2', '20', '20a', '3', '@', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
+        const expectedOrderNames = ['!', '@', '#', '$', '0', '0a', '1', '2', '3', '10', '10bc', '20', '20a', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
         const unorderedTags = createTagObjects(unorderedTagNames);
         const expectedOrder = createTagObjects(expectedOrderNames);
         expect(sortTags(unorderedTags)).toStrictEqual(expectedOrder);
 
         const unorderedTagNames2 = ['0', 'a1', '1', 'b1', '3', '10', 'b10', 'a', '2', 'c', '20', 'a20', 'b'];
-        const expectedOrderNames2 = ['0', '1', '10', '2', '20', '3', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c'];
+        const expectedOrderNames2 = ['0', '1', '2', '3', '10', '20', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c'];
         const unorderedTags2 = createTagObjects(unorderedTagNames2);
         const expectedOrder2 = createTagObjects(expectedOrderNames2);
         expect(sortTags(unorderedTags2)).toStrictEqual(expectedOrder2);
@@ -436,8 +471,15 @@ describe('TagsOptionsListUtils', () => {
         ];
         const expectedOrderNames3 = [
             '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
             '10',
-            '100',
             '11',
             '12',
             '13',
@@ -447,7 +489,6 @@ describe('TagsOptionsListUtils', () => {
             '17',
             '18',
             '19',
-            '2',
             '20',
             '21',
             '22',
@@ -458,7 +499,6 @@ describe('TagsOptionsListUtils', () => {
             '27',
             '28',
             '29',
-            '3',
             '30',
             '31',
             '32',
@@ -469,7 +509,6 @@ describe('TagsOptionsListUtils', () => {
             '37',
             '38',
             '39',
-            '4',
             '40',
             '41',
             '42',
@@ -480,7 +519,6 @@ describe('TagsOptionsListUtils', () => {
             '47',
             '48',
             '49',
-            '5',
             '50',
             '51',
             '52',
@@ -491,7 +529,6 @@ describe('TagsOptionsListUtils', () => {
             '57',
             '58',
             '59',
-            '6',
             '60',
             '61',
             '62',
@@ -502,7 +539,6 @@ describe('TagsOptionsListUtils', () => {
             '67',
             '68',
             '69',
-            '7',
             '70',
             '71',
             '72',
@@ -513,7 +549,6 @@ describe('TagsOptionsListUtils', () => {
             '77',
             '78',
             '79',
-            '8',
             '80',
             '81',
             '82',
@@ -524,7 +559,6 @@ describe('TagsOptionsListUtils', () => {
             '87',
             '88',
             '89',
-            '9',
             '90',
             '91',
             '92',
@@ -535,6 +569,7 @@ describe('TagsOptionsListUtils', () => {
             '97',
             '98',
             '99',
+            '100',
         ];
         const unorderedTags3 = createTagObjects(unorderedTagNames3);
         const expectedOrder3 = createTagObjects(expectedOrderNames3);

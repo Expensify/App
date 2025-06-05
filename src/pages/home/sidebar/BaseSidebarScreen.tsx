@@ -9,7 +9,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
 import Performance from '@libs/Performance';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import SidebarLinksData from './SidebarLinksData';
 
@@ -21,7 +20,6 @@ function BaseSidebarScreen() {
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
-        Timing.start(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
     return (

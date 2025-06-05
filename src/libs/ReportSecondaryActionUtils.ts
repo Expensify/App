@@ -56,14 +56,14 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
     if (!isReportSubmitter || reportTransactions.length === 0) {
         return false;
     }
 
-    return canAddTransaction(report);
+    return canAddTransaction(report, isReportArchived);
 }
 
 function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
@@ -155,6 +155,12 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
     const currentUserAccountID = getCurrentUserAccountID();
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
@@ -419,7 +425,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         return isOwner;
     }
 
-    // Users cannot delete a report in the unrepeorted or IOU cases, but they can delete individual transactions.
+    // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
     // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
     if (isIOUReport) {
         return isSingleTransaction && isOwner && isReportOpenOrProcessing;
@@ -504,7 +510,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
-    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions)) {
+    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs))) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
