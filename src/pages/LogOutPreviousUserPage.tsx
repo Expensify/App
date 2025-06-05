@@ -25,12 +25,13 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountLoading = account?.isLoading;
+    const {authTokenType, shortLivedAuthToken = ''} = route?.params ?? {};
 
     useEffect(() => {
         const sessionEmail = session?.email;
         const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
-        const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+        const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
             // We don't want to close react-native app in this particular case.
@@ -39,7 +40,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         }
 
         if (isSupportalLogin) {
-            signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
+            signInWithSupportAuthToken(shortLivedAuthToken);
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
@@ -50,7 +51,6 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
         // because the old authToken stored in Onyx may be invalid.
-        const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
         signInWithShortLivedAuthToken(shortLivedAuthToken);
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
@@ -58,7 +58,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     }, [initialURL]);
 
     useEffect(() => {
-        const exitTo = route.params.exitTo as Route | null;
+        const exitTo = route?.params?.exitTo as Route | null;
         const sessionEmail = session?.email;
         const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
