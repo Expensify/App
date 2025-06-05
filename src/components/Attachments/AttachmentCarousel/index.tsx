@@ -1,7 +1,10 @@
 import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -15,8 +18,9 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
     const canUseTouchScreen = canUseTouchScreenUtil();
+    const styles = useThemeStyles();
 
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
 
@@ -81,6 +85,14 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
             }
         }
     }, [reportActions, parentReportActions, compareImage, attachments, setDownloadButtonVisibility, onNavigate, accountID, type, report]);
+
+    if (page == null) {
+        return (
+            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+                <FullScreenLoadingIndicator />
+            </View>
+        );
+    }
 
     return (
         <AttachmentCarouselView
