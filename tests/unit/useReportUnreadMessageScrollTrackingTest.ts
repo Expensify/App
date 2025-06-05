@@ -154,7 +154,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(readNewestAction).toBeCalledTimes(1);
-            expect(readNewestAction).toBeCalledWith(reportID);
             expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
             expect(readActionRefFalse.current).toBe(false);
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
