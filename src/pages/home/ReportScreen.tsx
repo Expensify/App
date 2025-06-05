@@ -299,7 +299,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
-    const [transactionsByReportID] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
+    const [transactionsByReportID = {}] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
         canBeMissing: false,
     });
     const reportTransactions = transactionsByReportID?.[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? [];
@@ -844,7 +844,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
-                                        reportTransactions={reportTransactions}
+                                        transactionsByReportID={transactionsByReportID}
                                     />
                                 ) : null}
                                 {!!report && shouldDisplayMoneyRequestActionsList ? (

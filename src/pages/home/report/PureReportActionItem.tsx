@@ -181,8 +181,8 @@ type PureReportActionItemProps = {
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
-    /** The transactions for the report */
-    transactions: OnyxTypes.Transaction[];
+    /** All transactions grouped by reportID */
+    transactionsByReportID: OnyxTypes.ReportTransactionsDerivedValue;
 
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -359,7 +359,7 @@ function PureReportActionItem({
     action,
     report,
     transactionThreadReport,
-    transactions,
+    transactionsByReportID,
     linkedReportActionID,
     displayAsGroup,
     index,
@@ -883,12 +883,14 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
-                    transactions={transactions}
+                    transactions={[]}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
             children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
+            const iouReportID = getIOUReportIDFromReportActionPreview(action) ?? CONST.DEFAULT_NUMBER_ID;
+            const transactions = transactionsByReportID[iouReportID] ?? [];
             children = (
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -908,6 +910,8 @@ function PureReportActionItem({
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+            const iouReportID = getIOUReportIDFromReportActionPreview(action) ?? CONST.DEFAULT_NUMBER_ID;
+            const transactions = transactionsByReportID[iouReportID] ?? [];
             children = (
                 <ReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -923,6 +927,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     isWhisper={isWhisper}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    transactions={transactions}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1339,7 +1344,7 @@ function PureReportActionItem({
         return (
             <TripSummary
                 reportID={getOriginalMessage(action)?.linkedReportID}
-                transactions={transactions}
+                transactions={[]}
             />
         );
     }

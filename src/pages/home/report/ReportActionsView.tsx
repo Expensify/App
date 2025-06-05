@@ -61,8 +61,8 @@ type ReportActionsViewProps = {
     /** If the report has older actions to load */
     hasOlderActions: boolean;
 
-    /** The transactions for the report */
-    reportTransactions: OnyxTypes.Transaction[];
+    /** All transactions grouped by reportID */
+    transactionsByReportID: OnyxTypes.ReportTransactionsDerivedValue;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -75,7 +75,7 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
-    reportTransactions,
+    transactionsByReportID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -98,7 +98,7 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-    const reportTransactionIDs = reportTransactions.map((transaction) => transaction.transactionID);
+    const reportTransactionIDs = transactionsByReportID[reportID]?.map((transaction) => transaction.transactionID);
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -306,7 +306,7 @@ function ReportActionsView({
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
-                reportTransactions={reportTransactions}
+                transactionsByReportID={transactionsByReportID}
             />
             <UserTypingEventListener report={report} />
         </>
