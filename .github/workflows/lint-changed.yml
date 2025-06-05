@@ -17,17 +17,6 @@ jobs:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch merge base SHA from API
-        id: merge_base
-        run: |
-          MERGE_BASE_SHA="$(gh api "repos/$REPO/compare/${PR_BASE_SHA}...${PR_HEAD_SHA}" | jq -r '.merge_base_commit.sha')"
-          echo "MERGE_BASE_SHA=$MERGE_BASE_SHA" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-
       - name: Count commits between merge base and HEAD
         id: count
         run: |
@@ -36,7 +25,7 @@ jobs:
           echo "count=$ADJUSTED_COUNT" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ github.token }}
-          BASE: ${{ steps.merge_base.outputs.MERGE_BASE_SHA }}
+          BASE: ${{ github.event.pull_request.base.sha }}
           REPO: ${{ github.repository }}
           
       - name: Checkout
