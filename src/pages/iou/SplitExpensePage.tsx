@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -91,7 +91,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         [draftTransaction],
     );
 
-    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? ''), [translate]);
+    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
     const [sections] = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
@@ -193,7 +193,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     />
                     <SelectionList
                         onSelectRow={(item) => {
-                            initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
+                            Keyboard.dismiss();
+                            InteractionManager.runAfterInteractions(() => {
+                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
+                            });
                         }}
                         headerContent={headerContent}
                         sections={sections}

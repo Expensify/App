@@ -1893,6 +1893,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
+
+        /** Whether Attendee Tracking is enabled */
+        isAttendeeTrackingEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;

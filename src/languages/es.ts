@@ -246,6 +246,7 @@ import type {TranslationDeepObject} from './types';
 /* eslint-disable max-len */
 const translations = {
     common: {
+        count: 'Contar',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
         yes: 'Sí',
@@ -549,8 +550,21 @@ const translations = {
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
+        explore: 'Explorar',
+        todo: 'Tereas',
+        invoice: 'Factura',
+        expense: 'Gasto',
+        chat: 'Chat',
+        task: 'Tarea',
+        trip: 'Viaje',
+        apply: 'Aplicar',
+        status: 'Estado',
+        on: 'El',
+        before: 'Antes',
+        after: 'Después',
         reschedule: 'Reprogramar',
         general: 'General',
+        never: 'Nunca',
         workspacesTabTitle: 'Espacios',
         getTheApp: 'Descarga la app',
         scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
@@ -656,6 +670,7 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',
         findMember: 'Encuentra un miembro',
+        searchForSomeone: 'Busca a alguien',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -870,6 +885,7 @@ const translations = {
             return added > 1 ? `Se han agregado ${added} miembros` : 'Se ha agregado 1 miembro.';
         },
         importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
+        importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfulDescriptionParams) =>
             rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.',
         importSuccessfulTitle: 'Importar categorías',
@@ -899,6 +915,7 @@ const translations = {
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
         flash: 'flash',
+        multiScan: 'escaneo múltiple',
         shutter: 'obturador',
         gallery: 'galería',
         deleteReceipt: 'Eliminar recibo',
@@ -962,7 +979,7 @@ const translations = {
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto a ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : '[eliminado]'}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'movió este gasto a tu espacio personal',
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
@@ -1499,7 +1516,7 @@ const translations = {
             beforeFirstEmail: 'No puedes fusionar ',
             beforeDomain: ' porque está controlado por ',
             afterDomain: '. Póngase ',
-            linkText: 'en contacto con Conserjería',
+            linkText: 'en contacto con Concierge',
             afterLink: ' si necesita ayuda.',
         },
         mergeFailureSAMLAccount: {
@@ -1517,7 +1534,7 @@ const translations = {
         mergeFailureAccountLocked: {
             beforeEmail: 'No puedes fusionar ',
             afterEmail: ' porque está bloqueado. Póngase ',
-            linkText: 'en contacto con Conserjería',
+            linkText: 'en contacto con Concierge',
             afterLink: ` si necesita ayuda.`,
         },
         mergeFailureUncreatedAccount: {
@@ -1864,7 +1881,7 @@ const translations = {
         error: {
             thatDidNotMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
             throttled:
-                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Conserjería para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
+                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Concierge para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
         },
     },
     getPhysicalCard: {
@@ -4268,6 +4285,9 @@ const translations = {
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
+                subtitle1: 'Importa una hoja de cálculo para añadir etiquetas y organizar proyectos, ubicaciones, departamentos y más.',
+                subtitle2: ' Obtén más información',
+                subtitle3: ' sobre cómo dar formato a los archivos de etiquetas.',
             },
             deleteTag: 'Eliminar etiqueta',
             deleteTags: 'Eliminar etiquetas',
@@ -4284,6 +4304,28 @@ const translations = {
             tagRules: 'Reglas de etiquetas',
             approverDescription: 'Aprobador',
             importTags: 'Importar categorías',
+            importTagsSupportingText: 'Clasifica tus gastos con un tipo de etiqueta o con varios.',
+            configureMultiLevelTags: 'Configura etiquetas multinivel',
+            importMultiLevelTagsSupportingText: `Aquí tienes una vista previa de tus etiquetas. Si todo se ve bien, haz clic abajo para importarlas.`,
+            importMultiLevelTags: {
+                firstRowTitle: 'La primera fila es el título de cada lista de etiquetas',
+                independentTags: 'Estas son etiquetas independientes',
+                glAdjacentColumn: 'Hay un código GL en la columna adyacente',
+            },
+            tagLevel: {
+                singleLevel: 'Nivel único de etiquetas',
+                multiLevel: 'Etiquetas multinivel',
+            },
+            switchSingleToMultiLevelTagWarning: {
+                title: 'Cambiar niveles de etiquetas',
+                prompt1: 'Cambiar el nivel de etiquetas eliminará todas las etiquetas actuales.',
+                prompt2: ' Te recomendamos primero',
+                prompt3: ' descargar una copia de seguridad',
+                prompt4: ' exportando tus etiquetas.',
+                prompt5: ' Aprende más',
+                prompt6: ' sobre los niveles de etiquetas.',
+            },
+
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
             cannotDeleteOrDisableAllTags: {
@@ -4294,6 +4336,10 @@ const translations = {
                 title: 'No se pueden hacer opcionales todas las etiquetas',
                 description: `Debe haber al menos una etiqueta obligatoria porque la configuración de tu espacio de trabajo requiere etiquetas.`,
             },
+            tagCount: () => ({
+                one: '1 etiqueta',
+                other: (count: number) => `${count} etiquetas`,
+            }),
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -4836,7 +4882,7 @@ const translations = {
             successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
             errorTitle: '¡Ups! No tan rapido...',
             errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
-            errorDescriptionPartTwo: 'contacta con el conserje',
+            errorDescriptionPartTwo: 'contacta con Concierge',
             errorDescriptionPartThree: 'por ayuda.',
         },
 
@@ -4933,6 +4979,12 @@ const translations = {
                 description:
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: 'Los viajes están disponibles en el plan Recopilar, a partir de ',
+            },
+            multiLevelTags: {
+                title: 'Etiquetas multinivel',
+                description:
+                    'Las etiquetas multinivel te ayudan a llevar un control más preciso de los gastos. Asigna múltiples etiquetas a cada partida, como departamento, cliente o centro de costos, para capturar el contexto completo de cada gasto. Esto permite informes más detallados, flujos de aprobación y exportaciones contables.',
+                onlyAvailableOnPlan: 'Las etiquetas multinivel solo están disponibles en el plan Control, a partir de ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
@@ -5041,14 +5093,16 @@ const translations = {
                 eReceipts: 'Recibos electrónicos',
                 eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
                 eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
+                attendeeTracking: 'Seguimiento de asistentes',
+                attendeeTrackingHint: 'Haz un seguimiento del coste por persona para cada gasto.',
                 prohibitedDefaultDescription:
                     'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
                 prohibitedExpenses: 'Gastos prohibidos',
-                alcohol: 'alcohol',
-                hotelIncidentals: 'gastos adicionales de hotel',
-                gambling: 'juegos de apuestas',
-                tobacco: 'tabaco',
-                adultEntertainment: 'entretenimiento para adultos',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Gastos adicionales de hotel',
+                gambling: 'Juegos de apuestas',
+                tobacco: 'Tabaco',
+                adultEntertainment: 'Entretenimiento para adultos',
             },
             expenseReportRules: {
                 examples: 'Ejemplos:',
@@ -5061,7 +5115,7 @@ const translations = {
                 customNameInputLabel: 'Nombre',
                 customNameEmailPhoneExample: 'Correo electrónico o teléfono del miembro: {report:submit:from}',
                 customNameStartDateExample: 'Fecha de inicio del informe: {report:startdate}',
-                customNameWorkspaceNameExample: 'Nombre del espacio de trabajo: {report:policyname}',
+                customNameWorkspaceNameExample: 'Nombre del espacio de trabajo: {report:workspacename}',
                 customNameReportIDExample: 'ID del informe: {report:id}',
                 customNameTotalExample: 'Total: {report:total}.',
                 preventMembersFromChangingCustomNamesTitle: 'Evitar que los miembros cambien los nombres personalizados de los informes',
@@ -5128,6 +5182,8 @@ const translations = {
         scheduleACall: 'Programar llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
+        registerForWebinar: 'Registrarse para el seminario web',
+        onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
@@ -5301,6 +5357,7 @@ const translations = {
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {
             openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
+            markAllMessagesAsRead: 'Marcar todos los mensajes como leídos',
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
             newChat: 'Nueva pantalla de chat',
@@ -5326,6 +5383,11 @@ const translations = {
                 subtitle: 'Crea un gasto o haz una proba por Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un gasto.',
             },
+            emptyReportResults: {
+                title: 'Aún no has creado ningún informe',
+                subtitle: 'Crea un informe o haz una prueba de Expensify para aprender más.',
+                subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un informe.',
+            },
             emptyInvoiceResults: {
                 title: 'Aún no has creado \nninguna factura',
                 subtitle: 'Envía una factura o haz una proba por Expensify para aprender más.',
@@ -5335,6 +5397,23 @@ const translations = {
                 title: 'No tienes viajes',
                 subtitle: 'Reserva tu primer viaje a continuación.',
                 buttonText: 'Reserva un viaje',
+            },
+            emptySubmitResults: {
+                title: 'No hay gastos para enviar',
+                subtitle: 'Todo despejado. ¡Date una vuelta de victoria!',
+                buttonText: 'Crear informe',
+            },
+            emptyApproveResults: {
+                title: 'No hay gastos para aprobar',
+                subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
+            },
+            emptyPayResults: {
+                title: 'No hay gastos para pagar',
+                subtitle: '¡Felicidades! Has cruzado la línea de meta.',
+            },
+            emptyExportResults: {
+                title: 'No hay gastos para exportar',
+                subtitle: 'Es hora de relajarse, buen trabajo.',
             },
         },
         saveSearch: 'Guardar búsqueda',
@@ -5356,6 +5435,7 @@ const translations = {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Antes de ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Después de ${date ?? ''}`,
+                on: ({date}: OptionalParam<DateParams> = {}) => `En ${date ?? ''}`,
             },
             status: 'Estado',
             keyword: 'Palabra clave',
@@ -6354,7 +6434,7 @@ const translations = {
         keepThisOne: 'Mantener éste',
         confirmDetails: 'Confirma los detalles que conservas',
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
-        hold: 'Retenido',
+        hold: 'Este gasto está retenido',
         resolvedDuplicates: 'resolvió el duplicado',
     },
     reportViolations: {

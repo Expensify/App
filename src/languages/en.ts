@@ -255,6 +255,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        count: 'Count',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
         yes: 'Yes',
@@ -558,8 +559,21 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        explore: 'Explore',
+        todo: 'To-do',
+        invoice: 'Invoice',
+        expense: 'Expense',
+        chat: 'Chat',
+        task: 'Task',
+        trip: 'Trip',
+        apply: 'Apply',
+        status: 'Status',
+        on: 'On',
+        before: 'Before',
+        after: 'After',
         reschedule: 'Reschedule',
         general: 'General',
+        never: 'Never',
         workspacesTabTitle: 'Workspaces',
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',
@@ -664,6 +678,7 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
+        searchForSomeone: 'Search for someone',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -874,6 +889,7 @@ const translations = {
             return added > 1 ? `${added} members have been added.` : '1 member has been added.';
         },
         importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
+        importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfulDescriptionParams) =>
             rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.',
         importFailedTitle: 'Import failed',
@@ -904,6 +920,7 @@ const translations = {
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
+        multiScan: 'multi-scan',
         shutter: 'shutter',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
@@ -962,7 +979,7 @@ const translations = {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report, ${merchant} - ${amount}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense to ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : '[deleted]'}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'moved this expense to your personal space',
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatch: 'Pending match',
@@ -4221,7 +4238,11 @@ const translations = {
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",
+                //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
+                subtitle1: 'Import a spreadsheet to add tags for tracking projects, locations, departments, and more.',
+                subtitle2: ' Learn more',
+                subtitle3: ' about formatting tag files.',
             },
             deleteTag: 'Delete tag',
             deleteTags: 'Delete tags',
@@ -4238,6 +4259,27 @@ const translations = {
             tagRules: 'Tag rules',
             approverDescription: 'Approver',
             importTags: 'Import tags',
+            importTagsSupportingText: 'Code your expenses with one type of tag or many.',
+            configureMultiLevelTags: 'Configure your list of tags for multi-level tagging. ',
+            importMultiLevelTagsSupportingText: `Here's a preview of your tags. If everything looks good, click below to import them.`,
+            importMultiLevelTags: {
+                firstRowTitle: 'The first row is the title for each tag list',
+                independentTags: 'These are independent tags',
+                glAdjacentColumn: 'There is a GL code in the adjacent column',
+            },
+            tagLevel: {
+                singleLevel: 'Single level of tags',
+                multiLevel: 'Multi-level tags',
+            },
+            switchSingleToMultiLevelTagWarning: {
+                title: 'Switch Tag Levels',
+                prompt1: 'Switching tag levels will erase all current tags.',
+                prompt2: ' We suggest you first',
+                prompt3: ' download a backup',
+                prompt4: ' by exporting your tags.',
+                prompt5: ' Learn more',
+                prompt6: ' about tag levels.',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
             cannotDeleteOrDisableAllTags: {
@@ -4248,6 +4290,10 @@ const translations = {
                 title: 'Cannot make all tags optional',
                 description: `At least one tag must remain required because your workspace settings require tags.`,
             },
+            tagCount: () => ({
+                one: '1 Tag',
+                other: (count: number) => `${count} Tags`,
+            }),
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -4865,6 +4911,12 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
             },
+            multiLevelTags: {
+                title: 'Multi-level tags',
+                description:
+                    'Multi-Level Tags help you track expenses with greater precision. Assign multiple tags to each line item—such as department, client, or cost center—to capture the full context of every expense. This enables more detailed reporting, approval workflows, and accounting exports.',
+                onlyAvailableOnPlan: 'Multi-level tags are only available on the Control plan, starting at ',
+            },
             pricing: {
                 perActiveMember: 'per active member per month.',
                 perMember: 'per member per month.',
@@ -4971,14 +5023,16 @@ const translations = {
                 eReceipts: 'eReceipts',
                 eReceiptsHint: 'eReceipts are auto-created',
                 eReceiptsHintLink: 'for most USD credit transactions',
+                attendeeTracking: 'Attendee tracking',
+                attendeeTrackingHint: 'Track the per-person cost for every expense.',
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                alcohol: 'alcohol',
-                hotelIncidentals: 'hotel incidentals',
-                gambling: 'gambling',
-                tobacco: 'tobacco',
-                adultEntertainment: 'adult entertainment',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Hotel incidentals',
+                gambling: 'Gambling',
+                tobacco: 'Tobacco',
+                adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
@@ -4991,7 +5045,7 @@ const translations = {
                 customNameInputLabel: 'Name',
                 customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
                 customNameStartDateExample: 'Report start date: {report:startdate}',
-                customNameWorkspaceNameExample: 'Workspace name: {report:policyname}',
+                customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
                 customNameReportIDExample: 'Report ID: {report:id}',
                 customNameTotalExample: 'Total: {report:total}.',
                 preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
@@ -5077,6 +5131,8 @@ const translations = {
         scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
+        registerForWebinar: 'Register for webinar',
+        onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
@@ -5247,6 +5303,7 @@ const translations = {
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
+            markAllMessagesAsRead: 'Mark all messages as read',
             escape: 'Escape dialogs',
             search: 'Open search dialog',
             newChat: 'New chat screen',
@@ -5272,6 +5329,11 @@ const translations = {
                 subtitle: 'Create an expense or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to create an expense.',
             },
+            emptyReportResults: {
+                title: "You haven't created any reports yet",
+                subtitle: 'Create a report or take a test drive of Expensify to learn more.',
+                subtitleWithOnlyCreateButton: 'Use the green button below to create a report.',
+            },
             emptyInvoiceResults: {
                 title: "You haven't created any \ninvoices yet",
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
@@ -5281,6 +5343,23 @@ const translations = {
                 title: 'No trips to display',
                 subtitle: 'Get started by booking your first trip below.',
                 buttonText: 'Book a trip',
+            },
+            emptySubmitResults: {
+                title: 'No expenses to submit',
+                subtitle: "You're all clear. Take a victory lap!",
+                buttonText: 'Create report',
+            },
+            emptyApproveResults: {
+                title: 'No expenses to approve',
+                subtitle: 'Zero expenses. Maximum chill. Well done!',
+            },
+            emptyPayResults: {
+                title: 'No expenses to pay',
+                subtitle: 'Congrats! You crossed the finish line.',
+            },
+            emptyExportResults: {
+                title: 'No expenses to export',
+                subtitle: 'Time to take it easy, nice work.',
             },
         },
         saveSearch: 'Save search',
@@ -5302,6 +5381,7 @@ const translations = {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
+                on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
             },
             status: 'Status',
             keyword: 'Keyword',
@@ -5833,7 +5913,7 @@ const translations = {
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
-        hold: 'Hold',
+        hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
     },
     reportViolations: {

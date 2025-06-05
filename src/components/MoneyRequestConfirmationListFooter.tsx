@@ -714,7 +714,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={styles.moneyRequestImage}>
+            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -777,6 +777,7 @@ function MoneyRequestConfirmationListFooter({
         ),
         [
             styles.moneyRequestImage,
+            styles.expenseViewImageSmall,
             styles.cursorDefault,
             styles.h100,
             styles.flex1,
@@ -871,21 +872,29 @@ function MoneyRequestConfirmationListFooter({
                     <View style={styles.dividerLine} />
                 </>
             )}
-            {!shouldShowMap &&
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                (receiptImage || receiptThumbnail
-                    ? receiptThumbnailContent
-                    : shouldShowReceiptEmptyState && (
-                          <ReceiptEmptyState
-                              onPress={() => {
-                                  if (!transactionID) {
-                                      return;
-                                  }
+            {!shouldShowMap && (
+                <View style={styles.mv3}>
+                    {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        receiptImage || receiptThumbnail
+                            ? receiptThumbnailContent
+                            : shouldShowReceiptEmptyState && (
+                                  <ReceiptEmptyState
+                                      onPress={() => {
+                                          if (!transactionID) {
+                                              return;
+                                          }
 
-                                  Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
-                              }}
-                          />
-                      ))}
+                                          Navigation.navigate(
+                                              ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()),
+                                          );
+                                      }}
+                                      style={styles.expenseViewImageSmall}
+                                  />
+                              )
+                    }
+                </View>
+            )}
             {fields.filter((field) => field.shouldShow).map((field) => field.item)}
             <View style={[styles.mb5]} />
         </>

@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {MoneyRequestReportContextProvider} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -289,6 +288,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
+        const markAllMessagesAsReadShortcutConfig = CONST.KEYBOARD_SHORTCUTS.MARK_ALL_MESSAGES_AS_READ;
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -425,12 +425,21 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             true,
         );
 
+        const unsubscribeMarkAllMessagesAsReadShortcut = KeyboardShortcut.subscribe(
+            markAllMessagesAsReadShortcutConfig.shortcutKey,
+            Report.markAllMessagesAsRead,
+            markAllMessagesAsReadShortcutConfig.descriptionKey,
+            markAllMessagesAsReadShortcutConfig.modifiers,
+            true,
+        );
+
         return () => {
             unsubscribeEscapeKey();
             unsubscribeOnyxModal();
             unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
+            unsubscribeMarkAllMessagesAsReadShortcut();
             Session.cleanupSession();
         };
 
@@ -537,7 +546,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}>
+        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider]}>
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
