@@ -5,14 +5,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import useModalCardStyleInterpolator from '@navigation/AppNavigator/useModalCardStyleInterpolator';
 import type {ThemeStyles} from '@src/styles';
+import useRHPCardStyleInterpolator from '@libs/Navigation/AppNavigator/useRHPCardStyleInterpolator';
 
 type GetModalStackScreenOptions = (styles: ThemeStyles) => PlatformStackNavigationOptions;
 
 function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOptions) {
     const styles = useThemeStyles();
-    const customInterpolator = useModalCardStyleInterpolator();
+    const customInterpolator = useRHPCardStyleInterpolator();
 
     let cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
 
