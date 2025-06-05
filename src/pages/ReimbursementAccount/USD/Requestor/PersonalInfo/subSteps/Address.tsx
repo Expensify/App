@@ -31,6 +31,7 @@ function Address({onNext, onMove, isEditing}: SubStepProps) {
         city: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.CITY] ?? '',
         state: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
         zipCode: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
+        country: reimbursementAccount?.achData?.country ?? '',
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -55,6 +56,7 @@ function Address({onNext, onMove, isEditing}: SubStepProps) {
             stepFields={STEP_FIELDS}
             inputFieldsIDs={INPUT_KEYS}
             defaultValues={defaultValues}
+            shouldAllowCountryChange={false}
         />
     );
 }

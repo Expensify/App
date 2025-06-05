@@ -31,6 +31,7 @@ function AddressBusiness({onNext, onMove, isEditing}: SubStepProps) {
         city: reimbursementAccount?.achData?.addressCity ?? '',
         state: reimbursementAccount?.achData?.addressState ?? '',
         zipCode: reimbursementAccount?.achData?.addressZipCode ?? '',
+        country: reimbursementAccount?.achData?.country ?? '',
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -55,6 +56,7 @@ function AddressBusiness({onNext, onMove, isEditing}: SubStepProps) {
             stepFields={STEP_FIELDS}
             inputFieldsIDs={INPUT_KEYS}
             defaultValues={defaultValues}
+            shouldAllowCountryChange={false}
             streetTranslationKey="common.companyAddress"
         />
     );
