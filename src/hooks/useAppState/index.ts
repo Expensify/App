@@ -1,6 +1,7 @@
 import type AppStateType from './types';
+import type {UseAppStateProps} from './types';
 
-function useAppState(): AppStateType {
+function useAppState({onAppStateChange: _onAppStateChange}: UseAppStateProps = {}): AppStateType {
     // Since there's no AppState in web, we'll always return isForeground as true
     return {isForeground: true, isInactive: false, isBackground: false};
 }

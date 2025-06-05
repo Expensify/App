@@ -1,20 +1,20 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {useCallback, useEffect} from 'react';
-import {AppState} from 'react-native';
+import {useCallback} from 'react';
 import type {AppStateStatus} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
+import useAppState from '@hooks/useAppState';
 import {getContactPermission} from './index';
 
-type UseAppStateContactPermissionHandlerProps = {
+type UseContactPermissionsProps = {
     importAndSaveContacts: () => void;
     setContacts: (contacts: never[]) => void;
     contactPermissionState: PermissionStatus;
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
-function useAppStateContactPermissionHandler({importAndSaveContacts, setContacts, contactPermissionState, setContactPermissionState}: UseAppStateContactPermissionHandlerProps): void {
-    const checkPermissionAndReact = useCallback(() => {
+function useContactPermissions({importAndSaveContacts, setContacts, contactPermissionState, setContactPermissionState}: UseContactPermissionsProps): void {
+    const checkPermissionAndUpdateContacts = useCallback(() => {
         return getContactPermission()
             .then((newStatus) => {
                 const isNewStatusGranted = newStatus === RESULTS.GRANTED || newStatus === RESULTS.LIMITED; // Permission is enabled, or just became enabled
@@ -34,27 +34,21 @@ function useAppStateContactPermissionHandler({importAndSaveContacts, setContacts
             });
     }, [contactPermissionState, importAndSaveContacts, setContacts, setContactPermissionState]);
 
+    const handleAppStateChange = useCallback((nextAppState: AppStateStatus) => {
+        if (nextAppState !== 'active') {
+            return;
+        }
+
+        checkPermissionAndUpdateContacts();
+    }, [checkPermissionAndUpdateContacts]);
+
+    useAppState({onAppStateChange: handleAppStateChange});
+
     useFocusEffect(
         useCallback(() => {
-            checkPermissionAndReact();
-        }, [checkPermissionAndReact]),
+            checkPermissionAndUpdateContacts();
+        }, [checkPermissionAndUpdateContacts]),
     );
-
-    useEffect(() => {
-        const handleAppStateChange = (nextAppState: AppStateStatus) => {
-            if (nextAppState !== 'active') {
-                return;
-            }
-
-            checkPermissionAndReact();
-        };
-
-        const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-        return () => {
-            subscription.remove();
-        };
-    }, [checkPermissionAndReact]);
 }
 
-export default useAppStateContactPermissionHandler;
+export default useContactPermissions;

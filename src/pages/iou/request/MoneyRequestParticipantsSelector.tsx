@@ -22,12 +22,13 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
-import useAppStateContactPermissionHandler from '@libs/ContactPermission/useAppStateContactPermissionHandler';
+import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import getContacts from '@libs/ContactUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
@@ -58,7 +59,7 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import goToSettings from './goToSettings';
+import goToSettings from '@libs/goToSettings';
 import ImportContactButton from './ImportContactButton';
 
 type MoneyRequestParticipantsSelectorProps = {
@@ -92,9 +93,10 @@ function MoneyRequestParticipantsSelector({
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {canUseNativeContactImport} = usePermissions();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
-    const showImportContacts = Permissions.canUseNativeContactImport(betas) && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
+    const showImportContacts = canUseNativeContactImport && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
@@ -118,7 +120,7 @@ function MoneyRequestParticipantsSelector({
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     const importAndSaveContacts = useCallback(() => {
-        if (!Permissions.canUseNativeContactImport(betas)) {
+        if (!canUseNativeContactImport) {
             return;
         }
 
@@ -127,7 +129,7 @@ function MoneyRequestParticipantsSelector({
             const usersFromContact = getContacts(contactList);
             setContacts(usersFromContact);
         });
-    }, [betas]);
+    }, [canUseNativeContactImport]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -139,7 +141,7 @@ function MoneyRequestParticipantsSelector({
         initializeOptions();
     }, [initializeOptions]);
 
-    useAppStateContactPermissionHandler({
+    useContactPermissions({
         importAndSaveContacts,
         setContacts,
         contactPermissionState,
@@ -459,7 +461,7 @@ function MoneyRequestParticipantsSelector({
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
     const initiateContactImportAndSetState = useCallback(() => {
-        if (!Permissions.canUseNativeContactImport(betas)) {
+        if (!canUseNativeContactImport) {
             return;
         }
 
@@ -579,7 +581,7 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <>
-            {Permissions.canUseNativeContactImport(betas) && (
+            {canUseNativeContactImport && (
                 <ContactPermissionModal
                     onGrant={initiateContactImportAndSetState}
                     onDeny={setContactPermissionState}
