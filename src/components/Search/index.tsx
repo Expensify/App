@@ -1,8 +1,9 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -344,6 +345,59 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
     }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, shouldGroupByReports]);
 
+    // Add animation values - start visible for proper fade out
+    const fadeOpacity = useSharedValue(1);
+    const [isInitialMount, setIsInitialMount] = useState(true);
+    const [isUnmounting, setIsUnmounting] = useState(false);
+
+    const fadeAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: fadeOpacity.get(),
+    }));
+
+    // Handle initial mount fade in
+    useEffect(() => {
+        if (!isInitialMount) {
+            return;
+        }
+
+        // Start invisible on mount
+        fadeOpacity.set(0);
+
+        // Then fade in after interactions
+        InteractionManager.runAfterInteractions(() => {
+            fadeOpacity.set(
+                withTiming(1, {
+                    duration: 200,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
+        });
+
+        setIsInitialMount(false);
+    }, [fadeOpacity, isInitialMount]);
+
+    // Handle fade out when component loses focus (before unmount)
+    useEffect(() => {
+        if (!isFocused && !isInitialMount && !isUnmounting) {
+            setIsUnmounting(true);
+            fadeOpacity.set(
+                withTiming(0, {
+                    duration: 150,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
+        } else if (isFocused && isUnmounting) {
+            // Reset if component regains focus
+            setIsUnmounting(false);
+            fadeOpacity.set(
+                withTiming(1, {
+                    duration: 200,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
+        }
+    }, [isFocused, isInitialMount, isUnmounting, fadeOpacity]);
+
     const toggleTransaction = useCallback(
         (item: SearchListItem) => {
             if (isReportActionListItemType(item)) {
@@ -510,12 +564,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type)) {
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+            <Animated.View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1, fadeAnimatedStyle]}>
                 <EmptySearchView
                     type={type}
                     hasResults={searchResults.search.hasResults}
                 />
-            </View>
+            </Animated.View>
         );
     }
 
@@ -562,50 +616,52 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
     return (
-        <SearchScopeProvider isOnSearch>
-            <SearchList
-                ref={searchListRef}
-                data={sortedSelectedData}
-                ListItem={ListItem}
-                onSelectRow={openReport}
-                onCheckboxPress={toggleTransaction}
-                onAllCheckboxPress={toggleAllTransactions}
-                canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat || isTask}
-                SearchTableHeader={
-                    !shouldShowTableHeader ? undefined : (
-                        <SearchTableHeader
-                            canSelectMultiple={canSelectMultiple}
-                            data={searchResults?.data}
-                            metadata={searchResults?.search}
-                            onSortPress={onSortPress}
-                            sortOrder={sortOrder}
-                            sortBy={sortBy}
-                            shouldShowYear={shouldShowYear}
-                            shouldShowSorting={shouldShowSorting}
-                        />
-                    )
-                }
-                contentContainerStyle={[contentContainerStyle, styles.pb3]}
-                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                shouldGroupByReports={shouldGroupByReports}
-                onScroll={onSearchListScroll}
-                onEndReachedThreshold={0.75}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={
-                    shouldShowLoadingMoreItems ? (
-                        <SearchRowSkeleton
-                            shouldAnimate
-                            fixedNumItems={5}
-                        />
-                    ) : undefined
-                }
-                queryJSONHash={hash}
-                onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
-            />
-        </SearchScopeProvider>
+        <Animated.View style={[styles.flex1, fadeAnimatedStyle]}>
+            <SearchScopeProvider isOnSearch>
+                <SearchList
+                    ref={searchListRef}
+                    data={sortedSelectedData}
+                    ListItem={ListItem}
+                    onSelectRow={openReport}
+                    onCheckboxPress={toggleTransaction}
+                    onAllCheckboxPress={toggleAllTransactions}
+                    canSelectMultiple={canSelectMultiple}
+                    shouldPreventLongPressRow={isChat || isTask}
+                    SearchTableHeader={
+                        !shouldShowTableHeader ? undefined : (
+                            <SearchTableHeader
+                                canSelectMultiple={canSelectMultiple}
+                                data={searchResults?.data}
+                                metadata={searchResults?.search}
+                                onSortPress={onSortPress}
+                                sortOrder={sortOrder}
+                                sortBy={sortBy}
+                                shouldShowYear={shouldShowYear}
+                                shouldShowSorting={shouldShowSorting}
+                            />
+                        )
+                    }
+                    contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                    containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    shouldGroupByReports={shouldGroupByReports}
+                    onScroll={onSearchListScroll}
+                    onEndReachedThreshold={0.75}
+                    onEndReached={fetchMoreResults}
+                    ListFooterComponent={
+                        shouldShowLoadingMoreItems ? (
+                            <SearchRowSkeleton
+                                shouldAnimate
+                                fixedNumItems={5}
+                            />
+                        ) : undefined
+                    }
+                    queryJSONHash={hash}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
+                />
+            </SearchScopeProvider>
+        </Animated.View>
     );
 }
 
