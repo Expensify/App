@@ -23,7 +23,7 @@ jobs:
           MERGE_BASE_SHA="$(gh api "repos/$REPO/compare/${PR_BASE_SHA}...${PR_HEAD_SHA}" | jq -r '.merge_base_commit.sha')"
           echo "MERGE_BASE_SHA=$MERGE_BASE_SHA" >> "$GITHUB_OUTPUT"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -35,7 +35,7 @@ jobs:
           ADJUSTED_COUNT=$((RAW_COUNT + 2))
           echo "count=$ADJUSTED_COUNT" >> "$GITHUB_OUTPUT"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           BASE: ${{ steps.merge_base.outputs.MERGE_BASE_SHA }}
           REPO: ${{ github.repository }}
           
