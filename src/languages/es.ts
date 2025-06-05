@@ -6999,6 +6999,10 @@ const translations = {
         },
         callScheduled: 'Llamada programada',
     },
+    signingOutPage: {
+        title: 'Cerrando sesión...',
+        subtitle: 'Un momento, por favor.',
+    },
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Haz una proba de 2 minutos',
