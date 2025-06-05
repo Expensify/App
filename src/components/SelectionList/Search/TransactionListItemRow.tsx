@@ -405,7 +405,7 @@ function TransactionListItemRow({
                         isLargeScreenWidth
                     />
                 </View>
-                {item.shouldShowTo && (
+                {item.shouldShowFrom && (
                     <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                         <UserInfoCell
                             accountID={item.from.accountID}
@@ -414,7 +414,7 @@ function TransactionListItemRow({
                         />
                     </View>
                 )}
-                {item.shouldShowFrom && (
+                {item.shouldShowTo && (
                     <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                         <UserInfoCell
                             accountID={item.to.accountID}
