@@ -17,7 +17,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isReportOutstanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
+import {buildOptimisticExpenseReport, canAddTransaction, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, populateOptimisticReportFormula} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -283,10 +283,11 @@ function MoneyRequestConfirmationListFooter({
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
-    const transactionReport = !!transaction?.reportID && Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID);
+    const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transactionReport?.reportID}`, {canBeMissing: true});
     const policyID = selectedParticipants?.at(0)?.policyID;
     const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
+    const shouldUseTransactionReport = !!transactionReport && canAddTransaction(transactionReport, !!reportNameValuePair?.private_isArchived);
     const outstandingReportID = isPolicyExpenseChat ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID : reportID;
 
     let reportName = getReportName(shouldUseTransactionReport ? transactionReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${outstandingReportID}`], selectedPolicy);
