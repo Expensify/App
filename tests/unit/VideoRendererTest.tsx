@@ -42,6 +42,7 @@ const mockShowContextMenuValue = {
     transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},
     isDisabled: true,
+    onShowContextMenu: (callback: () => void) => callback(),
 };
 const mockTNodeAttributes = {
     [CONST.ATTACHMENT_SOURCE_ATTRIBUTE]: 'video/test.mp4',

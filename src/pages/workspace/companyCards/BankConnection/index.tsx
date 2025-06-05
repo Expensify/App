@@ -10,6 +10,7 @@ import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
@@ -50,7 +51,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const [cardFeeds] = useCardFeeds(policyID);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
-    const bankName = feed ? getBankName(feed) : bankNameFromRoute ?? addNewCard?.data?.selectedBank;
+    const bankName = feed ? getBankName(feed) : (bankNameFromRoute ?? addNewCard?.data?.selectedBank);
     const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
     const {isOffline} = useNetwork();
 
@@ -58,6 +59,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
+    const {isBetaEnabled} = usePermissions();
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -80,7 +82,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             Navigation.goBack(backTo);
             return;
         }
-        if (bankName === CONST.COMPANY_CARDS.BANKS.BREX) {
+        if (bankName === CONST.COMPANY_CARDS.BANKS.BREX || isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }

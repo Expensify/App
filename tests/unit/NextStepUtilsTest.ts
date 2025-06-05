@@ -684,9 +684,13 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
             });
 
             test('payer', () => {

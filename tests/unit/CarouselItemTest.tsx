@@ -10,8 +10,6 @@ import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 describe('CarouselItem', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});

@@ -34,7 +34,7 @@ type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
 };
 
 function ModalComponent({type, ...props}: ModalComponentProps) {
-    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
+    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && props.id !== 'FeatureTrainingModal') {
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <BottomDockedModal {...(props as ModalProps)} />;
     }
@@ -53,6 +53,8 @@ function BaseModal(
         innerContainerStyle = {},
         outerStyle,
         onModalShow = () => {},
+        onModalWillShow,
+        onModalWillHide,
         propagateSwipe,
         fullscreen = true,
         animationIn,
@@ -81,7 +83,7 @@ function BaseModal(
         disableAnimationIn = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-        canBeClosedByOtherModal = true,
+        id,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -139,9 +141,7 @@ function BaseModal(
         if (isVisible) {
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            if (canBeClosedByOtherModal) {
-                removeOnCloseListener = setCloseModal(onClose);
-            }
+            removeOnCloseListener = setCloseModal(onClose);
         }
 
         return () => {
@@ -150,7 +150,7 @@ function BaseModal(
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type, canBeClosedByOtherModal]);
+    }, [isVisible, wasVisible, onClose, type]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -213,8 +213,9 @@ function BaseModal(
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
+                shouldUseModalPaddingStyle,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle],
     );
 
     const modalPaddingStyles = useMemo(() => {
@@ -271,7 +272,7 @@ function BaseModal(
     // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
     const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
-    const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? originalValues ?? {} : {}), [isInNarrowPane, originalValues]);
+    const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? (originalValues ?? {}) : {}), [isInNarrowPane, originalValues]);
 
     return (
         <ModalContext.Provider value={modalContextValue}>
@@ -294,7 +295,11 @@ function BaseModal(
                         onModalShow={handleShowModal}
                         propagateSwipe={propagateSwipe}
                         onModalHide={hideModal}
-                        onModalWillShow={saveFocusState}
+                        onModalWillShow={() => {
+                            saveFocusState();
+                            onModalWillShow?.();
+                        }}
+                        onModalWillHide={onModalWillHide}
                         onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
@@ -321,6 +326,7 @@ function BaseModal(
                         avoidKeyboard={avoidKeyboard}
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
+                        id={id}
                     >
                         <ModalContent
                             onModalWillShow={saveFocusState}

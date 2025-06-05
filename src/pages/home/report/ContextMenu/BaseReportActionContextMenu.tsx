@@ -1,11 +1,12 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {MutableRefObject, RefObject} from 'react';
-import React, {memo, useMemo, useRef, useState} from 'react';
+import React, {memo, useContext, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -20,12 +21,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getReportAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
     isArchivedNonExpenseReportWithID,
+    isIOUReport,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
@@ -128,6 +130,7 @@ function BaseReportActionContextMenu({
     disabledActions = [],
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -137,7 +140,7 @@ function BaseReportActionContextMenu({
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
-    const threedotRef = useRef<View>(null);
+    const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canBeMissing: true,
@@ -163,7 +166,7 @@ function BaseReportActionContextMenu({
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`, {canBeMissing: true});
-    const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
+    const childReportActions = childReport ? getReportActions(childReport) : undefined;
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
 
     const transactionThreadReportID = useMemo(
@@ -178,24 +181,29 @@ function BaseReportActionContextMenu({
 
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
-            if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
+            if (!paginatedReportActions) {
                 return undefined;
             }
-            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+            if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
+                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+            }
+            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID);
         }
-        return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
+        return reportAction;
+    }, [childReportActions, transactionThreadReportID, reportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
 
-    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : reportAction;
 
     const [childReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.reportID}`, {canBeMissing: true});
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID ?? (isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUReportID)}`, {
+        canBeMissing: true,
+    });
 
     const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
-    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
+    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView || isIOUReport(parentReport);
 
     const areHoldRequirementsMet =
         !isInvoiceReport &&
@@ -335,6 +343,7 @@ function BaseReportActionContextMenu({
                             draftMessage,
                             selection,
                             close: () => setShouldKeepOpen(false),
+                            transitionActionSheetState: actionSheetAwareScrollViewContext.transitionActionSheetState,
                             openContextMenu: () => setShouldKeepOpen(true),
                             interceptAnonymousUser,
                             openOverflowMenu,
@@ -361,7 +370,7 @@ function BaseReportActionContextMenu({
                                 ref={(ref) => {
                                     menuItemRefs.current[index] = ref;
                                 }}
-                                buttonRef={isMenuAction ? threedotRef : {current: null}}
+                                buttonRef={isMenuAction ? threeDotRef : {current: null}}
                                 icon={contextAction.icon}
                                 text={text ?? ''}
                                 successIcon={contextAction.successIcon}
@@ -370,7 +379,7 @@ function BaseReportActionContextMenu({
                                 key={contextAction.textTranslateKey}
                                 onPress={(event) =>
                                     interceptAnonymousUser(
-                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
+                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
                                         contextAction.isAnonymousAction,
                                     )
                                 }

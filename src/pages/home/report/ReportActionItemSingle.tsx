@@ -70,7 +70,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** If the action is being hovered */
     isHovered?: boolean;
 
-    /** If the action is being actived */
+    /** If the action is active */
     isActive?: boolean;
 
     /** Policies */
@@ -127,6 +127,7 @@ function ReportActionItemSingle({
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = isTripRoomReportUtils(report);
     const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
+
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
 
@@ -193,24 +194,41 @@ function ReportActionItemSingle({
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
-    const icon = {
-        source: avatarSource ?? FallbackAvatar,
-        type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
-        name: primaryDisplayName ?? '',
-        id: avatarId,
-    };
+
+    const icon = useMemo(
+        () => ({
+            source: avatarSource ?? FallbackAvatar,
+            type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
+            name: primaryDisplayName ?? '',
+            id: avatarId,
+        }),
+        [avatarSource, isWorkspaceActor, primaryDisplayName, avatarId],
+    );
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
-    const personArray = displayName
-        ? [
-              {
-                  type: 'TEXT',
-                  text: displayName,
-              },
-          ]
-        : action?.person;
+    const personArray = useMemo(() => {
+        const baseArray = displayName
+            ? [
+                  {
+                      type: 'TEXT',
+                      text: displayName,
+                  },
+              ]
+            : ([action?.person?.[0]].filter(Boolean) ?? []);
+
+        if (displayAllActors && secondaryAvatar?.name) {
+            return [
+                ...baseArray,
+                {
+                    type: 'TEXT',
+                    text: secondaryAvatar?.name ?? '',
+                },
+            ];
+        }
+        return baseArray;
+    }, [displayName, action?.person, displayAllActors, secondaryAvatar?.name]);
 
     const reportID = report?.reportID;
     const iouReportID = iouReport?.reportID;
@@ -231,7 +249,7 @@ function ReportActionItemSingle({
     const shouldDisableDetailPage = useMemo(
         () =>
             CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? CONST.DEFAULT_NUMBER_ID) ||
-            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? CONST.DEFAULT_NUMBER_ID)),
+            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (actorAccountID ?? CONST.DEFAULT_NUMBER_ID))),
         [action, isWorkspaceActor, actorAccountID],
     );
 
@@ -267,7 +285,7 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
                 delegateAccountID={action?.delegateAccountID}
                 icon={icon}
             >
@@ -284,6 +302,78 @@ function ReportActionItemSingle({
             </UserDetailsTooltip>
         );
     };
+
+    const getHeading = useCallback(() => {
+        return () => {
+            if (displayAllActors && personArray.length === 2 && isReportPreviewAction) {
+                return (
+                    <View style={[styles.flex1, styles.flexRow, styles.overflowHidden]}>
+                        <ReportActionItemFragment
+                            style={[styles.flexShrink1, styles.flexBasis0]}
+                            key={`person-${action?.reportActionID}-${0}`}
+                            accountID={Number(icon.id)}
+                            fragment={{...personArray.at(0), type: 'TEXT', text: displayName ?? ''}}
+                            delegateAccountID={Number(action?.delegateAccountID)}
+                            isSingleLine
+                            actorIcon={icon}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.chatItemMessageHeaderSender, styles.flexShrink0]}
+                        >
+                            {`\u00A0&\u00A0`}
+                        </Text>
+                        <ReportActionItemFragment
+                            style={[styles.flexShrink1, styles.flexBasis0]}
+                            key={`person-${action?.reportActionID}-${1}`}
+                            accountID={Number(secondaryAvatar?.id)}
+                            fragment={{...personArray.at(1), type: 'TEXT', text: secondaryAvatar.name ?? ''}}
+                            delegateAccountID={Number(action?.delegateAccountID)}
+                            isSingleLine
+                            actorIcon={secondaryAvatar}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                    </View>
+                );
+            }
+            return (
+                <View>
+                    {personArray.map((fragment) => (
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            key={`person-${action?.reportActionID}-${fragment?.text ?? ''}`}
+                            accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
+                            fragment={{...fragment, type: fragment?.type ?? '', text: fragment?.text ?? ''}}
+                            delegateAccountID={Number(action?.delegateAccountID)}
+                            isSingleLine
+                            actorIcon={icon}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                    ))}
+                </View>
+            );
+        };
+    }, [
+        displayAllActors,
+        personArray,
+        isReportPreviewAction,
+        styles.flex1,
+        styles.flexRow,
+        styles.overflowHidden,
+        styles.flexShrink1,
+        styles.flexBasis0,
+        styles.chatItemMessageHeaderSender,
+        styles.flexShrink0,
+        action,
+        icon,
+        displayName,
+        secondaryAvatar,
+        delegatePersonalDetails,
+        isWorkspaceActor,
+        actorAccountID,
+    ]);
+
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
@@ -314,18 +404,7 @@ function ReportActionItemSingle({
                             accessibilityLabel={actorHint}
                             role={CONST.ROLE.BUTTON}
                         >
-                            {personArray?.map((fragment, index) => (
-                                <ReportActionItemFragment
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
-                                    fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
-                                    delegateAccountID={action?.delegateAccountID}
-                                    isSingleLine
-                                    actorIcon={icon}
-                                    moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                                />
-                            ))}
+                            {getHeading()}
                         </PressableWithoutFeedback>
                         {!!hasEmojiStatus && (
                             <Tooltip text={statusTooltipText}>

@@ -12,11 +12,11 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
-    OUTSANDING_FILTER,
-    WORKSPACES_SETTINGS,
+    OUTSTANDING_FILTER,
     GBR_RBR_CHAT,
     ACCOUNT_SWITCHER,
     EXPENSE_REPORTS_FILTER,
+    SCAN_TEST_DRIVE_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -162,25 +162,25 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 1100,
         shouldShow: () => true,
     },
-    [OUTSANDING_FILTER]: {
+    [OUTSTANDING_FILTER]: {
         content: [
             {text: 'productTrainingTooltip.outstandingFilter.part1', isBold: false},
             {text: 'productTrainingTooltip.outstandingFilter.part2', isBold: true},
         ],
-        onHideTooltip: () => dismissProductTraining(OUTSANDING_FILTER),
-        name: OUTSANDING_FILTER,
+        onHideTooltip: () => dismissProductTraining(OUTSTANDING_FILTER),
+        name: OUTSTANDING_FILTER,
         priority: 1925,
         shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
     },
-    [WORKSPACES_SETTINGS]: {
+    [SCAN_TEST_DRIVE_CONFIRMATION]: {
         content: [
-            {text: 'productTrainingTooltip.workspacesSettings.part1', isBold: false},
-            {text: 'productTrainingTooltip.workspacesSettings.part2', isBold: true},
+            {text: 'productTrainingTooltip.scanTestDriveTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.scanTestDriveTooltip.part2', isBold: true},
         ],
-        onHideTooltip: () => dismissProductTraining(WORKSPACES_SETTINGS),
-        name: WORKSPACES_SETTINGS,
-        priority: 1550,
-        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_DRIVE_CONFIRMATION, isDismissedUsingCloseButton),
+        name: SCAN_TEST_DRIVE_CONFIRMATION,
+        priority: 1200,
+        shouldShow: () => true,
     },
 };
 

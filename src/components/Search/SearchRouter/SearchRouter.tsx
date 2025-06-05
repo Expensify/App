@@ -289,7 +289,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 onRouterClose();
                 backHistory().then(() => {
                     if (item?.reportID) {
-                        Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
                         navigateToAndOpenReport(item.login ? [item.login] : [], false);
                     }

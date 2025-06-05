@@ -17,7 +17,7 @@ type BeneficialOwnerValues = {
     proofOfOwnership: FileObject[];
     copyOfID: FileObject[];
     addressProof: FileObject[];
-    codiceFisacle: FileObject[];
+    codiceFiscale: FileObject[];
 };
 
 function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>): BeneficialOwnerValues {
@@ -36,7 +36,7 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
             proofOfOwnership: [],
             copyOfID: [],
             addressProof: [],
-            codiceFisacle: [],
+            codiceFiscale: [],
         };
     }
     const beneficialOwnerPrefix = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
@@ -56,7 +56,7 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
         proofOfOwnership: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.PROOF_OF_OWNERSHIP}`,
         copyOfID: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.COPY_OF_ID}`,
         addressProof: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.ADDRESS_PROOF}`,
-        codiceFisacle: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.CODICE_FISCALE}`,
+        codiceFiscale: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.CODICE_FISCALE}`,
     } as const;
 
     return {
@@ -73,7 +73,7 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
         proofOfOwnership: reimbursementAccountDraft[INPUT_KEYS.proofOfOwnership] ?? [],
         copyOfID: reimbursementAccountDraft[INPUT_KEYS.copyOfID] ?? [],
         addressProof: reimbursementAccountDraft[INPUT_KEYS.addressProof] ?? [],
-        codiceFisacle: reimbursementAccountDraft[INPUT_KEYS.codiceFisacle] ?? [],
+        codiceFiscale: reimbursementAccountDraft[INPUT_KEYS.codiceFiscale] ?? [],
     } as BeneficialOwnerValues;
 }
 

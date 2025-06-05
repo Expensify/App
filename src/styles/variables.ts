@@ -39,6 +39,7 @@ export default {
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,
     avatarSizeSmallNormal: 32,
+    avatarSizeLargeNormal: 48,
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
@@ -217,7 +218,8 @@ export default {
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
-    onboardingModalWidth: 500,
+    featureTrainingModalWidth: 500,
+    onboardingModalWidth: 640,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
@@ -280,8 +282,6 @@ export default {
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
-    workspacesSettingsTooltipShiftHorizontal: 8,
-    workspacesSettingsTooltipShiftVertical: -8,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -292,6 +292,8 @@ export default {
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
+
+    scrollToNewTransactionOffset: 300,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
