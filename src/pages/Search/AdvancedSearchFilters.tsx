@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -324,17 +324,6 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
         .join(', ');
 }
 
-const sortOptionsWithEmptyValue = (a: string, b: string) => {
-    // Always show `No category` and `No tag` as the first option
-    if (a === CONST.SEARCH.EMPTY_VALUE) {
-        return -1;
-    }
-    if (b === CONST.SEARCH.EMPTY_VALUE) {
-        return 1;
-    }
-    return localeCompare(a, b);
-};
-
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
     if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
         // the value of date filter is a combination of dateBefore + dateAfter values
@@ -390,7 +379,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray
             .sort(sortOptionsWithEmptyValue)
-            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noCategory') : value))
+            .map((value) => (value === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? translate('search.noCategory') : value))
             .join(', ');
     }
 
@@ -398,7 +387,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray
             .sort(sortOptionsWithEmptyValue)
-            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noTag') : getCleanedTagName(value)))
+            .map((value) => (value === CONST.SEARCH.TAG_EMPTY_VALUE ? translate('search.noTag') : getCleanedTagName(value)))
             .join(', ');
     }
 

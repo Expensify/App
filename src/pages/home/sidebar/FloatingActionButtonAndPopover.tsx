@@ -123,7 +123,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
 
-    const {canUseSpotnanaTravel, canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
@@ -131,6 +131,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
@@ -144,7 +146,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
-    const shouldShowCreateReportOption = canUseTableReportView && (shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0);
+    const shouldShowCreateReportOption = isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && (shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 
@@ -471,16 +473,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   },
               ]
             : []),
-        ...(canUseSpotnanaTravel
-            ? [
-                  {
-                      icon: Expensicons.Suitcase,
-                      text: translate('travel.bookTravel'),
-                      rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
-                      onSelected: () => interceptAnonymousUser(() => openTravel()),
-                  },
-              ]
-            : []),
+        ...[
+            {
+                icon: Expensicons.Suitcase,
+                text: translate('travel.bookTravel'),
+                rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
+                onSelected: () => interceptAnonymousUser(() => openTravel()),
+            },
+        ],
         ...(!hasSeenTour
             ? [
                   {
@@ -488,16 +488,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () => {
-                          InteractionManager.runAfterInteractions(() => {
-                              if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
-                                  completeTestDriveTask(isAnonymousUser());
-                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                              } else {
-                                  Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-                              }
-                          });
-                      },
+                      onSelected: () =>
+                          interceptAnonymousUser(() => {
+                              InteractionManager.runAfterInteractions(() => {
+                                  if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+                                      completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
+                                      Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                                  } else {
+                                      Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                                  }
+                              });
+                          }),
                   },
               ]
             : []),

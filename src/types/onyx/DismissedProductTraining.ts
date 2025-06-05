@@ -98,7 +98,7 @@ type DismissedProductTraining = {
     [EXPENSE_REPORTS_FILTER]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the test drive on confirmantion page product training tooltip, we store the timestamp here.
+     * When user dismisses the test drive on confirmation page product training tooltip, we store the timestamp here.
      */
     [SCAN_TEST_DRIVE_CONFIRMATION]: DismissedProductTrainingElement;
 

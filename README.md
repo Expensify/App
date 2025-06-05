@@ -86,6 +86,42 @@ If you want to run the app on an actual physical iOS device, please follow the i
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
+### Enabling prebuilt `react-native` artifacts on Android
+#### Disabling build from source
+
+By default, `react-native` is built from source when building the Android app. However, you can enable prebuilt artifacts to speed up the build process:
+
+   - Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
+   - Set `patchedArtifacts.forceBuildFromSource=false`
+
+#### Configuring GitHub CLI
+
+To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
+
+1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
+
+2. Create a GitHub Personal Access Token:
+   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
+   - Click "Generate new token (classic)"
+   - Select the following scopes:
+     - `repo`
+     - `read:org`
+     - `gist`
+     - `read:packages`
+   - Copy the generated token
+
+3. Login to GitHub CLI:
+   ```bash
+   echo "YOUR_TOKEN" | gh auth login --with-token
+   ```
+4. Verify the login was successful:
+   ```bash
+   gh auth status
+   ```
+   You should see a message confirming you are authenticated with your GitHub account.
+
+After completing these steps, you should be able to build Android apps with prebuilt `react-native` artifacts.
+
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
@@ -813,10 +849,7 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
 ### testBuild
-The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (standalone iOS, standalone Android, web, and desktop) directly from pull requests in the App repository. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. To initiate this workflow, the PR number from the App repository is required as input.
-
-### testBuildHybrid
-The [`testBuildHybrid` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuildHybrid.yml) builds ad-hoc staging versions of hybrid apps (iOS and Android) from pull requests submitted to the App and Mobile-Expensify repositories. This workflow facilitates testing changes by accepting up to two inputs:
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (hybrid iOS, hybrid Android, web, and desktop) from pull requests submitted to the App and Mobile-Expensify repositories. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. This workflow accepts up to two inputs:
 - A PR number from the App repository for testing New Dot (ND) changes.
 - A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
 
