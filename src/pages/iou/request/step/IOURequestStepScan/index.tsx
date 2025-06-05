@@ -28,10 +28,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -46,12 +44,11 @@ import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import getPlatform from '@libs/getPlatform';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
+import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
@@ -59,7 +56,6 @@ import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import variables from '@styles/variables';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     checkIfScanFileCanBeRead,
@@ -90,9 +86,6 @@ import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
 import type {ReceiptFile} from './types';
 
-const SMALL_SCREEN_TOOLTIP_OFFSET = 10;
-const DEFAULT_TOOLTIP_OFFSET = 8;
-
 function IOURequestStepScan({
     report,
     route: {
@@ -100,10 +93,10 @@ function IOURequestStepScan({
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
+    onLayout,
     setTabSwipeDisabled,
     isMultiScanEnabled = false,
     setIsMultiScanEnabled,
-    isTooltipAllowed = false,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -160,8 +153,6 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
-
-    const platform = getPlatform(true);
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
@@ -689,17 +680,6 @@ function IOURequestStepScan({
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && isTabActive && !isUserInvitedToWorkspace(),
-        {
-            onConfirm: setTestReceiptAndNavigate,
-            onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
-            },
-        },
-    );
-
     const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
         setCameraPermissionState('granted');
 
@@ -748,7 +728,7 @@ function IOURequestStepScan({
         const filename = `receipt_${Date.now()}.png`;
         const file = base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
-        const transaction = initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
+        const transaction = isMultiScanEnabled && initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
         const transactionID = transaction?.transactionID ?? initialTransactionID;
         const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
@@ -1081,18 +1061,6 @@ function IOURequestStepScan({
         </>
     );
 
-    const elementTopOffset = useMemo(() => {
-        if (platform === CONST.PLATFORM.MOBILE_WEB) {
-            return SMALL_SCREEN_TOOLTIP_OFFSET;
-        }
-
-        if (isSmallScreenWidth) {
-            return -variables.tabSelectorButtonHeight + SMALL_SCREEN_TOOLTIP_OFFSET;
-        }
-
-        return -variables.tabSelectorButtonHeight + DEFAULT_TOOLTIP_OFFSET;
-    }, [isSmallScreenWidth, platform]);
-
     return (
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
@@ -1104,24 +1072,17 @@ function IOURequestStepScan({
                 <>
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
-                        onLayout={(e) => setElementTop(e.nativeEvent.layout.height + elementTopOffset)}
+                        onLayout={() => {
+                            if (!onLayout) {
+                                return;
+                            }
+                            onLayout(setTestReceiptAndNavigate);
+                        }}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
                     >
-                        <EducationalTooltip
-                            shouldRender={shouldShowProductTrainingTooltip}
-                            renderTooltipContent={renderProductTrainingTooltip}
-                            shouldHideOnNavigate
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                            }}
-                            wrapperStyle={styles.productTrainingTooltipWrapper}
-                            shiftVertical={-elementTop}
-                        >
-                            <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
-                            </View>
-                        </EducationalTooltip>
+                        <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
+                        </View>
                         {/* TODO: remove beta check after the feature is enabled */}
                         {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
                             <DropZoneUI
