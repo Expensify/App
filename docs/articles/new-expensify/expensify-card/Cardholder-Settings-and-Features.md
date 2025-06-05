@@ -21,7 +21,7 @@ Once activated, your card is ready to use!
 
 # View Your Smart Limit
 
-Your **Smart Limit** is the amount you're allowed to spend without approved expenses.
+Your **Smart Limit** is the amount you're allowed to spend without approved expenses. This limit is set and managed by your workspace admin. 
 
 **To view your current limit:**
 1. From the left-hand menu, select **Account > Wallet**.
