@@ -3,43 +3,14 @@ import {Keyboard, View} from 'react-native';
 import CarouselButtons from '@components/Attachments/AttachmentCarousel/CarouselButtons';
 import AttachmentCarouselPager from '@components/Attachments/AttachmentCarousel/Pager';
 import type {AttachmentCarouselPagerHandle} from '@components/Attachments/AttachmentCarousel/Pager';
-import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import type {AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
-import type {Report} from '@src/types/onyx';
-
-type AttachmentCarouselViewProps = {
-    /** Where the arrows should be visible */
-    shouldShowArrows: boolean;
-
-    /** The current page index */
-    page: number;
-
-    /** The attachments from the carousel */
-    attachments: Attachment[];
-
-    attachmentID?: string;
-
-    source: AttachmentSource;
-
-    report?: Report;
-
-    /** Callback for auto hiding carousel button arrows */
-    autoHideArrows: () => void;
-
-    setShouldShowArrows: (show?: React.SetStateAction<boolean>) => void;
-
-    /** Callback for cancelling auto hiding of carousel button arrows */
-    cancelAutoHideArrow: () => void;
-    onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
-    onNavigate?: (item: Attachment) => void;
-    onClose: () => void;
-    setPage: (page: number) => void;
-};
+import type AttachmentCarouselViewProps from './types';
 
 function AttachmentCarouselView({
     page,
@@ -62,9 +33,6 @@ function AttachmentCarouselView({
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
 
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
-
-    const isBackDisabled = page === 0;
-    const isForwardDisabled = page === attachments.length - 1;
 
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
@@ -120,9 +88,9 @@ function AttachmentCarouselView({
             ) : (
                 <>
                     <CarouselButtons
+                        page={page}
+                        attachments={attachments}
                         shouldShowArrows={shouldShowArrows}
-                        isBackDisabled={isBackDisabled}
-                        isForwardDisabled={isForwardDisabled}
                         onBack={() => cycleThroughAttachments(-1)}
                         onForward={() => cycleThroughAttachments(1)}
                         autoHideArrow={autoHideArrows}

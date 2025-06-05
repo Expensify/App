@@ -22,7 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type AttachmentCarouselViewProps from './types';
 
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
@@ -45,35 +45,6 @@ function DeviceAwareGestureDetector({canUseTouchScreen, gesture, children}: Devi
     return canUseTouchScreen ? <GestureDetector gesture={gesture}>{children}</GestureDetector> : children;
 }
 
-type AttachmentCarouselViewProps = {
-    /** Where the arrows should be visible */
-    shouldShowArrows: boolean;
-
-    /** The current page index */
-    page: number;
-
-    /** The attachments from the carousel */
-    attachments: Attachment[];
-
-    attachmentID?: string;
-
-    source: AttachmentSource;
-
-    report?: Report;
-
-    /** Callback for auto hiding carousel button arrows */
-    autoHideArrows: () => void;
-
-    setShouldShowArrows: (show?: React.SetStateAction<boolean>) => void;
-
-    /** Callback for cancelling auto hiding of carousel button arrows */
-    cancelAutoHideArrow: () => void;
-    onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
-    onNavigate?: (item: Attachment) => void;
-    onClose: () => void;
-    setPage: (page: number) => void;
-};
-
 function AttachmentCarouselView({
     page,
     attachments,
@@ -90,17 +61,16 @@ function AttachmentCarouselView({
     attachmentID,
 }: AttachmentCarouselViewProps) {
     const {translate} = useLocalize();
-    const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
+    const canUseTouchScreen = canUseTouchScreenUtil();
     const {isFullScreenRef} = useFullScreenContext();
+    const isPagerScrolling = useSharedValue(false);
+    const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
 
     const pagerRef = useRef<GestureType>(null);
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
-
-    const isPagerScrolling = useSharedValue(false);
-    const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
@@ -110,9 +80,6 @@ function AttachmentCarouselView({
         () => PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2),
         [modalStyles.borderWidth, modalStyles.marginHorizontal, windowWidth],
     );
-
-    const isBackDisabled = page === 0;
-    const isForwardDisabled = page === attachments.length - 1;
 
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
@@ -280,9 +247,9 @@ function AttachmentCarouselView({
             ) : (
                 <>
                     <CarouselButtons
+                        page={page}
+                        attachments={attachments}
                         shouldShowArrows={shouldShowArrows}
-                        isBackDisabled={isBackDisabled}
-                        isForwardDisabled={isForwardDisabled}
                         onBack={() => cycleThroughAttachments(-1)}
                         onForward={() => cycleThroughAttachments(1)}
                         autoHideArrow={autoHideArrows}
@@ -313,7 +280,6 @@ function AttachmentCarouselView({
                             />
                         </DeviceAwareGestureDetector>
                     </AttachmentCarouselPagerContext.Provider>
-
                     <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
                 </>
             )}

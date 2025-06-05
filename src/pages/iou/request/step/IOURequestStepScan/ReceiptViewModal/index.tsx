@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
+import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,6 +12,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeTransactionReceipt} from '@userActions/TransactionEdit';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Receipt} from '@src/types/onyx/Transaction';
+
+type ReceiptWithTransactionIDAndSource = Receipt & ReceiptFile;
 
 type ReceiptViewModalProps = {
     route: {
@@ -22,17 +26,18 @@ type ReceiptViewModalProps = {
 
 function ReceiptViewModal({route}: ReceiptViewModalProps) {
     const {translate} = useLocalize();
+    const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
 
-    const [currentReceipt, setCurrentReceipt] = useState<ReceiptFile | null>();
+    const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
     const [page, setPage] = useState<number>(0);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
-    const [receipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+    const [receipts = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
             Object.values(items ?? {})
                 .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
-                .filter((receipt): receipt is ReceiptFile => !!receipt),
+                .filter((receipt): receipt is ReceiptWithTransactionIDAndSource => !!receipt),
         canBeMissing: true,
     });
 
@@ -62,15 +67,13 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         handleDeleteReceipt();
     }, [handleDeleteReceipt]);
 
-    // TODO: Implement the logic to handle attachment errors
-    const handleAttachmentError = () => {};
-
     return (
         <>
             <Modal
                 type="centered"
                 isVisible
                 onClose={Navigation.goBack}
+                onModalHide={clearAttachmentErrors}
             >
                 <HeaderWithBackButton
                     title={translate('common.receipt')}
@@ -80,7 +83,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                     onThreeDotsButtonPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
                 />
                 <AttachmentCarouselView
-                    attachments={receipts ?? []}
+                    attachments={receipts}
                     source={currentReceipt?.source ?? ''}
                     page={page}
                     setPage={setPage}
@@ -89,7 +92,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                     autoHideArrows={autoHideArrows}
                     cancelAutoHideArrow={cancelAutoHideArrows}
                     setShouldShowArrows={setShouldShowArrows}
-                    onAttachmentError={handleAttachmentError}
+                    onAttachmentError={setAttachmentError}
                     shouldShowArrows={shouldShowArrows}
                 />
             </Modal>
