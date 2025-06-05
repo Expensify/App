@@ -84,23 +84,20 @@ function IOURequestStartPage({
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
-    const transactionRequestType = useMemo(
-        () => {
-            if (!transaction?.iouRequestType) {
-                if (shouldUseTab) {
-                    if (selectedTab === CONST.TAB_REQUEST.PER_DIEM && !shouldShowPerDiemOption) {
-                        return undefined;
-                    }
-                    return selectedTab;
+    const transactionRequestType = useMemo(() => {
+        if (!transaction?.iouRequestType) {
+            if (shouldUseTab) {
+                if (selectedTab === CONST.TAB_REQUEST.PER_DIEM && !shouldShowPerDiemOption) {
+                    return undefined;
                 }
-
-                return CONST.IOU.REQUEST_TYPE.MANUAL
+                return selectedTab;
             }
 
-            return transaction.iouRequestType;
-        },
-        [transaction?.iouRequestType, shouldUseTab, selectedTab, shouldShowPerDiemOption],
-    );
+            return CONST.IOU.REQUEST_TYPE.MANUAL;
+        }
+
+        return transaction.iouRequestType;
+    }, [transaction?.iouRequestType, shouldUseTab, selectedTab, shouldShowPerDiemOption]);
 
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
