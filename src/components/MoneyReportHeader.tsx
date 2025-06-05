@@ -17,20 +17,18 @@ import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsAction
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openReport, openUnreportedExpense} from '@libs/actions/Report';
+import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openUnreportedExpense} from '@libs/actions/Report';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {getValidConnectedIntegration} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
-    buildTransactionThread,
     changeMoneyRequestHoldStatus,
-    generateReportID,
     getArchiveReason,
     getBankAccountRoute,
     getIntegrationIcon,
@@ -605,14 +603,9 @@ function MoneyReportHeader({
                 success
                 text={translate('iou.reviewDuplicates')}
                 onPress={() => {
-                    let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
+                    const threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                     if (!threadID) {
-                        threadID = generateReportID();
-                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction));
-                        const transactionID = duplicateTransaction?.transactionID;
-                        const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const optimisticTransactionThread = buildTransactionThread(iouAction, moneyRequestReport, undefined, threadID);
-                        openReport(threadID, undefined, session?.email ? [session?.email] : [], optimisticTransactionThread, iouAction?.reportActionID);
+                        return;
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
                 }}
@@ -629,6 +622,7 @@ function MoneyReportHeader({
         ),
     };
 
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const {isBetaEnabled} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
@@ -672,6 +666,10 @@ function MoneyReportHeader({
             icon: Expensicons.Download,
             onSelected: () => {
                 if (!moneyRequestReport) {
+                    return;
+                }
+                if (isOffline) {
+                    setOfflineModalVisible(true);
                     return;
                 }
                 exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs}, () => {
@@ -955,6 +953,7 @@ function MoneyReportHeader({
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
+                    shouldUseModalPaddingStyle={false}
                 />
             )}
         </KYCWall>
@@ -1172,6 +1171,15 @@ function MoneyReportHeader({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={offlineModalVisible}
+                onClose={() => setOfflineModalVisible(false)}
             />
             <Modal
                 onClose={() => setIsPDFModalVisible(false)}
