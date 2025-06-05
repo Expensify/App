@@ -1,4 +1,5 @@
 import {addMinutes} from 'date-fns';
+import noop from 'lodash/noop';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -49,28 +50,33 @@ function OnboardingHelpDropdownButton({
     const {translate} = useLocalize();
     const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES, {canBeMissing: false});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: false});
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
-    const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
+    const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+        selector: (reportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1),
+        canBeMissing: true,
+    });
 
     const styles = useThemeStyles();
-
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
+
+    const talkToSalesOption = React.useMemo(() => {
+        if (!accountID || !shouldShowTalkToSales) {
+            return undefined;
+        }
+
+        const availableCTAs = [translate('aiSales.getHelp'), translate('aiSales.talkToSales'), translate('aiSales.talkToConcierge')];
+        const abTestCtaText = availableCTAs.at(accountID % availableCTAs.length) ?? translate('aiSales.talkToSales');
+
+        return {
+            talkToSaleText: talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : abTestCtaText,
+            talkToSalesIcon: talkToAISales?.isTalkingToAISales ? Close : Phone,
+            abTestCtaText,
+        };
+    }, [accountID, shouldShowTalkToSales, talkToAISales?.isTalkingToAISales, translate]);
 
     if (!reportID || !accountID) {
         return null;
     }
-
-    const abTestCtaText = (): string => {
-        const availableCTAs = [translate('aiSales.getHelp'), translate('aiSales.talkToSales'), translate('aiSales.talkToConcierge')];
-        return availableCTAs.at(accountID % availableCTAs.length) ?? translate('aiSales.talkToSales');
-    };
-
-    const talkToSalesOption = {
-        talkToSaleText: talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : abTestCtaText(),
-        talkToSalesIcon: talkToAISales?.isTalkingToAISales ? Close : Phone,
-        abTestCtaText: abTestCtaText(),
-    };
 
     const options: Array<DropdownOption<OnboardingHelpType>> = [];
 
@@ -123,7 +129,7 @@ function OnboardingHelpDropdownButton({
         });
     }
 
-    if (shouldShowTalkToSales) {
+    if (talkToSalesOption) {
         options.push({
             text: talkToSalesOption.talkToSaleText,
             icon: talkToSalesOption.talkToSalesIcon,
@@ -155,7 +161,7 @@ function OnboardingHelpDropdownButton({
 
     return (
         <ButtonWithDropdownMenu
-            onPress={() => null}
+            onPress={noop}
             shouldAlwaysShowDropdownMenu
             pressOnEnter
             success={!!hasActiveScheduledCall}
