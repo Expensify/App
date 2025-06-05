@@ -444,6 +444,9 @@ const CONST = {
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
 
+    // Allowed extensions for text files that are used as spreadsheets
+    TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
+
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
@@ -1072,6 +1075,7 @@ const CONST = {
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
+    COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
@@ -1090,6 +1094,7 @@ const CONST = {
     PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
+    IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
         'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20for%20a%20website%20on%20mobile%20browsers%3F',
@@ -1846,6 +1851,11 @@ const CONST = {
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags.
     VALIDATE_FOR_HTML_TAG_REGEX: /<\/?\w*((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g,
 
+    // Matches any content enclosed in angle brackets, including non-standard or symbolic tags like <✓>, <123>, etc.
+    // This is a stricter version of VALIDATE_FOR_HTML_TAG_REGEX, used to detect and block inputs that resemble HTML-like tags,
+    // even if they are not valid HTML, to match backend validation behavior.
+    STRICT_VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
+
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
     // More info https://github.com/Expensify/App/issues/8007
@@ -1891,7 +1901,7 @@ const CONST = {
     DISPLAY_PARTICIPANTS_LIMIT: 5,
 
     // Amount of emojis to render ahead at the end of the update cycle
-    EMOJI_DRAW_AMOUNT: 250,
+    EMOJI_DRAW_AMOUNT: 100,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -3227,6 +3237,7 @@ const CONST = {
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
+    ICON_TYPE_PLAID: 'plaid',
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
@@ -3270,6 +3281,7 @@ const CONST = {
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
+            PLAID_CONNECTION: 'PlaidConnection',
             ASSIGNEE: 'Assignee',
             CARD: 'Card',
             CARD_NAME: 'CardName',
@@ -6669,7 +6681,8 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
         },
-        EMPTY_VALUE: 'none',
+        TAG_EMPTY_VALUE: 'none',
+        CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
@@ -6821,6 +6834,15 @@ const CONST = {
                 description: 'workspace.upgrade.categories.description' as const,
                 icon: 'FolderOpen',
             },
+            multiLevelTags: {
+                id: 'multiLevelTags' as const,
+                alias: 'multiLevelTags',
+                name: 'multiLevelTags',
+                title: 'workspace.upgrade.multiLevelTags.title' as const,
+                description: 'workspace.upgrade.multiLevelTags.description' as const,
+                icon: 'Tag',
+            },
+
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
                 alias: 'netsuite',
