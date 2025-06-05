@@ -11,10 +11,7 @@ final class HybridContactsModule: HybridContactsModuleSpec {
         .lastName: CNContactFamilyNameKey as CNKeyDescriptor,
         .phoneNumbers: CNContactPhoneNumbersKey as CNKeyDescriptor,
         .emailAddresses: CNContactEmailAddressesKey as CNKeyDescriptor,
-        .middleName: CNContactMiddleNameKey as CNKeyDescriptor,
-        .imageData: CNContactImageDataKey as CNKeyDescriptor,
-        .thumbnailImageData: CNContactThumbnailImageDataKey as CNKeyDescriptor,
-        .givenNameKey: CNContactGivenNameKey as CNKeyDescriptor
+        .imageData: CNContactImageDataKey as CNKeyDescriptor
     ]
     
     override init() {
@@ -48,11 +45,9 @@ final class HybridContactsModule: HybridContactsModuleSpec {
         Contact(
             firstName: keysSet.contains(.firstName) ? contact.givenName : nil,
             lastName: keysSet.contains(.lastName) ? contact.familyName : nil,
-            middleName: keysSet.contains(.middleName) ? contact.middleName : nil,
             phoneNumbers: keysSet.contains(.phoneNumbers) ? contact.phoneNumbers.map { StringHolder(value: $0.value.stringValue) } : nil,
             emailAddresses: keysSet.contains(.emailAddresses) ? contact.emailAddresses.map { StringHolder(value: $0.value as String) } : nil,
-            imageData: keysSet.contains(.imageData) ? getImagePath(for: contact, isThumbnail: false) : nil,
-            thumbnailImageData: keysSet.contains(.thumbnailImageData) ? getImagePath(for: contact, isThumbnail: true) : nil
+            imageData: keysSet.contains(.imageData) ? getImagePath(for: contact, isThumbnail: false) : nil
         )
     }
     

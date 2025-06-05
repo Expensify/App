@@ -19,11 +19,9 @@ const CONTACT_FIELDS: Record<ContactFields, ContactFields> = {
 type Contact = {
     firstName?: string;
     lastName?: string;
-    middleName?: string;
     phoneNumbers?: StringHolder[];
     emailAddresses?: StringHolder[];
     imageData?: string;
-    thumbnailImageData?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

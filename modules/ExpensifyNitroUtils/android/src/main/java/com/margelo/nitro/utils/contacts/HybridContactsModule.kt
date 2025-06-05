@@ -56,15 +56,11 @@ class HybridContactsModule : HybridContactsModuleSpec() {
                     val mimeTypeIndex = cursor.getColumnIndex(ContactsContract.Data.MIMETYPE)
                     val contactIdIndex = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)
                     val photoUriIndex = cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
-                    val thumbnailUriIndex =
-                        cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI)
                     val data1Index = cursor.getColumnIndex(ContactsContract.Data.DATA1)
                     val givenNameIndex =
                         cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME)
                     val familyNameIndex =
                         cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME)
-                    val middleNameIndex =
-                        cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME)
 
                     var currentContact: Contact? = null
                     var currentContactId: String? = null
@@ -89,11 +85,9 @@ class HybridContactsModule : HybridContactsModuleSpec() {
                             currentContact = Contact(
                                 firstName = "",
                                 lastName = "",
-                                middleName = null,
                                 phoneNumbers = emptyArray(),
                                 emailAddresses = emptyArray(),
-                                imageData = cursor.getString(photoUriIndex) ?: "",
-                                thumbnailImageData = cursor.getString(thumbnailUriIndex) ?: ""
+                                imageData = cursor.getString(photoUriIndex) ?: ""
                             )
                             currentContactId = contactId
                         }
@@ -102,8 +96,7 @@ class HybridContactsModule : HybridContactsModuleSpec() {
                             ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE -> {
                                 currentContact = currentContact?.copy(
                                     firstName = cursor.getString(givenNameIndex) ?: "",
-                                    lastName = cursor.getString(familyNameIndex) ?: "",
-                                    middleName = cursor.getString(middleNameIndex)
+                                    lastName = cursor.getString(familyNameIndex) ?: ""
                                 )
                             }
 
@@ -148,11 +141,9 @@ class HybridContactsModule : HybridContactsModuleSpec() {
             ContactsContract.Data.CONTACT_ID,
             ContactsContract.Data.DISPLAY_NAME,
             ContactsContract.Contacts.PHOTO_URI,
-            ContactsContract.Contacts.PHOTO_THUMBNAIL_URI,
             ContactsContract.Data.DATA1,
             ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
-            ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
-            ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME
+            ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME
         )
         
         private const val CONTACT_SELECTION = "${ContactsContract.Data.MIMETYPE} IN (?, ?, ?)"

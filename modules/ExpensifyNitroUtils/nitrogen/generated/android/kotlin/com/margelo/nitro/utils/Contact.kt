@@ -22,11 +22,9 @@ data class Contact
   constructor(
     val firstName: String?,
     val lastName: String?,
-    val middleName: String?,
     val phoneNumbers: Array<StringHolder>?,
     val emailAddresses: Array<StringHolder>?,
-    val imageData: String?,
-    val thumbnailImageData: String?
+    val imageData: String?
   ) {
   /* main constructor */
 }

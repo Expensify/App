@@ -18,7 +18,7 @@ public extension Contact {
   /**
    * Create a new instance of `Contact`.
    */
-  init(firstName: String?, lastName: String?, middleName: String?, phoneNumbers: [StringHolder]?, emailAddresses: [StringHolder]?, imageData: String?, thumbnailImageData: String?) {
+  init(firstName: String?, lastName: String?, phoneNumbers: [StringHolder]?, emailAddresses: [StringHolder]?, imageData: String?) {
     self.init({ () -> bridge.std__optional_std__string_ in
       if let __unwrappedValue = firstName {
         return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
@@ -27,12 +27,6 @@ public extension Contact {
       }
     }(), { () -> bridge.std__optional_std__string_ in
       if let __unwrappedValue = lastName {
-        return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
-      } else {
-        return .init()
-      }
-    }(), { () -> bridge.std__optional_std__string_ in
-      if let __unwrappedValue = middleName {
         return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
       } else {
         return .init()
@@ -63,12 +57,6 @@ public extension Contact {
       }
     }(), { () -> bridge.std__optional_std__string_ in
       if let __unwrappedValue = imageData {
-        return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
-      } else {
-        return .init()
-      }
-    }(), { () -> bridge.std__optional_std__string_ in
-      if let __unwrappedValue = thumbnailImageData {
         return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
       } else {
         return .init()
@@ -113,29 +101,6 @@ public extension Contact {
     @inline(__always)
     set {
       self.__lastName = { () -> bridge.std__optional_std__string_ in
-        if let __unwrappedValue = newValue {
-          return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
-        } else {
-          return .init()
-        }
-      }()
-    }
-  }
-  
-  var middleName: String? {
-    @inline(__always)
-    get {
-      return { () -> String? in
-        if let __unwrapped = self.__middleName.value {
-          return String(__unwrapped)
-        } else {
-          return nil
-        }
-      }()
-    }
-    @inline(__always)
-    set {
-      self.__middleName = { () -> bridge.std__optional_std__string_ in
         if let __unwrappedValue = newValue {
           return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
         } else {
@@ -217,29 +182,6 @@ public extension Contact {
     @inline(__always)
     set {
       self.__imageData = { () -> bridge.std__optional_std__string_ in
-        if let __unwrappedValue = newValue {
-          return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
-        } else {
-          return .init()
-        }
-      }()
-    }
-  }
-  
-  var thumbnailImageData: String? {
-    @inline(__always)
-    get {
-      return { () -> String? in
-        if let __unwrapped = self.__thumbnailImageData.value {
-          return String(__unwrapped)
-        } else {
-          return nil
-        }
-      }()
-    }
-    @inline(__always)
-    set {
-      self.__thumbnailImageData = { () -> bridge.std__optional_std__string_ in
         if let __unwrappedValue = newValue {
           return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
         } else {

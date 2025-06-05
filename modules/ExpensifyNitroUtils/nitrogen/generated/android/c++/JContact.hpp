@@ -39,20 +39,15 @@ namespace margelo::nitro::utils {
       jni::local_ref<jni::JString> firstName = this->getFieldValue(fieldFirstName);
       static const auto fieldLastName = clazz->getField<jni::JString>("lastName");
       jni::local_ref<jni::JString> lastName = this->getFieldValue(fieldLastName);
-      static const auto fieldMiddleName = clazz->getField<jni::JString>("middleName");
-      jni::local_ref<jni::JString> middleName = this->getFieldValue(fieldMiddleName);
       static const auto fieldPhoneNumbers = clazz->getField<jni::JArrayClass<JStringHolder>>("phoneNumbers");
       jni::local_ref<jni::JArrayClass<JStringHolder>> phoneNumbers = this->getFieldValue(fieldPhoneNumbers);
       static const auto fieldEmailAddresses = clazz->getField<jni::JArrayClass<JStringHolder>>("emailAddresses");
       jni::local_ref<jni::JArrayClass<JStringHolder>> emailAddresses = this->getFieldValue(fieldEmailAddresses);
       static const auto fieldImageData = clazz->getField<jni::JString>("imageData");
       jni::local_ref<jni::JString> imageData = this->getFieldValue(fieldImageData);
-      static const auto fieldThumbnailImageData = clazz->getField<jni::JString>("thumbnailImageData");
-      jni::local_ref<jni::JString> thumbnailImageData = this->getFieldValue(fieldThumbnailImageData);
       return Contact(
         firstName != nullptr ? std::make_optional(firstName->toStdString()) : std::nullopt,
         lastName != nullptr ? std::make_optional(lastName->toStdString()) : std::nullopt,
-        middleName != nullptr ? std::make_optional(middleName->toStdString()) : std::nullopt,
         phoneNumbers != nullptr ? std::make_optional([&]() {
           size_t __size = phoneNumbers->size();
           std::vector<StringHolder> __vector;
@@ -73,8 +68,7 @@ namespace margelo::nitro::utils {
           }
           return __vector;
         }()) : std::nullopt,
-        imageData != nullptr ? std::make_optional(imageData->toStdString()) : std::nullopt,
-        thumbnailImageData != nullptr ? std::make_optional(thumbnailImageData->toStdString()) : std::nullopt
+        imageData != nullptr ? std::make_optional(imageData->toStdString()) : std::nullopt
       );
     }
 
@@ -87,7 +81,6 @@ namespace margelo::nitro::utils {
       return newInstance(
         value.firstName.has_value() ? jni::make_jstring(value.firstName.value()) : nullptr,
         value.lastName.has_value() ? jni::make_jstring(value.lastName.value()) : nullptr,
-        value.middleName.has_value() ? jni::make_jstring(value.middleName.value()) : nullptr,
         value.phoneNumbers.has_value() ? [&]() {
           size_t __size = value.phoneNumbers.value().size();
           jni::local_ref<jni::JArrayClass<JStringHolder>> __array = jni::JArrayClass<JStringHolder>::newArray(__size);
@@ -106,8 +99,7 @@ namespace margelo::nitro::utils {
           }
           return __array;
         }() : nullptr,
-        value.imageData.has_value() ? jni::make_jstring(value.imageData.value()) : nullptr,
-        value.thumbnailImageData.has_value() ? jni::make_jstring(value.thumbnailImageData.value()) : nullptr
+        value.imageData.has_value() ? jni::make_jstring(value.imageData.value()) : nullptr
       );
     }
   };
