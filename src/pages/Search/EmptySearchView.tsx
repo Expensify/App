@@ -169,11 +169,14 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     // Default 'Folder' lottie animation, along with its background styles
-    const defaultViewItemHeader = {
-        headerMedia: LottieAnimations.GenericEmptyState,
-        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
-    };
+    const defaultViewItemHeader = useMemo(
+        () => ({
+            headerMedia: LottieAnimations.GenericEmptyState,
+            headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+            lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+        }),
+        [StyleUtils, styles.emptyStateFolderWebStyles, theme.emptyFolderBG],
+    );
 
     const content: EmptySearchViewItem = useMemo(() => {
         // Begin by going through all of our To-do searches, and returning their empty state
