@@ -58,23 +58,6 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
         onShow?.();
     }, [onShow]);
 
-    // Close the modal when the escape key is pressed
-    useEffect(() => {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                closeModal();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
-        return unsubscribeEscapeKey;
-    }, [closeModal]);
-
     return (
         <Modal
             disableAnimationIn={shouldDisableAnimationAfterInitialMount}

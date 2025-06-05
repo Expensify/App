@@ -28,6 +28,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import {getFileName} from '@libs/fileDownload/FileUtils';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -335,6 +336,23 @@ function AttachmentModalBaseContent({
         onDeleteReceipt?.();
         onClose();
     }, [onClose, onDeleteReceipt, transaction?.transactionID]);
+
+    // Close the modal when the escape key is pressed
+    useEffect(() => {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                onClose();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
+
+        return unsubscribeEscapeKey;
+    }, [onClose]);
 
     const threeDotsMenuItems = useMemo(() => {
         if (!isReceiptAttachment) {
