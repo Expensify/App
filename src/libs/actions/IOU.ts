@@ -11906,6 +11906,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             policyParams,
             transactionParams,
             moneyRequestReportID: report?.reportID,
+            existingTransaction: originalTransaction,
             existingTransactionID,
             isSplitExpense: true,
         });
