@@ -14,6 +14,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
+import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -113,6 +114,7 @@ function MoneyRequestReportTransactionList({
     isLoadingInitialReportActions: isLoadingReportActions,
     scrollToNewTransaction,
 }: MoneyRequestReportTransactionListProps) {
+    useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -160,10 +162,7 @@ function MoneyRequestReportTransactionList({
                 }
                 clearSelectedTransactions(true);
             };
-            // We don't need to run the effect on change of clearSelectedTransactions on every focus.
-            // eslint-disable-next-line react-compiler/react-compiler
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []),
+        }, [clearSelectedTransactions]),
     );
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
