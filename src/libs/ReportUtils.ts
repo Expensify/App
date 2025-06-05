@@ -2219,7 +2219,7 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
  */
 function isOneTransactionReport(reportID: string | undefined): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
-    return !!getOneTransactionThreadReportID(reportID, reportActions);
+    return getOneTransactionThreadReportID(reportID, reportActions) !== null;
 }
 
 /*
