@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
@@ -48,6 +48,9 @@ type MoneyRequestReportViewProps = {
 
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
+
+    /** The reportTransactions for the report */
+    reportTransactions: OnyxTypes.Transaction[];
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -85,7 +88,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, reportTransactions}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -99,22 +102,17 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 
-    const [transactions] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => allTransactions?.[reportID] ?? [],
-        canBeMissing: true,
-    });
-
-    const prevTransactions = usePrevious(transactions);
+    const prevTransactions = usePrevious(reportTransactions);
 
     const newTransactions = useMemo(() => {
-        if (!prevTransactions || !transactions || transactions.length <= prevTransactions.length) {
+        if (!prevTransactions || !reportTransactions || reportTransactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
-        return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
-        // Depending only on transactions is enough because prevTransactions is a helper object.
+        return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+        // Depending only on reportTransactions is enough because prevTransactions is a helper object.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions]);
+    }, [reportTransactions]);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -135,16 +133,16 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isTransactionThreadView = isReportTransactionThread(report);
 
     // Prevent flash by ensuring transaction data is fully loaded before deciding which view to render
-    // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const isTransactionDataReady = transactions !== undefined;
+    // We need to wait for both the selector to finish AND ensure we're not in a loading state where reportTransactions could still populate
+    const isTransactionDataReady = reportTransactions !== undefined;
     const isStillLoadingData = !!isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
     const shouldWaitForData =
-        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
+        (!isTransactionDataReady || (isStillLoadingData && reportTransactions?.length === 0)) &&
         !isTransactionThreadView &&
         report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-    const isEmptyTransactionReport = transactions && transactions.length === 0 && transactionThreadReportID === undefined;
-    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, transactions ?? []);
+    const isEmptyTransactionReport = reportTransactions && reportTransactions.length === 0 && transactionThreadReportID === undefined;
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, reportTransactions ?? []);
 
     const reportHeaderView = useMemo(
         () =>
@@ -231,7 +229,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         <MoneyRequestReportActionsList
                             report={report}
                             policy={policy}
-                            transactions={transactions}
+                            reportTransactions={reportTransactions}
                             newTransactions={newTransactions}
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
@@ -247,6 +245,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             hasOlderActions={hasOlderActions}
                             parentReportAction={parentReportAction}
                             transactionThreadReportID={transactionThreadReportID}
+                            reportTransactions={reportTransactions}
                         />
                     )}
                     {shouldDisplayReportFooter ? (

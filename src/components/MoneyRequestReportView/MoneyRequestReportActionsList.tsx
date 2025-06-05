@@ -83,7 +83,7 @@ type MoneyRequestReportListProps = {
     reportActions?: OnyxTypes.ReportAction[];
 
     /** List of transactions belonging to this report */
-    transactions?: OnyxTypes.Transaction[];
+    reportTransactions?: OnyxTypes.Transaction[];
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
@@ -109,7 +109,7 @@ function MoneyRequestReportActionsList({
     report,
     policy,
     reportActions = [],
-    transactions = [],
+    reportTransactions = [],
     newTransactions,
     hasNewerActions,
     hasOlderActions,
@@ -124,7 +124,7 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const reportTransactionIDs = transactions.map((transaction) => transaction.transactionID);
+    const reportTransactionIDs = reportTransactions.map((transaction) => transaction.transactionID);
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -133,11 +133,6 @@ function MoneyRequestReportActionsList({
         canEvict: false,
         canBeMissing: true,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
-    });
-
-    const [reportTransactions] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
-        canBeMissing: true,
-        selector: (transactionsByReportID) => transactionsByReportID?.[report.reportID],
     });
 
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
@@ -161,7 +156,7 @@ function MoneyRequestReportActionsList({
         handleDeleteTransactions,
         isDeleteModalVisible,
         hideDeleteModal,
-    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: reportTransactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -552,28 +547,28 @@ function MoneyRequestReportActionsList({
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedTransactionIDs.length === transactions.length}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactions.length}
+                            isChecked={selectedTransactionIDs.length === reportTransactions.length}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== reportTransactions.length}
                             onPress={() => {
                                 if (selectedTransactionIDs.length !== 0) {
                                     clearSelectedTransactions(true);
                                 } else {
-                                    setSelectedTransactions(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
+                                    setSelectedTransactions(reportTransactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
                                 }
                             }}
                         />
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
-                                if (selectedTransactionIDs.length === transactions.length) {
+                                if (selectedTransactionIDs.length === reportTransactions.length) {
                                     clearSelectedTransactions(true);
                                 } else {
-                                    setSelectedTransactions(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
+                                    setSelectedTransactions(reportTransactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedTransactionIDs.length === transactions.length}}
+                            accessibilityState={{checked: selectedTransactionIDs.length === reportTransactions.length}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
@@ -597,7 +592,7 @@ function MoneyRequestReportActionsList({
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-                {isEmpty(visibleReportActions) && isEmpty(transactions) && !isLoadingInitialReportActions ? (
+                {isEmpty(visibleReportActions) && isEmpty(reportTransactions) && !isLoadingInitialReportActions ? (
                     <>
                         <MoneyRequestViewReportFields
                             report={report}
@@ -626,7 +621,7 @@ function MoneyRequestReportActionsList({
                                 />
                                 <MoneyRequestReportTransactionList
                                     report={report}
-                                    transactions={transactions}
+                                    transactions={reportTransactions}
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}

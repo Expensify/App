@@ -108,6 +108,9 @@ type ReportActionsListProps = {
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
+
+    /** The transactions for the report */
+    reportTransactions: OnyxTypes.Transaction[];
 };
 
 const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
@@ -148,6 +151,7 @@ function ReportActionsList({
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
+    reportTransactions,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
@@ -167,10 +171,6 @@ function ReportActionsList({
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
-    const [reportTransactions] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
-        canBeMissing: true,
-        selector: (transactions) => transactions?.[report.reportID],
-    });
     const participantsContext = useContext(PersonalDetailsContext);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
@@ -587,7 +587,7 @@ function ReportActionsList({
                     index={index}
                     report={report}
                     transactionThreadReport={transactionThreadReport}
-                    transactions={reportTransactions ?? []}
+                    transactions={reportTransactions}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
                         !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&

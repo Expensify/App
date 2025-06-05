@@ -299,10 +299,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
-    const [reportTransactions = []] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => allTransactions?.[reportIDFromRoute] ?? [],
+    const [transactionsByReportID] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
         canBeMissing: false,
     });
+    const reportTransactions = transactionsByReportID?.[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? [];
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -844,6 +844,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
+                                        reportTransactions={reportTransactions}
                                     />
                                 ) : null}
                                 {!!report && shouldDisplayMoneyRequestActionsList ? (
@@ -851,7 +852,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         report={report}
                                         policy={policy}
                                         reportActions={reportActions}
-                                        transactions={reportTransactions}
+                                        reportTransactions={reportTransactions}
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
