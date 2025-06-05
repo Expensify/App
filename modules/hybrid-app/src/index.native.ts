@@ -1,3 +1,6 @@
+import {Linking} from 'react-native';
+import type { Route } from '@src/ROUTES';
+import {handleHybridUrlNavigation} from '@src/HybridAppHandler';
 import ReactNativeHybridApp from './NativeReactNativeHybridApp';
 import type HybridAppModuleType from './types';
 
@@ -21,5 +24,9 @@ const HybridAppModule: HybridAppModuleType = {
         ReactNativeHybridApp.sendAuthToken(authToken);
     },
 };
+
+Linking.addEventListener('url', (state) => {
+    handleHybridUrlNavigation(state.url as Route);
+});
 
 export default HybridAppModule;

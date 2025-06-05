@@ -1,6 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import {useContext, useEffect, useState} from 'react';
-import {Linking} from 'react-native';
+import {useContext, useState} from 'react';
 import type {AppProps} from './App';
 import CONST from './CONST';
 import {signInAfterTransitionFromOldDot} from './libs/actions/Session';
@@ -10,7 +9,10 @@ import ROUTES from './ROUTES';
 import SCREENS from './SCREENS';
 import SplashScreenStateContext from './SplashScreenStateContext';
 
+let isInitialNavigationHandled = false;
+
 function handleHybridUrlNavigation(url: Route) {
+    isInitialNavigationHandled = true;
     const parsedUrl = Navigation.parseHybridAppUrl(url);
 
     Navigation.isNavigationReady().then(() => {
@@ -29,22 +31,14 @@ function HybridAppHandler({url, hybridAppSettings}: AppProps) {
     const [signInHandled, setSignInHandled] = useState(false);
     const {setSplashScreenState} = useContext(SplashScreenStateContext);
 
-    useEffect(() => {
-        const listener = Linking.addEventListener('url', (state) => {
-            handleHybridUrlNavigation(state.url as Route);
-        });
-
-        return () => {
-            listener.remove();
-        };
-    }, []);
-
     if (!url || !hybridAppSettings || signInHandled) {
         return null;
     }
 
     signInAfterTransitionFromOldDot(hybridAppSettings).then(() => {
-        handleHybridUrlNavigation(url);
+        if (!isInitialNavigationHandled) {
+            handleHybridUrlNavigation(url);
+        }
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
         setSignInHandled(true);
     });
@@ -55,3 +49,4 @@ function HybridAppHandler({url, hybridAppSettings}: AppProps) {
 HybridAppHandler.displayName = 'HybridAppHandler';
 
 export default HybridAppHandler;
+export {handleHybridUrlNavigation}
