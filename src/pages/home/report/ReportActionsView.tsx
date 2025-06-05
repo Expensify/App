@@ -13,7 +13,6 @@ import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
-import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
@@ -95,9 +94,8 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-    const [reportTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
-            selectAllTransactionsForReport(allTransactions, reportID, allReportActions ?? []).map((transaction) => transaction.transactionID),
+    const [reportTransactionIDs] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
+        selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) => allTransactions[reportID]?.map((transaction) => transaction.transactionID),
         canBeMissing: true,
     });
 
