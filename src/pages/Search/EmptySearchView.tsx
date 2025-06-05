@@ -165,6 +165,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = {
@@ -197,7 +199,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         const startTestDrive = () => {
             InteractionManager.runAfterInteractions(() => {
                 if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
-                    completeTestDriveTask();
+                    completeTestDriveTask(viewTourReport, viewTourReportID);
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                 } else {
                     Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
@@ -375,6 +377,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         currentUserPersonalDetails,
         tripViewChildren,
         shouldRedirectToExpensifyClassic,
+        viewTourReport,
+        viewTourReportID,
     ]);
 
     return (
