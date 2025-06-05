@@ -5,7 +5,7 @@ import RadioListItem from './RadioListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
 /**
- * MultiSelectListItem mirrors the behavior of a default radiolistitem, but adds support
+ * MultiSelectListItem mirrors the behavior of a default RadioListItem, but adds support
  * for the new style of multi selection lists.
  */
 function MultiSelectListItem<TItem extends ListItem>({
