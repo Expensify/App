@@ -13,7 +13,11 @@ type ReportListItem = ListItem & {
 function SearchTransactionsChangeReport() {
     const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
-    const selectedReportID = undefined;
+    const firstTransactionKey = selectedTransactionsKeys.at(0);
+    const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
+    const firstTransactionPolicyID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.policyID : undefined;
+    const selectedReportID = Object.values(selectedTransactions).every((transaction) => transaction.reportID === firstTransactionReportID) ? firstTransactionReportID : undefined;
+    const selectedPolicyID = Object.values(selectedTransactions).every((transaction) => transaction.policyID === firstTransactionPolicyID) ? firstTransactionPolicyID : undefined;
 
     const selectReport = (item: ReportListItem) => {
         if (selectedTransactionsKeys.length === 0) {
@@ -30,6 +34,7 @@ function SearchTransactionsChangeReport() {
         <IOURequestEditReportCommon
             backTo={undefined}
             selectedReportID={selectedReportID}
+            selectedPolicyID={selectedPolicyID}
             selectReport={selectReport}
         />
     );

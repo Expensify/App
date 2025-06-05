@@ -39,10 +39,11 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 type Props = {
     backTo: Route | undefined;
     selectedReportID: string | undefined;
+    selectedPolicyID?: string | undefined;
     selectReport: (item: ReportListItem) => void;
 };
 
-function IOURequestEditReportCommon({backTo, selectedReportID, selectReport}: Props) {
+function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID, selectReport}: Props) {
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -59,10 +60,12 @@ function IOURequestEditReportCommon({backTo, selectedReportID, selectReport}: Pr
 
     const expenseReports = useMemo(() => {
         if (!selectedReportID) {
-            return Object.values(allPoliciesID ?? {}).flatMap((policyID) => getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs));
+            return selectedPolicyID ? 
+                getOutstandingReportsForUser(selectedPolicyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs) : 
+                Object.values(allPoliciesID ?? {}).flatMap((policyID) => getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs));
         }
         return getOutstandingReportsForUser(selectedReport?.policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs);
-    }, [allReports, currentUserPersonalDetails.accountID, selectedReport, reportNameValuePairs, allPoliciesID, selectedReportID]);
+    }, [allReports, currentUserPersonalDetails.accountID, selectedReport, reportNameValuePairs, allPoliciesID, selectedReportID, selectedPolicyID]);
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
