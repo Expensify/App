@@ -11,6 +11,7 @@ import {
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isPreferredExporter,
+    shouldShowPolicy,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -46,7 +47,11 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], policy: Policy | undefined) {
+    if (!shouldShowPolicy(policy, false, undefined)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const canAddTransaction = canAddTransactionUtil(report);
@@ -296,7 +301,7 @@ function getReportPrimaryAction(
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID);
 
-    if (isAddExpenseAction(report, reportTransactions)) {
+    if (isAddExpenseAction(report, reportTransactions, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
     }
 

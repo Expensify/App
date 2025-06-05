@@ -229,7 +229,7 @@ function getReportPreviewAction(
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
-    if (isAddExpenseAction(report, transactions ?? [])) {
+    if (isAddExpenseAction(report, transactions ?? [], policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
     if (canSubmit(report, violations, policy, transactions)) {
