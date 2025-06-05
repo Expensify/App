@@ -1828,10 +1828,10 @@ function buildPolicyData(
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
     const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice ||
-        introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-        introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
-        introSelected.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+        !engagementChoice ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
