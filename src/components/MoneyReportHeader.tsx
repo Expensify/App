@@ -650,7 +650,6 @@ function MoneyReportHeader({
             reportActions,
             policies,
             isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
-            isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
             isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
         );
     }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
@@ -832,7 +831,6 @@ function MoneyReportHeader({
                     setIsDeleteReportModalVisible(true);
                 }
             },
-            shouldShow: isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
             text: translate('iou.undoSubmit'),
