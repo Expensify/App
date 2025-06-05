@@ -28,7 +28,7 @@ Your address is now updated! If the card hasn't shipped yet, it will automatical
 
 **If your card has already shipped to the wrong address, follow these steps to resend it to your updated location:**
 
-1. Go to **Account > Wallet**from the left-hand menu.
+1. Go to **Account > Wallet** from the left-hand menu.
 2. Locate your physical card and click **Report card lost or damaged**.
 3. Choose **I lost my card**.
 4. Enter your updated address under **Please confirm the mailing address for your new card** and click **Save**.
