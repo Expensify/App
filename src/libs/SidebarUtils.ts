@@ -812,11 +812,11 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
         welcomeMessage.showReportName = false;
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
-        // eslint-disable-next-line deprecation/deprecation
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
-                : getPolicy(report?.invoiceReceiver?.policyID)?.name;
+                : // eslint-disable-next-line deprecation/deprecation
+                  getPolicy(report?.invoiceReceiver?.policyID)?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageText = `${welcomeMessage.phrase1}${payer} ${translateLocal('common.and')} ${receiver}${welcomeMessage.phrase2}`;
         return welcomeMessage;

@@ -1426,6 +1426,7 @@ export {
     getNumericValue,
     isMultiLevelTags,
     getPersonalPolicy,
+    // eslint-disable-next-line deprecation/deprecation
     getPolicy,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
