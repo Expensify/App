@@ -1,8 +1,10 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isExpenseReport} from '@libs/ReportUtils';
+import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import {isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Report, ReportAction} from '../../src/types/onyx';
 import createRandomReport from '../utils/collections/reports';
@@ -298,6 +300,56 @@ describe('ReportActionsUtils', () => {
         test.each(cases)('in descending order', (input, expectedOutput) => {
             const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[], true);
             expect(result).toStrictEqual(expectedOutput.reverse());
+        });
+    });
+
+    describe('isIOUActionMatchingTransactionList', () => {
+        const nonIOUAction = {
+            created: '2022-11-13 22:27:01.825',
+            reportActionID: '8401445780099176',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            originalMessage: {
+                html: 'Hello world',
+                whisperedTo: [],
+            },
+            message: [
+                {
+                    html: 'Hello world',
+                    type: 'Action type',
+                    text: 'Action text',
+                },
+            ],
+        };
+
+        it('returns false for non-money request actions when defaultToFalseForNonIOU is true', () => {
+            expect(isIOUActionMatchingTransactionList(nonIOUAction, undefined, true)).toBeFalsy();
+        });
+
+        it('returns true for non-money request actions when defaultToFalseForNonIOU is false', () => {
+            expect(isIOUActionMatchingTransactionList(nonIOUAction, undefined, false)).toBeTruthy();
+        });
+
+        it('returns true if no reportTransactionIDs are provided', () => {
+            expect(isIOUActionMatchingTransactionList(mockIOUAction)).toBeTruthy();
+        });
+
+        it('returns true if action is of excluded type', () => {
+            const action = {
+                ...mockIOUAction,
+                originalMessage: {
+                    ...mockOriginalMessage,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+            expect(isIOUActionMatchingTransactionList(action, ['124', '125', '126'])).toBeTruthy();
+        });
+
+        it('returns true if IOUTransactionID matches any provided reportTransactionIDs', () => {
+            expect(isIOUActionMatchingTransactionList(mockIOUAction, ['123', '124', mockOriginalMessage.IOUTransactionID])).toBeTruthy();
+        });
+
+        it('returns false if IOUTransactionID does not match any provided reportTransactionIDs', () => {
+            expect(isIOUActionMatchingTransactionList(mockIOUAction, ['123', '124'])).toBeFalsy();
         });
     });
 
