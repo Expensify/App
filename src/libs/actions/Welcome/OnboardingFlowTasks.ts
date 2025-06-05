@@ -75,49 +75,48 @@ const getOnboardingMessages = () => {
             `![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
     };
 
+    const combinedTrackSubmitExpenseTask: OnboardingTask = {
+        type: 'submitExpense',
+        autoCompleted: false,
+        mediaAttributes: {},
+        title: 'Submit an expense',
+        description:
+            '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+            '\n' +
+            '1. Click the green *+* button.\n' +
+            '2. Choose *Create expense*.\n' +
+            '3. Enter an amount or scan a receipt.\n' +
+            `4. Add your boss's email or phone number.\n` +
+            '5. Click *Create*.\n' +
+            '\n' +
+            'And you’re done!',
+    };
+
+    const adminSubmitExpenseTask: OnboardingTask = {
+        type: 'submitExpense',
+        autoCompleted: false,
+        mediaAttributes: {},
+        title: 'Submit an expense',
+        description:
+            '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+            '\n' +
+            '1. Click the green *+* button.\n' +
+            '2. Choose *Create expense*.\n' +
+            '3. Enter an amount or scan a receipt.\n' +
+            '4. Confirm details..\n' +
+            '5. Click *Create*.\n' +
+            '\n' +
+            `And you're done!`,
+    };
+
     const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
         message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
-        tasks: [
-            testDriveEmployeeTask,
-            {
-                type: 'submitExpense',
-                autoCompleted: false,
-                mediaAttributes: {},
-                title: 'Submit an expense',
-                description:
-                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                    '\n' +
-                    '1. Click the green *+* button.\n' +
-                    '2. Choose *Create expense*.\n' +
-                    '3. Enter an amount or scan a receipt.\n' +
-                    '4. Add your reimburser to the request.\n' +
-                    '\n' +
-                    'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
-            },
-        ],
+        tasks: [testDriveEmployeeTask, adminSubmitExpenseTask],
     };
 
     const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
         ...onboardingEmployerOrSubmitMessage,
-        tasks: [
-            testDriveEmployeeTask,
-            {
-                type: 'submitExpense',
-                autoCompleted: false,
-                mediaAttributes: {},
-                title: 'Submit an expense',
-                description:
-                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                    '\n' +
-                    '1. Click the green *+* button.\n' +
-                    '2. Choose *Create expense*.\n' +
-                    '3. Enter an amount or scan a receipt.\n' +
-                    '4. Add your reimburser to the request.\n' +
-                    '5. Click *Submit*.\n' +
-                    '\n' +
-                    'And you’re done! Now wait for that sweet “Cha-ching!” when it’s complete.',
-            },
-        ],
+        tasks: [testDriveEmployeeTask, combinedTrackSubmitExpenseTask],
     };
 
     const onboardingPersonalSpendMessage: OnboardingMessage = {
@@ -355,21 +354,7 @@ const getOnboardingMessages = () => {
                     '2. Click *Workspaces* > [Your workspace].\n' +
                     `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
             },
-            {
-                type: 'submitExpense',
-                autoCompleted: false,
-                mediaAttributes: {},
-                title: 'Submit an expense',
-                description:
-                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                    '\n' +
-                    '1. Click the green *+* button.\n' +
-                    '2. Choose *Create expense*.\n' +
-                    '3. Enter an amount or scan a receipt.\n' +
-                    '4. Add your reimburser to the request.\n' +
-                    '\n' +
-                    'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
-            },
+            adminSubmitExpenseTask,
         ],
     };
     const onboardingLookingAroundMessage: OnboardingMessage = {
