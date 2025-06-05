@@ -49,6 +49,7 @@ export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePa
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
 export type {default as OpenReportParams} from './OpenReportParams';
 export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPageParams';
+export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompanyCardLoginParams';
 export type {default as OpenSidePanelParams} from './OpenSidePanelParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
 export type {default as PusherPingParams} from './PusherPingParams';
@@ -172,6 +173,7 @@ export type {default as SubmitReportParams} from './SubmitReportParams';
 export type {default as DetachReceiptParams} from './DetachReceiptParams';
 export type {default as PayMoneyRequestParams} from './PayMoneyRequestParams';
 export type {default as HoldMoneyRequestParams} from './HoldMoneyRequestParams';
+export type {default as BulkHoldRequestParams} from './BulkHoldRequestParams';
 export type {default as UnHoldMoneyRequestParams} from './UnHoldMoneyRequestParams';
 export type {default as CancelPaymentParams} from './CancelPaymentParams';
 export type {default as AcceptACHContractForBankAccount} from './AcceptACHContractForBankAccount';
