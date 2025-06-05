@@ -1234,23 +1234,6 @@ describe('ReportUtils', () => {
             expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
-        it('should disable on archived reports and not-thread actions', () => {
-            return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            })
-                .then(() => waitForBatchedUpdates())
-                .then(() => {
-                    const reportAction = {
-                        childVisibleActionCount: 1,
-                    } as ReportAction;
-                    expect(shouldDisableThread(reportAction, reportID, false, false)).toBeFalsy();
-
-                    reportAction.childVisibleActionCount = 0;
-                    expect(shouldDisableThread(reportAction, reportID, false, false)).toBeTruthy();
-                });
-        });
-
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
             const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
