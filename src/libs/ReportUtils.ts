@@ -269,8 +269,6 @@ type SpendBreakdown = {
     totalDisplaySpend: number;
 };
 
-type ParticipantDetails = [number, string, AvatarSource, AvatarSource];
-
 type OptimisticAddCommentReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>,
     | 'reportActionID'
@@ -2347,10 +2345,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
         return false;
     }
 
-    if (isInstantSubmitEnabled(policy) && isProcessingReport(moneyRequestReport)) {
-        return isAwaitingFirstLevelApproval(moneyRequestReport);
-    }
-
     if (isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
         return false;
     }
@@ -2571,18 +2565,19 @@ function getDefaultGroupAvatar(reportID?: string): IconAsset {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
 function getIconsForParticipants(participants: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>): Icon[] {
-    const participantDetails: ParticipantDetails[] = [];
+    const participantDetails: Array<{ accountID: number; displayNameLogin: string; avatarSource: AvatarSource; fallbackIcon: AvatarSource }> = [];
     const participantsList = participants || [];
 
     for (const accountID of participantsList) {
         const avatarSource = personalDetails?.[accountID]?.avatar ?? FallbackAvatar;
         const displayNameLogin = personalDetails?.[accountID]?.displayName ? personalDetails?.[accountID]?.displayName : personalDetails?.[accountID]?.login;
-        participantDetails.push([accountID, displayNameLogin ?? '', avatarSource, personalDetails?.[accountID]?.fallbackIcon ?? '']);
+        const fallbackIcon = personalDetails?.[accountID]?.fallbackIcon ?? '';
+        participantDetails.push({ accountID, displayNameLogin: displayNameLogin ?? '', avatarSource, fallbackIcon });
     }
 
     const sortedParticipantDetails = participantDetails.sort((first, second) => {
         // First sort by displayName/login
-        const displayNameLoginOrder = localeCompare(first[1], second[1]);
+        const displayNameLoginOrder = localeCompare(first.displayNameLogin, second.displayNameLogin);
         if (displayNameLoginOrder !== 0) {
             return displayNameLoginOrder;
         }
@@ -2590,20 +2585,22 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxIn
         // Then fallback on accountID as the final sorting criteria.
         // This will ensure that the order of avatars with same login/displayName
         // stay consistent across all users and devices
-        return first[0] - second[0];
+        return first.accountID - second.accountID;
     });
 
     // Now that things are sorted, gather only the avatars (second element in the array) and return those
     const avatars: Icon[] = [];
 
     for (const sortedParticipantDetail of sortedParticipantDetails) {
-        const userIcon = {
-            id: sortedParticipantDetail[0],
-            source: sortedParticipantDetail[2],
+        const userIcon: Icon = {
+            id: sortedParticipantDetail.accountID,
+            source: sortedParticipantDetail.avatarSource,
             type: CONST.ICON_TYPE_AVATAR,
-            name: sortedParticipantDetail[1],
-            fallbackIcon: sortedParticipantDetail[3],
+            name: sortedParticipantDetail.displayNameLogin,
         };
+        if (sortedParticipantDetail.fallbackIcon) {
+            userIcon.fallbackIcon = sortedParticipantDetail.fallbackIcon;
+        }
         avatars.push(userIcon);
     }
 
@@ -3471,7 +3468,7 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
         if (nonReimbursableSpend + totalSpend !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
-            // or you enter a negative expense to “offset” future expenses
+            // or you enter a negative expense to "offset" future expenses
             nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
             totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
 
@@ -5615,7 +5612,7 @@ function buildOptimisticInvoiceReport(
         ownerAccountID: currentUserAccountID,
         managerID: receiverAccountID,
         currency,
-        // We don’t translate reportName because the server response is always in English
+        // We don't translate reportName because the server response is always in English
         reportName: `${receiverName} owes ${formattedTotal}`,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -7960,7 +7957,7 @@ function reasonForReportToBeInOptionList({
     const isEmptyChat = isEmptyReport(report);
     const canHideReport = shouldHideReport(report, currentReportId);
 
-    // Include reports if they are pinned
+    // Include reports that are pinned
     if (report.isPinned) {
         return CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER;
     }
