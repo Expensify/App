@@ -182,7 +182,7 @@ type PureReportActionItemProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
     /** All transactions grouped by reportID */
-    transactionsByReportID: OnyxTypes.ReportTransactionsDerivedValue;
+    transactionsByReportID?: OnyxTypes.ReportTransactionsDerivedValue;
 
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -359,7 +359,7 @@ function PureReportActionItem({
     action,
     report,
     transactionThreadReport,
-    transactionsByReportID,
+    transactionsByReportID = {},
     linkedReportActionID,
     displayAsGroup,
     index,
