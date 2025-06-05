@@ -55,6 +55,7 @@ import {
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
+import { canApproveIOU } from "./actions/IOU";
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -155,29 +156,14 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
-
-    if (isAnyReceiptBeingScanned) {
-        return false;
+    if (canApproveIOU(report, policy, reportTransactions, violations)) {
+        return true;
     }
-
     const currentUserAccountID = getCurrentUserAccountID();
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserAccountID;
-    if (!isCurrentUserManager) {
-        return false;
-    }
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const isProcessingReport = isProcessingReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
-
-    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-
-    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
-        return false;
-    }
 
     if (isExpenseReport && isReportApprover && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -192,7 +178,6 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
 
     const userControlsReport = isReportApprover || isAdmin;

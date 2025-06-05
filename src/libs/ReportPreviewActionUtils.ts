@@ -16,7 +16,6 @@ import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
-    getReportTransactions,
     hasExportError as hasExportErrorUtil,
     hasMissingSmartscanFields,
     hasNoticeTypeViolations,
@@ -38,6 +37,7 @@ import {
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import { canApproveIOU } from "./actions/IOU";
 
 function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
@@ -63,32 +63,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
-    const currentUserID = getCurrentUserAccountID();
-    const isExpense = isExpenseReport(report);
-    const isProcessing = isProcessingReport(report);
-    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserID;
-    const hasAnyViolations =
-        hasMissingSmartscanFields(report.reportID, transactions) ||
-        hasViolations(report.reportID, violations) ||
-        hasNoticeTypeViolations(report.reportID, violations, true) ||
-        hasWarningTypeViolations(report.reportID, violations, true);
-    const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
-    const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
-
-    if (isAnyReceiptBeingScanned) {
-        return false;
-    }
-
-    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-
-    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
-        return false;
-    }
-
-    return isExpense && isProcessing && !!isApprovalEnabled && (!hasAnyViolations || !shouldConsiderViolations) && reportTransactions.length > 0 && isCurrentUserManager;
+    return canApproveIOU(report, policy, transactions, shouldConsiderViolations ? violations : undefined);
 }
 
 function canPay(

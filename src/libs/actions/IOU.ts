@@ -146,9 +146,13 @@ import {
     getReportTransactions,
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasMissingSmartscanFields,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    hasNoticeTypeViolations,
+    hasViolations,
+    hasWarningTypeViolations,
     isArchivedReport,
-    isClosedReport as isClosedReportUtil,
+    isCurrentUserSubmitter,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -9060,12 +9064,17 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
     notifyNewAction(params.chatReportID, managerID);
 }
 
+/**
+ * Checks if the current user can approve an IOU report.
+ * @param violations If not provided, it will not check for violations.
+ */
 function canApproveIOU(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
-    _policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
     iouTransactions?: OnyxTypes.Transaction[],
+    violations?: OnyxCollection<OnyxTypes.TransactionViolation[]>
 ) {
-    if (!iouReport) {
+    if (!iouReport || isSubmitAndClose(policy) || (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy)))) {
         return false;
     }
 
@@ -9076,13 +9085,22 @@ function canApproveIOU(
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = iouTransactions ?? getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
-    if (hasOnlyPendingCardOrScanningTransactions) {
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+    if (hasOnlyPendingCardOrScanningTransactions || isAnyReceiptBeingScanned) {
         return false;
     }
+    
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport?.reportID, reportTransactions);
-    const isClosedReport = isClosedReportUtil(iouReport);
+    const hasAnyViolations = !isEmptyObject(violations) && (
+        hasMissingSmartscanFields(iouReport.reportID, iouTransactions) ||
+        hasViolations(iouReport.reportID, violations) ||
+        hasNoticeTypeViolations(iouReport.reportID, violations, true) ||
+        hasWarningTypeViolations(iouReport.reportID, violations, true));
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(iouReport.reportID);
+
     return (
-        reportTransactions.length > 0 && isCurrentUserManager && isProcessing && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !isClosedReport
+        (reportTransactions.length > 0) && isCurrentUserManager && isProcessing && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !hasAnyViolations && !(isPreventSelfApprovalEnabled && isReportSubmitter)
     );
 }
 
