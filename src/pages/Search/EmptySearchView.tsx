@@ -166,6 +166,13 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         canBeMissing: true,
     });
 
+    // Default 'Folder' lottie animation, along with its background styles
+    const defaultViewItemHeader = {
+        headerMedia: LottieAnimations.GenericEmptyState,
+        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+    };
+
     const content: EmptySearchViewItem = useMemo(() => {
         // Begin by going through all of our To-do searches, and returning their empty state
         // if it exists
@@ -202,20 +209,16 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
             if (hasResults) {
                 return {
-                    headerMedia: LottieAnimations.GenericEmptyState,
+                    ...defaultViewItemHeader,
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 };
             }
 
             return {
-                headerMedia: LottieAnimations.GenericEmptyState,
+                ...defaultViewItemHeader,
                 title: translate('search.searchResults.emptyReportResults.title'),
                 subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
-                headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 buttons: [
                     ...(!hasSeenTour
                         ? [
@@ -280,7 +283,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (!hasResults) {
                     return {
-                        headerMedia: LottieAnimations.GenericEmptyState,
+                        ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
@@ -305,8 +308,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                 success: true,
                             },
                         ],
-                        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                     };
                 }
             // We want to display the default nothing to show message if there is any filter applied.
@@ -314,7 +315,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
             case CONST.SEARCH.DATA_TYPES.INVOICE:
                 if (!hasResults) {
                     return {
-                        headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
@@ -339,19 +339,16 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                 success: true,
                             },
                         ],
-                        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+                        ...defaultViewItemHeader,
                     };
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 return {
-                    headerMedia: LottieAnimations.GenericEmptyState,
+                    ...defaultViewItemHeader,
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 };
         }
     }, [
@@ -362,13 +359,14 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         translate,
         StyleUtils,
         theme.todoBG,
-        theme.emptyFolderBG,
         theme.travelBG,
         styles.emptyStateFireworksWebStyles,
         styles.emptyStateFolderWebStyles,
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
         introSelected?.choice,
+        hasResults,
+        defaultViewItemHeader,
         hasSeenTour,
         isBetaEnabled,
         groupPoliciesWithChatEnabled,
@@ -376,7 +374,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         activePolicyID,
         currentUserPersonalDetails,
         tripViewChildren,
-        hasResults,
         shouldRedirectToExpensifyClassic,
     ]);
 
