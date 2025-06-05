@@ -50,6 +50,7 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
 import ShowMoreButton from './ShowMoreButton';
+import { isMovingTransactionFromTrackExpense } from '@libs/IOUUtils';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -415,7 +416,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={!isReadOnly && (isPolicyExpenseChat || !isMovingTransactionFromTrackExpense(action))}
                     title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
@@ -428,7 +429,7 @@ function MoneyRequestConfirmationListFooter({
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={!isReadOnly && (isPolicyExpenseChat || !isMovingTransactionFromTrackExpense(action))}
                 />
             ),
             shouldShow: isDistanceRequest,
