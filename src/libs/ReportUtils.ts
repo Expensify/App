@@ -72,7 +72,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
-import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
@@ -929,9 +928,6 @@ Onyx.connect({
         UnreadIndicatorUpdaterHelper().then((module) => {
             module.triggerUnreadUpdate();
         });
-
-        // Each time a new report is added we will check to see if the user should be switched
-        autoSwitchToFocusMode();
 
         if (!value) {
             return;
