@@ -1,10 +1,6 @@
 import {addMinutes} from 'date-fns';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption, OnboardingHelpType} from '@components/ButtonWithDropdownMenu/types';
-import {CalendarSolid, Close, Monitor, Phone} from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +13,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
+import {CalendarSolid, Close, Monitor, Phone} from './Icon/Expensicons';
+import * as Illustrations from './Icon/Illustrations';
 
 type OnboardingHelpButtonProps = {
     /** The ID of onboarding chat report */
