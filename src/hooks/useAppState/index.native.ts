@@ -18,7 +18,7 @@ function useAppState({onAppStateChange}: UseAppStateProps = {}) {
                 isInactive: nextAppState === 'inactive',
                 isBackground: nextAppState === 'background',
             });
-            
+
             onAppStateChange?.(nextAppState);
         }
         const subscription = AppState.addEventListener('change', handleAppStateChange);

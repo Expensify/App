@@ -467,7 +467,7 @@ function MoneyRequestParticipantsSelector({
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
         setTextInputAutoFocus(true);
-    }, [importAndSaveContacts, betas]);
+    }, [importAndSaveContacts, canUseNativeContactImport]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {

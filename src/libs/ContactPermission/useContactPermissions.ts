@@ -34,13 +34,16 @@ function useContactPermissions({importAndSaveContacts, setContacts, contactPermi
             });
     }, [contactPermissionState, importAndSaveContacts, setContacts, setContactPermissionState]);
 
-    const handleAppStateChange = useCallback((nextAppState: AppStateStatus) => {
-        if (nextAppState !== 'active') {
-            return;
-        }
+    const handleAppStateChange = useCallback(
+        (nextAppState: AppStateStatus) => {
+            if (nextAppState !== 'active') {
+                return;
+            }
 
-        checkPermissionAndUpdateContacts();
-    }, [checkPermissionAndUpdateContacts]);
+            checkPermissionAndUpdateContacts();
+        },
+        [checkPermissionAndUpdateContacts],
+    );
 
     useAppState({onAppStateChange: handleAppStateChange});
 
