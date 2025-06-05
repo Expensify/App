@@ -302,6 +302,7 @@ function getCustomUnitRateID(reportID?: string) {
     }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
 
     if (isEmptyObject(policy)) {

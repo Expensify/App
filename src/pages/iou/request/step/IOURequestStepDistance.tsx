@@ -148,6 +148,7 @@ function IOURequestStepDistance({
             const policyReport = participants.at(0) ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`] : report;
 
             const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
+            // eslint-disable-next-line deprecation/deprecation
             const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
             const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 

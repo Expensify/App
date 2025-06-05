@@ -45,6 +45,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 return;
             }
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            // eslint-disable-next-line deprecation/deprecation
             if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
             } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {

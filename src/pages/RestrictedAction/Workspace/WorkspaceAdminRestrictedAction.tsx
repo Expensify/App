@@ -25,6 +25,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
     const styles = useThemeStyles();
 
     const openAdminsReport = useCallback(() => {
+        // eslint-disable-next-line deprecation/deprecation
         const reportID = `${PolicyUtils.getPolicy(policyID)?.chatReportIDAdmins}` ?? '-1';
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));

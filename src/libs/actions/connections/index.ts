@@ -34,6 +34,7 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
 
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
+    // eslint-disable-next-line deprecation/deprecation
     const policy = PolicyUtils.getPolicy(policyID);
     const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
 

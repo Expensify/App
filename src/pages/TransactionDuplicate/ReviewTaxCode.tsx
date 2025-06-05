@@ -22,6 +22,7 @@ function ReviewTaxRate() {
     const {translate} = useLocalize();
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID ?? route.params.threadReportID}`);
+    // eslint-disable-next-line deprecation/deprecation
     const policy = PolicyUtils.getPolicy(report?.policyID ?? '');
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');

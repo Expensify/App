@@ -701,6 +701,7 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
 
 /**
  * Returns the policy of the report
+ * @deprecated Get the data straight from Onyx
  */
 function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy> = allPolicies): OnyxEntry<Policy> {
     if (!policies || !policyID) {
@@ -738,6 +739,7 @@ function hasPolicyWithXeroConnection(currentUserLogin: string | undefined) {
 
 /** Whether the user can send invoice from the workspace */
 function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     return policy?.areInvoicesEnabled ?? false;
 }
@@ -1196,6 +1198,7 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
 }
 
 function getWorkspaceAccountID(policyID?: string) {
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     if (!policy) {
@@ -1205,6 +1208,7 @@ function getWorkspaceAccountID(policyID?: string) {
 }
 
 function hasVBBA(policyID: string | undefined) {
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     return !!policy?.achAccount?.bankAccountID;
 }
@@ -1213,7 +1217,7 @@ function getTagApproverRule(policyOrID: string | SearchPolicy | OnyxEntry<Policy
     if (!policyOrID) {
         return;
     }
-
+    // eslint-disable-next-line deprecation/deprecation
     const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
 
     const approvalRules = policy?.rules?.approvalRules ?? [];
@@ -1241,6 +1245,7 @@ function getAllPoliciesLength() {
 }
 
 function getActivePolicy(): OnyxEntry<Policy> {
+    // eslint-disable-next-line deprecation/deprecation
     return getPolicy(activePolicyId);
 }
 
@@ -1278,6 +1283,7 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     if (!policy) {
@@ -1306,6 +1312,7 @@ function canModifyPlan(policyID?: string) {
     if (!policyID) {
         return ownerPolicies.length > 1;
     }
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     return !!policy && isPolicyAdmin(policy);
@@ -1374,6 +1381,7 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     // A domain name containing a policyID indicates that this is a workspace feed
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
     if (policyID) {
+        // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(policyID.toUpperCase());
         return policy?.name ?? domainName;
     }

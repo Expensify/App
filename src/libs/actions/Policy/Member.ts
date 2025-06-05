@@ -125,6 +125,7 @@ function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number) {
 
 /**
  * Returns the policy of the report
+ * @deprecated Get the data straight from Onyx
  */
 function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     if (!allPolicies || !policyID) {
@@ -324,6 +325,7 @@ function removeOptimisticRoomMembers(
  * @param [loginList] The logins of the users whose roles are being updated to non-admin role or are removed from a workspace
  */
 function resetAccountingPreferredExporter(policyID: string, loginList: string[]): OnyxDataReturnType {
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const owner = policy?.owner ?? ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
     const optimisticData: OnyxUpdate[] = [];
@@ -419,6 +421,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     }
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
@@ -781,6 +784,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
 }
 
 function requestWorkspaceOwnerChange(policyID: string) {
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const ownershipChecks = {...policyOwnershipChecks?.[policyID]};
 
@@ -989,6 +993,7 @@ type PolicyMember = {
 };
 
 function importPolicyMembers(policyID: string, members: PolicyMember[]) {
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const {added, updated} = members.reduce(
         (acc, curr) => {

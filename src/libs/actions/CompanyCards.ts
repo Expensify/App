@@ -305,6 +305,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         startDate,
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
     };
+    // eslint-disable-next-line deprecation/deprecation
     const policy = PolicyUtils.getPolicy(policyID);
     const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, policyID);
 

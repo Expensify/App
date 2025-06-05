@@ -155,6 +155,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 {report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? (
                                     <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})}</Text>
                                 ) : (
+                                    // eslint-disable-next-line deprecation/deprecation
                                     <Text style={[styles.textStrong]}>{getPolicy(report?.invoiceReceiver?.policyID)?.name}</Text>
                                 )}
                             </Text>

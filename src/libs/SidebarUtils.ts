@@ -812,6 +812,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
         welcomeMessage.showReportName = false;
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
+        // eslint-disable-next-line deprecation/deprecation
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})

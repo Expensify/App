@@ -468,6 +468,7 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
 }
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
+    // eslint-disable-next-line deprecation/deprecation
     const policy = PolicyUtils.getPolicy(policyID);
     const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
     if (!tagList) {
@@ -1019,6 +1020,7 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
 }
 
 function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
+    // eslint-disable-next-line deprecation/deprecation
     const policy = PolicyUtils.getPolicy(policyID);
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);

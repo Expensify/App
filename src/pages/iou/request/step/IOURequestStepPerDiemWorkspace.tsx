@@ -64,6 +64,7 @@ function IOURequestStepPerDiemWorkspace({
         if (!policyExpenseReportID) {
             return;
         }
+        // eslint-disable-next-line deprecation/deprecation
         const selectedPolicy = getPolicy(item.value, allPolicies);
         const perDiemUnit = getPerDiemCustomUnit(selectedPolicy);
         setMoneyRequestParticipants(transactionID, [

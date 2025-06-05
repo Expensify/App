@@ -51,6 +51,7 @@ type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & Pla
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 

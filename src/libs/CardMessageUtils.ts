@@ -42,6 +42,7 @@ function getExpensifyCardFromReportAction({reportAction, policyID}: {reportActio
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const allExpensifyCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`] ?? {};
+    // eslint-disable-next-line deprecation/deprecation
     return isPolicyAdmin(getPolicy(policyID)) ? allExpensifyCards?.[cardID] : allUserCards[cardID];
 }
 

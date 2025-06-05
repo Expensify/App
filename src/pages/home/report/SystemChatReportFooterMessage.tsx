@@ -22,6 +22,7 @@ function SystemChatReportFooterMessage() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const adminChatReportID = useMemo(() => {
+        // eslint-disable-next-line deprecation/deprecation
         const adminPolicy = activePolicyID
             ? PolicyUtils.getPolicy(activePolicyID)
             : Object.values(policies ?? {}).find(
