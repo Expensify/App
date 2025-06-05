@@ -49,7 +49,7 @@ type OnValidateFileCallback = (file: FileObject | undefined, setFile: (file: Fil
 
 type OnCloseOptions = {
     shouldCallDirectly?: boolean;
-    navigate?: () => void;
+    navigateBack?: () => void;
 };
 
 type AttachmentModalBaseContentProps = {
@@ -347,7 +347,7 @@ function AttachmentModalBaseContent({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    const navigate = () => {
+                    const navigateBack = () => {
                         InteractionManager.runAfterInteractions(() => {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -361,7 +361,7 @@ function AttachmentModalBaseContent({
                         });
                     };
 
-                    onClose?.({shouldCallDirectly: true, navigate});
+                    onClose?.({shouldCallDirectly: true, navigateBack});
                 },
             });
         }

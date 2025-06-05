@@ -2,7 +2,6 @@ import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import Modal from '@components/Modal';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
@@ -36,8 +35,8 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
             attachmentsContext.setCurrentAttachment(undefined);
 
             // If a custom navigation callback is provided, call it instead of navigating back
-            if (options?.navigate) {
-                options?.navigate();
+            if (options?.navigateBack) {
+                options?.navigateBack();
                 return;
             }
 
