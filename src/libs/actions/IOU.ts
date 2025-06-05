@@ -80,6 +80,7 @@ import {
     isPaidGroupPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
+    shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {
     getAllReportActions,
@@ -8750,14 +8751,17 @@ function getPayMoneyRequestParams(
     payAsBusiness?: boolean,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
-    const activePolicy = getPolicy(activePolicyID);
     let payerPolicyID = activePolicyID;
     let chatReport = initialChatReport;
     let policyParams = {};
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
-    const shouldCreatePolicy = !activePolicy || !isPolicyAdmin(activePolicy) || !isPaidGroupPolicy(activePolicy);
+    const paidPolicies = Object.values(allPolicies ?? {})
+        .filter((policy) => shouldShowPolicy(policy, false, currentUserEmail))
+        .filter((policy) => isPolicyAdmin(policy) && isPaidGroupPolicy(policy));
+    const firstPaidPolicy = paidPolicies.find((policy) => policy?.id === activePolicyID) ?? paidPolicies.at(0);
+    const shouldCreatePolicy = !firstPaidPolicy || !isPolicyAdmin(firstPaidPolicy) || !isPaidGroupPolicy(firstPaidPolicy);
 
     if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && shouldCreatePolicy) {
         payerPolicyID = generatePolicyID();
@@ -8786,8 +8790,8 @@ function getPayMoneyRequestParams(
         failureData.push(...policyFailureData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicyID ?? null});
     }
 
-    if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
-        const existingB2BInvoiceRoom = getInvoiceChatByParticipants(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport.policyID);
+    if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && firstPaidPolicy?.id) {
+        const existingB2BInvoiceRoom = getInvoiceChatByParticipants(firstPaidPolicy?.id, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport.policyID);
         if (existingB2BInvoiceRoom) {
             chatReport = existingB2BInvoiceRoom;
         }
