@@ -385,13 +385,17 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
-const validateAttachment = (file: FileObject) => {
+const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
     if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
+        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
     if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
+    }
+
+    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
+        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
     }
     return '';
 };
@@ -405,8 +409,12 @@ const getFileValidationErrorText = (
     switch (validationError) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {title: 'attachmentPicker.wrongFileType', reason: 'attachmentPicker.notAllowedExtension'};
+        case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE:
+            return {title: 'attachmentPicker.someFilesCantBeUploaded', reason: 'attachmentPicker.unsupportedFileType'};
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
-            return {title: 'attachmentPicker.attachmentTooLarge', reason: 'attachmentPicker.sizeExceededWithLimit'};
+            return {title: 'attachmentPicker.attachmentTooLarge', reason: 'attachmentPicker.sizeExceeded'};
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
+            return {title: 'attachmentPicker.someFilesCantBeUploaded', reason: 'attachmentPicker.sizeLimitExceeded'};
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
             return {title: 'attachmentPicker.attachmentTooSmall', reason: 'attachmentPicker.sizeNotMet'};
         case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:

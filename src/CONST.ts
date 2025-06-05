@@ -442,11 +442,6 @@ const CONST = {
 
         MAX_FILE_LIMIT: 2,
     },
-         ATTACHMENT_ERRORS: {
-        COUNT: 'count',
-        SIZE: 'size',
-        FILE_TYPE: 'fileType',
-    },
 
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
@@ -2068,7 +2063,9 @@ const CONST = {
 
     FILE_VALIDATION_ERRORS: {
         WRONG_FILE_TYPE: 'wrongFileType',
+        WRONG_FILE_TYPE_MULTIPLE: 'wrongFileTypeMultiple',
         FILE_TOO_LARGE: 'fileTooLarge',
+        FILE_TOO_LARGE_MULTIPLE: 'fileTooLargeMultiple',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
         FOLDER_NOT_ALLOWED: 'folderNotAllowed',
