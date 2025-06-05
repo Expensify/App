@@ -10,6 +10,7 @@ import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -20,7 +21,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -70,6 +71,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank as CompanyCardFeed]);
+    const plaidUrl = getPlaidInstitutionIconUrl(bank);
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
@@ -109,13 +111,20 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                 />
                 <ScrollView addBottomSafeAreaPadding>
                     <View style={[styles.walletCard, styles.mb3]}>
-                        <ImageSVG
-                            contentFit="contain"
-                            src={getCardFeedIcon(cardBank as CompanyCardFeed, illustrations)}
-                            pointerEvents="none"
-                            height={variables.cardPreviewHeight}
-                            width={variables.cardPreviewWidth}
-                        />
+                        {plaidUrl ? (
+                            <PlaidCardFeedIcon
+                                plaidUrl={plaidUrl}
+                                isLarge
+                            />
+                        ) : (
+                            <ImageSVG
+                                contentFit="contain"
+                                src={getCardFeedIcon(cardBank as CompanyCardFeed, illustrations)}
+                                pointerEvents="none"
+                                height={variables.cardPreviewHeight}
+                                width={variables.cardPreviewWidth}
+                            />
+                        )}
                     </View>
 
                     <MenuItem
