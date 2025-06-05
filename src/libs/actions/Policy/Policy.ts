@@ -4300,7 +4300,7 @@ function setPolicyReimbursableMode(policyID: string, reimbursableMode: PolicyCas
                         reimbursable: reimbursableDisabled,
                     },
                     pendingFields: {
-                        defaultBillable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        defaultReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         disabledFields: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
@@ -4312,7 +4312,7 @@ function setPolicyReimbursableMode(policyID: string, reimbursableMode: PolicyCas
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingFields: {
-                        defaultBillable: null,
+                        defaultReimbursable: null,
                         disabledFields: null,
                     },
                     errorFields: null,
@@ -4326,8 +4326,8 @@ function setPolicyReimbursableMode(policyID: string, reimbursableMode: PolicyCas
                 value: {
                     disabledFields: {reimbursable: originalDefaultReimbursableDisabled},
                     defaultReimbursable: originalDefaultReimbursable,
-                    pendingFields: {defaultBillable: null, disabledFields: null},
-                    errorFields: {defaultBillable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    pendingFields: {defaultReimbursable: null, disabledFields: null},
+                    errorFields: {defaultReimbursable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
             },
         ],
