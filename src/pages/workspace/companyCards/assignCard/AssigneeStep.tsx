@@ -5,6 +5,8 @@ import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import {useBetas} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -17,7 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getValidOptions, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -38,6 +40,60 @@ type AssigneeStepProps = {
     feed: OnyxTypes.CompanyCardFeed;
 };
 
+function useOptions() {
+    const betas = useBetas();
+    const [isLoading, setIsLoading] = useState(true);
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const {options: optionsList, areOptionsInitialized} = useOptionsList();
+
+    const defaultOptions = useMemo(() => {
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = getValidOptions(
+            {
+                reports: optionsList.reports,
+                personalDetails: optionsList.personalDetails,
+            },
+            {
+                betas,
+                excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT},
+            },
+        );
+
+        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
+
+        if (isLoading) {
+            // eslint-disable-next-line react-compiler/react-compiler
+            setIsLoading(false);
+        }
+
+        return {
+            userToInvite,
+            recentReports,
+            personalDetails,
+            currentUserOption,
+            headerMessage,
+        };
+    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+
+    const options = useMemo(() => {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+            excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT},
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        });
+        const headerMessage = getHeaderMessage(
+            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
+            !!filteredOptions.userToInvite,
+            debouncedSearchValue,
+        );
+
+        return {
+            ...filteredOptions,
+            headerMessage,
+        };
+    }, [debouncedSearchValue, defaultOptions]);
+
+    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
+}
+
 function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -50,13 +106,23 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const isEditing = assignCard?.isEditing;
 
     const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const selectMember = (assignee: ListItem) => {
         Keyboard.dismiss();
         setSelectedMember(assignee.login ?? '');
         setShouldShowError(false);
+
+        if (userToInvite?.login === assignee.login) {
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
+                data: {
+                    email: assignee?.login,
+                    assigneeAccountID: assignee?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                },
+            });
+        }
     };
 
     const submit = () => {
@@ -144,7 +210,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     }, [isOffline, policy?.employeeList, selectedMember]);
 
     const sections = useMemo(() => {
-        if (!debouncedSearchTerm) {
+        if (!debouncedSearchValue) {
             return [
                 {
                     data: membersDetails,
@@ -153,7 +219,6 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             ];
         }
 
-        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
         const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         return [
@@ -162,14 +227,17 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 data: filteredOptions,
                 shouldShow: true,
             },
+            ...(userToInvite
+                ? [
+                      {
+                          title: undefined,
+                          data: [userToInvite],
+                          shouldShow: true,
+                      },
+                  ]
+                : []),
         ];
-    }, [membersDetails, debouncedSearchTerm]);
-
-    const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
-
-        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
-    }, [debouncedSearchTerm, sections]);
+    }, [debouncedSearchValue, membersDetails, searchValue, userToInvite]);
 
     return (
         <InteractiveStepWrapper
@@ -183,9 +251,9 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList
                 textInputLabel={textInputLabel}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
+                textInputValue={searchValue}
+                onChangeText={setSearchValue}
+                sections={areOptionsInitialized ? sections : []}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
                 onSelectRow={selectMember}
