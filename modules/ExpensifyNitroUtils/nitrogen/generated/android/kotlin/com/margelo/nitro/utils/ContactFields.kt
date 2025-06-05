@@ -18,12 +18,9 @@ import com.facebook.proguard.annotations.DoNotStrip
 enum class ContactFields {
   FIRST_NAME,
   LAST_NAME,
-  MIDDLE_NAME,
   PHONE_NUMBERS,
   EMAIL_ADDRESSES,
-  IMAGE_DATA,
-  THUMBNAIL_IMAGE_DATA,
-  GIVEN_NAME_KEY;
+  IMAGE_DATA;
 
   @DoNotStrip
   @Keep

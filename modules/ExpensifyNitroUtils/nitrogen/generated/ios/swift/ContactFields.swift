@@ -21,18 +21,12 @@ public extension ContactFields {
         self = .firstName
       case "LAST_NAME":
         self = .lastName
-      case "MIDDLE_NAME":
-        self = .middleName
       case "PHONE_NUMBERS":
         self = .phoneNumbers
       case "EMAIL_ADDRESSES":
         self = .emailAddresses
       case "IMAGE_DATA":
         self = .imageData
-      case "THUMBNAIL_IMAGE_DATA":
-        self = .thumbnailImageData
-      case "GIVEN_NAME_KEY":
-        self = .givenNameKey
       default:
         return nil
     }
@@ -47,18 +41,12 @@ public extension ContactFields {
         return "FIRST_NAME"
       case .lastName:
         return "LAST_NAME"
-      case .middleName:
-        return "MIDDLE_NAME"
       case .phoneNumbers:
         return "PHONE_NUMBERS"
       case .emailAddresses:
         return "EMAIL_ADDRESSES"
       case .imageData:
         return "IMAGE_DATA"
-      case .thumbnailImageData:
-        return "THUMBNAIL_IMAGE_DATA"
-      case .givenNameKey:
-        return "GIVEN_NAME_KEY"
     }
   }
 }

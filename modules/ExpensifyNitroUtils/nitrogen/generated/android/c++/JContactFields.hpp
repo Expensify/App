@@ -43,30 +43,21 @@ namespace margelo::nitro::utils {
       static const auto clazz = javaClassStatic();
       static const auto fieldFIRST_NAME = clazz->getStaticField<JContactFields>("FIRST_NAME");
       static const auto fieldLAST_NAME = clazz->getStaticField<JContactFields>("LAST_NAME");
-      static const auto fieldMIDDLE_NAME = clazz->getStaticField<JContactFields>("MIDDLE_NAME");
       static const auto fieldPHONE_NUMBERS = clazz->getStaticField<JContactFields>("PHONE_NUMBERS");
       static const auto fieldEMAIL_ADDRESSES = clazz->getStaticField<JContactFields>("EMAIL_ADDRESSES");
       static const auto fieldIMAGE_DATA = clazz->getStaticField<JContactFields>("IMAGE_DATA");
-      static const auto fieldTHUMBNAIL_IMAGE_DATA = clazz->getStaticField<JContactFields>("THUMBNAIL_IMAGE_DATA");
-      static const auto fieldGIVEN_NAME_KEY = clazz->getStaticField<JContactFields>("GIVEN_NAME_KEY");
       
       switch (value) {
         case ContactFields::FIRST_NAME:
           return clazz->getStaticFieldValue(fieldFIRST_NAME);
         case ContactFields::LAST_NAME:
           return clazz->getStaticFieldValue(fieldLAST_NAME);
-        case ContactFields::MIDDLE_NAME:
-          return clazz->getStaticFieldValue(fieldMIDDLE_NAME);
         case ContactFields::PHONE_NUMBERS:
           return clazz->getStaticFieldValue(fieldPHONE_NUMBERS);
         case ContactFields::EMAIL_ADDRESSES:
           return clazz->getStaticFieldValue(fieldEMAIL_ADDRESSES);
         case ContactFields::IMAGE_DATA:
           return clazz->getStaticFieldValue(fieldIMAGE_DATA);
-        case ContactFields::THUMBNAIL_IMAGE_DATA:
-          return clazz->getStaticFieldValue(fieldTHUMBNAIL_IMAGE_DATA);
-        case ContactFields::GIVEN_NAME_KEY:
-          return clazz->getStaticFieldValue(fieldGIVEN_NAME_KEY);
         default:
           std::string stringValue = std::to_string(static_cast<int>(value));
           throw std::invalid_argument("Invalid enum value (" + stringValue + "!");
