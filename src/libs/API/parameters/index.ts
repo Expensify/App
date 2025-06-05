@@ -1,3 +1,5 @@
+export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTagsParams';
+export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
 export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
@@ -170,6 +172,7 @@ export type {default as SubmitReportParams} from './SubmitReportParams';
 export type {default as DetachReceiptParams} from './DetachReceiptParams';
 export type {default as PayMoneyRequestParams} from './PayMoneyRequestParams';
 export type {default as HoldMoneyRequestParams} from './HoldMoneyRequestParams';
+export type {default as BulkHoldRequestParams} from './BulkHoldRequestParams';
 export type {default as UnHoldMoneyRequestParams} from './UnHoldMoneyRequestParams';
 export type {default as CancelPaymentParams} from './CancelPaymentParams';
 export type {default as AcceptACHContractForBankAccount} from './AcceptACHContractForBankAccount';

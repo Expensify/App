@@ -183,8 +183,12 @@ function IOURequestStepConfirmation({
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
-    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    // TODO: remove beta check after the feature is enabled
+    const {isBetaEnabled} = usePermissions();
+
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -486,7 +490,7 @@ function IOURequestStepConfirmation({
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
 
                 if (isTestDriveReceipt) {
-                    completeTestDriveTask();
+                    completeTestDriveTask(viewTourReport, viewTourReportID);
                 }
 
                 requestMoneyIOUActions({
@@ -543,6 +547,8 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             customUnitRateID,
             backToReport,
+            viewTourReport,
+            viewTourReportID,
         ],
     );
 
@@ -1032,7 +1038,7 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
-            headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.isDraggingOver] : []}
+            headerGapStyles={isDraggingOver ? [isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? styles.dropWrapper : styles.isDraggingOver] : []}
         >
             <DragAndDropProvider
                 setIsDraggingOver={setIsDraggingOver}
@@ -1054,8 +1060,8 @@ function IOURequestStepConfirmation({
                     />
                     {(isLoading || isLoadingReceipt || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFThumbnailView}
-                    {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
-                    {canUseMultiFilesDragAndDrop ? (
+                    {/* TODO: remove beta check after the feature is enabled */}
+                    {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
                         <DropZoneUI
                             onDrop={(e) => {
                                 const file = e?.dataTransfer?.files[0];
