@@ -3,7 +3,10 @@
  */
 type LastPaymentMethodType = {
     /** The default last payment method */
-    lastUsed: string;
+    lastUsed: {
+        /** The name of the last payment method */
+        name: string;
+    };
     /** The lastPaymentMethod of an IOU */
     Iou: string;
     /** The lastPaymentMethod of an Expense */
