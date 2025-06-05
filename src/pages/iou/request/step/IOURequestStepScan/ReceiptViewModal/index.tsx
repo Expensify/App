@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
@@ -58,7 +59,10 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
             return;
         }
 
-        removeTransactionReceipt(currentReceipt.transactionID);
+        InteractionManager.runAfterInteractions(() => {
+            removeTransactionReceipt(currentReceipt.transactionID);
+        });
+
         Navigation.goBack();
     }, [currentReceipt]);
 
