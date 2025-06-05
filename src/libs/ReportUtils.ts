@@ -9089,23 +9089,19 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
-function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string, isThreadReportParentAction: boolean): boolean {
+function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string, isThreadReportParentAction: boolean, isReportArchived = false): boolean {
     const isSplitBillAction = isSplitBillReportAction(reportAction);
     const isDeletedActionLocal = isDeletedAction(reportAction);
     const isReportPreviewActionLocal = isReportPreviewAction(reportAction);
     const isIOUAction = isMoneyRequestAction(reportAction);
     const isWhisperActionLocal = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
-
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const isArchived = isArchivedNonExpenseReport(getReportOrDraftReport(reportID), getReportNameValuePairs(reportID));
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
 
     return (
         isActionDisabled ||
         isSplitBillAction ||
         (isDeletedActionLocal && !reportAction?.childVisibleActionCount) ||
-        (isArchived && !reportAction?.childVisibleActionCount) ||
+        (isReportArchived && !reportAction?.childVisibleActionCount) ||
         (isWhisperActionLocal && !isReportPreviewActionLocal && !isIOUAction) ||
         isThreadReportParentAction
     );
