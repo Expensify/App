@@ -29,17 +29,17 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         return (
             <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureGoToSubtitle')}</Text>{' '}
+                <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.unlockFeatureGoToSubtitle')}</Text>{' '}
                 <TextLink
-                    style={styles.link}
+                    style={[styles.mutedNormalTextLabel, styles.link]}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
                 >
                     {translate('workspace.common.moreFeatures').toLowerCase()}
                 </TextLink>{' '}
                 {variant === 'unlock' ? (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', {featureName})}</Text>
+                    <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', {featureName})}</Text>
                 ) : (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', {featureName})}</Text>
+                    <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', {featureName})}</Text>
                 )}
             </Text>
         );
