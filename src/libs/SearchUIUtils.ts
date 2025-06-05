@@ -414,6 +414,16 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             transactionThreadReportID: transactionItem.transactionThreadReportID,
             isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
             tag: transactionItem.tag,
+            receipt: transactionItem.receipt,
+            taxAmount: transactionItem.taxAmount,
+            description: transactionItem.description,
+            mccGroup: transactionItem.mccGroup,
+            modifiedMCCGroup: transactionItem.modifiedMCCGroup,
+            moneyRequestReportActionID: transactionItem.moneyRequestReportActionID,
+            pendingAction: transactionItem.pendingAction,
+            errors: transactionItem.errors,
+            isActionLoading: transactionItem.isActionLoading,
+            hasViolation: transactionItem.hasViolation,
         };
 
         transactionsSections.push(transactionSection);
@@ -571,7 +581,12 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
-    if (canApproveIOU(report, policy, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
+    if (
+        canApproveIOU(report, policy, allReportTransactions) &&
+        isAllowedToApproveExpenseReport &&
+        !hasOnlyPendingCardOrScanningTransactions &&
+        !hasOnlyHeldExpenses(report.reportID, allReportTransactions)
+    ) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
