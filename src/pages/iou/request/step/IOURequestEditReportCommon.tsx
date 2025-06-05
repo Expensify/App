@@ -60,9 +60,11 @@ function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID,
 
     const expenseReports = useMemo(() => {
         if (!selectedReportID) {
-            return selectedPolicyID ? 
-                getOutstandingReportsForUser(selectedPolicyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs) : 
-                Object.values(allPoliciesID ?? {}).flatMap((policyID) => getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs));
+            return selectedPolicyID
+                ? getOutstandingReportsForUser(selectedPolicyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs)
+                : Object.values(allPoliciesID ?? {}).flatMap((policyID) =>
+                      getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs),
+                  );
         }
         return getOutstandingReportsForUser(selectedReport?.policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs);
     }, [allReports, currentUserPersonalDetails.accountID, selectedReport, reportNameValuePairs, allPoliciesID, selectedReportID, selectedPolicyID]);
