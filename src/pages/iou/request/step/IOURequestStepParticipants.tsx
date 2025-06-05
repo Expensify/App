@@ -12,7 +12,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import {findSelfDMReportID, getOutstandingReportsForUser, isInvoiceRoomWithID} from '@libs/ReportUtils';
+import {findSelfDMReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {getRequestType, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
@@ -53,9 +53,6 @@ function IOURequestStepParticipants({
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
@@ -178,12 +175,10 @@ function IOURequestStepParticipants({
             }
 
             const firstParticipantReportID = val.at(0)?.reportID;
-            const selectedPolicyID = val.at(0)?.policyID;
-            const moneyRequestReportID = getOutstandingReportsForUser(selectedPolicyID, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, allReports ?? {}, reportNameValuePairs).at(0)?.reportID;
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
             transactions.forEach((transaction) => {
-                setMoneyRequestParticipants(transaction.transactionID, val, false, moneyRequestReportID);
+                setMoneyRequestParticipants(transaction.transactionID, val);
             });
 
             if (!isMovingTransactionFromTrackExpense) {
@@ -205,7 +200,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = firstParticipantReportID ?? reportID;
         },
-        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, session?.accountID, allReports, reportNameValuePairs],
+        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense],
     );
 
     const goToNextStep = useCallback(() => {

@@ -41,7 +41,7 @@ import {
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {generateReportID, getDisplayNameForParticipant, getIcons, getOutstandingReportsForUser, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
@@ -290,12 +290,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                             CONST.IOU.TYPE.CREATE,
                             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                             // for all of the routes in the creation flow.
-                            getOutstandingReportsForUser(activePolicyID, currentUserPersonalDetails?.accountID, allReports ?? {})?.at(0)?.reportID ?? generateReportID(),
+                            generateReportID(),
                         );
                     }),
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, activePolicyID, currentUserPersonalDetails?.accountID, allReports]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction

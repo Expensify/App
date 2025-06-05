@@ -21,7 +21,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateTaskInReport, getOutstandingReportsForUser, getPayeeName, isMoneyRequestReport, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
@@ -132,8 +132,6 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
 
     const selectOption = useCallback(
@@ -151,7 +149,6 @@ function AttachmentPickerWithMenuItems({
      * Returns the list of IOU Options
      */
     const moneyRequestOptions = useMemo(() => {
-        const moneyRequestReportID = (isMoneyRequestReport(report) ? report?.reportID : getOutstandingReportsForUser(policy?.id, currentUserPersonalDetails.accountID, allReports, reportNameValuePairs)?.at(0)?.reportID) ?? report?.reportID;
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Transfer,
@@ -163,7 +160,7 @@ function AttachmentPickerWithMenuItems({
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                 text: translate('iou.createExpense'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, String(CONST.DEFAULT_NUMBER_ID)), true),
             },
             [CONST.IOU.TYPE.PAY]: {
                 icon: getIconForAction(CONST.IOU.TYPE.SEND),
@@ -198,7 +195,7 @@ function AttachmentPickerWithMenuItems({
         }));
 
         return moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted, currentUserPersonalDetails.accountID, allReports, reportNameValuePairs]);
+    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) || !isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {

@@ -41,7 +41,7 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 function IOURequestStartPage({
     route,
     route: {
-        params: {action, iouType, reportID},
+        params: {iouType, reportID},
     },
     navigation,
 }: IOURequestStartPageProps) {
@@ -78,7 +78,7 @@ function IOURequestStartPage({
         () => ((transaction?.iouRequestType ?? shouldUseTab) ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL),
         [transaction?.iouRequestType, shouldUseTab, selectedTab],
     );
-    const isFromGlobalCreate = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.CREATE;
+    const isFromGlobalCreate = isEmptyObject(report?.reportID);
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
     useEffect(() => {
