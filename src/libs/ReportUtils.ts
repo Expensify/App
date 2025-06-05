@@ -8516,7 +8516,7 @@ function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boo
         }
 
         const isReceiverPolicyAdmin =
-        // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line deprecation/deprecation
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? getPolicy(report?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN : false;
 
         if (isReceiverPolicyAdmin) {

@@ -23,8 +23,8 @@ function SystemChatReportFooterMessage() {
 
     const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
-            // eslint-disable-next-line deprecation/deprecation
-            ? PolicyUtils.getPolicy(activePolicyID)
+            ? // eslint-disable-next-line deprecation/deprecation
+              PolicyUtils.getPolicy(activePolicyID)
             : Object.values(policies ?? {}).find(
                   (policy) => PolicyUtils.shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins,
               );
