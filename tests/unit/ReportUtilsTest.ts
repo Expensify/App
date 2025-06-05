@@ -1269,7 +1269,7 @@ describe('ReportUtils', () => {
         });
 
         describe('deleted threads', () => {
-            it('should be enabled if the report action is not-deleted and visible action count is 1', () => {
+            it('should be enabled if the report action is not-deleted and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
                 const reportAction = {
                     message: [
@@ -1284,13 +1284,13 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const result = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
 
                 // Then the thread should be enabled
-                expect(result).toBeFalsy();
+                expect(isThreadDisabled).toBeFalsy();
             });
 
-            it('should be enabled if the report action is not-deleted and visible action count is 0', () => {
+            it('should be enabled if the report action is not-deleted and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action count
                 const reportAction = {
                     message: [
@@ -1305,12 +1305,12 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const result = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
 
                 // Then the thread should be enabled
-                expect(result).toBeFalsy();
+                expect(isThreadDisabled).toBeFalsy();
             });
-            it('should be enabled if the report action is deleted and visible action count is 1', () => {
+            it('should be enabled if the report action is deleted and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
                 const reportAction = {
                     message: [
@@ -1325,13 +1325,13 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const result = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
 
                 // Then the thread should be enabled
-                expect(result).toBeFalsy();
+                expect(isThreadDisabled).toBeFalsy();
             });
 
-            it('should be disabled if the report action is deleted and visible action count is 0', () => {
+            it('should be disabled if the report action is deleted and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action count
                 const reportAction = {
                     message: [
@@ -1346,10 +1346,105 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const result = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
 
                 // Then the thread should be disabled
-                expect(result).toBeTruthy();
+                expect(isThreadDisabled).toBeTruthy();
+            });
+        });
+
+        describe('archived report threads', () => {
+            it('should be enabled if the report is not-archived and child visible action count is 1', () => {
+                // Given a normal report action with one child visible action count
+                const reportAction = {
+                    message: [
+                        {
+                            translationKey: '',
+                            type: 'COMMENT',
+                            html: 'test',
+                            text: 'test',
+                        },
+                    ],
+                    childVisibleActionCount: 1,
+                } as ReportAction;
+
+                // And a report that is not archived
+                const isReportArchived = false;
+
+                // When it's checked to see if the thread should be disabled
+                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+
+                // Then the thread should be enabled
+                expect(isThreadDisabled).toBeFalsy();
+            });
+            it('should be enabled if the report is not-archived and child visible action count is 0', () => {
+                // Given a normal report action with zero child visible action counts
+                const reportAction = {
+                    message: [
+                        {
+                            translationKey: '',
+                            type: 'COMMENT',
+                            html: 'test',
+                            text: 'test',
+                        },
+                    ],
+                    childVisibleActionCount: 1,
+                } as ReportAction;
+
+                // And a report that is not archived
+                const isReportArchived = false;
+
+                // When it's checked to see if the thread should be disabled
+                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+
+                // Then the thread should be enabled
+                expect(isThreadDisabled).toBeFalsy();
+            });
+            it('should be enabled if the report is archived and child visible action count is 1', () => {
+                // Given a normal report action with one child visible action count
+                const reportAction = {
+                    message: [
+                        {
+                            translationKey: '',
+                            type: 'COMMENT',
+                            html: 'test',
+                            text: 'test',
+                        },
+                    ],
+                    childVisibleActionCount: 1,
+                } as ReportAction;
+
+                // And a report that is not archived
+                const isReportArchived = true;
+
+                // When it's checked to see if the thread should be disabled
+                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+
+                // Then the thread should be enabled
+                expect(isThreadDisabled).toBeFalsy();
+            });
+            it('should be disabled if the report is archived and child visible action count is 0', () => {
+                // Given a normal report action with zero child visible action counts
+                const reportAction = {
+                    message: [
+                        {
+                            translationKey: '',
+                            type: 'COMMENT',
+                            html: 'test',
+                            text: 'test',
+                        },
+                    ],
+                    childVisibleActionCount: 0,
+                } as ReportAction;
+
+                // And a report that is not archived
+                const isReportArchived = true;
+
+                // When it's checked to see if the thread should be disabled
+                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+
+                // Then the thread should be disabled
+                expect(isThreadDisabled).toBeTruthy();
             });
         });
     });
