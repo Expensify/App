@@ -51,6 +51,13 @@ export default function () {
             [ONYXKEYS.TALK_TO_AI_SALES]: {isLoading: false, isTalkingToAISales: false},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
+        mergeAllPropsSnapshotKeys: [
+            ONYXKEYS.COLLECTION.TRANSACTION,
+            ONYXKEYS.COLLECTION.REPORT,
+            ONYXKEYS.COLLECTION.POLICY,
+            ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            ONYXKEYS.PERSONAL_DETAILS_LIST,
+        ],
     });
 
     initOnyxDerivedValues();
