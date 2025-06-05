@@ -17,7 +17,7 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import useDebounce from '@hooks/useDebounce';
+
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
@@ -152,7 +152,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
 
-    const debouncedReadNewestAction = useDebounce(readNewestAction, CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME);
+
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
@@ -772,8 +772,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        debouncedReadNewestAction(report?.reportID);
-    }, [debouncedReadNewestAction, report]);
+        readNewestAction(report?.reportID);
+    }, [report]);
 
     const lastRoute = usePrevious(route);
 

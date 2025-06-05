@@ -11,7 +11,7 @@ import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInve
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebounce from '@hooks/useDebounce';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import usePrevious from '@hooks/usePrevious';
@@ -165,8 +165,6 @@ function ReportActionsList({
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
-
-    const debouncedReadNewestAction = useDebounce(readNewestAction, CONST.TIMING.READ_NEWEST_ACTION_DEBOUNCE_TIME);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
@@ -372,7 +370,7 @@ function ReportActionsList({
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
             if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
-                debouncedReadNewestAction(report.reportID);
+                readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
@@ -489,8 +487,8 @@ function ReportActionsList({
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
-        debouncedReadNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, debouncedReadNewestAction]);
+        readNewestAction(report.reportID);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
@@ -565,7 +563,7 @@ function ReportActionsList({
             return;
         }
 
-        debouncedReadNewestAction(report.reportID);
+        readNewestAction(report.reportID);
         userActiveSince.current = DateUtils.getDBTime();
 
         // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
@@ -573,7 +571,7 @@ function ReportActionsList({
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isFocused, isVisible, debouncedReadNewestAction]);
+    }, [isFocused, isVisible]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {

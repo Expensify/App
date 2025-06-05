@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
+import type {OpenReportParams, ReadNewestActionParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -193,6 +193,43 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxReque
     } as ConflictActionData;
 }
 
+function resolveReadNewestActionConflicts(persistedRequests: OnyxRequest[], parameters: ReadNewestActionParams): ConflictActionData {
+    const reportID = parameters.reportID;
+    const newLastReadTime = parameters.lastReadTime;
+
+    const existingRequestIndex = persistedRequests.findIndex(
+        (request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === reportID
+    );
+
+    if (existingRequestIndex === -1) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
+
+    const existingRequest = persistedRequests.at(existingRequestIndex);
+    const existingLastReadTime = existingRequest?.data?.lastReadTime;
+
+    // Keep the request with the latest lastReadTime
+    if (!existingLastReadTime || newLastReadTime > existingLastReadTime) {
+        return {
+            conflictAction: {
+                type: 'replace',
+                index: existingRequestIndex,
+            },
+        };
+    }
+
+    // Existing request has newer or equal lastReadTime, ignore the new request
+    return {
+        conflictAction: {
+            type: 'noAction',
+        },
+    };
+}
+
 function resolveEnableFeatureConflicts(
     command: EnablePolicyFeatureCommand,
     persistedRequests: OnyxRequest[],
@@ -224,6 +261,7 @@ export {
     resolveOpenReportDuplicationConflictAction,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
+    resolveReadNewestActionConflicts,
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,

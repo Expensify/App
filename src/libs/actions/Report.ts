@@ -199,6 +199,7 @@ import {
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveOpenReportDuplicationConflictAction,
+    resolveReadNewestActionConflicts,
 } from './RequestConflictUtils';
 import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
@@ -1597,7 +1598,9 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         lastReadTime,
     };
 
-    API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData}, {
+        checkAndFixConflictingRequest: (persistedRequests) => resolveReadNewestActionConflicts(persistedRequests, parameters),
+    });
 
     if (shouldResetUnreadMarker) {
         DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
