@@ -165,6 +165,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     const content: EmptySearchViewItem = useMemo(() => {
         // Begin by going through all of our To-do searches, and returning their empty state
@@ -190,7 +192,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         const startTestDrive = () => {
             InteractionManager.runAfterInteractions(() => {
                 if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
-                    completeTestDriveTask();
+                    completeTestDriveTask(viewTourReport, viewTourReportID);
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                 } else {
                     Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
@@ -368,6 +370,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         tripViewChildren,
         hasResults,
         shouldRedirectToExpensifyClassic,
+        viewTourReport,
+        viewTourReportID,
     ]);
 
     return (
