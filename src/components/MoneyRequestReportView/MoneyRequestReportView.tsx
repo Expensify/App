@@ -101,18 +101,18 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
-    const reportTransactions = transactionsByReportID[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? [];
-    const prevTransactions = usePrevious(reportTransactions);
+    const transactions = transactionsByReportID[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? [];
+    const prevTransactions = usePrevious(transactions);
 
     const newTransactions = useMemo(() => {
-        if (!prevTransactions || !reportTransactions || reportTransactions.length <= prevTransactions.length) {
+        if (!prevTransactions || !transactions || transactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
-        return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
-        // Depending only on reportTransactions is enough because prevTransactions is a helper object.
+        return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+        // Depending only on transactions is enough because prevTransactions is a helper object.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportTransactions]);
+    }, [transactions]);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -133,16 +133,16 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isTransactionThreadView = isReportTransactionThread(report);
 
     // Prevent flash by ensuring transaction data is fully loaded before deciding which view to render
-    // We need to wait for both the selector to finish AND ensure we're not in a loading state where reportTransactions could still populate
-    const isTransactionDataReady = reportTransactions !== undefined;
+    // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
+    const isTransactionDataReady = transactions !== undefined;
     const isStillLoadingData = !!isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
     const shouldWaitForData =
-        (!isTransactionDataReady || (isStillLoadingData && reportTransactions?.length === 0)) &&
+        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
         !isTransactionThreadView &&
         report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-    const isEmptyTransactionReport = reportTransactions && reportTransactions.length === 0 && transactionThreadReportID === undefined;
-    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, reportTransactions ?? []);
+    const isEmptyTransactionReport = transactions && transactions.length === 0 && transactionThreadReportID === undefined;
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, transactions ?? []);
 
     const reportHeaderView = useMemo(
         () =>

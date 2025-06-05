@@ -141,7 +141,7 @@ type ReportPreviewProps = {
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
 
-    /** The transactions for the report */
+    /** All transactions grouped by reportID */
     transactionsByReportID: ReportTransactionsDerivedValue;
 };
 

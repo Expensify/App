@@ -124,8 +124,8 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const reportTransactions = transactionsByReportID?.[report.reportID] ?? [];
-    const reportTransactionIDs = useMemo(() => reportTransactions.map((transaction) => transaction.transactionID), [reportTransactions]);
+    const transactions = useMemo(() => transactionsByReportID?.[report.reportID] ?? [], [transactionsByReportID, report.reportID]);
+    const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -157,7 +157,7 @@ function MoneyRequestReportActionsList({
         handleDeleteTransactions,
         isDeleteModalVisible,
         hideDeleteModal,
-    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: reportTransactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -554,22 +554,22 @@ function MoneyRequestReportActionsList({
                                 if (selectedTransactionIDs.length !== 0) {
                                     clearSelectedTransactions(true);
                                 } else {
-                                    setSelectedTransactions(reportTransactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
+                                    setSelectedTransactions(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
                                 }
                             }}
                         />
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
-                                if (selectedTransactionIDs.length === reportTransactions.length) {
+                                if (selectedTransactionIDs.length === transactions.length) {
                                     clearSelectedTransactions(true);
                                 } else {
-                                    setSelectedTransactions(reportTransactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
+                                    setSelectedTransactions(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedTransactionIDs.length === reportTransactions.length}}
+                            accessibilityState={{checked: selectedTransactionIDs.length === transactions.length}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
@@ -593,7 +593,7 @@ function MoneyRequestReportActionsList({
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-                {isEmpty(visibleReportActions) && isEmpty(reportTransactions) && !isLoadingInitialReportActions ? (
+                {isEmpty(visibleReportActions) && isEmpty(transactions) && !isLoadingInitialReportActions ? (
                     <>
                         <MoneyRequestViewReportFields
                             report={report}
@@ -622,7 +622,7 @@ function MoneyRequestReportActionsList({
                                 />
                                 <MoneyRequestReportTransactionList
                                     report={report}
-                                    transactions={reportTransactions}
+                                    transactions={transactions}
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}

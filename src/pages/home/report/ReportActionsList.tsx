@@ -173,8 +173,6 @@ function ReportActionsList({
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
 
-    const reportTransactions = transactionsByReportID[report.reportID];
-
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
     useEffect(() => {
@@ -610,6 +608,7 @@ function ReportActionsList({
             parentReportActionForTransactionThread,
             report,
             transactionThreadReport,
+            transactionsByReportID,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
@@ -617,7 +616,6 @@ function ReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             shouldUseThreadDividerLine,
-            reportTransactions,
         ],
     );
 
