@@ -236,7 +236,7 @@ describe('getPrimaryAction', () => {
                 },
             ],
             originalMessage: {
-                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 IOUTransactionID: TRANSACTION_ID,
             },
         } as unknown as ReportAction;

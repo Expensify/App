@@ -1239,7 +1239,9 @@ function getOneTransactionThreadReportID(
 
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
-        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true)) {
+        // If the original message is a 'pay' IOU, it shouldn't be added to the transaction count.
+        // However, it is excluded from the matching function in order to display it properly, so we need to compare the type here.
+        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true) || getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             // eslint-disable-next-line no-continue
             continue;
         }
