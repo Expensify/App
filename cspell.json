@@ -688,6 +688,8 @@
         "ios/AirshipConfig.plist",
         "Mobile-Expensify",
         "modules/ExpensifyNitroUtils/nitrogen/**",
+        "modules/ExpensifyNitroUtils/android/build.gradle",
+        "modules/ExpensifyNitroUtils/android/src/main/cpp/**",
         "src/TIMEZONES.ts",
         "tests/unit/EmojiTest.ts",
         "tests/unit/FastSearchTest.ts",

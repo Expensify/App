@@ -31,6 +31,7 @@ import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import getContacts from '@libs/ContactUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, SearchOption, Section} from '@libs/OptionsListUtils';
@@ -45,7 +46,6 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
@@ -59,7 +59,6 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import goToSettings from '@libs/goToSettings';
 import ImportContactButton from './ImportContactButton';
 
 type MoneyRequestParticipantsSelectorProps = {
@@ -581,7 +580,7 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <>
-            {canUseNativeContactImport && (
+            {!!canUseNativeContactImport && (
                 <ContactPermissionModal
                     onGrant={initiateContactImportAndSetState}
                     onDeny={setContactPermissionState}
