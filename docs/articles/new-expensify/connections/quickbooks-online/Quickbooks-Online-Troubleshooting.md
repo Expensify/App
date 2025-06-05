@@ -10,7 +10,7 @@ Occasionally, you might run into errors when exporting reports or syncing QuickB
 If an error occurs during an automatic export to QuickBooks Online:
  
 - You’ll receive an email detailing the error. 
-- The error will appear in the related Workspace Chat, indicated by a red dot next to the report. 
+- The error will appear in the related Expense Chat, indicated by a red dot next to the report. 
 - For auto-sync errors, a message will be posted in the related #admins room. The message contains a link to the workspace’s accounting settings where an explanation for the error appears next to the connection.
 
 An error on a report will prevent it from automatically exporting. 

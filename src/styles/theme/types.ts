@@ -28,6 +28,8 @@ type ThemeColors = {
     textSupporting: Color;
     text: Color;
     textColorfulBackground: Color;
+    textReceiptDropZone: Color;
+    textAttachmentDropZone: Color;
     syntax: Color;
     link: Color;
     linkHover: Color;
@@ -73,7 +75,12 @@ type ThemeColors = {
     heroCard: Color;
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
+    dropWrapperBG: Color;
     fileDropUIBG: Color;
+    attachmentDropUIBG: Color;
+    attachmentDropBorderColor: Color;
+    receiptDropUIBG: Color;
+    receiptDropBorderColor: Color;
     checkBox: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
@@ -100,6 +107,7 @@ type ThemeColors = {
     transparentWhite: Color;
     emptyFolderBG: Color;
     travelBG: Color;
+    todoBG: Color;
     trialTimer: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;

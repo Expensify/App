@@ -17,14 +17,14 @@ Follow the steps below to resolve your dispute quickly.
 
 # How to Dispute a Transaction
 
-If you find an incorrect charge on your Expensify Card:
+If you find an incorrect charge on your Expensify Card, follow the steps below. If you are a Domain Admin, follow the steps [here](https://help.expensify.com/articles/expensify-classic/expensify-card/Deactivate-or-cancel-an-Expensify-Card#for-domain-admins) before contacting Concierge Support.
 
 1. If the charge is **fraudulent**, cancel your card right away (**Settings > Account > Wallet > Request a New Card**).
 2. Contact **Concierge Support**
 3. Provide details about the transaction, including:
-   - Date and amount
-   - Merchant name
-   - Reason for the dispute
+    - Date and amount
+    - Merchant name
+    - Reason for the dispute
 4. We’ll investigate the issue and file a dispute with our card processor on your behalf.
 
 ---

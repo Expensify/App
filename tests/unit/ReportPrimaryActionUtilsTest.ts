@@ -33,6 +33,19 @@ describe('getPrimaryAction', () => {
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
+    it('should return ADD_EXPENSE for expense report with no transactions', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        expect(getReportPrimaryAction(report, [], {}, {} as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE);
+    });
+
     it('should return SUBMIT for expense report with manual submit', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -41,12 +54,15 @@ describe('getPrimaryAction', () => {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = {
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         };
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [{} as Transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
 
     it('should return Approve for report being processed', async () => {
@@ -73,6 +89,33 @@ describe('getPrimaryAction', () => {
         expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
     });
 
+    it('should return empty for report being processed but transactions are scanning', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            comment: {
+                hold: 'Hold',
+            },
+            receipt: {
+                state: CONST.IOU.RECEIPT_STATE.SCANNING,
+            },
+        } as unknown as Transaction;
+
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe('');
+    });
+
     it('should return PAY for submitted invoice report', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -85,8 +128,11 @@ describe('getPrimaryAction', () => {
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
         };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return PAY for expense report with payments enabled', async () => {
@@ -101,8 +147,11 @@ describe('getPrimaryAction', () => {
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
         };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
@@ -124,8 +173,11 @@ describe('getPrimaryAction', () => {
                 },
             },
         };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
     it('should not return EXPORT TO ACCOUNTING for reports marked manually as exported', async () => {
@@ -382,5 +434,32 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as TransactionViolation;
 
         expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
+    });
+
+    it('Should return empty string when we are waiting for user to add a bank account', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            isWaitingOnBankAccount: true,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            connections: {
+                intacct: {
+                    config: {
+                        export: {
+                            exporter: CURRENT_USER_EMAIL,
+                        },
+                    },
+                },
+            },
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe('');
     });
 });

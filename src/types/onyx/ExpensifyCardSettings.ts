@@ -37,6 +37,12 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Name of the domain card was issued for */
     domainName?: string;
+
+    /** Name of the bank account used for the card settlement */
+    paymentBankAccountAddressName?: string;
+
+    /** Number of the bank account used for the card settlement */
+    paymentBankAccountNumber?: string;
 }>;
 
 export default ExpensifyCardSettings;

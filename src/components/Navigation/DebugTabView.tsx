@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
-import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +29,6 @@ import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 type DebugTabViewProps = {
     selectedTab?: ValueOf<typeof NAVIGATION_TABS>;
     chatTabBrickRoad: BrickRoad;
-    activeWorkspaceID?: string;
 };
 
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
@@ -99,15 +98,14 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     }
 }
 
-function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugTabViewProps) {
+function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
-    const {orderedReportIDs} = useSidebarOrderedReportIDs();
-    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
+    const {orderedReports} = useSidebarOrderedReports();
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -118,7 +116,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 return 'debug.indicatorStatus.theresAReportWithErrors';
             }
         }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS) {
+        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
             return getSettingsMessage(status);
         }
     }, [selectedTab, chatTabBrickRoad, status]);
@@ -132,7 +130,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 return theme.danger;
             }
         }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS) {
+        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
             if (status) {
                 return indicatorColor;
             }
@@ -141,7 +139,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
 
     const navigateTo = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME && !!chatTabBrickRoad) {
-            const report = getChatTabBrickRoadReport(activeWorkspaceID, reports);
+            const report = getChatTabBrickRoadReport(orderedReports);
 
             if (report) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
@@ -154,9 +152,9 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, reports, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, orderedReports, status, reimbursementAccount, policyIDWithErrors]);
 
-    if (!([NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS] as string[]).includes(selectedTab ?? '') || !indicator) {
+    if (!([NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
     }
 

@@ -1,4 +1,4 @@
-import type {IOSEncryptPayload} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
+import type {AndroidCardData, IOSEncryptPayload} from '@expensify/react-native-wallet';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -8,7 +8,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import Log from '@libs/Log';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
+import type {ProvisioningCardData, WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import pkg from '../../../package.json';
 
 type WalletQuestionAnswer = {
@@ -267,9 +267,48 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
                 ephemeralPublicKey: data.ephemeralPublicKey,
             } as IOSEncryptPayload;
         })
-        .catch((e) => {
-            Log.warn(`issuerEncryptPayloadCallback error: ${e}`);
+        .catch((error) => {
+            Log.warn(`issuerEncryptPayloadCallback error: ${error}`);
             return {} as IOSEncryptPayload;
+        });
+}
+
+/**
+ * Add card to digital wallet
+ *
+ * @param walletAccountID ID of the wallet on user's phone
+ * @param deviceID ID of user's phone
+ */
+function createDigitalGoogleWallet({walletAccountID, deviceID, cardHolderName}: {deviceID: string; walletAccountID: string; cardHolderName: string}): Promise<AndroidCardData> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
+        platform: 'android',
+        appVersion: pkg.version,
+        walletAccountID,
+        deviceID,
+    })
+        .then((response) => {
+            const data = response as unknown as ProvisioningCardData;
+            return {
+                network: data.network,
+                opaquePaymentCard: data.opaquePaymentCard,
+                cardHolderName,
+                lastDigits: data.lastDigits,
+                userAddress: {
+                    name: data.userAddress.name,
+                    addressOne: data.userAddress.address1,
+                    addressTwo: data.userAddress.address2,
+                    administrativeArea: data.userAddress.state,
+                    locality: data.userAddress.city,
+                    countryCode: data.userAddress.country,
+                    postalCode: data.userAddress.postal_code,
+                    phoneNumber: data.userAddress.phone,
+                },
+            } as AndroidCardData;
+        })
+        .catch((error) => {
+            Log.warn(`createDigitalGoogleWallet error: ${error}`);
+            return {} as AndroidCardData;
         });
 }
 
@@ -286,4 +325,5 @@ export {
     setKYCWallSource,
     resetWalletAdditionalDetailsDraft,
     issuerEncryptPayloadCallback,
+    createDigitalGoogleWallet,
 };

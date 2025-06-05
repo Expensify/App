@@ -45,6 +45,7 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
 import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
+import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import Log from './Log';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
@@ -91,28 +92,16 @@ Onyx.connect({
 
 let isOffline: boolean | undefined;
 
-let preferredLocaleFromOnyx: Locale;
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        preferredLocaleFromOnyx = value;
-    },
-});
-
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
         if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(preferredLocaleFromOnyx));
+            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
         }
 
         const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
         if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(preferredLocaleFromOnyx));
+            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
         }
         isOffline = newIsOffline;
     },
@@ -358,7 +347,7 @@ function getCurrentTimezone(): Required<Timezone> {
 }
 
 /**
- * @returns [January, Fabruary, March, April, May, June, July, August, ...]
+ * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(preferredLocale: Locale): string[] {
     if (preferredLocale) {
@@ -374,7 +363,7 @@ function getMonthNames(preferredLocale: Locale): string[] {
 }
 
 /**
- * @returns [Monday, Thuesday, Wednesday, ...]
+ * @returns [Monday, Tuesday, Wednesday, ...]
  */
 function getDaysOfWeek(preferredLocale: Locale): string[] {
     if (preferredLocale) {
@@ -883,6 +872,19 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 }
 
 /**
+ * Returns a formatted cancellation date.
+ * Dates are formatted as follows:
+ * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
+ * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
+ */
+function getFormattedCancellationDate(date: Date): string {
+    if (isThisYear(date)) {
+        return format(date, 'EEEE, MMM d h:mm a');
+    }
+    return format(date, 'EEEE, MMM d, yyyy h:mm a');
+}
+
+/**
  * Returns a formatted layover duration in format "2h 30m".
  */
 function getFormattedDurationBetweenDates(translateParam: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
@@ -951,11 +953,30 @@ const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean =
     return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
 };
 
+/**
+ * Converts a date to a string in the format MMMM d, yyyy
+ */
+const formatToReadableString = (date: string): string => {
+    const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+    return format(parsedDate, 'MMMM d, yyyy');
+};
+
+const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, formatStr, options?) => {
+    try {
+        return formatInTimeZone(date, timeZone, formatStr, options);
+        // On macOs and iOS devices some platform use deprecated old timezone values which results in invalid time string error.
+        // Try with backward timezone values on error.
+    } catch {
+        return formatInTimeZone(date, timezoneBackwardMap[timeZone], formatStr, options);
+    }
+};
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
+    formatToReadableString,
     getZoneAbbreviation,
     datetimeToRelative,
     datetimeToCalendarTime,
@@ -998,6 +1019,7 @@ const DateUtils = {
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
     getFormattedTransportDateAndHour,
+    getFormattedCancellationDate,
     doesDateBelongToAPastYear,
     isCardExpired,
     getDifferenceInDaysFromNow,
@@ -1007,6 +1029,7 @@ const DateUtils = {
     isFutureDay,
     getFormattedDateRangeForPerDiem,
     isCurrentTimeWithinRange,
+    formatInTimeZoneWithFallback,
 };
 
 export default DateUtils;

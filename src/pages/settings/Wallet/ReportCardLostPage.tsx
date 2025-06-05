@@ -14,7 +14,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setErrors} from '@libs/actions/FormActions';
-import {requestValidateCodeAction} from '@libs/actions/User';
+import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -62,7 +62,6 @@ function ReportCardLostPage({
 
     const {translate} = useLocalize();
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, {canBeMissing: true});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
@@ -91,8 +90,12 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
     }, [formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID]);
+
+    useEffect(() => {
+        resetValidateActionCodeSent();
+    }, []);
 
     useEffect(() => {
         if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {
@@ -133,14 +136,6 @@ function ReportCardLostPage({
             return;
         }
         setIsValidateCodeActionModalVisible(true);
-    };
-
-    const sendValidateCode = () => {
-        if (loginList?.[primaryLogin]?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
     };
 
     const handleOptionSelect = (option: Option) => {
@@ -197,7 +192,7 @@ function ReportCardLostPage({
                         </View>
                         <ValidateCodeActionModal
                             handleSubmitForm={handleValidateCodeEntered}
-                            sendValidateCode={sendValidateCode}
+                            sendValidateCode={requestValidateCodeAction}
                             validateCodeActionErrorField="replaceLostCard"
                             validateError={validateError}
                             clearError={() => clearCardListErrors(physicalCard.cardID)}

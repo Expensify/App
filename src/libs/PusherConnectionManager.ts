@@ -44,7 +44,7 @@ function init() {
                         // It's not clear why some errors are wrapped in a WebSocketError type - this error could mean different things depending on the contents.
                         Log.hmmm('[PusherConnectionManager] WebSocketError', {error});
                     } else {
-                        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PusherConnectionManager] Unknown error event`, {error});
+                        Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} [PusherConnectionManager] Unknown error event`, {error});
                     }
                 }
                 break;

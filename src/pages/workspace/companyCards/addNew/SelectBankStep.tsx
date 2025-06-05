@@ -11,9 +11,10 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getBankCardDetailsImage, getCorrectStepForSelectedBank} from '@libs/CardUtils';
+import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank, getCorrectStepForSelectedBank} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -28,8 +29,9 @@ function SelectBankStep() {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
+    const {isBetaEnabled} = usePermissions();
 
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
@@ -38,11 +40,11 @@ function SelectBankStep() {
         if (!bankSelected) {
             setHasError(true);
         } else {
-            if (addNewCard?.data.selectedBank !== bankSelected) {
+            if (addNewCard?.data.selectedBank !== bankSelected && !isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
-                step: getCorrectStepForSelectedBank(bankSelected),
+                step: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? getCorrectStepForPlaidSelectedBank(bankSelected) : getCorrectStepForSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
                     cardTitle: !isOtherBankSelected ? bankSelected : undefined,
@@ -62,7 +64,11 @@ function SelectBankStep() {
             Navigation.navigate(route.params.backTo);
             return;
         }
-        Navigation.goBack();
+        if (isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
+        } else {
+            Navigation.goBack();
+        }
     };
 
     const data = Object.values(CONST.COMPANY_CARDS.BANKS).map((bank) => ({

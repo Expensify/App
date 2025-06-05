@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,16 +16,19 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDescriptionForPolicyDomainCard, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -72,6 +76,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const isBankAccountVerified = !cardOnWaitlist;
+    const {windowHeight} = useWindowDimensions();
+    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
@@ -93,6 +99,18 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     };
 
+    const secondaryActions = useMemo(
+        () => [
+            {
+                icon: Gear,
+                text: translate('common.settings'),
+                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID)),
+                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            },
+        ],
+        [policyID, translate],
+    );
+
     const getHeaderButtons = () => (
         <View style={[styles.flexRow, styles.gap2, shouldChangeLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
             <Button
@@ -102,11 +120,14 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 text={translate('workspace.expensifyCard.issueCard')}
                 style={shouldChangeLayout && styles.flex1}
             />
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
-                icon={Gear}
-                text={translate('common.settings')}
-                style={shouldChangeLayout && styles.flex1}
+            <ButtonWithDropdownMenu
+                success={false}
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.more')}
+                options={secondaryActions}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow0}
             />
         </View>
     );
@@ -143,9 +164,35 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
-    const renderListHeader = useCallback(() => <WorkspaceCardListHeader cardSettings={cardSettings} />, [cardSettings]);
+    const renderListHeader = (
+        <>
+            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
+                <WorkspaceCardListLabels
+                    policyID={policyID}
+                    cardSettings={cardSettings}
+                />
+                {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.expensifyCard.findCard')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={isSearchEmpty}
+                        style={[styles.mb0, styles.mt5]}
+                    />
+                )}
+            </View>
+            {!isSearchEmpty && <WorkspaceCardListHeader cardSettings={cardSettings} />}
+        </>
+    );
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
+
+    const handleBackButtonPress = () => {
+        Navigation.popToSidebar();
+        return true;
+    };
+
+    useHandleBackButton(handleBackButtonPress);
 
     return (
         <ScreenWrapper
@@ -160,7 +207,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldUseHeadlineHeader
                 title={translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
+                onBackButtonPress={handleBackButtonPress}
             >
                 {!shouldShowSelector && !shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
             </HeaderWithBackButton>
@@ -180,30 +227,18 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
                 <ScrollView
+                    addBottomSafeAreaPadding
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
                 >
-                    <View style={styles.appBG}>
-                        <WorkspaceCardListLabels
-                            policyID={policyID}
-                            cardSettings={cardSettings}
+                    <View style={{height: windowHeight - headerHeight}}>
+                        <FlatList
+                            data={filteredSortedCards}
+                            renderItem={renderItem}
+                            ListHeaderComponent={renderListHeader}
+                            contentContainerStyle={bottomSafeAreaPaddingStyle}
                         />
-                        {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
-                            <SearchBar
-                                label={translate('workspace.expensifyCard.findCard')}
-                                inputValue={inputValue}
-                                onChangeText={setInputValue}
-                                shouldShowEmptyState={isSearchEmpty}
-                                style={[styles.mb0, styles.mt5]}
-                            />
-                        )}
                     </View>
-                    <FlatList
-                        data={filteredSortedCards}
-                        renderItem={renderItem}
-                        ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
-                        contentContainerStyle={bottomSafeAreaPaddingStyle}
-                    />
+                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
                 </ScrollView>
             )}
             <DelegateNoAccessModal

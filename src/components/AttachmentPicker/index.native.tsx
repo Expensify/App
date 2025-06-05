@@ -457,7 +457,7 @@ function AttachmentPicker({
                 isVisible={isVisible}
                 anchorRef={popoverRef}
                 // eslint-disable-next-line react-compiler/react-compiler
-                onModalHide={onModalHide.current}
+                onModalHide={() => onModalHide.current?.()}
             >
                 <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
                     {menuItemData.map((item, menuIndex) => (
