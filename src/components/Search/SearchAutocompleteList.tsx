@@ -353,7 +353,8 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                const filteredChats = searchOptions.recentReports
+                const orderedReportOptions = orderReportOptions(searchOptions.recentReports);
+                const filteredChats = orderedReportOptions
                     .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase()))
                     .slice(0, 10);
 

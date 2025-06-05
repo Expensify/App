@@ -22,7 +22,10 @@ const emptyResult = {
 };
 
 // You can either use this to search within report and personal details options
-function useFastSearchFromOptions(options: ReportAndPersonalDetailOptions, config?: {includeUserToInvite: false}): {search: (searchInput: string) => OptionsListType; isInitialized: boolean};
+function useFastSearchFromOptions(
+    options: ReportAndPersonalDetailOptions,
+    config?: {includeUserToInvite: false},
+): {search: (searchInput: string) => ReportAndPersonalDetailOptions; isInitialized: boolean};
 // Or you can use this to include the user invite option. This will require passing all options
 function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): {search: (searchInput: string) => OptionsListType; isInitialized: boolean};
 

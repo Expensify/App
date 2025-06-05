@@ -1831,9 +1831,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
-    return {
-        ...optionList,
-    };
+    return optionList;
 }
 
 function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
