@@ -687,6 +687,7 @@
         "ios/GoogleService-Info-DEV.plist",
         "ios/AirshipConfig.plist",
         "Mobile-Expensify",
+        "modules/ExpensifyNitroUtils/nitrogen/**",
         "src/TIMEZONES.ts",
         "tests/unit/EmojiTest.ts",
         "tests/unit/FastSearchTest.ts",
