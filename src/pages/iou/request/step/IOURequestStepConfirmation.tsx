@@ -187,6 +187,10 @@ function IOURequestStepConfirmation({
     // TODO: remove beta check after the feature is enabled
     const {isBetaEnabled} = usePermissions();
 
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
+
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
@@ -480,7 +484,7 @@ function IOURequestStepConfirmation({
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
 
                 if (isTestDriveReceipt) {
-                    completeTestDriveTask();
+                    completeTestDriveTask(viewTourReport, viewTourReportID);
                 }
 
                 requestMoneyIOUActions({
@@ -536,6 +540,8 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             customUnitRateID,
             backToReport,
+            viewTourReport,
+            viewTourReportID,
         ],
     );
 
