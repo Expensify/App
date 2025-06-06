@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useWindowDimensions} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import RenderHtml from 'react-native-render-html';
+import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -42,6 +42,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {width} = useWindowDimensions();
+    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
@@ -123,6 +124,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
     const title = isSubscriptionPage ? (
         <RenderHtml
             contentWidth={width}
+            systemFonts={systemFonts}
             source={{
                 html: translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.full', {
                     discountType: discountInfo?.discountType,
@@ -133,6 +135,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
             <RenderHtml
                 contentWidth={width}
+                systemFonts={systemFonts}
                 source={{
                     html: translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.full', {
                         discountType: discountInfo?.discountType,
