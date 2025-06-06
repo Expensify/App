@@ -479,10 +479,6 @@ function SettlementButton({
                 return;
             }
 
-            if (!hasActivatedWallet) {
-                return translate('paymentMethodList.bankAccountLastFour', {lastFour: (personalBankAccountList.at(0)?.accountData as AccountData)?.accountNumber?.slice(-4) ?? ''});
-            }
-
             return translate('common.wallet');
         }
 
