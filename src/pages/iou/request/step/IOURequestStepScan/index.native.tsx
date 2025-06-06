@@ -752,6 +752,9 @@ function IOURequestStepScan({
             <View
                 style={styles.flex1}
                 onLayout={() => {
+                    if (!onLayout) {
+                        return;
+                    }
                     onLayout(setTestReceiptAndNavigate);
                 }}
             >

@@ -157,14 +157,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
 
-    const {setSelectedTransactions, selectedTransactionIDs} = useSearchContext();
-
-    const removeTransaction = useCallback(
-        (transactionID?: string) => {
-            setSelectedTransactions(selectedTransactionIDs.filter((t) => t !== transactionID));
-        },
-        [setSelectedTransactions, selectedTransactionIDs],
-    );
+    const {removeTransaction} = useSearchContext();
 
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline), [report.reportID, reportActions, isOffline]);
 
