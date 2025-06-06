@@ -30,7 +30,7 @@ type ShouldShowConditionProps = {
 
 type TooltipData = {
     content: Array<{text: TranslationPaths; isBold: boolean}>;
-    onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
+    onHideTooltip: () => void;
     name: ProductTrainingTooltipName;
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
@@ -43,7 +43,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
             {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
         ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
+        onHideTooltip: () => dismissProductTraining(CONCIERGE_LHN_GBR),
         name: CONCIERGE_LHN_GBR,
         priority: 1300,
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
@@ -55,7 +55,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.saveSearchTooltip.part1', isBold: true},
             {text: 'productTrainingTooltip.saveSearchTooltip.part2', isBold: false},
         ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(RENAME_SAVED_SEARCH, isDismissedUsingCloseButton),
+        onHideTooltip: () => dismissProductTraining(RENAME_SAVED_SEARCH),
         name: RENAME_SAVED_SEARCH,
         priority: 1250,
         shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
@@ -67,7 +67,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
             {text: 'productTrainingTooltip.globalCreateTooltip.part4', isBold: false},
         ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GLOBAL_CREATE_TOOLTIP, isDismissedUsingCloseButton),
+        onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
         name: GLOBAL_CREATE_TOOLTIP,
         priority: 1950,
         shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
@@ -79,7 +79,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part4', isBold: true},
         ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP, isDismissedUsingCloseButton),
+        onHideTooltip: () => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP),
         name: BOTTOM_NAV_INBOX_TOOLTIP,
         priority: 1700,
         shouldShow: ({hasBeenAddedToNudgeMigration}) => hasBeenAddedToNudgeMigration,
@@ -89,7 +89,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: false},
             {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: true},
         ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP, isDismissedUsingCloseButton),
+        onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
         priority: 1800,
         shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
@@ -146,7 +146,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.scanTestTooltip.part4', isBold: true},
             {text: 'productTrainingTooltip.scanTestTooltip.part5', isBold: false},
         ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER, isDismissedUsingCloseButton),
+        onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER),
         name: SCAN_TEST_TOOLTIP_MANAGER,
         priority: 1000,
         shouldShow: () => true,
@@ -157,7 +157,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.scanTestTooltip.part7', isBold: true},
             {text: 'productTrainingTooltip.scanTestTooltip.part8', isBold: false},
         ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_CONFIRMATION, isDismissedUsingCloseButton),
+        onHideTooltip: () => dismissProductTraining(SCAN_TEST_CONFIRMATION),
         name: SCAN_TEST_CONFIRMATION,
         priority: 1100,
         shouldShow: () => true,
