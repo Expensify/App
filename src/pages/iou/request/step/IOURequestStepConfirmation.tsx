@@ -82,7 +82,15 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
+        params: {
+            iouType,
+            reportID,
+            transactionID: initialTransactionID,
+            action,
+            participantsAutoAssigned: participantsAutoAssignedFromRoute,
+            backToReport,
+            currentTransactionID = initialTransactionID,
+        },
     },
     transaction: initialTransaction,
     isLoadingTransaction,
@@ -103,7 +111,6 @@ function IOURequestStepConfirmation({
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
     const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
     const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${currentTransactionID}`, {canBeMissing: true});
     const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${currentTransactionID}`, {canBeMissing: true});
@@ -253,7 +260,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         // Exit early if the transaction is still loading
-        if (isLoadingTransaction) {
+        if (!!isLoadingTransaction || isLoadingCurrentTransaction) {
             return;
         }
 
@@ -278,7 +285,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
+    }, [isLoadingTransaction, isLoadingCurrentTransaction, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
         transactions.forEach((item) => {
@@ -1014,14 +1021,36 @@ function IOURequestStepConfirmation({
     const showNextTransaction = () => {
         const nextTransaction = transactions.at(currentTransactionIndex + 1);
         if (nextTransaction) {
-            setCurrentTransactionID(nextTransaction.transactionID);
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    action,
+                    iouType,
+                    initialTransactionID,
+                    reportID,
+                    backToReport,
+                    participantsAutoAssignedFromRoute === 'true',
+                    nextTransaction.transactionID,
+                ),
+                {forceReplace: true},
+            );
         }
     };
 
     const showPreviousTransaction = () => {
         const previousTransaction = transactions.at(currentTransactionIndex - 1);
         if (previousTransaction) {
-            setCurrentTransactionID(previousTransaction.transactionID);
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    action,
+                    iouType,
+                    initialTransactionID,
+                    reportID,
+                    backToReport,
+                    participantsAutoAssignedFromRoute === 'true',
+                    previousTransaction.transactionID,
+                ),
+                {forceReplace: true},
+            );
         }
     };
 

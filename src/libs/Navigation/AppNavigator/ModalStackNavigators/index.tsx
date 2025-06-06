@@ -52,6 +52,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
+        animation: Animations.NONE,
+    },
 };
 
 /**
