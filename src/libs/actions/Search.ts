@@ -90,7 +90,7 @@ function getLastPolicyPaymentMethod(
 
     const personalPolicy = getPersonalPolicy();
 
-    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? (isIOUReport ? lastPaymentMethods?.[personalPolicy?.id ?? ''] : undefined);
+    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? ((isIOUReport && personalPolicy) ? lastPaymentMethods?.[personalPolicy.id] : undefined);
     const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.name;
 
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
