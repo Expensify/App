@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
@@ -6,8 +5,9 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZoneUI';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PDFThumbnail from '@components/PDFThumbnail';
@@ -19,6 +19,7 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useFileValidation from '@hooks/useActiveElementRole/useFileValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +39,7 @@ import {
     search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
-import {resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -49,7 +50,6 @@ import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUti
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -74,12 +74,17 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
-    // TODO: to be refactored in step 3
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
-    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+    const {
+        validateAndResizeFile,
+        setIsAttachmentInvalid,
+        isAttachmentInvalid,
+        attachmentInvalidReason,
+        attachmentInvalidReasonTitle,
+        setUploadReceiptError,
+        pdfFile,
+        setPdfFile,
+        isLoadingReceipt,
+    } = useFileValidation();
 
     const {q} = route.params;
 
@@ -108,28 +113,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-
-    // TODO: to be refactored in step 3
-    /**
-     * Sets the upload receipt error modal content when an invalid receipt is uploaded
-     */
-    const setUploadReceiptError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
-        setIsAttachmentInvalid(isInvalid);
-        setAttachmentInvalidReasonTitle(title);
-        setAttachmentValidReason(reason);
-        setPdfFile(null);
-    };
-
-    // TODO: to be refactored in step 3
-    const getConfirmModalPrompt = () => {
-        if (!attachmentInvalidReason) {
-            return '';
-        }
-        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
-        }
-        return translate(attachmentInvalidReason);
-    };
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
@@ -413,39 +396,21 @@ function SearchPage({route}: SearchPageProps) {
         setIsAttachmentInvalid(false);
     };
 
-    // TODO: to be refactored in step 3
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
-            if (!isFileValid) {
-                return;
-            }
-
-            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-                setPdfFile(originalFile);
-                return;
-            }
-
-            // With the image size > 24MB, we use manipulateAsync to resize the image.
-            // It takes a long time so we should display a loading indicator while the resize image progresses.
-            if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setIsLoadingReceipt(true);
-            }
-            resizeImageIfNeeded(originalFile).then((resizedFile) => {
-                setIsLoadingReceipt(false);
-                // Store the receipt on the transaction object in Onyx
-                const source = URL.createObjectURL(resizedFile as Blob);
-                const newReportID = generateReportID();
-                initMoneyRequest({
-                    isFromGlobalCreate: true,
-                    reportID: newReportID,
-                    newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-                });
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, resizedFile.name || '', true);
-                navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
-            });
+    const saveFileAndInitMoneyRequest = (file: FileObject) => {
+        const source = URL.createObjectURL(file as Blob);
+        const newReportID = generateReportID();
+        initMoneyRequest({
+            isFromGlobalCreate: true,
+            reportID: newReportID,
+            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
         });
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
+        navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+    };
+
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        validateAndResizeFile(originalFile, saveFileAndInitMoneyRequest, isPdfValidated);
     };
 
     const initScanRequest = (e: DragEvent) => {
@@ -607,14 +572,15 @@ function SearchPage({route}: SearchPageProps) {
                                     lastNonEmptySearchResults={lastNonEmptySearchResults}
                                     handleSearch={handleSearchAction}
                                 />
-                                <DropZoneUI
-                                    onDrop={initScanRequest}
-                                    icon={Expensicons.SmartScan}
-                                    dropTitle={translate('dropzone.scanReceipts')}
-                                    dropStyles={styles.receiptDropOverlay}
-                                    dropTextStyles={styles.receiptDropText}
-                                    dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
-                                />
+                                <DragAndDropConsumer onDrop={initScanRequest}>
+                                    <DropZoneUI
+                                        icon={Expensicons.SmartScan}
+                                        dropTitle={translate('dropzone.scanReceipts')}
+                                        dropStyles={styles.receiptDropOverlay(true)}
+                                        dropTextStyles={styles.receiptDropText}
+                                        dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                                    />
+                                </DragAndDropConsumer>
                             </DragAndDropProvider>
                         </ScreenWrapper>
                         <ConfirmModal
@@ -622,7 +588,7 @@ function SearchPage({route}: SearchPageProps) {
                             onConfirm={hideReceiptModal}
                             onCancel={hideReceiptModal}
                             isVisible={isAttachmentInvalid}
-                            prompt={getConfirmModalPrompt()}
+                            prompt={getConfirmModalPrompt(attachmentInvalidReason)}
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
