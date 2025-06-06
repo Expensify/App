@@ -38,7 +38,9 @@ function SearchFiltersWorkspacePage() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
-    const [selectedOptions, setSelectedOptions] = useState<string[]>(searchAdvancedFiltersForm?.policyID ?? []);
+    console.debug(searchAdvancedFiltersForm, 'searchAdvancedFiltersForm?.policyID');
+
+    const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
