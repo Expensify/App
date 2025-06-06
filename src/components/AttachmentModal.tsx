@@ -559,6 +559,7 @@ function AttachmentModal({
                     }
                     return submitRef.current;
                 }}
+                shouldHandleNavigationBack={shouldHandleNavigationBack}
             >
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
