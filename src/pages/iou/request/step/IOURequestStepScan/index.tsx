@@ -129,7 +129,7 @@ function IOURequestStepScan({
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // TODO: use correct canUseMultiScan value when all multi-scan functionality is implemented
-    // const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
+    // const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
     const canUseMultiScan = false;
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -977,11 +977,13 @@ function IOURequestStepScan({
                 )}
             </View>
 
-            <ReceiptPreviews
-                isMultiScanEnabled={isMultiScanEnabled}
-                submit={submitReceipts}
-                setTabSwipeDisabled={setTabSwipeDisabled}
-            />
+            {canUseMultiScan && (
+                <ReceiptPreviews
+                    isMultiScanEnabled={isMultiScanEnabled}
+                    submit={submitReceipts}
+                    setTabSwipeDisabled={setTabSwipeDisabled}
+                />
+            )}
         </>
     );
 
