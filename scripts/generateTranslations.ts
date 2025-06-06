@@ -92,7 +92,7 @@ class TranslationGenerator {
      */
     private shouldNodeBeTranslated(node: ts.Node): boolean {
         // We only translate string literals and template expressions
-        if (!ts.isStringLiteral(node) && !ts.isTemplateExpression(node)) {
+        if (!ts.isStringLiteral(node) && !ts.isTemplateExpression(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
             return false;
         }
 
@@ -128,7 +128,7 @@ class TranslationGenerator {
         }
 
         // Only translate string literals if they contain alphabet characters
-        if (ts.isStringLiteral(node)) {
+        if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
             return /[a-zA-Z]/.test(node.text);
         }
 
@@ -176,7 +176,7 @@ class TranslationGenerator {
      */
     private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, string>) {
         if (this.shouldNodeBeTranslated(node)) {
-            if (ts.isStringLiteral(node)) {
+            if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
                 stringsToTranslate.set(StringUtils.hash(node.text), node.text);
             } else if (ts.isTemplateExpression(node)) {
                 if (this.isSimpleTemplateExpression(node)) {
@@ -272,6 +272,11 @@ class TranslationGenerator {
                     if (ts.isStringLiteral(node)) {
                         const translatedText = translations.get(StringUtils.hash(node.text));
                         return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
+                    }
+
+                    if (ts.isNoSubstitutionTemplateLiteral(node)) {
+                        const translatedText = translations.get(StringUtils.hash(node.text));
+                        return translatedText ? ts.factory.createNoSubstitutionTemplateLiteral(translatedText) : node;
                     }
 
                     if (ts.isTemplateExpression(node)) {

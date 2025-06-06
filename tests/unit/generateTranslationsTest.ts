@@ -48,6 +48,7 @@ describe('generateTranslations', () => {
                     const strings = {
                         greeting: 'Hello',
                         farewell: 'Goodbye',
+                        unnecessaryTemplate: \`This template contains no spans\`,
                         message: (username: string, count: number) => \`Hi \${username}, you have \${count} messages\`,
                         some: {
                             nested: {
@@ -67,6 +68,7 @@ describe('generateTranslations', () => {
                     const strings = {
                         greeting: '[it] Hello',
                         farewell: '[it] Goodbye',
+                        unnecessaryTemplate: \`[it] This template contains no spans\`,
                         message: (username: string, count: number) => \`[it] Hi \${username}, you have \${count} messages\`,
                         some: {
                             nested: {
