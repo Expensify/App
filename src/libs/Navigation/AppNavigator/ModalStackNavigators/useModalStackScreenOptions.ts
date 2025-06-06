@@ -4,9 +4,9 @@ import {useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
+import useRHPCardStyleInterpolator from '@libs/Navigation/AppNavigator/useRHPCardStyleInterpolator';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ThemeStyles} from '@src/styles';
-import useRHPCardStyleInterpolator from '@libs/Navigation/AppNavigator/useRHPCardStyleInterpolator';
 
 type GetModalStackScreenOptions = (styles: ThemeStyles) => PlatformStackNavigationOptions;
 
@@ -17,7 +17,7 @@ function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOption
     let cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
 
     if (isSafari()) {
-        cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator({props});
+        cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(props);
     }
 
     const defaultSubRouteOptions = useMemo(

@@ -3,62 +3,31 @@ import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@rea
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import variables from '@styles/variables';
 
-type ModalCardStyleInterpolatorProps = {
-    isOnboardingModal?: boolean;
-    isFullScreenModal?: boolean;
-    shouldFadeScreen?: boolean;
-    shouldAnimateSidePanel?: boolean;
-    props: StackCardInterpolationProps;
-    outputRangeMultiplier?: number;
-};
+type RHPCardStyleInterpolator = (props: StackCardInterpolationProps) => StackCardInterpolatedStyle;
 
-type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => StackCardInterpolatedStyle;
-
-const useRHPCardStyleInterpolator = (): ModalCardStyleInterpolator => {
-    // we have to use isSmallScreenWidth on safari, otherwise the content of RHP 'jumps' - its width get set to size of screen and only after rerender get's set to correct value
+const useRHPCardStyleInterpolator = (): RHPCardStyleInterpolator => {
+    // we have to use isSmallScreenWidth on safari, otherwise the content of RHP 'jumps' - its width gets set to size of screen and only after rerender gets set to correct value
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
-    const {sidePanelOffset} = useSidePanel();
 
-    const modalCardStyleInterpolator: ModalCardStyleInterpolator = ({
-        props: {
-            current: {progress},
-            inverted,
-            layouts: {screen},
-        },
-        isOnboardingModal = false,
-        isFullScreenModal = false,
-        shouldFadeScreen = false,
-        shouldAnimateSidePanel = false,
-        outputRangeMultiplier = 1,
-    }) => {
-        if (isOnboardingModal ? onboardingIsMediumOrLargerScreenWidth : shouldFadeScreen) {
-            return {
-                cardStyle: {opacity: progress},
-            };
-        }
-
+    const modalCardStyleInterpolator: RHPCardStyleInterpolator = ({current: {progress}, inverted, layouts: {screen}}) => {
         const translateX = Animated.multiply(
             progress.interpolate({
                 inputRange: [0, 1],
-                outputRange: [outputRangeMultiplier * (shouldUseNarrowLayout ? screen.width : variables.sideBarWidth), 0],
+                outputRange: [shouldUseNarrowLayout ? screen.width : variables.sideBarWidth, 0],
                 extrapolate: 'clamp',
             }),
             inverted,
         );
 
-        const cardStyle = StyleUtils.getCardStyles(isSmallScreenWidth ? screen.width : 375);
-        if (!isFullScreenModal || shouldUseNarrowLayout) {
-            cardStyle.transform = [{translateX}];
-        }
+        const cardStyle = StyleUtils.getCardStyles(isSmallScreenWidth ? screen.width : variables.sideBarWidth);
 
-        if (shouldAnimateSidePanel) {
-            cardStyle.paddingRight = sidePanelOffset.current;
+        if (shouldUseNarrowLayout) {
+            cardStyle.transform = [{translateX}];
         }
 
         return {
