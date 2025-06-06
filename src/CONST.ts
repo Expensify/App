@@ -819,7 +819,6 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
-        NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
         WALLET: 'newdotWallet',
@@ -1814,11 +1813,6 @@ const CONST = {
             OFFLINE: 'offline',
             UNKNOWN: 'unknown',
         },
-    },
-    OPEN_AI_REALTIME_API: 'https://api.openai.com/v1/realtime',
-    OPEN_AI_TOOL_NAMES: {
-        END_CALL: 'EndCall',
-        SEND_RECAP_IN_ADMINS_ROOM: 'SendRecapInAdminsRoom',
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
@@ -7190,7 +7184,6 @@ const CONST = {
         EVENT_TIME: 'eventTime',
         RESCHEDULE: 'reschedule',
         CANCEL: 'cancel',
-        TALK_TO_SALES: 'talkToSales',
         REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
 

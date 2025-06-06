@@ -6975,12 +6975,6 @@ const translations = {
         body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
         confirmText: 'Descartar cambios',
     },
-    aiSales: {
-        talkToSales: 'Habla con ventas',
-        getHelp: 'Obtener ayuda',
-        talkToConcierge: 'Habla con Concierge',
-        hangUp: 'Colgar',
-    },
     scheduledCall: {
         book: {
             title: 'Programar llamada',
