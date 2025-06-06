@@ -278,9 +278,6 @@ const ONYXKEYS = {
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
-    /** Boolean flag used to display the focus mode notification */
-    FOCUS_MODE_NOTIFICATION: 'focusModeNotification',
-
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
 
@@ -1056,7 +1053,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
-    [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
