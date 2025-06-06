@@ -139,6 +139,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Icon for main button */
     icon?: IconAsset;
+
+    /** Whether to use modal padding style for the popover menu */
+    shouldUseModalPaddingStyle?: boolean;
 };
 
 export type {
