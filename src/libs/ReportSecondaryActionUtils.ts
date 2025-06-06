@@ -15,6 +15,7 @@ import {
     isInstantSubmitEnabled,
     isPreferredExporter,
     isSubmitAndClose as isSubmitAndCloseUtils,
+    shouldShowPolicy,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -56,7 +57,11 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false, policy: Policy | undefined) {
+    if (!shouldShowPolicy(policy, false, undefined)) {
+        return false;
+    }
+
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
     if (!isReportSubmitter || reportTransactions.length === 0) {
@@ -510,7 +515,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
-    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs))) {
+    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs), policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
