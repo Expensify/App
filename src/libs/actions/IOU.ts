@@ -84,7 +84,6 @@ import {
 import {
     getAllReportActions,
     getIOUActionForReportID,
-    getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleMessage,
