@@ -120,7 +120,7 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe('');
+        expect(getReportPrimaryAction({report, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe('');
     });
 
     it('should return PAY for submitted invoice report', async () => {
