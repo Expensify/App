@@ -54,23 +54,36 @@ Each patch must be listed and explained in the `details.md` file within the same
 
 ### [<patch-name>.patch](<patch-name>.patch)
 
-- Reason: <Why this patch is needed>
-- Upstream PR/issue: <link or 🛑 if not raised. If no upstream issue or PR exists, explain why>
-- E/App issue: <link or 🛑 if none>
-- PR Introducing Patch: <link to internal PR that added the patch>
+- Reason: 
+  
+    ```
+    Please explain why the patch is necessary
+    ```
+  
+- Upstream PR/issue: <Please create an upstream PR fixing the patch. Link it here and if no upstream issue or PR exists, explain why>
+- E/App issue: <Please create an E/App issue for each introduced patch. Link it here and if patch won't be removed in the future (no upstream PR exists) explain why>
+- PR introducing patch: <Link to E/App (or Mobile-Expensify) PR that added the patch>
 ```
+
+To find the issue template visit [NewPatchAdded.md](./../.github/ISSUE_TEMPLATE/NewPatchAdded.md)
 
 ### Example
 
 ```md
 # `react-native-pdf` patches
 
-### [react-native-pdf+6.7.3+002+fix-incorrect-decoding.patch](react-native-pdf+6.7.3+002+fix-incorrect-decoding.patch)
+### [react-native-pdf+6.7.3+001+update-podspec-to-support-new-arch.patch](react-native-pdf+6.7.3+001+update-podspec-to-support-new-arch.patch)
 
-- Reason: If the file name contains accented characters, the PDF load fails.
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: [#50043](https://github.com/Expensify/App/pull/50043)
+- Reason:
+
+    ```
+    This patch updates the react-native-pdf.podspec to ensure compatibility with React Native's New Architecture on iOS by replacing manual dependency declarations
+    with Meta's recommended `install_modules_dependencies` function
+    ```
+
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/803
+- E/App issue: 🛑 TODO
+- PR Introducing Patch: https://github.com/Expensify/App/pull/13767
 ```
 
 ## ✅ Patch Submission Checklist
