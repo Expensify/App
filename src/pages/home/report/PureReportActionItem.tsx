@@ -125,7 +125,6 @@ import {
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
     getIconsForParticipants,
-    getIOUForwardedMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
@@ -331,9 +330,6 @@ type PureReportActionItemProps = {
     /** User payment card ID */
     userBillingFundID?: number;
 
-    /** A message related to a report action that has been automatically forwarded */
-    reportAutomaticallyForwardedMessage?: string;
-
     /** Policies */
     policies?: OnyxCollection<OnyxTypes.Policy>;
 
@@ -397,7 +393,6 @@ function PureReportActionItem({
     clearAllRelatedReportActionErrors = () => {},
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
-    reportAutomaticallyForwardedMessage,
     policies,
     shouldShowBorder,
 }: PureReportActionItemProps) {
@@ -430,7 +425,7 @@ function PureReportActionItem({
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
-    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, undefined, true);
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
 
@@ -827,7 +822,6 @@ function PureReportActionItem({
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
-                    onShowContextMenu={handleShowContextMenu}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
@@ -1009,6 +1003,20 @@ function PureReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+            const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
+            const paymentType = getOriginalMessage(action)?.paymentType;
+            if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
+            } else if (wasAutoPaid) {
+                children = (
+                    <ReportActionItemBasicMessage>
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyPaidWithExpensify')}</muted-text></comment>`} />
+                    </ReportActionItemBasicMessage>
+                );
+            } else {
+                children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
+            }
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
@@ -1016,11 +1024,11 @@ function PureReportActionItem({
             if (wasAutoForwarded) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${reportAutomaticallyForwardedMessage}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyForwarded')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUForwardedMessage(action, report)} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
             }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
             children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
@@ -1555,7 +1563,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         lodashIsEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
-        prevProps.userBillingFundID === nextProps.userBillingFundID &&
-        prevProps.reportAutomaticallyForwardedMessage === nextProps.reportAutomaticallyForwardedMessage
+        prevProps.userBillingFundID === nextProps.userBillingFundID
     );
 });
