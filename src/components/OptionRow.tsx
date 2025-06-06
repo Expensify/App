@@ -200,7 +200,7 @@ function OptionRow({
                         accessibilityLabel={option.text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
-                        hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
+                        hoverStyle={!optionIsFocused ? (hoverStyle ?? styles.sidebarLinkHover) : undefined}
                         needsOffscreenAlphaCompositing={(option.icons?.length ?? 0) >= 2}
                         onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (event) => event.preventDefault() : undefined}
                         tabIndex={option.tabIndex ?? 0}

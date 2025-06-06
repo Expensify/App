@@ -140,7 +140,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
-    const {canUseDefaultRooms, canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
@@ -175,7 +175,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const lastAccessedReportID = findLastAccessedReport(!canUseDefaultRooms, !!route.params.openOnAdminRoom)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), !!route.params.openOnAdminRoom)?.reportID;
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
@@ -185,7 +185,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
-    }, [canUseDefaultRooms, navigation, route]);
+    }, [isBetaEnabled, navigation, route]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
@@ -297,7 +297,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
         canBeMissing: false,
     });
-    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
+    const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -631,14 +632,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 if (isMoneyRequestReportPendingDeletion(prevReport.parentReportID)) {
                     return;
                 }
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                Navigation.isNavigationReady().then(() => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                });
                 return;
             }
 
             Navigation.isNavigationReady().then(() => {
-                InteractionManager.runAfterInteractions(() => {
-                    navigateToConciergeChat();
-                });
+                navigateToConciergeChat();
             });
             return;
         }
@@ -764,7 +765,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = canUseTableReportView && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
+    const shouldDisplayMoneyRequestActionsList = isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
     return (
         <ActionListContext.Provider value={actionListValue}>
