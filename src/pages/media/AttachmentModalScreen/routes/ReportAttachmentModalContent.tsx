@@ -12,33 +12,32 @@ import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps, OnValidateFileCallback} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
-import type AttachmentModalRouteProps from './types';
 
-function ReportAttachmentModalContent({
-    route,
-    navigation,
-    attachmentID,
-    type,
-    file: fileParam,
-    source: sourceParam,
-    isAuthTokenRequired,
-    attachmentLink,
-    originalFileName,
-    accountID = CONST.DEFAULT_NUMBER_ID,
-    reportID,
-    hashKey,
-    shouldDisableSendButton,
-    headerTitle,
-    onConfirm,
-    onShow,
-}: AttachmentModalRouteProps) {
+function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
+    const {
+        attachmentID,
+        type,
+        file: fileParam,
+        source: sourceParam,
+        isAuthTokenRequired,
+        attachmentLink,
+        originalFileName,
+        accountID = CONST.DEFAULT_NUMBER_ID,
+        reportID,
+        hashKey,
+        shouldDisableSendButton,
+        headerTitle,
+        onConfirm,
+        onShow,
+    } = route.params;
+
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
@@ -88,17 +87,17 @@ function ReportAttachmentModalContent({
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute({
+            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(
                 reportID,
-                attachmentID: attachment.attachmentID,
+                attachment.attachmentID,
                 type,
-                source: String(attachment.source),
+                String(attachment.source),
                 accountID,
-                isAuthTokenRequired: attachment?.isAuthTokenRequired,
-                fileName: attachment?.file?.name,
-                attachmentLink: attachment?.attachmentLink,
+                attachment?.isAuthTokenRequired,
+                attachment?.file?.name,
+                attachment?.attachmentLink,
                 hashKey,
-            });
+            );
             Navigation.navigate(routeToNavigate);
         },
         [reportID, type, accountID, hashKey],

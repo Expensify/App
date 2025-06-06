@@ -437,7 +437,7 @@ const ROUTES = {
         getRoute: (
             reportID: string | undefined,
             attachmentID: string | undefined,
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
+            type: ValueOf<typeof CONST.ATTACHMENT_TYPE> | undefined,
             url: string,
             accountID?: number,
             isAuthTokenRequired?: boolean,
@@ -445,6 +445,7 @@ const ROUTES = {
             attachmentLink?: string,
             hashKey?: number,
         ) => {
+            const typeParam = type ? `&type=${type}` : '';
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
@@ -453,9 +454,7 @@ const ROUTES = {
             const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
             const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${
-                type as string
-            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}${typeParam}${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {

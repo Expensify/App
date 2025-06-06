@@ -10,20 +10,14 @@ import {getRequestType, hasEReceipt, hasReceiptSource} from '@libs/TransactionUt
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type AttachmentModalRouteProps from './types';
 
-function TransactionReceiptModalContent({
-    navigation,
-    reportID = '',
-    transactionID = '',
-    readonly: readonlyProp,
-    isFromReviewDuplicates: isFromReviewDuplicatesProp,
-    iouAction,
-    iouType,
-}: AttachmentModalRouteProps) {
+function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps) {
+    const {reportID = '', transactionID = '', iouAction, iouType, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
+
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});

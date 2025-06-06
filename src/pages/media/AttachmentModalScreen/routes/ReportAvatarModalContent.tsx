@@ -4,11 +4,13 @@ import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, i
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type AttachmentModalRouteProps from './types';
 
-function ReportAvatarModalContent({navigation, reportID, policyID}: AttachmentModalRouteProps) {
+function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
+    const {reportID, policyID} = route.params;
+
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});

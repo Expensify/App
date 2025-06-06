@@ -7,11 +7,13 @@ import {getFullSizeAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type AttachmentModalRouteProps from './types';
 
-function ProfileAvatarModalContent({navigation, accountID = CONST.DEFAULT_NUMBER_ID}: AttachmentModalRouteProps) {
+function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
+    const {accountID = CONST.DEFAULT_NUMBER_ID} = route.params;
+
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const personalDetail = personalDetails?.[accountID];
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: false});

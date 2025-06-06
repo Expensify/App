@@ -4,10 +4,12 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type AttachmentModalRouteProps from './types';
 
-function WorkspaceAvatarModalContent({navigation, policyID}: AttachmentModalRouteProps) {
+function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
+    const {policyID} = route.params;
+
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
 
