@@ -288,7 +288,19 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
         policyID: string;
         backTo?: Routes;
     };
@@ -1607,6 +1619,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
 };
@@ -1812,7 +1826,7 @@ type OnboardingModalNavigatorParamList = {
 
 type WelcomeVideoModalNavigatorParamList = {
     [SCREENS.WELCOME_VIDEO.ROOT]: {
-        isFromRoot?: string;
+        shouldOpenSearch?: string;
     };
 };
 
@@ -1990,6 +2004,21 @@ type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: undefined;
 };
 
+type SplitExpenseParamList = {
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
+        reportID: string;
+        transactionID: string;
+        splitExpenseTransactionID?: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
+        reportID: string;
+        transactionID: string;
+        splitExpenseTransactionID: string;
+        backTo?: Routes;
+    };
+};
+
 type AddUnreportedExpensesParamList = {
     [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
         reportID: string;
@@ -2135,6 +2164,7 @@ export type {
     TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
     TestDriveDemoNavigatorParamList,
+    SplitExpenseParamList,
     SetParamsAction,
     WorkspacesTabNavigatorName,
 };

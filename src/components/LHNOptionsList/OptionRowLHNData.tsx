@@ -46,7 +46,6 @@ function OptionRowLHNData({
             oneTransactionThreadReport,
             reportNameValuePairs,
             personalDetails,
-            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
             lastMessageTextFromReport,
@@ -91,6 +90,7 @@ function OptionRowLHNData({
             {...propsToForward}
             isFocused={isReportFocused}
             optionItem={optionItem}
+            report={fullReport}
         />
     );
 }

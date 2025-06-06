@@ -20,7 +20,7 @@ type EventHandler = {
 // Handlers for the various keyboard listeners we set up
 const eventHandlers: Record<string, EventHandler[]> = {};
 
-type ShortcutModifiers = readonly ['CTRL'] | readonly ['CTRL', 'SHIFT'] | readonly [];
+type ShortcutModifiers = readonly ['CTRL'] | readonly ['SHIFT'] | readonly ['CTRL', 'SHIFT'] | readonly [];
 
 type Shortcut = {
     displayName: string;

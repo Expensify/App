@@ -13,19 +13,25 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
 ];
 
 const FILTER_KEYS = {
+    GROUP_BY: 'groupBy',
     TYPE: 'type',
     STATUS: 'status',
-    GROUP_BY: 'groupBy',
+    DATE_ON: 'dateOn',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
+    SUBMITTED_ON: 'submittedOn',
     SUBMITTED_AFTER: 'submittedAfter',
     SUBMITTED_BEFORE: 'submittedBefore',
+    APPROVED_ON: 'approvedOn',
     APPROVED_AFTER: 'approvedAfter',
     APPROVED_BEFORE: 'approvedBefore',
+    PAID_ON: 'paidOn',
     PAID_AFTER: 'paidAfter',
     PAID_BEFORE: 'paidBefore',
+    EXPORTED_ON: 'exportedOn',
     EXPORTED_AFTER: 'exportedAfter',
     EXPORTED_BEFORE: 'exportedBefore',
+    POSTED_ON: 'postedOn',
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
     CURRENCY: 'currency',
@@ -44,10 +50,11 @@ const FILTER_KEYS = {
     KEYWORD: 'keyword',
     FROM: 'from',
     TO: 'to',
+    PAYER: 'payer',
+    EXPORTER: 'exporter',
     IN: 'in',
     TITLE: 'title',
     ASSIGNEE: 'assignee',
-    CREATED_BY: 'createdBy',
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
 } as const;
@@ -57,19 +64,26 @@ type InputID = ValueOf<typeof FILTER_KEYS>;
 type SearchAdvancedFiltersForm = Form<
     InputID,
     {
+        [FILTER_KEYS.GROUP_BY]: string;
         [FILTER_KEYS.TYPE]: string;
-        [FILTER_KEYS.STATUS]: string;
+        [FILTER_KEYS.STATUS]: string[] | string;
         [FILTER_KEYS.GROUP_BY]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
+        [FILTER_KEYS.DATE_ON]: string;
+        [FILTER_KEYS.SUBMITTED_ON]: string;
         [FILTER_KEYS.SUBMITTED_AFTER]: string;
         [FILTER_KEYS.SUBMITTED_BEFORE]: string;
+        [FILTER_KEYS.APPROVED_ON]: string;
         [FILTER_KEYS.APPROVED_AFTER]: string;
         [FILTER_KEYS.APPROVED_BEFORE]: string;
+        [FILTER_KEYS.PAID_ON]: string;
         [FILTER_KEYS.PAID_AFTER]: string;
         [FILTER_KEYS.PAID_BEFORE]: string;
+        [FILTER_KEYS.EXPORTED_ON]: string;
         [FILTER_KEYS.EXPORTED_AFTER]: string;
         [FILTER_KEYS.EXPORTED_BEFORE]: string;
+        [FILTER_KEYS.POSTED_ON]: string;
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
@@ -87,11 +101,12 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.EXPENSE_TYPE]: string[];
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.FROM]: string[];
+        [FILTER_KEYS.PAYER]: string;
+        [FILTER_KEYS.EXPORTER]: string[];
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.IN]: string[];
         [FILTER_KEYS.TITLE]: string;
         [FILTER_KEYS.ASSIGNEE]: string[];
-        [FILTER_KEYS.CREATED_BY]: string[];
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
     }
