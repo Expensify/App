@@ -5849,13 +5849,13 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
-        TestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
+        getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             flex: 1,
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
             alignItems: 'center',
         }),
 
-        TestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
+        getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
             const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
             const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
             const height = isAuthenticated ? defaultHeight : '55%';

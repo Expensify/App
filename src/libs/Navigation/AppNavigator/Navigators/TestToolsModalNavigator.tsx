@@ -44,13 +44,13 @@ function TestToolsModalNavigator() {
                 ref={outerViewRef}
                 onClick={handleOuterClick}
                 onTouchEnd={handleOuterClick}
-                style={styles.TestToolsNavigatorOuterView(shouldUseNarrowLayout)}
+                style={styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)}
             >
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
                         onTouchEnd={handleInnerPress}
-                        style={styles.TestToolsNavigatorInnerView(shouldUseNarrowLayout, isAuthenticated)}
+                        style={styles.getTestToolsNavigatorInnerView(shouldUseNarrowLayout, isAuthenticated)}
                     >
                         <Stack.Navigator screenOptions={{headerShown: false}}>
                             <Stack.Screen
