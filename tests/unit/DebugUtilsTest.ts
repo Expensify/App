@@ -1,4 +1,6 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
@@ -791,9 +793,14 @@ describe('DebugUtils', () => {
             };
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs);
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-            });
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseReport?.reportID));
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                },
+                false,
+                isReportArchived.current,
+            );
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
         it('returns correct reason when report is self DM', () => {
