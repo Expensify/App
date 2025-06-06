@@ -1423,6 +1423,7 @@ function lockAccount() {
         accountID: currentUserAccountID,
     };
 
+    We need to know if this command fails so that we can navigate the user to a failure page. 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
