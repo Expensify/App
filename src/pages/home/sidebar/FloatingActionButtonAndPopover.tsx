@@ -23,12 +23,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
+import {getTravelDotLink, openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import getIconForAction from '@libs/getIconForAction';
+import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -390,6 +391,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const openTravel = useCallback(() => {
         if (isTravelEnabled) {
+            if (getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID) {
+                getTravelDotLink(activePolicy?.id)
+                    ?.then((response) => {
+                        if (response.spotnanaToken) {
+                            Navigation.navigate(ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.getRoute(response.spotnanaToken, response.isTestAccount));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+                    })
+                    ?.catch(() => {
+                        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+                    });
+                return;
+            }
             openTravelDotLink(activePolicy?.id)
                 ?.then(() => {})
                 ?.catch(() => {
