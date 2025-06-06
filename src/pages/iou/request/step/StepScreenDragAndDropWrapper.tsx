@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
 
 type StepScreenDragAndDropWrapperProps = {
@@ -34,8 +35,8 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    // TODO: remove beta check after the feature is enabled
+    const {isBetaEnabled} = usePermissions();
 
     if (!shouldShowWrapper) {
         return callOrReturn(children, false);
@@ -48,7 +49,7 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
             shouldEnableMaxHeight={canUseTouchScreen()}
-            headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.isDraggingOver] : []}
+            headerGapStyles={isDraggingOver ? [isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? styles.dropWrapper : styles.isDraggingOver] : []}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
