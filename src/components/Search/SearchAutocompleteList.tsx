@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
-import type {Options, SearchOption} from '@libs/OptionsListUtils';
+import {getMostRecentOptions, Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions, orderReportOptions} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
@@ -353,11 +353,14 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                const orderedReportOptions = orderReportOptions(searchOptions.recentReports);
+                Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS)
+
+                // const orderedReportOptions = orderReportOptions(searchOptions.recentReports);
+                const orderedReportOptions = getMostRecentOptions(searchOptions.recentReports, 10)
                 const filteredChats = orderedReportOptions
                     .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase()))
                     .slice(0, 10);
-
+                Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS)
                 return filteredChats.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
                     text: chat.text ?? '',

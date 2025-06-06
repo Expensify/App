@@ -144,6 +144,7 @@ import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import {generateAccountID} from './UserUtils';
+import {MaxHeap} from '@datastructures-js/heap';
 
 type SearchOption<T> = OptionData & {
     item: T;
@@ -1250,6 +1251,21 @@ function orderPersonalDetailsOptions(options: OptionData[]) {
  */
 function orderReportOptions(options: OptionData[]) {
     return lodashOrderBy(options, [sortComparatorReportOptionByArchivedStatus, sortComparatorReportOptionByDate], ['asc', 'desc']);
+}
+
+function getMostRecentOptions(options: OptionData[], limit: number): OptionData[] {
+    const heap = new MaxHeap<OptionData>((option) => {
+        return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
+    });
+    options.forEach((option) => {
+        heap.push(option);
+    });
+    const result = [];
+    while (heap.size() > 0 && result.length < limit) {
+        result.push(heap.pop());
+    }
+
+    return result;
 }
 
 /**
@@ -2467,6 +2483,7 @@ export {
     isMakingLastRequiredTagListOptional,
     processReport,
     shallowOptionsListCompare,
+    getMostRecentOptions
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
