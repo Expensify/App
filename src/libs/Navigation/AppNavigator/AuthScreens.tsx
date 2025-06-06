@@ -6,6 +6,7 @@ import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
@@ -43,7 +44,6 @@ import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
 import * as PersonalDetails from '@userActions/PersonalDetails';
-import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -235,13 +235,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('state', () => {
-            PriorityMode.autoSwitchToFocusMode();
-        });
-        return () => unsubscribe();
-    }, [navigation]);
-
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
         return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_ACCOUNTING.route) && isOnboardingCompleted === true;
@@ -335,10 +328,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
         }
         Download.clearDownloads();
-
-        Navigation.isNavigationReady().then(() => {
-            PriorityMode.autoSwitchToFocusMode();
-        });
 
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
@@ -731,6 +720,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
             </RootStack.Navigator>
             <SearchRouterModal />
+            <PriorityModeController />
         </ComposeProviders>
     );
 }
