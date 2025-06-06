@@ -6749,8 +6749,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement:
-                'Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud según los <a>Términos del Servicio</a> de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify conserva la plena discreción para conceder cualquier solicitud de este tipo.',
+            acknowledgement: `Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Condiciones de Servicio</a> de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.`,
         },
     },
     feedbackSurvey: {

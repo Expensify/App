@@ -1,8 +1,7 @@
 import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
-import {Linking, View} from 'react-native';
+import {View} from 'react-native';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
-import type {CustomRendererProps} from 'react-native-render-html';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -45,21 +44,11 @@ function RequestEarlyCancellationPage() {
                 contentWidth={windowWidth}
                 systemFonts={systemFonts}
                 source={{
-                    html: translate('subscription.requestEarlyCancellation.acknowledgement').replace(
-                        '<a>',
-                        `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}" style="text-decoration: none;">`,
-                    ),
+                    html: translate('subscription.requestEarlyCancellation.acknowledgement'),
                 }}
                 tagsStyles={{
                     a: {...styles.link, textDecorationLine: 'none'},
                     body: {...styles.textNormalThemeText},
-                }}
-                renderers={{
-                    a: ({TDefaultRenderer, ...props}: CustomRendererProps<any>) => (
-                        <TextLink onPress={() => Linking.openURL(CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL)}>
-                            <TDefaultRenderer {...props} />
-                        </TextLink>
-                    ),
                 }}
             />
         ),
