@@ -2980,8 +2980,8 @@ function getIcons(
         return [domainIcon];
     }
 
-    // eslint-disable-next-line deprecation/deprecation
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
         const icons = [getWorkspaceIcon(report, policy)];
 
@@ -8538,7 +8538,7 @@ function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boo
         }
 
         const isReceiverPolicyAdmin =
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
             // eslint-disable-next-line deprecation/deprecation
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? getPolicy(report?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN : false;
 
