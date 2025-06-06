@@ -35,10 +35,11 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - Android
-        uses: callstackincubator/android@333f590005be752c28f07e36fa7151be3b2e18da
+        uses: callstackincubator/android@c6ac9e01bf15271b4f7c24c88b37e884a26b04d6
         env:
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
           variant: ${{ matrix.variant }}
           github-token: ${{ github.token }}
+          rnef-build-extra-params: '-PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false
