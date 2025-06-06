@@ -13,7 +13,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,8 +43,7 @@ function ReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const dateColumnSize = useMemo(() => {
-        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
-        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+        return reportItem.transactions.some((transaction) => transaction.shouldShowYear) ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [reportItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -102,7 +100,7 @@ function ReportListItem<TItem extends ListItem>({
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
         COLUMNS.TOTAL_AMOUNT,
         COLUMNS.ACTION,
-    ] as Array<ValueOf<typeof COLUMNS>>;
+    ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
     return (
         <BaseListItem
@@ -129,7 +127,6 @@ function ReportListItem<TItem extends ListItem>({
                     <ReportListItemHeader
                         report={reportItem}
                         policy={policy}
-                        item={item}
                         onSelectRow={onSelectRow}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
@@ -163,7 +160,7 @@ function ReportListItem<TItem extends ListItem>({
                                     }}
                                     isParentHovered={hovered}
                                     columnWrapperStyles={[styles.ph3, styles.pv1half]}
-                                    isInReportRow
+                                    isReportItemChild
                                 />
                             </View>
                         ))
