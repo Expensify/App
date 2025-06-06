@@ -9,6 +9,7 @@
   "scripts": {
     "i-standalone": "STANDALONE_NEW_DOT=true npm i",
     "install-standalone": "STANDALONE_NEW_DOT=true npm install",
+    "patch-package": "./scripts/createPatch.sh",
     "configure-mapbox": "./scripts/setup-mapbox-sdk-walkthrough.sh",
     "setupNewDotWebForEmulators": "./scripts/setup-newdot-web-emulators.sh",
     "startAndroidEmulator": "./scripts/start-android.sh",
