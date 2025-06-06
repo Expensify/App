@@ -6061,7 +6061,7 @@ const translations = {
                 claimOffer: 'Claim offer',
                 noThanks: 'No thanks',
                 subscriptionPageTitle: {
-                    full: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year! Just add a payment card and start an annual subscription.`,
+                    full: ({discountType}: EarlyDiscountTitleParams) => `<strong>${discountType}% off your first year!</strong> Just add a payment card and start an annual subscription.`,
                 },
                 onboardingChatTitle: {
                     full: ({discountType}: EarlyDiscountTitleParams) => `Limited-time offer: ${discountType}% off your first year!`,

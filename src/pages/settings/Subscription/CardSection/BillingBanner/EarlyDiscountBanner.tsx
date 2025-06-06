@@ -128,7 +128,6 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
                     discountType: discountInfo?.discountType,
                 }),
             }}
-            baseStyle={styles.textStrong}
         />
     ) : (
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
