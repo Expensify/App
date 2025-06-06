@@ -1,8 +1,7 @@
-import type Locale from '../../../src/types/onyx/Locale';
-import type Translator from './types';
+import Translator from './Translator';
 
-class DummyTranslator implements Translator {
-    public async translate(text: string, targetLang: Locale): Promise<string> {
+class DummyTranslator extends Translator {
+    protected performTranslation(text: string, targetLang: string): Promise<string> {
         return Promise.resolve(`[${targetLang}] ${text}`);
     }
 }

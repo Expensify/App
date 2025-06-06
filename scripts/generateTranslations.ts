@@ -11,7 +11,7 @@ import type Locale from '../src/types/onyx/Locale';
 import Prettier from './utils/Prettier';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
-import type Translator from './utils/Translator/types';
+import type Translator from './utils/Translator/Translator';
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.

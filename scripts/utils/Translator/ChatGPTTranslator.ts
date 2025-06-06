@@ -1,24 +1,20 @@
 import OpenAI from 'openai';
-import type Locale from '../../../src/types/onyx/Locale';
-import type Translator from './types';
+import Translator from './Translator';
 
-class ChatGPTTranslator implements Translator {
+class ChatGPTTranslator extends Translator {
     /**
      * OpenAI API client to perform translations.
      */
     private readonly openai: OpenAI;
 
     public constructor(apiKey: string) {
+        super();
         this.openai = new OpenAI({
             apiKey,
         });
     }
 
-    public async translate(text: string, targetLang: Locale): Promise<string> {
-        if (!text || text.trim().length === 0) {
-            return text;
-        }
-
+    protected async performTranslation(text: string, targetLang: string): Promise<string> {
         try {
             const response = await this.openai.chat.completions.create({
                 model: 'gpt-4',
