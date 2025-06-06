@@ -35,4 +35,9 @@ A Workspace Admin will be notified of the expense and, depending on your workspa
 ## Is there an easy way to reuse recent locations?
 Yes! When selecting the **Start** and **Finish** addresses, recently used locations will appear for quick selection.
 
+## How do I create a round-trip expense?
+To create a round-trip distance expense, enter the same location for both the starting point and destination, and add one or more waypoints in between. 
+
+For example, if you're starting and ending in San Francisco but making a stop in Los Angeles, you’d enter: **San Francisco → Los Angeles → San Francisco**.
+
 </div>
