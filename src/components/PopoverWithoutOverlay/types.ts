@@ -5,7 +5,7 @@ import type BaseModalProps from '@components/Modal/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type PopoverWithoutOverlayProps = ChildrenProps &
-    Omit<BaseModalProps, 'type' | 'popoverAnchorPosition'> & {
+    Omit<BaseModalProps, 'type' | 'popoverAnchorPosition' | 'onClose'> & {
         /** The anchor position of the popover */
         anchorPosition?: {
             top?: number;
@@ -25,6 +25,9 @@ type PopoverWithoutOverlayProps = ChildrenProps &
 
         /** The ref of the popover */
         withoutOverlayRef: RefObject<View | HTMLDivElement>;
+
+        /** The onClose callback */
+        onClose: () => void;
     };
 
 export default PopoverWithoutOverlayProps;
