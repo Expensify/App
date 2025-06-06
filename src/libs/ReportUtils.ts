@@ -5782,17 +5782,11 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getReportDetails(reportID: string, report?: Report): {reportName: string; reportUrl: string} {
-    return {
-        reportName: getReportName(report) ?? report?.reportName ?? '',
-        reportUrl: `${environmentURL}/r/${reportID}`,
-    };
-}
-
-function getMovedTransactionMessage(action: ReportAction, report?: Report) {
+function getMovedTransactionMessage(action: ReportAction, report?: Report, parentReportAction: OnyxEntry<OnyxTypes.ReportAction>) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
     const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    const {reportName, reportUrl} = getReportDetails(toReportID, report);
+    const reportName = getReportName(report, undefined, parentReportActionParam) ?? report?.reportName ?? '';
+    const reportUrl = `${environmentURL}/r/${toReportID}`;
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
