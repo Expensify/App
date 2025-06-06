@@ -19,12 +19,11 @@ import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionU
 import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
-    hasReceipt,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
-    isReceiptBeingScanned,
+    isScanning,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -49,6 +48,7 @@ import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
+import {useSearchContext} from './Search/SearchContext';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
@@ -92,6 +92,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
     const reportID = report?.reportID;
     const {isBetaEnabled} = usePermissions();
+    const {removeTransaction} = useSearchContext();
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
@@ -106,8 +107,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID);
     }, [reportID, transaction?.transactionID]);
-
-    const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
@@ -145,7 +144,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (hasPendingRTERViolation) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
-        if (isScanning) {
+        if (isScanning(transaction)) {
             return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
@@ -333,6 +332,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         deleteTrackExpense(report?.chatReportID, transaction.transactionID, parentReportAction, true);
                     } else {
                         deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
+                        removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();
                 }}
