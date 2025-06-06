@@ -721,6 +721,13 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    hasMultipleTagLists: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
@@ -728,6 +735,13 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
             },
         ],
         failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    hasMultipleTagLists: false,
+                },
+            },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
