@@ -35,11 +35,10 @@ type CarouselButtonsProps = {
 function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow}: CarouselButtonsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     const isBackDisabled = page === 0;
     const isForwardDisabled = page === attachments.length - 1;
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return shouldShowArrows ? (
         <>
