@@ -3,13 +3,15 @@
  */
 import * as dotenv from 'dotenv';
 import fs from 'fs';
-import OpenAI from 'openai';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
 import StringUtils from '../src/libs/StringUtils';
 import type Locale from '../src/types/onyx/Locale';
 import Prettier from './utils/Prettier';
+import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
+import DummyTranslator from './utils/Translator/DummyTranslator';
+import type Translator from './utils/Translator/types';
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
@@ -39,15 +41,15 @@ class TranslationGenerator {
     private readonly sourceFile: string;
 
     /**
-     * OpenAI API client to perform translations. If undefined, it's assumed that this is a dry run for testing.
+     * Translator module to perform translations.
      */
-    private readonly openai: OpenAI | undefined;
+    private readonly translator: Translator;
 
-    constructor(config: {targetLanguages: Locale[]; languagesDir: string; sourceFile: string; openai?: OpenAI}) {
+    constructor(config: {targetLanguages: Locale[]; languagesDir: string; sourceFile: string; translator: Translator}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         this.sourceFile = config.sourceFile;
-        this.openai = config.openai;
+        this.translator = config.translator;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -61,7 +63,7 @@ class TranslationGenerator {
 
             const translations = new Map<number, string>();
             for (const [key, value] of stringsToTranslate) {
-                translations.set(key, await this.translate(value, targetLanguage));
+                translations.set(key, await this.translator.translate(value, targetLanguage));
             }
 
             // Replace translated strings in the AST
@@ -82,39 +84,6 @@ class TranslationGenerator {
             await Prettier.format(outputPath);
 
             console.log(`✅ Translated file created: ${outputPath}`);
-        }
-    }
-
-    /**
-     * Translate a single string to a target language.
-     */
-    private async translate(text: string, targetLang: string): Promise<string> {
-        if (!text || text.trim().length === 0) {
-            return text;
-        }
-        try {
-            let result: string;
-            if (this.openai) {
-                const response = await this.openai.chat.completions.create({
-                    model: 'gpt-4',
-                    messages: [
-                        {
-                            role: 'system',
-                            content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript template string. Preserve placeholders like \${username}, \${count}, \${123456} etc without modifying their contents or removing the brackets. In most cases, the contents of the placeholders are descriptive of what they represent in the phrase, but in some cases the placeholders may just contain a number. If it can't be translated, reply with the same text unchanged. Be cautious not to change any URLs.`,
-                        },
-                        {role: 'user', content: text},
-                    ],
-                    temperature: 0.3,
-                });
-                result = response.choices.at(0)?.message?.content?.trim() ?? text;
-            } else {
-                result = `[${targetLang}] ${text}`;
-            }
-            console.log(`🧠 Translated "${text}" to ${targetLang}: "${result}"`);
-            return result;
-        } catch (error) {
-            console.error(`Error translating "${text}" to ${targetLang}:`, error);
-            return text; // Fallback to English if translation fails
         }
     }
 
@@ -344,25 +313,21 @@ class TranslationGenerator {
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
 async function main(): Promise<void> {
+    let translator: Translator;
     const isDryRun = process.argv.includes('--dry-run');
     if (isDryRun) {
         console.log('🍸 Dry run enabled');
-    }
-
-    // Ensure OPEN_AI_KEY is set in environment
-    if (!isDryRun && !process.env.OPENAI_API_KEY) {
-        dotenv.config({path: path.resolve(__dirname, '../.env')});
+        translator = new DummyTranslator();
+    } else {
+        // Ensure OPEN_AI_KEY is set in environment
         if (!process.env.OPENAI_API_KEY) {
-            console.error(`❌ OPENAI_API_KEY not found in environment.`);
+            // If not, try to load it from .env
+            dotenv.config({path: path.resolve(__dirname, '../.env')});
+            if (!process.env.OPENAI_API_KEY) {
+                throw new Error('❌ OPENAI_API_KEY not found in environment.');
+            }
         }
-    }
-
-    // Initialize OpenAI API
-    let openai: OpenAI | undefined;
-    if (!isDryRun) {
-        openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
+        translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
     }
 
     const languagesDir = process.env.LANGUAGES_DIR || path.join(__dirname, '../src/languages');
@@ -372,7 +337,7 @@ async function main(): Promise<void> {
         targetLanguages: ['it' as Locale],
         languagesDir,
         sourceFile: enSourceFile,
-        openai,
+        translator,
     });
     await generator.generateTranslations();
 }
