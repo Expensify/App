@@ -214,9 +214,8 @@ class TranslationGenerator {
                     stringsToTranslate.set(StringUtils.hash(node.getText()), this.simpleTemplateExpressionToString(node));
                 } else {
                     console.log('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
-                    const hash = StringUtils.hash(node.getText());
                     node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
-                    stringsToTranslate.set(hash, this.complexTemplateExpressionToString(node));
+                    stringsToTranslate.set(StringUtils.hash(node.getText()), this.complexTemplateExpressionToString(node));
                 }
             }
         }
@@ -251,39 +250,7 @@ class TranslationGenerator {
         return result;
     }
 
-    private stringToSimpleTemplateExpression(input: string): ts.TemplateExpression {
-        const regex = /\$\{([^}]*)}/g;
-        const spans: ts.TemplateSpan[] = [];
-
-        const matchIterator = input.matchAll(regex);
-
-        const firstMatch = matchIterator.next();
-        const headText = firstMatch.done ? input : input.slice(0, firstMatch.value.index);
-        const templateHead = ts.factory.createTemplateHead(headText);
-
-        // Reset iterator
-        const matches = [...input.matchAll(regex)];
-
-        for (let i = 0; i < matches.length; i++) {
-            // eslint-disable-next-line rulesdir/prefer-at
-            const match = matches[i];
-            const [fullMatch, exprText] = match;
-            const expr = ts.factory.createIdentifier(exprText.trim());
-
-            const startOfMatch = match.index;
-            const nextStaticTextStart = startOfMatch + fullMatch.length;
-            const nextStaticTextEnd = i + 1 < matches.length ? matches.at(i + 1)?.index : input.length;
-            const staticText = input.slice(nextStaticTextStart, nextStaticTextEnd);
-
-            const literal = i === matches.length - 1 ? ts.factory.createTemplateTail(staticText) : ts.factory.createTemplateMiddle(staticText);
-
-            spans.push(ts.factory.createTemplateSpan(expr, literal));
-        }
-
-        return ts.factory.createTemplateExpression(templateHead, spans);
-    }
-
-    private stringToComplexTemplateExpression(input: string, translatedComplexSpans: Map<number, ts.TemplateSpan>): ts.TemplateExpression {
+    private stringToTemplateExpression(input: string, translatedComplexSpans = new Map<number, ts.TemplateSpan>()): ts.TemplateExpression {
         const regex = /\$\{([^}]*)}/g;
         const spans: ts.TemplateSpan[] = [];
 
@@ -349,7 +316,7 @@ class TranslationGenerator {
                         }
 
                         if (this.isSimpleTemplateExpression(node)) {
-                            return this.stringToSimpleTemplateExpression(translatedTemplate);
+                            return this.stringToTemplateExpression(translatedTemplate);
                         }
 
                         // Template expression is complex: recursively translate all complex template spans first
@@ -364,7 +331,7 @@ class TranslationGenerator {
                         }
 
                         // Build the translated template expression, referencing the translated template spans as necessary
-                        return this.stringToComplexTemplateExpression(translatedTemplate, translatedComplexSpans);
+                        return this.stringToTemplateExpression(translatedTemplate, translatedComplexSpans);
                     }
                 }
                 return ts.visitEachChild(node, visit, context);
