@@ -1242,7 +1242,9 @@ function getOneTransactionThreadReportID(
 
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
-        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true)) {
+        // If the original message is a 'pay' IOU, it shouldn't be added to the transaction count.
+        // However, it is excluded from the matching function in order to display it properly, so we need to compare the type here.
+        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true) || getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             // eslint-disable-next-line no-continue
             continue;
         }
@@ -1252,6 +1254,7 @@ function getOneTransactionThreadReportID(
         if (
             actionType &&
             iouRequestTypesSet.has(actionType) &&
+            action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an associated IOU transaction ID or
             // - they have visible childActions (like comments) that we'd want to display
@@ -1279,8 +1282,8 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
-    return singleAction?.childReportID ?? CONST.FAKE_REPORT_ID;
+    // Ensure we have a childReportID associated with the IOU report action
+    return singleAction?.childReportID;
 }
 
 /**

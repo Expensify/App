@@ -12,8 +12,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import NavigationTabBarDummy from '@components/Navigation/NavigationTabBar/NavigationTabBarDummy';
 import TopBar from '@components/Navigation/TopBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -318,7 +318,7 @@ function WorkspacesListPage() {
 
     const listHeaderComponent = useCallback(() => {
         if (isLessThanMediumScreen) {
-            return <View style={styles.mt3} />;
+            return <View style={styles.mt2} />;
         }
 
         return (
@@ -482,7 +482,7 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                bottomContent={shouldUseNarrowLayout && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <TopBar breadcrumbLabel={translate('common.workspaces')} />
@@ -490,7 +490,7 @@ function WorkspacesListPage() {
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     <ScrollView
-                        contentContainerStyle={styles.pt3}
+                        contentContainerStyle={styles.pt2}
                         addBottomSafeAreaPadding
                     >
                         <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -509,7 +509,7 @@ function WorkspacesListPage() {
                         </View>
                     </ScrollView>
                 )}
-                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                {shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </ScreenWrapper>
         );
     }
@@ -520,11 +520,11 @@ function WorkspacesListPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={shouldUseNarrowLayout && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{getHeaderButton()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
                 <FlatList
                     data={workspaces}
                     renderItem={getMenuItem}
@@ -546,7 +546,7 @@ function WorkspacesListPage() {
                 isModalOpen={isSupportalActionRestrictedModalOpen}
                 hideSupportalModal={hideSupportalModal}
             />
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            {shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
     );
 }
