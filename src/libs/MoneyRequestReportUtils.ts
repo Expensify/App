@@ -10,7 +10,6 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
-    isReportTransactionThread,
 } from './ReportUtils';
 
 /**
@@ -68,30 +67,6 @@ function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction
 }
 
 /**
- * Given a list of transaction, this function checks if a given report has exactly one transaction
- *
- * Note: this function may seem a bit trivial, but it's used as a guarantee that the same logic of checking for report
- * is used in context of Search and Inbox
- */
-function isSingleTransactionReport(report: OnyxEntry<Report>, transactions: Transaction[]) {
-    if (transactions.length !== 1) {
-        return false;
-    }
-
-    return transactions.at(0)?.reportID === report?.reportID;
-}
-
-/**
- * Returns whether a "table" ReportView/MoneyRequestReportView should be used for the report.
- *
- * If report is a special "transaction thread" we want to use other Report views.
- * Likewise, if report has only 1 connected transaction, then we also use other views.
- */
-function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[]) {
-    return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
-}
-
-/**
  * Determines the total amount to be displayed based on the selected button type in the IOU Report Preview.
  *
  * @param report - Onyx report object
@@ -127,11 +102,4 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
-export {
-    isActionVisibleOnMoneyRequestReport,
-    getThreadReportIDsForTransactions,
-    getTotalAmountForIOUReportPreviewButton,
-    selectAllTransactionsForReport,
-    isSingleTransactionReport,
-    shouldDisplayReportTableView,
-};
+export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton, selectAllTransactionsForReport};
