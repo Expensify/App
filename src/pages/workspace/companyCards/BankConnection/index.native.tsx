@@ -115,9 +115,9 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
         }
-    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard]);
+    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard?.data?.dateOption]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
