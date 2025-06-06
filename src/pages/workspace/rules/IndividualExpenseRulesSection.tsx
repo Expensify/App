@@ -180,6 +180,10 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
 
+    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
+    // Control policies if the policy does not contain the attribute
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
+
     return (
         <Section
             isCentralPane
@@ -239,9 +243,9 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
                             <Switch
-                                isOn={!!policy?.isAttendeeTrackingEnabled}
+                                isOn={isAttendeeTrackingEnabled}
                                 accessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !policy?.isAttendeeTrackingEnabled)}
+                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
                             />
                         </View>
                     </OfflineWithFeedback>
