@@ -44,12 +44,12 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
 
     return Onyx.clear(keysToPreserve).then(() => {
         clearAllPolicies();
-        
+
         // Restore the staging server setting if it was set
         if (stagingServerSetting !== undefined) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {shouldUseStagingServer: stagingServerSetting});
         }
-        
+
         if (!errorMessage) {
             return;
         }
