@@ -55,8 +55,9 @@ function CurrencySelectionList({
             : [];
 
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
-        let filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
-        filteredCurrencies = filteredCurrencies.sort((currency1, currency2) => getMatchScore(currency2.text ?? '', searchValue) - getMatchScore(currency1.text ?? '', searchValue));
+        const filteredCurrencies = currencyOptions
+            .filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName))
+            .sort((currency1, currency2) => getMatchScore(currency2.text ?? '', searchValue) - getMatchScore(currency1.text ?? '', searchValue));
 
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
         const shouldDisplayRecentlyOptions = !isEmptyObject(recentlyUsedCurrencyOptions) && !searchValue;
