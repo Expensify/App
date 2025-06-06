@@ -144,9 +144,9 @@ describe('generateTranslations', () => {
                     const strings = {
                         simple: (name: string, greeting: string) => \`\${greeting} good sir \${name}!\`,
                         simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`\${myParams.greeting} good sir \${myParams.greeting}!\`,
-                        simpleWithNullishCoalesce: (name: string) => \`Pay \${name ?? 'someone'}\`,
-                        simpleWithFalsyCoalesce: (name: string) => \`Pay \${name || 'someone'}\`,
                         complex: (action: {actionName: string}) => \`Edit \${action.actionName === 'shouldNotBeTranslated' ? 'expense' : 'comment'}\`,
+                        complexWithNullishCoalesce: (name: string) => \`Pay \${name ?? 'someone'}\`,
+                        complexWithFalsyCoalesce: (name: string) => \`Pay \${name || 'someone'}\`,
                         extraComplex: (payer: string) => \`\${payer ? \`\${payer} \` : ''}paid elsewhere\`,
                         evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`\${someBool ? \`\${someOtherBool ? 'Hello' : 'Goodbye'} moon\` : 'Goodnight, moon' }, kupo\`,
                         tooComplex: (numScanning: number, numPending: number) => {
@@ -181,12 +181,12 @@ describe('generateTranslations', () => {
                     const strings = {
                         simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
                         simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
-                        simpleWithNullishCoalesce: (name: string) => \`[it] Pay \${name ?? '[it] someone'}\`,
-                        simpleWithFalsyCoalesce: (name: string) => \`[it] Pay \${name || '[it] someone'}\`,
                         complex: (action: {actionName: string}) => \`[it] Edit \${action.actionName === 'shouldNotBeTranslated' ? '[it] expense' : '[it] comment'}\`,
+                        complexWithNullishCoalesce: (name: string) => \`[it] Pay \${name ?? '[it] someone'}\`,
+                        complexWithFalsyCoalesce: (name: string) => \`[it] Pay \${name || '[it] someone'}\`,
                         extraComplex: (payer: string) => \`[it] \${payer ? \`[it] \${payer} as payer \` : ''}paid elsewhere\`\`,
                         extraComplexButJustWhitespace: (payer: string) => \`[it] \${payer ? \`\${payer} \` : ''}paid elsewhere\`\`,
-                        evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`[it] \${someBool ? \`[it] \${someOtherBool ? '[it] Hello' : '[it] Goodbye'} moon\` : '[it] Goodnight, moon' }, kupo\`,
+                        evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`[it] \${someBool ? \`[it] \${someOtherBool ? '[it] Hello' : '[it] Goodbye'} moon\` : '[it] Goodnight, moon'}, kupo\`,
                         tooComplex: (numScanning: number, numPending: number) => {
                             const statusText: string[] = [];
                             if (numScanning > 0) {

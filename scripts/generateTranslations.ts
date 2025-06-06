@@ -132,7 +132,12 @@ class TranslationGenerator {
             (!ts.isImportDeclaration(node.parent) && // Ignore import paths
                 !ts.isExportDeclaration(node.parent) && // Ignore export paths
                 !ts.isCaseClause(node.parent) && // Ignore switch-case strings
-                !ts.isBinaryExpression(node.parent) && // ignore conditional expressions (string is left-or-right-hand side of a conditional, and we want to ignore it)
+                !(
+                    ts.isBinaryExpression(node.parent) &&
+                    node.parent.operatorToken.kind !== ts.SyntaxKind.QuestionQuestionToken &&
+                    node.parent.operatorToken.kind !== ts.SyntaxKind.BarBarToken &&
+                    node.parent.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken
+                ) && // ignore conditional expressions. If string is left-or-right-hand side of a conditional, we want to ignore it. However, coalescing operators and the operands of += we _do_ want to translate.
                 !(
                     ts.isCallExpression(node.parent) &&
                     ts.isPropertyAccessExpression(node.parent.expression) &&
@@ -254,7 +259,7 @@ class TranslationGenerator {
         return ts.factory.createTemplateExpression(templateHead, spans);
     }
 
-    private stringToComplexTemplateExpression(input: string): ts.TemplateExpression {
+    private stringToComplexTemplateExpression(input: string, translatedComplexSpans: Map<number, ts.TemplateSpan>): ts.TemplateExpression {
         const regex = /\$\{([^}]*)}/g;
         const spans: ts.TemplateSpan[] = [];
 
@@ -274,20 +279,14 @@ class TranslationGenerator {
             let expr: ts.Expression;
 
             if (/^\d+$/.test(trimmed)) {
-                // It's a hash reference to a complex template
+                // It's a hash reference to a complex span
                 const hashed = Number(trimmed);
-
-                // TODO: here we need a way to reference the translated complex span (look it up in some map by key)
-                //       But I think we may also be missing the depth-first recursion needed here.
-                //       We need to translate each of the spans and save the translated spans in a map before we can try
-                //       to convert the serialized and translated complex template expression back into a translated AST
-                const referencedTemplate = '';
-                if (!referencedTemplate) {
+                const translatedSpan = translatedComplexSpans.get(hashed);
+                if (!translatedSpan) {
                     throw new Error(`No template found for hash: ${hashed}`);
                 }
-
-                const expandedString = this.complexTemplateExpressionToString(referencedTemplate);
-                expr = this.stringToComplexTemplateExpression(expandedString);
+                spans.push(translatedSpan);
+                continue;
             } else {
                 // Assume it's a simple identifier or property access
                 expr = ts.factory.createIdentifier(trimmed);
@@ -329,7 +328,19 @@ class TranslationGenerator {
                             return this.stringToSimpleTemplateExpression(translatedTemplate);
                         }
 
-                        return this.stringToComplexTemplateExpression(translatedTemplate);
+                        // Template expression is complex: recursively translate all complex template spans first
+                        const translatedComplexSpans = new Map<number, ts.TemplateSpan>();
+                        for (const span of node.templateSpans) {
+                            if (this.isSimpleTemplateSpan(span)) {
+                                continue;
+                            }
+                            const hash = StringUtils.hash(span.expression.getText());
+                            const translatedSpan = ts.visitNode(span, visit);
+                            translatedComplexSpans.set(hash, translatedSpan as ts.TemplateSpan);
+                        }
+
+                        // Build the translated template expression, referencing the translated template spans as necessary
+                        return this.stringToComplexTemplateExpression(translatedTemplate, translatedComplexSpans);
                     }
                 }
                 return ts.visitEachChild(node, visit, context);
