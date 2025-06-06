@@ -45,7 +45,7 @@ function RequestEarlyCancellationPage() {
                 contentWidth={windowWidth}
                 systemFonts={systemFonts}
                 source={{
-                    html: translate('subscription.requestEarlyCancellation.acknowledgement.full').replace(
+                    html: translate('subscription.requestEarlyCancellation.acknowledgement').replace(
                         '<a>',
                         `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}" style="text-decoration: none;">`,
                     ),
