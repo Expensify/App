@@ -1,8 +1,8 @@
 import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {Linking, useWindowDimensions} from 'react-native';
+import {Linking, View} from 'react-native';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
+import type {CustomRendererProps} from 'react-native-render-html';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -15,6 +15,7 @@ import TextLink from '@components/TextLink';
 import useCancellationType from '@hooks/useCancellationType';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
     const {translate} = useLocalize();
-    const {width} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
 
@@ -41,7 +42,7 @@ function RequestEarlyCancellationPage() {
     const acknowledgementText = useMemo(
         () => (
             <RenderHtml
-                contentWidth={width}
+                contentWidth={windowWidth}
                 systemFonts={systemFonts}
                 source={{
                     html: translate('subscription.requestEarlyCancellation.acknowledgement.full').replace(
@@ -54,7 +55,7 @@ function RequestEarlyCancellationPage() {
                     body: {...styles.textNormalThemeText},
                 }}
                 renderers={{
-                    a: ({TDefaultRenderer, ...props}) => (
+                    a: ({TDefaultRenderer, ...props}: CustomRendererProps<any>) => (
                         <TextLink onPress={() => Linking.openURL(CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL)}>
                             <TDefaultRenderer {...props} />
                         </TextLink>
