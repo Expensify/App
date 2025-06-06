@@ -5035,6 +5035,7 @@ const translations = {
                 hotelIncidentals: 'Hotel incidentals',
                 gambling: 'Gambling',
                 tobacco: 'Tobacco',
+                movies: 'Movies',
                 adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
