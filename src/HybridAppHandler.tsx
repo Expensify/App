@@ -1,44 +1,19 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import {useContext, useState} from 'react';
 import type {AppProps} from './App';
+import CONFIG from './CONFIG';
 import CONST from './CONST';
 import {signInAfterTransitionFromOldDot} from './libs/actions/Session';
-import Navigation, {navigationRef} from './libs/Navigation/Navigation';
-import type {Route} from './ROUTES';
-import ROUTES from './ROUTES';
-import SCREENS from './SCREENS';
 import SplashScreenStateContext from './SplashScreenStateContext';
 
-let isInitialNavigationHandled = false;
-
-function handleHybridUrlNavigation(url: Route) {
-    isInitialNavigationHandled = true;
-    const parsedUrl = Navigation.parseHybridAppUrl(url);
-
-    Navigation.isNavigationReady().then(() => {
-        if (parsedUrl.startsWith(`/${ROUTES.SHARE_ROOT}`)) {
-            const focusRoute = findFocusedRoute(navigationRef.getRootState());
-            if (focusRoute?.name === SCREENS.SHARE.SHARE_DETAILS || focusRoute?.name === SCREENS.SHARE.SUBMIT_DETAILS) {
-                Navigation.goBack(ROUTES.SHARE_ROOT);
-                return;
-            }
-        }
-        Navigation.navigate(parsedUrl);
-    });
-}
-
-function HybridAppHandler({url, hybridAppSettings}: AppProps) {
+function HybridAppHandler({hybridAppSettings}: AppProps) {
     const [signInHandled, setSignInHandled] = useState(false);
     const {setSplashScreenState} = useContext(SplashScreenStateContext);
 
-    if (!url || !hybridAppSettings || signInHandled) {
+    if (!CONFIG.IS_HYBRID_APP || !hybridAppSettings || signInHandled) {
         return null;
     }
 
     signInAfterTransitionFromOldDot(hybridAppSettings).then(() => {
-        if (!isInitialNavigationHandled) {
-            handleHybridUrlNavigation(url);
-        }
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
         setSignInHandled(true);
     });
@@ -49,4 +24,3 @@ function HybridAppHandler({url, hybridAppSettings}: AppProps) {
 HybridAppHandler.displayName = 'HybridAppHandler';
 
 export default HybridAppHandler;
-export {handleHybridUrlNavigation}
