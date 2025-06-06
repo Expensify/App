@@ -5,6 +5,7 @@ type AddCommentOrAttachmentParams = {
     reportActionID?: string;
     commentReportActionID?: string | null;
     reportComment?: string;
+    attachmentID?: string;
     file?: FileObject;
     timezone?: string;
     clientCreatedTime?: string;

@@ -213,7 +213,7 @@ function AttachmentPicker({
                     fileName: file.name ?? '',
                 };
             }) as [FileToCopy, ...FileToCopy[]],
-            destination: 'cachesDirectory',
+            destination: 'documentDirectory',
         });
 
         return pickedFiles.map((file, index) => {
@@ -221,7 +221,7 @@ function AttachmentPicker({
             if (localCopy.status !== 'success') {
                 throw new Error("Couldn't create local file copy");
             }
-
+            console.log('picked files', localCopy.localUri);
             return {
                 name: file.name,
                 uri: localCopy.localUri,

@@ -159,12 +159,15 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
  * appears inside the report action message so as to identify attachments with identical source inside a report action.
  */
 function getHtmlWithAttachmentID(html: string, reportActionID: string | undefined) {
-    if (!reportActionID) {
+    const dataAttachmentRegex = /data-attachment-id=(["'])(.*?)\1/;
+    const dataAttachmentMatch = html.match(dataAttachmentRegex);
+    const attachmentID = dataAttachmentMatch && dataAttachmentMatch[2];
+    if (attachmentID) {
         return html;
     }
 
-    let attachmentID = 0;
-    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
+    let index = 0;
+    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++index}" `));
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {

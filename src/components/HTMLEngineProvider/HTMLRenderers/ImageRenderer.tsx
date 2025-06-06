@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React, {memo, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -12,7 +12,8 @@ import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {getAttachmentSource} from '@libs/actions/Attachment';
+import {getFileName, getFileType, isLocalFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -66,7 +67,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
     const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replace(/\.png\.(1024|320)\.jpg$/, '.png') : previewSource;
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
-
+    const imageSource = getAttachmentSource(attachmentID) || processedPreviewSource;
+    console.log('imageSource', imageSource);
+    const isAuthTokenRequired = isLocalFile(imageSource) ? false : isAttachmentOrReceipt;
     const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
@@ -84,9 +87,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={processedPreviewSource}
+            previewSourceURL={imageSource}
             style={styles.webViewStyles.tagStyles.img}
-            isAuthTokenRequired={isAttachmentOrReceipt}
+            isAuthTokenRequired={isAuthTokenRequired}
             fallbackIcon={fallbackIcon}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
