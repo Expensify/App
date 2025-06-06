@@ -76,7 +76,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 The submitter will be notified so they can revise or delete the expense.
 
-**Note:** Paid reports cannot be unapproved. If the expense was already exported to accounting software, unapproving it may cause reconciliation issues. Be sure to remove the exported data before reapproving.
+**Note:** Paid reports cannot be unapproved. If the expense was already exported to accounting software, unapproving it may cause reconciliation issues. Be sure to remove the exported data before re-approving.
 
 ---
 
