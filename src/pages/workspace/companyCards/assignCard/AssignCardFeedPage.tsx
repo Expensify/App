@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useInitial from '@hooks/useInitial';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import PlaidConnectionStep from '@pages/workspace/companyCards/addNew/PlaidConnectionStep';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -58,6 +59,8 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                     feed={feed}
                 />
             );
+        case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
+            return <PlaidConnectionStep feed={feed} />;
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
             return (
                 <AssigneeStep

@@ -32,10 +32,12 @@ import {
     getGroupChatName,
     getIconsForParticipants,
     getInvoiceChatByParticipants,
+    getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParticipantsList,
     getPolicyExpenseChat,
     getQuickActionDetails,
+    getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName,
     getWorkspaceIcon,
@@ -53,6 +55,7 @@ import {
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@src/CONST';
@@ -1797,6 +1800,7 @@ describe('ReportUtils', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
 
             expect(
                 shouldReportBeInOptionList({
@@ -1807,6 +1811,7 @@ describe('ReportUtils', () => {
                     policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    isReportArchived: isReportArchived.current,
                 }),
             ).toBeTruthy();
         });
@@ -1825,6 +1830,7 @@ describe('ReportUtils', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
 
             expect(
                 shouldReportBeInOptionList({
@@ -1835,6 +1841,7 @@ describe('ReportUtils', () => {
                     policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    isReportArchived: isReportArchived.current,
                 }),
             ).toBeFalsy();
         });
@@ -2800,6 +2807,30 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getMoneyReportPreviewName', () => {
+        it('should return the report name if present', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe('Five, Four, One, Three, Two...');
+        });
+
+        it('should return the child report name if the report name is not present', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: 'Child Report',
+            };
+            const result = getMoneyReportPreviewName(action, undefined);
+            expect(result).toBe('Child Report');
+        });
+    });
+
     describe('canAddTransaction', () => {
         it('should return true for a non-archived report', async () => {
             // Given a non-archived expense report
@@ -2869,6 +2900,43 @@ describe('ReportUtils', () => {
 
             // Then the result is false
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getReasonAndReportActionThatRequiresAttention', () => {
+        it('should return a reason for a non-archived report', async () => {
+            // Given a non-archived expense report that is unread with a mention
+            const report: OptionData = {
+                ...createRandomReport(30000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                isUnreadWithMention: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+
+            // There should be some kind of a reason (any reason is fine)
+            expect(result).toHaveProperty('reason');
+        });
+
+        it('should return null for an archived report', async () => {
+            // Given an archived expense report that is unread with a mention
+            const report: OptionData = {
+                ...createRandomReport(30000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                isUnreadWithMention: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+
+            // Then the result is null
+            expect(result).toBe(null);
         });
     });
 });
