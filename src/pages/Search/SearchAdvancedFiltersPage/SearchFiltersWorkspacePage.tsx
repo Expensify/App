@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-const updateWorkspaceFilter = (policyID: string | null) => {
+const updateWorkspaceFilter = (policyID: string[] | null) => {
     updateAdvancedFilters({
         policyID,
     });
@@ -36,13 +38,43 @@ function SearchFiltersWorkspacePage() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
+    const [selectedOptions, setSelectedOptions] = useState<string[]>(searchAdvancedFiltersForm?.policyID ?? []);
+
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyID: searchAdvancedFiltersForm?.policyID,
+        selectedPolicyIDs: selectedOptions,
         searchTerm: debouncedSearchTerm,
     });
+
+    const selectWorkspace = useCallback(
+        (option: WorkspaceListItem) => {
+            const optionIndex = selectedOptions.findIndex((selectedOption: string) => {
+                const matchesPolicyId = selectedOption && selectedOption === option?.policyID;
+                // Below is just a boolean expression.
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                return matchesPolicyId;
+            });
+
+            if (optionIndex === -1 && option?.policyID) {
+                setSelectedOptions([...selectedOptions, option.policyID]);
+            } else {
+                const newSelectedOptions = [...selectedOptions.slice(0, optionIndex), ...selectedOptions.slice(optionIndex + 1)];
+                setSelectedOptions(newSelectedOptions);
+            }
+        },
+        [selectedOptions],
+    );
+
+    const applyChanges = useCallback(() => {
+        const policyIds = selectedOptions.map((option) => (option ? option.toString() : undefined)).filter(Boolean) as string[];
+        updateWorkspaceFilter(policyIds);
+    }, [selectedOptions]);
+
+    const resetChanges = useCallback(() => {
+        updateWorkspaceFilter(null);
+    }, []);
 
     return (
         <ScreenWrapper
@@ -64,21 +96,34 @@ function SearchFiltersWorkspacePage() {
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (
                         <SelectionList<WorkspaceListItem>
-                            ListItem={UserListItem}
+                            ListItem={UserSelectionListItem}
                             sections={sections}
-                            onSelectRow={(option) => {
-                                if (option.policyID === searchAdvancedFiltersForm?.policyID || !option.policyID) {
-                                    updateWorkspaceFilter(null);
-                                    return;
-                                }
-                                updateWorkspaceFilter(option.policyID);
-                            }}
+                            canSelectMultiple
+                            shouldUseDefaultRightHandSideCheckmark
                             textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
                             textInputValue={searchTerm}
                             onChangeText={setSearchTerm}
+                            onSelectRow={selectWorkspace}
                             headerMessage={shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : ''}
-                            initiallyFocusedOptionKey={searchAdvancedFiltersForm?.policyID}
+                            initiallyFocusedOptionKey={selectedOptions?.at(0)}
                             showLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
+                            footerContent={
+                                <>
+                                    <Button
+                                        large
+                                        style={[styles.flex1, styles.mb3]}
+                                        text={translate('common.reset')}
+                                        onPress={resetChanges}
+                                    />
+                                    <Button
+                                        success
+                                        large
+                                        style={[styles.flex1]}
+                                        text={translate('common.apply')}
+                                        onPress={applyChanges}
+                                    />
+                                </>
+                            }
                         />
                     )}
                 </>
