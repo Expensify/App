@@ -12,7 +12,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, PrivatePersonalDetails} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, OriginalMessageTravelUpdate} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -1531,7 +1531,11 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
 }
 
 function getTravelUpdateMessage(action: ReportAction, formatDate?: (datetime: string, includeTimezone: boolean, isLowercase?: boolean | undefined) => string) {
-    const details = getOriginalMessage(action) as OriginalMessageTravelUpdate;
+    const details = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE) ? getOriginalMessage(action) : undefined;
+    if (!details) {
+        return translateLocal('travel.updates.notSupported');
+    }
+
     const formattedStartDate = formatDate?.(details.start.date, false) ?? format(details.start.date, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
     switch (details?.operation) {
@@ -1688,7 +1692,9 @@ function getTravelUpdateMessage(action: ReportAction, formatDate?: (datetime: st
             });
 
         default:
-            return 'Trip was updated';
+            return translateLocal('travel.updates.defaultUpdate', {
+                type: details.type,
+            });
     }
 }
 

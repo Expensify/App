@@ -2999,6 +2999,7 @@ const translations = {
             railTicketExchange: ({origin, destination, startDate}: RailTicketParams) => `Tu billete de tren de ${origin} a ${destination} para el ${startDate} ha sido cambiado.`,
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Tu billete de tren de ${origin} a ${destination} para el ${startDate} ha sido actualizado.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Tu reserva de ${type} fue actualizada.`,
+            notSupported: 'Actualización de viaje no admitida.',
         },
     },
     workspace: {

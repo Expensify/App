@@ -869,5 +869,4 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
-    OriginalMessageTravelUpdate,
 };
