@@ -2,9 +2,10 @@ import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
+import {iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Report, ReportAction} from '../../src/types/onyx';
 import createRandomReport from '../utils/collections/reports';
@@ -350,6 +351,75 @@ describe('ReportActionsUtils', () => {
 
         it('returns false if IOUTransactionID does not match any provided reportTransactionIDs', () => {
             expect(isIOUActionMatchingTransactionList(mockIOUAction, ['123', '124'])).toBeFalsy();
+        });
+    });
+
+    describe('getOneTransactionThreadReportID', () => {
+        const IOUReportID = 'REPORT_IOU';
+        const IOUExpenseReportID = 'REPORT_EXPENSE';
+        const IOUTransactionID = 'TRANSACTION_IOU';
+        const IOUExpenseTransactionID = 'TRANSACTION_EXPENSE';
+
+        const mockedReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`]: {...mockIOUReport, reportID: IOUReportID},
+            [`${ONYXKEYS.COLLECTION.REPORT}${IOUExpenseReportID}`]: {...mockIOUReport, type: CONST.REPORT.TYPE.EXPENSE, reportID: IOUExpenseReportID},
+        };
+
+        const linkedCreateAction = {
+            ...mockIOUAction,
+            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+        };
+
+        const unlinkedCreateAction = {
+            ...mockIOUAction,
+            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID: IOUExpenseTransactionID},
+        };
+
+        const linkedDeleteAction = {
+            ...mockIOUAction,
+            originalMessage: {
+                ...getOriginalMessage(mockIOUAction),
+                IOUTransactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+            },
+        };
+
+        const linkedPayAction = {
+            ...mockIOUAction,
+            originalMessage: {
+                ...getOriginalMessage(mockIOUAction),
+                IOUTransactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            },
+        };
+
+        beforeEach(async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, mockedReports);
+        });
+
+        it('should return the childReportID for a valid single IOU action', () => {
+            const result = getOneTransactionThreadReportID(IOUReportID, [linkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it('should return undefined for action with a transaction that is not linked to it', () => {
+            const result = getOneTransactionThreadReportID(IOUReportID, [unlinkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined if multiple IOU actions are present', () => {
+            const result = getOneTransactionThreadReportID(IOUReportID, [linkedCreateAction, linkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toBeUndefined();
+        });
+
+        it('should skip actions where original message type is PAY', () => {
+            const result = getOneTransactionThreadReportID(IOUReportID, [linkedPayAction, linkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it('should return undefined if no valid IOU actions are present', () => {
+            const result = getOneTransactionThreadReportID(IOUReportID, [unlinkedCreateAction, linkedDeleteAction, linkedPayAction], false, [IOUTransactionID]);
+            expect(result).toBeUndefined();
         });
     });
 
@@ -785,6 +855,8 @@ describe('ReportActionsUtils', () => {
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
     });
+
+    describe('getOneTransactionThreadReportID', () => {});
 
     describe('shouldShowAddMissingDetails', () => {
         it('should return true if personal detail is not completed', async () => {
