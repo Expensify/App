@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
 /* eslint-disable no-continue */
+import {MaxHeap} from '@datastructures-js/heap';
 import {Str} from 'expensify-common';
 import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
@@ -144,7 +145,6 @@ import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import {generateAccountID} from './UserUtils';
-import {MaxHeap} from '@datastructures-js/heap';
 
 type SearchOption<T> = OptionData & {
     item: T;
@@ -1253,18 +1253,28 @@ function orderReportOptions(options: OptionData[]) {
     return lodashOrderBy(options, [sortComparatorReportOptionByArchivedStatus, sortComparatorReportOptionByDate], ['asc', 'desc']);
 }
 
-function getMostRecentOptions(options: OptionData[], limit: number): OptionData[] {
-    const heap = new MaxHeap<OptionData>((option) => {
-        return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
-    });
+const recentReportComparator = (option: OptionData) => {
+    return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
+};
+
+function getMostRecentOptions(options: OptionData[], limit: number, comparator: (option: OptionData) => number | string, filter?: (option: OptionData) => boolean | undefined): OptionData[] {
+    Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
+    const heap = new MaxHeap<OptionData>(comparator);
     options.forEach((option) => {
+        if (filter && !filter(option)) {
+            return;
+        }
         heap.push(option);
     });
-    const result = [];
-    while (heap.size() > 0 && result.length < limit) {
-        result.push(heap.pop());
+    const result: OptionData[] = [];
+    while (!heap.isEmpty() && result.length < limit) {
+        /**
+         * Disable the no-non-null assertion rule here because we are checking if the heap is empty before popping an element.
+         */
+        /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+        result.push(heap.pop()!);
     }
-
+    Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     return result;
 }
 
@@ -2483,7 +2493,8 @@ export {
     isMakingLastRequiredTagListOptional,
     processReport,
     shallowOptionsListCompare,
-    getMostRecentOptions
+    getMostRecentOptions,
+    recentReportComparator,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
