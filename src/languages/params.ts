@@ -157,8 +157,6 @@ type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
 type ApprovedAmountParams = {amount: number | string};
 
-type ForwardedAmountParams = {amount: number | string};
-
 type ManagerApprovedParams = {manager: string};
 
 type ManagerApprovedAmountParams = {manager: string; amount: number | string};
@@ -799,7 +797,6 @@ export type {
     ElectronicFundsParams,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
-    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     HeldRequestParams,

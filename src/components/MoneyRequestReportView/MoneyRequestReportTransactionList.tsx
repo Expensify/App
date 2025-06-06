@@ -332,6 +332,7 @@ function MoneyRequestReportTransactionList({
                                 onCheckboxPress={toggleTransaction}
                                 columns={allReportColumns}
                                 scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                                isInReportTableView
                             />
                         </PressableWithFeedback>
                     );

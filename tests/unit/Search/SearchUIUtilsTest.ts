@@ -29,6 +29,15 @@ const transactionID2 = '2';
 const transactionID3 = '3';
 const transactionID4 = '4';
 
+const allViolations = {
+    [`transactionViolations_${transactionID2}`]: [
+        {
+            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        },
+    ],
+};
+
 // Given search data results consisting of involved users' personal details, policyID, reportID and transactionID
 const searchResults: OnyxTypes.SearchResults = {
     data: {
@@ -288,12 +297,7 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             isActionLoading: false,
         },
-        [`transactionViolations_${transactionID2}`]: [
-            {
-                name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-        ],
+        ...allViolations,
         [`transactions_${transactionID3}`]: {
             accountID: adminAccountID,
             amount: 1200,
@@ -484,6 +488,7 @@ const transactionsListItems = [
         errors: undefined,
         isActionLoading: false,
         hasViolation: false,
+        violations: [],
     },
     {
         accountID: 18439984,
@@ -545,6 +550,12 @@ const transactionsListItems = [
         errors: undefined,
         isActionLoading: false,
         hasViolation: true,
+        violations: [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ],
     },
     {
         accountID: 18439984,
@@ -606,6 +617,7 @@ const transactionsListItems = [
         errors: undefined,
         isActionLoading: false,
         hasViolation: undefined,
+        violations: [],
     },
     {
         accountID: 18439984,
@@ -667,6 +679,7 @@ const transactionsListItems = [
         errors: undefined,
         isActionLoading: false,
         hasViolation: undefined,
+        violations: [],
     },
 ] as TransactionListItemType[];
 
@@ -763,6 +776,7 @@ const reportsListItems = [
                 pendingAction: undefined,
                 errors: undefined,
                 isActionLoading: false,
+                violations: [],
             },
         ],
         type: 'expense',
@@ -825,6 +839,12 @@ const reportsListItems = [
                 },
                 hasEReceipt: false,
                 hasViolation: true,
+                violations: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
                 isFromOneTransactionReport: true,
                 keyForList: '2',
                 managerID: 18439984,
@@ -909,18 +929,18 @@ const reportsListItems = [
 describe('SearchUIUtils', () => {
     describe('Test getAction', () => {
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID}`);
+            let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
-            action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID}`);
+            action = SearchUIUtils.getAction(searchResults.data, {}, `transactions_${transactionID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
         test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
-            let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID2}`);
+            let action = SearchUIUtils.getAction(searchResults.data, allViolations, `report_${reportID2}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
 
-            action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID2}`);
+            action = SearchUIUtils.getAction(searchResults.data, allViolations, `transactions_${transactionID2}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
     });
@@ -1071,10 +1091,10 @@ describe('SearchUIUtils', () => {
         Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
-            let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID2}`);
+            let action = SearchUIUtils.getAction(searchResults.data, allViolations, `report_${reportID2}`);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
-            action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID2}`);
+            action = SearchUIUtils.getAction(searchResults.data, allViolations, `transactions_${transactionID2}`);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -1201,7 +1221,7 @@ describe('SearchUIUtils', () => {
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getAction(result.data, 'report_6523565988285061');
+            const action = SearchUIUtils.getAction(result.data, allViolations, 'report_6523565988285061');
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });

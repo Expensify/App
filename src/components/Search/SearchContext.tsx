@@ -23,6 +23,7 @@ const defaultSearchContext: SearchContext = {
     setLastSearchType: () => {},
     setCurrentSearchHash: () => {},
     setSelectedTransactions: () => {},
+    removeTransaction: () => {},
     clearSelectedTransactions: () => {},
     setShouldShowFiltersBarLoading: () => {},
     setShouldShowExportModeOption: () => {},
@@ -104,9 +105,24 @@ function SearchContextProvider({children}: ChildrenProps) {
         [searchContextData.currentSearchHash, setSelectedTransactions],
     );
 
+    const removeTransaction: SearchContext['removeTransaction'] = useCallback(
+        (transactionID) => {
+            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
+            if (!transactionID || !selectedTransactionIDs.length) {
+                return;
+            }
+            setSearchContextData((prevState) => ({
+                ...prevState,
+                selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
+            }));
+        },
+        [searchContextData.selectedTransactionIDs],
+    );
+
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
+            removeTransaction,
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
@@ -130,6 +146,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowExportModeOption,
             isExportMode,
             setExportMode,
+            removeTransaction,
         ],
     );
 

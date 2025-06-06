@@ -230,6 +230,7 @@ function getOrderedReportIDs(
             return;
         }
         const isSystemChat = isSystemChatUtil(report);
+        const isReportArchived = isArchivedReport(reportNameValuePairs);
         const shouldOverrideHidden =
             hasValidDraftComment(report.reportID) ||
             hasErrorsOtherThanFailedReceipt ||
@@ -237,7 +238,7 @@ function getOrderedReportIDs(
             isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
-            (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
+            (!isInFocusMode && isReportArchived) ||
             reportAttributes?.[report?.reportID]?.requiresAttention;
         if (isHidden && !shouldOverrideHidden) {
             return;
@@ -253,6 +254,7 @@ function getOrderedReportIDs(
                 excludeEmptyChats: true,
                 doesReportHaveViolations,
                 includeSelfDM: true,
+                isReportArchived,
             })
         ) {
             reportsToDisplay.push(report);
