@@ -69,3 +69,134 @@ index 0000000..b996822
 +    return focusedRoute?.key;
 +}
 +//# sourceMappingURL=findFocusedRouteKey.js.map
+diff --git a/node_modules/@react-navigation/native/lib/module/useLinking.js b/node_modules/@react-navigation/native/lib/module/useLinking.js
+index d30009f..0dab822 100644
+--- a/node_modules/@react-navigation/native/lib/module/useLinking.js
++++ b/node_modules/@react-navigation/native/lib/module/useLinking.js
+@@ -4,6 +4,7 @@ import { findFocusedRoute, getActionFromState as getActionFromStateDefault, getP
+ import isEqual from 'fast-deep-equal';
+ import * as React from 'react';
+ import { createMemoryHistory } from "./createMemoryHistory.js";
++import { findFocusedRouteKey } from "./findFocusedRouteKey.js";
+ import { ServerContext } from "./ServerContext.js";
+ /**
+  * Find the matching navigation state that changed between 2 navigation states
+@@ -45,6 +46,43 @@ export const series = cb => {
+   return callback;
+ };
+ const linkingHandlers = [];
++function getAllStateKeys(state) {
++  const current = state;
++  const keys = [];
++  if (current.routes) {
++    for (const route of current.routes) {
++      keys.push(route.key);
++      if (route.state) {
++        keys.push(...getAllStateKeys(route.state));
++      }
++    }
++  }
++  return keys;
++}
++function getStaleHistoryDiff(items, newState) {
++  const newStateKeys = getAllStateKeys(newState);
++  for (let i = items.length - 1; i >= 0; i--) {
++    const itemFocusedKey = findFocusedRouteKey(items[i].state);
++    if (newStateKeys.includes(itemFocusedKey)) {
++      return items.length - i - 1;
++    }
++  }
++  return -1;
++}
++function getHistoryDeltaByKeys(focusedState, previousFocusedState) {
++  const focusedStateKeys = focusedState.routes.map(r => r.key);
++  const previousFocusedStateKeys = previousFocusedState.routes.map(r => r.key);
++  const minLength = Math.min(focusedStateKeys.length, previousFocusedStateKeys.length);
++  let matchingKeys = 0;
++  for (let i = 0; i < minLength; i++) {
++    if (focusedStateKeys[i] === previousFocusedStateKeys[i]) {
++      matchingKeys++;
++    } else {
++      break;
++    }
++  }
++  return -(previousFocusedStateKeys.length - matchingKeys);
++}
+ export function useLinking(ref, {
+   enabled = true,
+   config,
+@@ -256,6 +294,9 @@ export function useLinking(ref, {
+       // Otherwise it's likely a change triggered by `popstate`
+       path !== pendingPath) {
+         const historyDelta = (focusedState.history ? focusedState.history.length : focusedState.routes.length) - (previousFocusedState.history ? previousFocusedState.history.length : previousFocusedState.routes.length);
++
++        // The historyDelta and historyDeltaByKeys may differ if the new state has an entry that didn't exist in previous state
++        const historyDeltaByKeys = getHistoryDeltaByKeys(focusedState, previousFocusedState);
+         if (historyDelta > 0) {
+           // If history length is increased, we should pushState
+           // Note that path might not actually change here, for example, drawer open should pushState
+@@ -267,7 +308,8 @@ export function useLinking(ref, {
+           // If history length is decreased, i.e. entries were removed, we want to go back
+ 
+           const nextIndex = history.backIndex({
+-            path
++            path,
++            state
+           });
+           const currentIndex = history.index;
+           try {
+@@ -276,11 +318,26 @@ export function useLinking(ref, {
+             history.get(nextIndex)) {
+               // An existing entry for this path exists and it's less than current index, go back to that
+               await history.go(nextIndex - currentIndex);
++              history.replace({
++                path,
++                state
++              });
+             } else {
+               // We couldn't find an existing entry to go back to, so we'll go back by the delta
+               // This won't be correct if multiple routes were pushed in one go before
+               // Usually this shouldn't happen and this is a fallback for that
+-              await history.go(historyDelta);
++              await history.go(historyDeltaByKeys);
++              if (historyDeltaByKeys + 1 === historyDelta) {
++                history.push({
++                  path,
++                  state
++                });
++              } else {
++                history.replace({
++                  path,
++                  state
++                });
++              }
+             }
+ 
+             // Store the updated state as well as fix the path if incorrect
+@@ -293,10 +350,22 @@ export function useLinking(ref, {
+           }
+         } else {
+           // If history length is unchanged, we want to replaceState
+-          history.replace({
+-            path,
+-            state
+-          });
++          // and remove any entries from history which focused route no longer exists in state
++          // That may happen if we replace a whole navigator.
++
++          const staleHistoryDiff = getStaleHistoryDiff(history.items.slice(0, history.index + 1), state);
++          if (staleHistoryDiff <= 0) {
++            history.replace({
++              path,
++              state
++            });
++          } else {
++            await history.go(-staleHistoryDiff);
++            history.push({
++              path,
++              state
++            });
++          }
+         }
+       } else {
+         // If no common navigation state was found, assume it's a replace
