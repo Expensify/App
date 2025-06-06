@@ -24,6 +24,7 @@ function SystemChatReportFooterMessage() {
     const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
             ? // eslint-disable-next-line deprecation/deprecation
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
               PolicyUtils.getPolicy(activePolicyID)
             : Object.values(policies ?? {}).find(
                   (policy) => PolicyUtils.shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins,

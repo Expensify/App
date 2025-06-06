@@ -660,6 +660,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
     if (transaction && isDistanceRequest(transaction)) {
         const report = getReportOrDraftReport(transaction.reportID);
         // eslint-disable-next-line deprecation/deprecation
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         const policy = policyParam ?? getPolicy(report?.policyID);
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
@@ -1411,6 +1412,7 @@ function compareDuplicateTransactionFields(
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             // eslint-disable-next-line deprecation/deprecation
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
             const policy = getPolicy(report?.policyID);
 
             const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'));

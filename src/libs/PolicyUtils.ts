@@ -740,6 +740,7 @@ function hasPolicyWithXeroConnection(currentUserLogin: string | undefined) {
 /** Whether the user can send invoice from the workspace */
 function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
     return policy?.areInvoicesEnabled ?? false;
 }
@@ -1199,6 +1200,7 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
 
 function getWorkspaceAccountID(policyID?: string) {
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
 
     if (!policy) {
@@ -1209,6 +1211,7 @@ function getWorkspaceAccountID(policyID?: string) {
 
 function hasVBBA(policyID: string | undefined) {
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
     return !!policy?.achAccount?.bankAccountID;
 }
@@ -1218,6 +1221,7 @@ function getTagApproverRule(policyOrID: string | SearchPolicy | OnyxEntry<Policy
         return;
     }
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
 
     const approvalRules = policy?.rules?.approvalRules ?? [];
@@ -1246,6 +1250,7 @@ function getAllPoliciesLength() {
 
 function getActivePolicy(): OnyxEntry<Policy> {
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     return getPolicy(activePolicyId);
 }
 
@@ -1284,6 +1289,7 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
 // eslint-disable-next-line rulesdir/no-negated-variables
 function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
 
     if (!policy) {
@@ -1313,6 +1319,7 @@ function canModifyPlan(policyID?: string) {
         return ownerPolicies.length > 1;
     }
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
 
     return !!policy && isPolicyAdmin(policy);
@@ -1382,6 +1389,7 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
     if (policyID) {
         // eslint-disable-next-line deprecation/deprecation
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         const policy = getPolicy(policyID.toUpperCase());
         return policy?.name ?? domainName;
     }
@@ -1427,6 +1435,7 @@ export {
     isMultiLevelTags,
     getPersonalPolicy,
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     getPolicy,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,

@@ -43,6 +43,7 @@ function getExpensifyCardFromReportAction({reportAction, policyID}: {reportActio
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const allExpensifyCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`] ?? {};
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     return isPolicyAdmin(getPolicy(policyID)) ? allExpensifyCards?.[cardID] : allUserCards[cardID];
 }
 

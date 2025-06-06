@@ -52,6 +52,7 @@ type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & Pla
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 

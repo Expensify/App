@@ -156,6 +156,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})}</Text>
                                 ) : (
                                     // eslint-disable-next-line deprecation/deprecation
+                                    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                                     <Text style={[styles.textStrong]}>{getPolicy(report?.invoiceReceiver?.policyID)?.name}</Text>
                                 )}
                             </Text>

@@ -46,6 +46,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
             }
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             // eslint-disable-next-line deprecation/deprecation
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
             if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
             } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {

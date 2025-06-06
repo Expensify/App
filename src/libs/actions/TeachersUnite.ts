@@ -117,6 +117,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
                 // eslint-disable-next-line deprecation/deprecation
+                // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 outputCurrency: getPolicy(policyID)?.outputCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 employeeList: {
                     [sessionEmail]: {

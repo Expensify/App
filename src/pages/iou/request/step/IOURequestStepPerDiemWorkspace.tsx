@@ -65,6 +65,7 @@ function IOURequestStepPerDiemWorkspace({
             return;
         }
         // eslint-disable-next-line deprecation/deprecation
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         const selectedPolicy = getPolicy(item.value, allPolicies);
         const perDiemUnit = getPerDiemCustomUnit(selectedPolicy);
         setMoneyRequestParticipants(transactionID, [

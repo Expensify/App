@@ -149,6 +149,7 @@ function IOURequestStepDistance({
 
             const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
             // eslint-disable-next-line deprecation/deprecation
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
             const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
             const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 

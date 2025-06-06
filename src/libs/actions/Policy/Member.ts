@@ -326,6 +326,7 @@ function removeOptimisticRoomMembers(
  */
 function resetAccountingPreferredExporter(policyID: string, loginList: string[]): OnyxDataReturnType {
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
     const owner = policy?.owner ?? ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
     const optimisticData: OnyxUpdate[] = [];
@@ -422,6 +423,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
@@ -785,6 +787,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
 
 function requestWorkspaceOwnerChange(policyID: string) {
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
     const ownershipChecks = {...policyOwnershipChecks?.[policyID]};
 
@@ -994,6 +997,7 @@ type PolicyMember = {
 
 function importPolicyMembers(policyID: string, members: PolicyMember[]) {
     // eslint-disable-next-line deprecation/deprecation
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(policyID);
     const {added, updated} = members.reduce(
         (acc, curr) => {
