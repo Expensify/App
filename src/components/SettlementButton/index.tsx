@@ -18,12 +18,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {getActiveAdminWorkspaces, getPolicy, hasVBBA} from '@libs/PolicyUtils';
+import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
     isBusinessInvoiceRoom,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
+    isIOUReport,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
@@ -96,7 +98,7 @@ function SettlementButton({
 
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
         canBeMissing: true,
-        selector: (paymentMethod) => getLastPolicyPaymentMethod(policyIDKey, paymentMethod, iouReport?.type as keyof LastPaymentMethodType),
+        selector: (paymentMethod) => getLastPolicyPaymentMethod(policyIDKey, paymentMethod, iouReport?.type as keyof LastPaymentMethodType, isIOUReport(iouReport)),
     });
 
     const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, iouReport?.type as keyof LastPaymentMethodType);
@@ -104,6 +106,7 @@ function SettlementButton({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserAccountID = getCurrentUserAccountID().toString();
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserAccountID).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const reportID = iouReport?.reportID;
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
@@ -174,7 +177,7 @@ function SettlementButton({
     }
 
     function getLatestPersonalBankAccount() {
-        return Object.values(bankAccountList).filter((ba) => ba.accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+        return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     }
 
     const getLastPaymentMethodType = () => {
@@ -228,6 +231,11 @@ function SettlementButton({
         };
 
         const canUseWallet = !isExpenseReport && !isInvoiceReport && currency === CONST.CURRENCY.USD;
+        const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(reportID, Number(currentUserAccountID) ?? -1));
+
+        const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
+
+        const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
@@ -240,13 +248,24 @@ function SettlementButton({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
         if (canUseWallet) {
-            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
-            if (activeAdminPolicies.length === 0) {
+            if (personalBankAccountList.length && canUsePersonalBankAccount) {
+                buttonOptions.push({
+                    text: personalBankAccountList.at(0)?.title ?? '',
+                    icon: personalBankAccountList.at(0)?.icon,
+                    value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                    description: personalBankAccountList.at(0)?.description,
+                });
+            } else if (canUsePersonalBankAccount) {
+                buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
+            }
+
+            if (activeAdminPolicies.length === 0 && !isPersonalOnlyOption) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
             }
         }
 
-        if (isExpenseReport && shouldShowPayWithExpensifyOption) {
+        const shouldShowBusinessBankAccountOptions = isExpenseReport && shouldShowPayWithExpensifyOption && !isPersonalOnlyOption;
+        if (shouldShowBusinessBankAccountOptions) {
             if (!isEmpty(latestBankItem) && latestBankItem) {
                 buttonOptions.push({
                     text: latestBankItem.at(0)?.text ?? '',
@@ -259,7 +278,7 @@ function SettlementButton({
             }
         }
 
-        if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet) {
+        if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
             activeAdminPolicies.forEach((activePolicy) => {
                 const policyName = activePolicy.name;
                 buttonOptions.push({
@@ -299,7 +318,7 @@ function SettlementButton({
                 ];
             };
 
-            if (isIndividualInvoiceRoomUtil(chatReport)) {
+            if (isIndividualInvoiceRoomUtil(chatReport) || shouldUseShortForm) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
                     icon: Expensicons.User,
@@ -456,14 +475,18 @@ function SettlementButton({
                 return translate(translationKey, {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? ''});
             }
 
-            if (personalBankAccountList.length === 1 && !hasActivatedWallet) {
-                return translate('paymentMethodList.bankAccountLastFour', {lastFour: personalBankAccountList.at(0)?.accountData?.accountNumber?.slice(-4) ?? ''});
+            if (!personalBankAccountList.length) {
+                return;
+            }
+
+            if (!hasActivatedWallet) {
+                return translate('paymentMethodList.bankAccountLastFour', {lastFour: (personalBankAccountList.at(0)?.accountData as AccountData)?.accountNumber?.slice(-4) ?? ''});
             }
 
             return translate('common.wallet');
         }
 
-        if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA && !!policy?.achAccount) {
+        if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || hasIntentToPay) && !!policy?.achAccount) {
             return translate('paymentMethodList.bankAccountLastFour', {lastFour: policy?.achAccount?.accountNumber?.slice(-4) ?? ''});
         }
 
@@ -545,7 +568,7 @@ function SettlementButton({
                     options={paymentButtonOptions}
                     onOptionSelected={(option) => handlePaymentSelection(undefined, option.value, triggerKYCFlow)}
                     style={style}
-                    shouldPopoverUseScrollView
+                    shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
                     wrapperStyle={wrapperStyle}
                     disabledStyle={disabledStyle}

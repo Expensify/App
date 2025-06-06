@@ -155,6 +155,8 @@ function FirstHeaderRow<TItem extends ListItem>({
                         goToItem={handleOnButtonPress}
                         isSelected={item.isSelected}
                         isLoading={reportItem.isActionLoading}
+                        policyID={item.policyID}
+                        reportID={item.reportID}
                     />
                 </View>
             )}
@@ -240,6 +242,8 @@ function ReportListItemHeader<TItem extends ListItem>({
                         goToItem={handleOnButtonPress}
                         isSelected={item.isSelected}
                         isLoading={reportItem.isActionLoading}
+                        policyID={item.policyID}
+                        reportID={item.reportID}
                     />
                 </View>
             </View>

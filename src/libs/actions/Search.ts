@@ -12,7 +12,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
-import {getSubmitToAccountID} from '@libs/PolicyUtils';
+import {getPersonalPolicy, getSubmitToAccountID} from '@libs/PolicyUtils';
 import {hasHeldExpenses} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -82,12 +82,15 @@ function getLastPolicyPaymentMethod(
     policyID: string | undefined,
     lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
     reportType: keyof LastPaymentMethodType = 'lastUsed',
+    isIOUReport?: boolean,
 ): ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined {
     if (!policyID) {
         return undefined;
     }
 
-    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID];
+    const personalPolicy = getPersonalPolicy();
+
+    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? (isIOUReport ? lastPaymentMethods?.[personalPolicy?.id ?? ''] : undefined);
     const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.name;
 
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
