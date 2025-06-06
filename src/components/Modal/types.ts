@@ -108,6 +108,9 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         /** Whether to prevent the focus trap from scrolling the element into view. */
         shouldPreventScrollOnFocus?: boolean;
 
+        /** Whether to disable the animation in */
+        disableAnimationIn?: boolean;
+
         /**
          * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
          * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
