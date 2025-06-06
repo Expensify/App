@@ -10,7 +10,7 @@ export default createOnyxDerivedValueConfig({
             return {};
         }
 
-        return Object.values(transactions).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, transaction) => {
+        return Object.entries(transactions).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, [transactionKey, transaction]) => {
             const reportID = transaction?.reportID;
             if (!reportID) {
                 return acc;
@@ -18,7 +18,7 @@ export default createOnyxDerivedValueConfig({
 
             if (!acc[reportID]) {
                 acc[reportID] = {
-                    transactions: [],
+                    transactions: {},
                     violations: {},
                 };
             }
@@ -30,7 +30,10 @@ export default createOnyxDerivedValueConfig({
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: transactionViolations,
                 };
             }
-            acc[reportID].transactions.push(transaction);
+            acc[reportID].transactions = {
+                ...acc[reportID].transactions,
+                [transactionKey]: transaction,
+            };
 
             return acc;
         }, {});

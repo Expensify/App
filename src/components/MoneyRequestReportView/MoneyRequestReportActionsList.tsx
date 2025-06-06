@@ -124,7 +124,8 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const transactions = useMemo(() => transactionsAndViolationsByReport?.[report.reportID]?.transactions ?? [], [transactionsAndViolationsByReport, report.reportID]);
+    const {transactions: reportTransactions} = transactionsAndViolationsByReport[report.reportID] ?? {};
+    const transactions = useMemo(() => Object.values(reportTransactions ?? {}) ?? [], [reportTransactions]);
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
 
     const reportID = report?.reportID;

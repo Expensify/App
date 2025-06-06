@@ -99,7 +99,8 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-    const reportTransactions = getAllNonDeletedTransactions(transactionsAndViolationsByReport?.[reportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], allReportActions ?? []);
+    const {transactions} = transactionsAndViolationsByReport[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
+    const reportTransactions = getAllNonDeletedTransactions(Object.values(transactions ?? {}) ?? [], allReportActions ?? []);
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
 
     useEffect(() => {

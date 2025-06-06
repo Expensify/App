@@ -20,8 +20,8 @@ function useTripTransactions(reportID: string | undefined, transactionsAndViolat
                 .filter((report) => report && report.chatReportID === reportID)
                 .map((report) => report?.reportID),
     });
-
-    const tripTransactions = tripTransactionReportIDs.flatMap((transactionReportID) => transactionsAndViolationsByReport[transactionReportID ?? CONST.DEFAULT_NUMBER_ID].transactions ?? []);
+    const {transactions} = transactionsAndViolationsByReport[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
+    const tripTransactions = tripTransactionReportIDs.flatMap((transactionReportID) => transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionReportID}`] ?? []);
 
     return tripTransactions;
 }

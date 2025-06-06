@@ -1,4 +1,3 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Errors} from './OnyxCommon';
@@ -52,11 +51,11 @@ type ReportTransactionsAndViolations = {
     /**
      * The transactions of the report.
      */
-    transactions: Transaction[];
+    transactions: Record<string, Transaction>;
     /**
      * The violations of the report.
      */
-    violations: OnyxCollection<TransactionViolations>;
+    violations: Record<string, TransactionViolations>;
 };
 
 /**

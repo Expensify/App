@@ -296,8 +296,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [transactionsAndViolationsByReport = {}] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
         canBeMissing: false,
     });
-
-    const reportTransactions = getAllNonDeletedTransactions(transactionsAndViolationsByReport?.[reportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], reportActions);
+    const {transactions} = transactionsAndViolationsByReport[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
+    const reportTransactions = getAllNonDeletedTransactions(Object.values(transactions ?? {}) ?? [], reportActions);
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});

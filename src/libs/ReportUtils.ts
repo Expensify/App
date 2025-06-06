@@ -968,7 +968,7 @@ Onyx.connect({
         if (!value) {
             return;
         }
-        reportsTransactions = Object.fromEntries(Object.entries(value).map(([reportID, transactionsAndViolations]) => [reportID, transactionsAndViolations.transactions]));
+        reportsTransactions = Object.fromEntries(Object.entries(value).map(([reportID, {transactions}]) => [reportID, Object.values(transactions ?? {})]));
     },
 });
 

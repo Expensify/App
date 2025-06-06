@@ -162,9 +162,9 @@ function ReportPreview({
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: false});
-    const transactions = useMemo(() => transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], [transactionsAndViolationsByReport, iouReportID]);
+    const {transactions: reportTransactions, violations} = transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const violations = useMemo(() => transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.violations ?? {}, [transactionsAndViolationsByReport, iouReportID]);
+    const transactions = useMemo(() => Object.values(reportTransactions ?? {}) ?? [], [reportTransactions]);
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];

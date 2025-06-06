@@ -51,9 +51,9 @@ function MoneyRequestReportPreview({
         canBeMissing: true,
     });
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const violations = transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.violations ?? {};
+    const {transactions: reportTransactions, violations} = transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const policy = usePolicy(policyID);
-    const transactions = useMemo(() => transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], [transactionsAndViolationsByReport, iouReportID]);
+    const transactions = useMemo(() => Object.values(reportTransactions ?? {}) ?? [], [reportTransactions]);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
