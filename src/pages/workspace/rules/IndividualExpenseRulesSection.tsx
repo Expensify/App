@@ -136,6 +136,10 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.tobacco'));
         }
 
+        if (policy?.prohibitedExpenses.movies) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.movies'));
+        }
+
         // If no expenses are prohibited, return empty string
         if (!prohibitedExpensesList.length) {
             return '';
