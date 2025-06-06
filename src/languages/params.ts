@@ -165,7 +165,7 @@ type PayerPaidParams = {payer: string};
 
 type PayerSettledParams = {amount: number | string};
 
-type CreateExpensesParams = {expensesAmount: number};
+type CreateExpensesParams = {expensesNumber: number};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 

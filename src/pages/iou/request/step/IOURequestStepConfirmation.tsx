@@ -1149,7 +1149,7 @@ function IOURequestStepConfirmation({
                         payeePersonalDetails={payeePersonalDetails}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
-                        expensesAmount={transactions.length}
+                        expensesNumber={transactions.length}
                         isReceiptEditable
                     />
                 </View>
