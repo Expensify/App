@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {ActivityIndicator, FlatList, View} from 'react-native';
 import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes';
@@ -408,7 +408,7 @@ function MoneyRequestReportPreviewContent({
 
     // The button should expand up to transaction width
     const buttonMaxWidth =
-        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDTH_WIDE
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_WIDTH
             ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width}
             : {};
 
@@ -604,6 +604,7 @@ function MoneyRequestReportPreviewContent({
                 <View
                     style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}
                     onLayout={onCarouselLayout}
+                    testID="carouselWidthSetter"
                 >
                     <PressableWithoutFeedback
                         onPress={onPress}
@@ -662,7 +663,7 @@ function MoneyRequestReportPreviewContent({
                                                     )}
                                                 </Animated.View>
                                             </View>
-                                            {!shouldUseNarrowLayout && transactions.length > 2 && (
+                                            {!shouldUseNarrowLayout && transactions.length > 2 && reportPreviewStyles.expenseCountVisible && (
                                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                     <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
                                                     <PressableWithFeedback
@@ -705,29 +706,46 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
-                                        <FlatList
-                                            snapToAlignment="start"
-                                            decelerationRate="fast"
-                                            snapToInterval={reportPreviewStyles.transactionPreviewStyle.width + styles.gap2.gap}
-                                            horizontal
-                                            data={carouselTransactions}
-                                            ref={carouselRef}
-                                            nestedScrollEnabled
-                                            bounces={false}
-                                            keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewStyle.width}`}
-                                            contentContainerStyle={[styles.gap2]}
-                                            style={reportPreviewStyles.flatListStyle}
-                                            showsHorizontalScrollIndicator={false}
-                                            renderItem={renderFlatlistItem}
-                                            onViewableItemsChanged={onViewableItemsChanged}
-                                            onEndReached={adjustScroll}
-                                            viewabilityConfig={viewabilityConfig}
-                                            ListFooterComponent={<View style={styles.pl2} />}
-                                            ListHeaderComponent={<View style={styles.pr2} />}
-                                        />
-                                        {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview emptyReportPreviewAction={reportPreviewActions[reportPreviewAction]} />}
-                                    </View>
+                                    {!currentWidth ? (
+                                        <View
+                                            style={[
+                                                {
+                                                    height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_HEIGHT,
+                                                },
+                                                styles.justifyContentCenter,
+                                                styles.mtn1,
+                                            ]}
+                                        >
+                                            <ActivityIndicator
+                                                color={theme.spinner}
+                                                size={40}
+                                            />
+                                        </View>
+                                    ) : (
+                                        <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
+                                            <FlatList
+                                                snapToAlignment="start"
+                                                decelerationRate="fast"
+                                                snapToInterval={reportPreviewStyles.transactionPreviewStyle.width + styles.gap2.gap}
+                                                horizontal
+                                                data={carouselTransactions}
+                                                ref={carouselRef}
+                                                nestedScrollEnabled
+                                                bounces={false}
+                                                keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewStyle.width}`}
+                                                contentContainerStyle={[styles.gap2]}
+                                                style={reportPreviewStyles.flatListStyle}
+                                                showsHorizontalScrollIndicator={false}
+                                                renderItem={renderFlatlistItem}
+                                                onViewableItemsChanged={onViewableItemsChanged}
+                                                onEndReached={adjustScroll}
+                                                viewabilityConfig={viewabilityConfig}
+                                                ListFooterComponent={<View style={styles.pl2} />}
+                                                ListHeaderComponent={<View style={styles.pr2} />}
+                                            />
+                                            {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview emptyReportPreviewAction={reportPreviewActions[reportPreviewAction]} />}
+                                        </View>
+                                    )}
                                     {shouldUseNarrowLayout && transactions.length > 1 && (
                                         <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
                                             {carouselTransactions.map((item, index) => (

@@ -62,7 +62,13 @@ import {
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
-import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
+import {
+    getAmount as getTransactionAmount,
+    getCreated as getTransactionCreatedDate,
+    getMerchant as getTransactionMerchant,
+    isPendingCardOrScanningTransaction,
+    isViolationDismissed,
+} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
 const transactionColumnNamesToSortingProperty = {
@@ -318,6 +324,14 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
 
 /**
  * @private
+ * Extracts all transaction violations from the search data.
+ */
+function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.TransactionViolation[]> {
+    return Object.fromEntries(Object.entries(data).filter(([key]) => isViolationEntry(key))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
+}
+
+/**
+ * @private
  * Generates a display name for IOU reports considering the personal details of the payer and the transaction details.
  */
 function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
@@ -339,6 +353,14 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
     });
 }
 
+function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>, transaction: SearchTransaction): OnyxTypes.TransactionViolation[] {
+    const transactionViolations = allViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+    if (!transactionViolations) {
+        return [];
+    }
+    return transactionViolations.filter((violation) => !isViolationDismissed(transaction, violation));
+}
+
 /**
  * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
@@ -354,6 +376,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
+    // Get violations - optimize by using a Map for faster lookups
+    const allViolations = getViolations(data);
 
     // Use Map for faster lookups of personal details
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList || {}));
@@ -366,6 +390,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const shouldShowBlankTo = !report || isOpenExpenseReport(report);
 
+        const transactionViolations = getTransactionViolations(allViolations, transactionItem);
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
         const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
@@ -373,7 +398,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
-            action: getAction(data, key),
+            action: getAction(data, allViolations, key),
             from,
             to,
             formattedFrom,
@@ -387,6 +412,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowTax,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
+            violations: transactionViolations,
 
             // Manually copying all the properties from transactionItem
             transactionID: transactionItem.transactionID,
@@ -411,6 +437,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             accountID: transactionItem.accountID,
             managerID: transactionItem.managerID,
             reportID: transactionItem.reportID,
+            ...(transactionItem.pendingAction ? {pendingAction: transactionItem.pendingAction} : {}),
             transactionThreadReportID: transactionItem.transactionThreadReportID,
             isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
             tag: transactionItem.tag,
@@ -440,14 +467,6 @@ function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportI
     return Object.entries(data)
         .filter(([key, value]) => isTransactionEntry(key) && (value as SearchTransaction)?.reportID === reportID)
         .map(([, value]) => value as SearchTransaction);
-}
-
-/**
- * @private
- * Extracts all transaction violations from the search data.
- */
-function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.TransactionViolation[]> {
-    return Object.fromEntries(Object.entries(data).filter(([key]) => isViolationEntry(key))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
 }
 
 /**
@@ -513,7 +532,7 @@ function getReviewerPermissionFlags(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
+function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>, key: string): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
     const report = getReportFromKey(data, key);
 
@@ -550,8 +569,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     } else {
         allReportTransactions = transaction ? [transaction] : [];
     }
-    // Get violations - optimize by using a Map for faster lookups
-    const allViolations = getViolations(data);
+
     const policy = getPolicyFromKey(data, report) as OnyxTypes.Policy;
     const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy);
 
@@ -734,6 +752,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    // Get violations - optimize by using a Map for faster lookups
+    const allViolations = getViolations(data);
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
@@ -745,7 +765,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
-                action: getAction(data, key),
+                action: getAction(data, allViolations, key),
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
@@ -761,6 +781,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
+            const transactionViolations = getTransactionViolations(allViolations, transactionItem);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
@@ -769,7 +790,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             const transaction = {
                 ...transactionItem,
-                action: getAction(data, key),
+                action: getAction(data, allViolations, key),
                 from,
                 to,
                 formattedFrom,
@@ -783,6 +804,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
+                violations: transactionViolations,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);

@@ -17,8 +17,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
-import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
+import NavigationTabBarDummy from './NavigationTabBar/NavigationTabBarDummy';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -76,7 +76,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                 />
                 <SearchTypeMenu queryJSON={queryJSON} />
             </View>
-            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
+            <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>
     );
 }
