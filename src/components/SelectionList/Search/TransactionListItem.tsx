@@ -96,7 +96,7 @@ function TransactionListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, styles.overflowHidden]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
             {(hovered) => (
                 <>
