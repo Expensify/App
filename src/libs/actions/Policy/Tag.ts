@@ -1,9 +1,11 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
+import {Platform} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
+    ImportMultiLevelTagsParams,
     OpenPolicyTagsPageParams,
     RenamePolicyTagListParams,
     RenamePolicyTagsParams,
@@ -28,7 +30,7 @@ import type {PolicyTagList} from '@pages/workspace/tags/types';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -685,6 +687,78 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     }
 }
 
+function cleanPolicyTags(policyID: string) {
+    // We do not have any optimistic data or success data for this command as this action cannot be done offline
+    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
+}
+
+function setImportedSpreadsheetIsImportingMultiLevelTags(isImportingMultiLevelTags: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingMultiLevelTags});
+}
+
+function setImportedSpreadsheetIsImportingIndependentMultiLevelTags(isImportingIndependentMultiLevelTags: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingIndependentMultiLevelTags});
+}
+
+function setImportedSpreadsheetIsFirstLineHeader(containsHeader: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {containsHeader});
+}
+
+function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
+}
+
+function setImportedSpreadsheetFileURI(fileURI: string) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
+}
+
+function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
+    if (!spreadsheet) {
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                },
+            },
+        ],
+    };
+
+    fetch(spreadsheet?.fileURI ?? '').then((res) => {
+        if (!res.ok && Platform.OS !== 'android') {
+            throw Error(res.statusText);
+        }
+
+        res.blob().then((blob) => {
+            const file = new File([blob], 'testFile.csv', {type: blob.type || 'text/csv'});
+
+            const parameters: ImportMultiLevelTagsParams = {
+                policyID,
+                isFirstLineHeader: spreadsheet?.containsHeader,
+                isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
+                isGLAdjacent: spreadsheet?.isGLAdjacent,
+                file,
+            };
+
+            API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
+        });
+    });
+}
+
 function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
@@ -1064,4 +1138,11 @@ export {
     downloadTagsCSV,
     getPolicyTagsData,
     downloadMultiLevelIndependentTagsCSV,
+    cleanPolicyTags,
+    setImportedSpreadsheetIsImportingMultiLevelTags,
+    setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
+    setImportedSpreadsheetIsFirstLineHeader,
+    setImportedSpreadsheetIsGLAdjacent,
+    setImportedSpreadsheetFileURI,
+    importMultiLevelTags,
 };
