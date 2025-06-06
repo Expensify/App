@@ -49,12 +49,14 @@ function PopoverWithoutOverlay(
         let removeOnClose: () => void;
         if (isVisible) {
             onModalShow();
+
+            const noop = () => {};
             onOpen?.({
                 ref: withoutOverlayRef,
-                close: onClose,
+                close: onClose ?? noop,
                 anchorRef,
             });
-            removeOnClose = setCloseModal(onClose);
+            removeOnClose = setCloseModal(onClose ?? (() => {}));
         } else {
             onModalHide();
             close(anchorRef);
