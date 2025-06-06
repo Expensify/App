@@ -72,12 +72,12 @@ type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey =
     };
 
 function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>(props: InputWrapperProps<TInput, TValue>, ref: ForwardedRef<AnimatedTextInputRef>) {
-    const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props as InputComponentBaseProps;
+    const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, autoFocus = true, ...rest} = props as InputComponentBaseProps;
     const {registerInput} = useContext(FormContext);
 
     const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
     // eslint-disable-next-line react-compiler/react-compiler
-    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, blurOnSubmit});
+    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, autoFocus, shouldSetTouchedOnBlurOnly, blurOnSubmit});
 
     return (
         <InputComponent
