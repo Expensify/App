@@ -722,7 +722,7 @@ function IOURequestStepScan({
         const filename = `receipt_${Date.now()}.png`;
         const file = base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
-        const transaction = initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
+        const transaction = isMultiScanEnabled && initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
         const transactionID = transaction?.transactionID ?? initialTransactionID;
         const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
@@ -1041,6 +1041,9 @@ function IOURequestStepScan({
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
                         onLayout={() => {
+                            if (!onLayout) {
+                                return;
+                            }
                             onLayout(setTestReceiptAndNavigate);
                         }}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
