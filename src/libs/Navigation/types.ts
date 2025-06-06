@@ -336,11 +336,20 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
         policyID: string;
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED]: {
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED]: {policyID: string; backTo?: Routes};
+    [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
         policyID: string;
         backTo?: Routes;
     };
@@ -1743,7 +1752,6 @@ type ReportsSplitNavigatorParamList = {
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
-        iouReportID?: string;
     };
 };
 
@@ -1909,7 +1917,7 @@ type OnboardingModalNavigatorParamList = {
 
 type WelcomeVideoModalNavigatorParamList = {
     [SCREENS.WELCOME_VIDEO.ROOT]: {
-        isFromRoot?: string;
+        shouldOpenSearch?: string;
     };
 };
 
