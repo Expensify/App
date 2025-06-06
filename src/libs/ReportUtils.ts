@@ -1221,7 +1221,7 @@ function getRootParentReport({
 
 /**
  * Returns the policy of the report
- * @deprecated Get the data straight from Onyx
+ * @deprecated Get the data straight from Onyx - This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
  */
 function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     if (!allPolicies || !policyID) {
