@@ -41,5 +41,5 @@ jobs:
         with:
           variant: ${{ matrix.variant }}
           github-token: ${{ github.token }}
-          rnef-build-extra-params: '-PreactNativeArchitectures=arm64-v8a,x86_64'
+          rnef-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false
