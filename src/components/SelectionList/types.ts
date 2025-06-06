@@ -22,7 +22,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -259,6 +259,9 @@ type TransactionListItemType = ListItem &
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
+
+        /** Precomputed violations */
+        violations?: TransactionViolation[];
     };
 
 type ReportActionListItemType = ListItem &

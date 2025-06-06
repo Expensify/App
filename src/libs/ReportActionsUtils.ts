@@ -723,7 +723,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     ];
     if (deprecatedOldDotReportActions.includes(reportAction.actionName)) {
-        Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
         return true;
     }
 
