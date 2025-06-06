@@ -22,7 +22,7 @@ If you're submitting business expenses, send them to a workspace. This ensures p
 
 # Create an Expense
 
-You can create an expense by scanning a receipt, entering details manually, or tracking distance. The steps below walk you through each method so you can quickly capture and submit expenses for reimbursement or recordkeeping.
+You can create an expense by scanning a receipt, entering details manually, or tracking distance. The steps below walk you through each method so you can quickly capture and submit expenses for reimbursement or record-keeping.
 
 ## Option 1: SmartScan a Receipt
 
