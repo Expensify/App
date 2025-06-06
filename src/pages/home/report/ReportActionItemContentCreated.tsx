@@ -31,6 +31,9 @@ type ReportActionItemContentCreatedProps = {
     /**  The context value containing the report and action data, along with the show context menu props */
     contextValue: ShowContextMenuContextProps;
 
+    /** The parent report */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -44,7 +47,7 @@ type ReportActionItemContentCreatedProps = {
     shouldHideThreadDividerLine: boolean;
 };
 
-function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({contextValue, parentReport, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {report, action, transactionThreadReport} = contextValue;
@@ -140,6 +143,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                 <View>
                     <TaskView
                         report={report}
+                        parentReport={parentReport}
                         action={action}
                     />
                     {renderThreadDivider}

@@ -1317,6 +1317,7 @@ function PureReportActionItem({
             <ReportActionItemContentCreated
                 contextValue={contextValue}
                 parentReportAction={parentReportAction}
+                parentReport={parentReport}
                 transactionID={transactionID}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
