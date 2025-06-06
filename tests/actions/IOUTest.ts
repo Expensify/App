@@ -5,6 +5,7 @@ import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx'
 import Onyx from 'react-native-onyx';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import {
+    addSplitExpenseField,
     calculateDiffAmount,
     canApproveIOU,
     canCancelPayment,
@@ -14,8 +15,10 @@ import {
     createDistanceRequest,
     deleteMoneyRequest,
     initMoneyRequest,
+    initSplitExpense,
     payMoneyRequest,
     putOnHold,
+    replaceReceipt,
     requestMoney,
     resolveDuplicates,
     sendInvoice,
@@ -27,6 +30,7 @@ import {
     unholdRequest,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
+    updateSplitExpenseAmountField,
 } from '@libs/actions/IOU';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
@@ -58,7 +62,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -91,12 +95,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getReportRouteByID: jest.fn(),
-}));
-
-jest.mock('@src/libs/Navigation/navigationRef', () => ({
-    getRootState: () => ({
-        routes: [],
-    }),
+    getActiveRouteWithoutParams: jest.fn(),
+    getActiveRoute: jest.fn(),
+    navigationRef: {
+        getRootState: jest.fn(),
+    },
 }));
 
 jest.mock('@react-navigation/native');
@@ -112,8 +115,12 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
-// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
-jest.mock('@components/ConfirmedRoute.tsx');
+jest.mock('@src/libs/SearchQueryUtils', () => ({
+    getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
+        hash: 12345,
+        query: 'test',
+    })),
+}));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -1579,26 +1586,6 @@ describe('actions/IOU', () => {
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
-
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
-            requestMoney({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
-                participantParams: {
-                    payeeEmail: RORY_EMAIL,
-                    payeeAccountID: RORY_ACCOUNT_ID,
-                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                },
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                },
-            });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
     });
 
     describe('createDistanceRequest', () => {
@@ -1624,23 +1611,6 @@ describe('actions/IOU', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
             createDistanceRequest({
                 report: {reportID: '123'},
-                participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-            });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
-            createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
                 transactionParams: {
                     amount: 1,
@@ -4035,12 +4005,10 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -4202,12 +4170,10 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -5533,7 +5499,12 @@ describe('actions/IOU', () => {
         it('should merge transaction draft onyx value', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    initMoneyRequest(fakeReport.reportID, fakePolicy, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                    initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
@@ -5543,7 +5514,13 @@ describe('actions/IOU', () => {
         it('should modify transaction draft when currentIouRequestType is different', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest(fakeReport.reportID, fakePolicy, true, CONST.IOU.REQUEST_TYPE.MANUAL, CONST.IOU.REQUEST_TYPE.SCAN);
+                    return initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        isFromGlobalCreate: true,
+                        currentIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
@@ -5555,7 +5532,11 @@ describe('actions/IOU', () => {
         it('should return personal currency when policy is missing', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest(fakeReport.reportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                    return initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
@@ -5844,6 +5825,292 @@ describe('actions/IOU', () => {
                     expect(action?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 },
             });
+        });
+    });
+
+    describe('initSplitExpense', () => {
+        it('should initialize split expense with correct transaction details', async () => {
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const reportID = '456';
+
+            initSplitExpense(transaction, reportID);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+
+            expect(draftTransaction).toBeTruthy();
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+            expect(draftTransaction?.amount).toBe(100);
+            expect(draftTransaction?.currency).toBe('USD');
+            expect(draftTransaction?.merchant).toBe('Test Merchant');
+            expect(draftTransaction?.reportID).toBe(reportID);
+
+            expect(splitExpenses?.[0].amount).toBe(50);
+            expect(splitExpenses?.[0].description).toBe('Test comment');
+            expect(splitExpenses?.[0].category).toBe('Food');
+            expect(splitExpenses?.[0].tags).toEqual(['lunch']);
+
+            expect(splitExpenses?.[1].amount).toBe(50);
+            expect(splitExpenses?.[1].description).toBe('Test comment');
+            expect(splitExpenses?.[1].category).toBe('Food');
+            expect(splitExpenses?.[1].tags).toEqual(['lunch']);
+        });
+        it('should not initialize split expense for null transaction', async () => {
+            const transaction: Transaction | undefined = undefined;
+            const reportID = '456';
+
+            initSplitExpense(transaction, reportID);
+            await waitForBatchedUpdates();
+
+            expect(transaction).toBeFalsy();
+        });
+    });
+
+    describe('addSplitExpenseField', () => {
+        it('should add new split expense field to draft transaction', async () => {
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const draftTransaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [
+                        {
+                            transactionID: '789',
+                            amount: 50,
+                            description: 'Test comment',
+                            category: 'Food',
+                            tags: ['lunch'],
+                            created: DateUtils.getDBTime(),
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            addSplitExpenseField(transaction, draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+            expect(updatedDraftTransaction).toBeTruthy();
+
+            const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+            expect(splitExpenses?.[1].amount).toBe(0);
+            expect(splitExpenses?.[1].description).toBe('Test comment');
+            expect(splitExpenses?.[1].category).toBe('Food');
+            expect(splitExpenses?.[1].tags).toEqual(['lunch']);
+        });
+    });
+
+    describe('updateSplitExpenseAmountField', () => {
+        it('should update amount expense field to draft transaction', async () => {
+            const originalTransactionID = '123';
+            const currentTransactionID = '789';
+            const draftTransaction: Transaction = {
+                transactionID: '234',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {
+                            transactionID: currentTransactionID,
+                            amount: 50,
+                            description: 'Test comment',
+                            category: 'Food',
+                            tags: ['lunch'],
+                            created: DateUtils.getDBTime(),
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20);
+            await waitForBatchedUpdates();
+
+            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            expect(updatedDraftTransaction).toBeTruthy();
+
+            const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses?.[0].amount).toBe(20);
+        });
+    });
+
+    describe('replaceReceipt', () => {
+        it('should replace the receipt of the transaction', async () => {
+            const transactionID = '123';
+            const file = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
+            file.source = 'test';
+            const source = 'test';
+
+            const transaction = {
+                transactionID,
+                receipt: {
+                    source: 'test1',
+                },
+            };
+
+            // Given a transaction with a receipt
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+            const searchQueryJSON = {
+                hash: 12345,
+                query: 'test',
+            };
+
+            // Given a snapshot of the transaction
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+                // @ts-expect-error: Allow partial record in snapshot update
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When the receipt is replaced
+            replaceReceipt({transactionID, file, source});
+            await waitForBatchedUpdates();
+
+            // Then the transaction should have the new receipt source
+            const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                        resolve(newTransaction);
+                    },
+                });
+            });
+            expect(updatedTransaction?.receipt?.source).toBe(source);
+
+            // Then the snapshot should have the new receipt source
+            const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+                    waitForCollectionCallback: true,
+                    callback: (snapshots) => {
+                        Onyx.disconnect(connection);
+                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`];
+                        resolve(newSnapshot);
+                    },
+                });
+            });
+
+            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+        });
+
+        it('should add receipt if it does not exist', async () => {
+            const transactionID = '123';
+            const file = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
+            file.source = 'test';
+            const source = 'test';
+
+            const transaction = {
+                transactionID,
+            };
+
+            // Given a transaction without a receipt
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const searchQueryJSON = {
+                hash: 12345,
+                query: 'test',
+            };
+
+            // Given a snapshot of the transaction
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+                // @ts-expect-error: Allow partial record in snapshot update
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When the receipt is replaced
+            replaceReceipt({transactionID, file, source});
+            await waitForBatchedUpdates();
+
+            // Then the transaction should have the new receipt source
+            const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                        resolve(newTransaction);
+                    },
+                });
+            });
+            expect(updatedTransaction?.receipt?.source).toBe(source);
+
+            // Then the snapshot should have the new receipt source
+            const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+                    waitForCollectionCallback: true,
+                    callback: (snapshots) => {
+                        Onyx.disconnect(connection);
+                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`];
+                        resolve(newSnapshot);
+                    },
+                });
+            });
+
+            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
         });
     });
 });

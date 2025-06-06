@@ -61,8 +61,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
                 onPress={() => {
                     Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getActiveRoute()));
                 }}
-                shouldShowRightIcon
-                disabled={reportField.isFieldDisabled}
+                shouldShowRightIcon={!reportField.isFieldDisabled}
                 wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                 shouldGreyOutWhenDisabled={false}
                 numberOfLinesTitle={0}

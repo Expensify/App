@@ -117,6 +117,7 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
     [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
+    [CONST.AVATAR_SIZE.LARGE_NORMAL]: variables.avatarSizeLargeNormal,
 };
 
 const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -474,7 +475,7 @@ function getTextColorStyle(color: string): TextColorStyle {
 /**
  * Returns a style with the specified borderColor
  */
-function getBorderColorStyle(borderColor: string): ViewStyle {
+function getBorderColorStyle(borderColor: ColorValue): ViewStyle {
     return {
         borderColor,
     };
@@ -606,7 +607,7 @@ function getModalPaddingStyles({
 
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStyle.paddingTop === 'number' ? modalContainerStyle.paddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStyle.paddingTop === 'number' ? (modalContainerStyle.paddingTop ?? 0) : safeAreaPaddingBottom;
     return {
         marginTop: getCombinedSpacing(modalContainerStyle.marginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
         marginBottom: getCombinedSpacing(modalContainerStyle.marginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
@@ -997,11 +998,22 @@ function getWrappingStyle(isExtraSmallScreenWidth: boolean): ViewStyle {
 }
 
 /**
- * Returns the text container styles for menu items depending on if the menu item container a small avatar
+ * Returns the text container styles for menu items depending on if the menu item container is in compact mode or not
  */
-function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): ViewStyle {
+function getMenuItemTextContainerStyle(compactMode: boolean): ViewStyle {
     return {
-        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
+        minHeight: compactMode ? 20 : variables.componentSizeNormal,
+    };
+}
+
+/**
+ * Returns the style for a menu item's icon based on of the container is in compact mode or not
+ */
+function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
+    return {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: compactMode ? 20 : variables.componentSizeNormal,
     };
 }
 
@@ -1229,6 +1241,7 @@ const staticStyleUtils = {
     getFontSizeStyle,
     getLineHeightStyle,
     getMenuItemTextContainerStyle,
+    getMenuItemIconStyle,
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
@@ -1321,9 +1334,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /*
      * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
      */
-    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number, marginSide?: 'left' | 'right'): ViewStyle => {
         if (!!width && !!extraSpace) {
-            return {marginRight: -extraSpace, width: width + extraSpace};
+            const marginKey = marginSide === 'left' ? 'marginLeft' : 'marginRight';
+            return {[marginKey]: -extraSpace, width: width + extraSpace};
         }
         return {width};
     },
@@ -1632,7 +1646,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
-            case CONST.SEARCH.TABLE_COLUMNS.CREATED_BY:
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             case CONST.SEARCH.TABLE_COLUMNS.IN:

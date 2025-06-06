@@ -255,7 +255,7 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
     ensureRateDefined(mileageRate.rate);
 
     // Ensure the rate is updated when the currency changes, otherwise use the stored rate
-    const rate = getCurrency(transaction) === currency ? transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate : mileageRate.rate;
+    const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate) : mileageRate.rate;
     return {
         ...mileageRate,
         currency: currencyWithExistingRate,

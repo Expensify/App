@@ -138,7 +138,7 @@ async function updateIOS(version: string) {
             [PLIST_KEYS.CF_BUNDLE_VERSION]: cfVersion,
         });
 
-        // Update plists
+        // Update plist
         await Promise.all(
             [PLIST_PATH, PLIST_PATH_NSE, PLIST_PATH_SHARE, MOBILE_EXPENSIFY_PLIST_PATH, MOBILE_EXPENSIFY_PLIST_PATH_NSE, MOBILE_EXPENSIFY_PLIST_PATH_SS].map(async (file) => {
                 console.log(`Updating ${file}`);
