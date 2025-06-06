@@ -1,8 +1,8 @@
 import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useWindowDimensions} from 'react-native';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
+import type {CustomRendererProps} from 'react-native-render-html';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -15,6 +15,7 @@ import TextLink from '@components/TextLink';
 import useCancellationType from '@hooks/useCancellationType';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
     const {translate} = useLocalize();
-    const {width} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
 
@@ -81,7 +82,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.subtitle')}</Text>
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
                     <RenderHtml
-                        contentWidth={width}
+                        contentWidth={windowWidth}
                         systemFonts={systemFonts}
                         source={{
                             html: translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.full').replace(
@@ -94,7 +95,7 @@ function RequestEarlyCancellationPage() {
                             p: {...styles.textNormalThemeText},
                         }}
                         renderers={{
-                            a: ({TDefaultRenderer, ...props}) => (
+                            a: ({TDefaultRenderer, ...props}: CustomRendererProps<any>) => (
                                 <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.route)}>
                                     <TDefaultRenderer {...props} />
                                 </TextLink>
