@@ -6,7 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {translateLocal} from '@libs/Localize';
-import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+import {ReportAttachmentsProvider} from '@pages/home/report/ReportAttachmentsContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -20,7 +20,7 @@ describe('CarouselItem', () => {
             <OnyxProvider>
                 <LocaleContextProvider>
                     <PlaybackContextProvider>
-                        <AttachmentModalContextProvider>
+                        <ReportAttachmentsProvider>
                             <CarouselItem
                                 item={{
                                     reportActionID: '1',
@@ -30,7 +30,7 @@ describe('CarouselItem', () => {
                                 }}
                                 isFocused
                             />
-                        </AttachmentModalContextProvider>
+                        </ReportAttachmentsProvider>
                     </PlaybackContextProvider>
                 </LocaleContextProvider>
             </OnyxProvider>,

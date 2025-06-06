@@ -1,4 +1,4 @@
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@components/AttachmentModal';
 
 type HeicConverterCallbacks = {
     onSuccess?: (convertedFile: FileObject) => void;
