@@ -9087,9 +9087,7 @@ function canApproveIOU(
     }
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport?.reportID, reportTransactions);
     const isClosedReport = isClosedReportUtil(iouReport);
-    return (
-        reportTransactions.length > 0 && isCurrentUserManager && isProcessing && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !isClosedReport
-    );
+    return reportTransactions.length > 0 && isCurrentUserManager && isProcessing && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !isClosedReport;
 }
 
 function canUnapproveIOU(iouReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
