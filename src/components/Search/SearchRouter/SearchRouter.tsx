@@ -24,14 +24,13 @@ import {scrollToRight} from '@libs/InputUtils';
 import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {isMergedConciergeChatReport} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import {navigateToAndOpenReport, searchInServer, updateNotificationPreference} from '@userActions/Report';
+import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -289,12 +288,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             } else {
                 onRouterClose();
                 backHistory().then(() => {
-                    // Merged Concierge chats should not be in the LHN by default
-                    // because they're archived, but when opened they should remain there.
-                    if (isMergedConciergeChatReport(item.reportID)) {
-                        updateNotificationPreference(item.reportID, undefined, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
-                    }
-
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
