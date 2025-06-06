@@ -3529,6 +3529,7 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: 9b169299f9dc95f1d7fe1dd266fde53bd899cd0c
   react-native-view-shot: bb169342812ded991a4a0387e7d0b17cb515e62a
   react-native-wallet: 46df147c6089b2490dc5f4cbf25c58ce70b0215d
+  react-native-webrtc: 0f1c94069ff1eb9d8fb1618c2dc71f73542c8cfa
   react-native-webview: b375842af66a9f0ab979378bdc8b26eeb5d8e3ee
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564
   React-NativeModulesApple: 82a8bee52df9f5b378195a500f22be3a6ef0f890
