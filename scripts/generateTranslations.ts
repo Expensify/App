@@ -340,6 +340,9 @@ class TranslationGenerator {
     }
 }
 
+/**
+ * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
+ */
 async function main(): Promise<void> {
     const isDryRun = process.argv.includes('--dry-run');
     if (isDryRun) {
@@ -366,7 +369,6 @@ async function main(): Promise<void> {
     const enSourceFile = path.join(languagesDir, 'en.ts');
 
     const generator = new TranslationGenerator({
-        // TODO: cast to "as Locale" will not be necessary once more locales are added
         targetLanguages: ['it' as Locale],
         languagesDir,
         sourceFile: enSourceFile,
