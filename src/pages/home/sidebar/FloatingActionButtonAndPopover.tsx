@@ -488,16 +488,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () => {
-                          InteractionManager.runAfterInteractions(() => {
-                              if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
-                                  completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
-                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                              } else {
-                                  Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-                              }
-                          });
-                      },
+                      onSelected: () =>
+                          interceptAnonymousUser(() => {
+                              InteractionManager.runAfterInteractions(() => {
+                                  if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+                                      completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
+                                      Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                                  } else {
+                                      Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                                  }
+                              });
+                          }),
                   },
               ]
             : []),

@@ -1003,10 +1003,6 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     }
 }
 
-function clearFocusModeNotification() {
-    Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, false);
-}
-
 function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
     if (CONFIG.IS_HYBRID_APP) {
         HybridAppModule.shouldUseStaging(shouldUseStagingServer);
@@ -1381,7 +1377,6 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
 }
 
 export {
-    clearFocusModeNotification,
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
