@@ -149,6 +149,7 @@ describe('generateTranslations', () => {
                         complexWithFalsyCoalesce: (name: string) => \`Pay \${name || 'someone'}\`,
                         extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
                         extraComplexButJustWhitespace: (payer: string) => \`\${payer ? \`\${payer} \` : ''}paid elsewhere\`,
+                        whiteSpaceWithComplexSpans: (shouldBeFormal: string, name: string) => \`\${shouldBeFormal ? 'Salutations' : 'Sup'} \${shouldBeFormal ? \`Sir \${name}\` : \` \${name}\`}}\`,
                         evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`\${someBool ? \`\${someOtherBool ? 'Hello' : 'Goodbye'} moon\` : 'Goodnight, moon' }, kupo\`,
                         tooComplex: (numScanning: number, numPending: number) => {
                             const statusText: string[] = [];
@@ -158,7 +159,7 @@ describe('generateTranslations', () => {
                             if (numPending > 0) {
                                 statusText.push(\`\${numPending} pending\`);
                             }
-                            return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : \`1 expense\`;
+                            return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
                         },
                         unrealisticallyComplex: (numScanning: number, numPending: number) =>
                             \`\${(() => {
@@ -169,7 +170,7 @@ describe('generateTranslations', () => {
                                 if (numPending > 0) {
                                     statusText.push(\`\${numPending} pending\`);
                                 }
-                                return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : \`1 expense\`;
+                                return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
                             })()} If someone really uses an IIFE in here, then we've got bigger problems.\`,
                     };
                     export default strings;
@@ -188,6 +189,7 @@ describe('generateTranslations', () => {
                         complexWithFalsyCoalesce: (name: string) => \`[it] Pay \${name || '[it] someone'}\`,
                         extraComplex: (payer: string) => \`[it] \${payer ? \`[it] \${payer} as payer \` : ''}paid elsewhere\`,
                         extraComplexButJustWhitespace: (payer: string) => \`[it] \${payer ? \`\${payer} \` : ''}paid elsewhere\`,
+                        whiteSpaceWithComplexSpans: (shouldBeFormal: string, name: string) => \`\${shouldBeFormal ? '[it] Salutations' : '[it] Sup'} \${shouldBeFormal ? \`[it] Sir \${name}\` : \` \${name}\`}}\`,
                         evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`[it] \${someBool ? \`[it] \${someOtherBool ? '[it] Hello' : '[it] Goodbye'} moon\` : '[it] Goodnight, moon'}, kupo\`,
                         tooComplex: (numScanning: number, numPending: number) => {
                             const statusText: string[] = [];
@@ -197,7 +199,7 @@ describe('generateTranslations', () => {
                             if (numPending > 0) {
                                 statusText.push(\`[it] \${numPending} pending\`);
                             }
-                            return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : \`[it] 1 expense\`;
+                            return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
                         },
                         unrealisticallyComplex: (numScanning: number, numPending: number) =>
                             \`[it] \${(() => {
@@ -208,7 +210,7 @@ describe('generateTranslations', () => {
                                 if (numPending > 0) {
                                     statusText.push(\`[it] \${numPending} pending\`);
                                 }
-                                return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : \`[it] 1 expense\`;
+                                return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
                             })()} If someone really uses an IIFE in here, then we've got bigger problems.\`,
                     };
                     export default strings;

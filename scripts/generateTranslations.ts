@@ -119,32 +119,56 @@ class TranslationGenerator {
     }
 
     /**
-     * A node should be translated only if:
-     *
-     * - It is not an import or export path.
-     * - It is not part of a control statement such as an if/else, binary expression (the conditional part of a ternary), or a switch/case.
-     * - It is not part of a log call
-     * - It is "dangling" (doesn't have a parent). This is an edge case we're unlikely to encounter in real code.
+     * Should the given node be translated?
      */
     private shouldNodeBeTranslated(node: ts.Node): boolean {
-        return (
-            !node.parent ||
-            (!ts.isImportDeclaration(node.parent) && // Ignore import paths
-                !ts.isExportDeclaration(node.parent) && // Ignore export paths
-                !ts.isCaseClause(node.parent) && // Ignore switch-case strings
-                !(
-                    ts.isBinaryExpression(node.parent) &&
+        // We only translate string literals and template expressions
+        if (!ts.isStringLiteral(node) && !ts.isTemplateExpression(node)) {
+            return false;
+        }
+
+        // Don't translate any strings or expressions that affect code execution by being part of control flow.
+        // We want to translate only strings that are "leaves" or "results" of any expression or code block
+        const isPartOfControlFlow =
+            node.parent &&
+            // imports and exports
+            (ts.isImportDeclaration(node.parent) ||
+                ts.isExportDeclaration(node.parent) ||
+                // Switch/case clause
+                ts.isCaseClause(node.parent) ||
+                // any binary expression except coalescing operators and the operands of +=
+                (ts.isBinaryExpression(node.parent) &&
                     node.parent.operatorToken.kind !== ts.SyntaxKind.QuestionQuestionToken &&
                     node.parent.operatorToken.kind !== ts.SyntaxKind.BarBarToken &&
-                    node.parent.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken
-                ) && // ignore conditional expressions. If string is left-or-right-hand side of a conditional, we want to ignore it. However, coalescing operators and the operands of += we _do_ want to translate.
-                !(
-                    ts.isCallExpression(node.parent) &&
-                    ts.isPropertyAccessExpression(node.parent.expression) &&
-                    ((ts.isIdentifier(node.parent.expression.expression) && node.parent.expression.expression.getText() === 'console') ||
-                        (ts.isIdentifier(node.parent.expression.expression) && node.parent.expression.expression.getText() === 'Log'))
-                ))
-        );
+                    node.parent.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken));
+
+        if (isPartOfControlFlow) {
+            return false;
+        }
+
+        // Don't translate any logs
+        const isArgumentToLogFunction =
+            node.parent &&
+            ts.isCallExpression(node.parent) &&
+            ts.isPropertyAccessExpression(node.parent.expression) &&
+            ((ts.isIdentifier(node.parent.expression.expression) && node.parent.expression.expression.getText() === 'console') ||
+                (ts.isIdentifier(node.parent.expression.expression) && node.parent.expression.expression.getText() === 'Log'));
+
+        if (isArgumentToLogFunction) {
+            return false;
+        }
+
+        // Only translate string literals if they contain alphabet characters
+        if (ts.isStringLiteral(node)) {
+            return /[a-zA-Z]/.test(node.text);
+        }
+
+        // Only translate a template expression if it contains alphabet characters outside the spans
+        let staticText = node.head.text;
+        for (const span of node.templateSpans) {
+            staticText += span.literal.text;
+        }
+        return /[a-zA-Z]/.test(staticText);
     }
 
     /**
@@ -312,7 +336,7 @@ class TranslationGenerator {
         return (context: ts.TransformationContext) => {
             const visit: ts.Visitor = (node) => {
                 if (this.shouldNodeBeTranslated(node)) {
-                    if (ts.isStringLiteral(node) && /.*[A-z].*/g.test(node.text)) {
+                    if (ts.isStringLiteral(node)) {
                         const translatedText = translations.get(StringUtils.hash(node.text));
                         return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
                     }
