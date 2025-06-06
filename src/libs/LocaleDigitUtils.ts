@@ -14,7 +14,7 @@ const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
 const getLocaleDigits = memoize(
-    (locale: Locale): string[] => {
+    (locale: Locale | undefined): string[] => {
         const localeDigits = [...STANDARD_DIGITS];
         for (let i = 0; i <= 9; i++) {
             localeDigits[i] = NumberFormatUtils.format(locale, i);
@@ -47,7 +47,7 @@ const getLocaleDigits = memoize(
  *
  * @throws If `digit` is not a valid standard digit.
  */
-function toLocaleDigit(locale: Locale, digit: string): string {
+function toLocaleDigit(locale: Locale | undefined, digit: string): string {
     const index = STANDARD_DIGITS.indexOf(digit);
     if (index < 0) {
         throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
@@ -63,7 +63,7 @@ function toLocaleDigit(locale: Locale, digit: string): string {
  *
  * @throws If `localeDigit` is not a valid locale digit.
  */
-function fromLocaleDigit(locale: Locale, localeDigit: string): string {
+function fromLocaleDigit(locale: Locale | undefined, localeDigit: string): string {
     const index = getLocaleDigits(locale).indexOf(localeDigit);
     if (index < 0) {
         throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);
@@ -77,7 +77,7 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
  * @param number - The number to format
  * @param writtenOrdinals - If true, returns the written ordinal (e.g. "first", "second") for numbers 1-10
  */
-function toLocaleOrdinal(locale: Locale, number: number, writtenOrdinals = false): string {
+function toLocaleOrdinal(locale: Locale | undefined, number: number, writtenOrdinals = false): string {
     // Defaults to "other" suffix or "th" in English
     let suffixKey: TranslationPaths = 'workflowsPage.frequencies.ordinals.other';
 
