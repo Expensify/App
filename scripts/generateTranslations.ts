@@ -312,7 +312,7 @@ class TranslationGenerator {
         return (context: ts.TransformationContext) => {
             const visit: ts.Visitor = (node) => {
                 if (this.shouldNodeBeTranslated(node)) {
-                    if (ts.isStringLiteral(node)) {
+                    if (ts.isStringLiteral(node) && /.*[A-z].*/g.test(node.text)) {
                         const translatedText = translations.get(StringUtils.hash(node.text));
                         return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
                     }

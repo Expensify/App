@@ -147,7 +147,7 @@ describe('generateTranslations', () => {
                         complex: (action: {actionName: string}) => \`Edit \${action.actionName === 'shouldNotBeTranslated' ? 'expense' : 'comment'}\`,
                         complexWithNullishCoalesce: (name: string) => \`Pay \${name ?? 'someone'}\`,
                         complexWithFalsyCoalesce: (name: string) => \`Pay \${name || 'someone'}\`,
-                        extraComplex: (payer: string) => \`\${payer ? \`\${payer} \` : ''}paid elsewhere\`,
+                        extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
                         extraComplexButJustWhitespace: (payer: string) => \`\${payer ? \`\${payer} \` : ''}paid elsewhere\`,
                         evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`\${someBool ? \`\${someOtherBool ? 'Hello' : 'Goodbye'} moon\` : 'Goodnight, moon' }, kupo\`,
                         tooComplex: (numScanning: number, numPending: number) => {
