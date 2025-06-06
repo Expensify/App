@@ -138,10 +138,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const isTransactionDataReady = transactions !== undefined;
     const isStillLoadingData = !!isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
-    const shouldWaitForData =
-        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
-        !isTransactionThreadView &&
-        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const shouldWaitForData = !isTransactionDataReady && isStillLoadingData && !isTransactionThreadView && report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
     const isEmptyTransactionReport = transactions && transactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, transactions ?? []);
@@ -236,7 +233,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
-                            isLoadingInitialReportActions={isLoadingInitialReportActions}
+                            showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                         />
                     ) : (
                         <ReportActionsView
