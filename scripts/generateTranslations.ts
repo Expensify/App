@@ -100,7 +100,7 @@ class TranslationGenerator {
                     messages: [
                         {
                             role: 'system',
-                            content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript template string. Preserve placeholders like \${username}, \${count}, \${123456} etc without modifying their contents or removing the brackets. In most cases, the contents of the placeholders are descriptive of what they represent in the phrase, but in some cases the placeholders may just contain a number. If it can't be translated, reply with the same text unchanged.`,
+                            content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript template string. Preserve placeholders like \${username}, \${count}, \${123456} etc without modifying their contents or removing the brackets. In most cases, the contents of the placeholders are descriptive of what they represent in the phrase, but in some cases the placeholders may just contain a number. If it can't be translated, reply with the same text unchanged. Be cautious not to change any URLs.`,
                         },
                         {role: 'user', content: text},
                     ],
