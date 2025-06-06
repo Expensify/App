@@ -800,20 +800,6 @@ function MoneyReportHeader({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID));
             },
         },
-        [CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE]: {
-            text: translate('iou.moveExpenses', {count: 1}),
-            icon: Expensicons.DocumentMerge,
-            value: CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE,
-            onSelected: () => {
-                if (!moneyRequestReport || !transaction) {
-                    return;
-                }
-
-                Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, moneyRequestReport.reportID, getReportRHPActiveRoute()),
-                );
-            },
-        },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
             text: translate('common.delete'),
             icon: Expensicons.Trashcan,
