@@ -1,0 +1,68 @@
+diff --git a/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.js b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.js
+new file mode 100644
+index 0000000..f6edb80
+--- /dev/null
++++ b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.js
+@@ -0,0 +1,46 @@
++"use strict";
++
++let isInitialized = false;
++let justFinishedEdgeGestureFromLeft = false;
++let expectingTouchend = false;
++
++/// This returns information if the user just performed edge gesture on iOS safari to navigate in the browser history.
++export const getIsEdgeDragGesture = () => {
++  return expectingTouchend || justFinishedEdgeGestureFromLeft;
++};
++
++// We need to manualy reset this flag after deciding if there should be animation for navigation.
++export const resetExpectingTouchendWithDelay = () => {
++  setTimeout(() => {
++    expectingTouchend = false;
++  }, 100);
++};
++export const maybeInitializeEdgeDragGestureMonitor = () => {
++  if (isInitialized) {
++    return;
++  }
++  isInitialized = true;
++  let timer;
++
++  // Gestures that would trigger navigation forward are broken on iOS safari.
++  // They don't have touchend event fired so we can look at expectingTouchEnd flag to detect if we should run animation.
++  const handleTouchStart = () => {
++    expectingTouchend = true;
++  };
++  const handleTouchEnd = e => {
++    let changedTouches;
++    const pageX = (changedTouches = e.changedTouches[0]) === null || changedTouches === void 0 ? void 0 : changedTouches.pageX;
++    // PageX for gesture that would trigger navigation back is negative.
++    if (pageX < 0) {
++      if (timer) {
++        clearTimeout(timer);
++      }
++      justFinishedEdgeGestureFromLeft = true;
++      timer = setTimeout(() => justFinishedEdgeGestureFromLeft = false, 100);
++    }
++    expectingTouchend = false;
++  };
++  document.addEventListener('touchstart', handleTouchStart);
++  document.addEventListener('touchend', handleTouchEnd);
++};
++//# sourceMappingURL=edgeDragGestureMonitor.js.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.native.js b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.native.js
+new file mode 100644
+index 0000000..9c7b703
+--- /dev/null
++++ b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.native.js
+@@ -0,0 +1,8 @@
++"use strict";
++
++// We don't need edgeDragGestureMonitor for native platforms.
++
++export const getIsEdgeDragGesture = () => false;
++export const resetExpectingTouchendWithDelay = () => {};
++export const maybeInitializeEdgeDragGestureMonitor = () => {};
++//# sourceMappingURL=edgeDragGestureMonitor.native.js.map
+\ No newline at end of file
