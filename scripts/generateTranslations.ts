@@ -211,11 +211,11 @@ class TranslationGenerator {
                 stringsToTranslate.set(StringUtils.hash(node.text), node.text);
             } else if (ts.isTemplateExpression(node)) {
                 if (this.isSimpleTemplateExpression(node)) {
-                    stringsToTranslate.set(StringUtils.hash(node.getText()), this.simpleTemplateExpressionToString(node));
+                    stringsToTranslate.set(StringUtils.hash(node.getText()), this.templateExpressionToString(node));
                 } else {
                     console.log('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
                     node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
-                    stringsToTranslate.set(StringUtils.hash(node.getText()), this.complexTemplateExpressionToString(node));
+                    stringsToTranslate.set(StringUtils.hash(node.getText()), this.templateExpressionToString(node));
                 }
             }
         }
@@ -223,20 +223,13 @@ class TranslationGenerator {
     }
 
     /**
-     * Convert a simple template expression into a plain string representation, without the backticks.
-     */
-    private simpleTemplateExpressionToString(expression: TemplateExpression): string {
-        return expression.getText().trim().slice(1, -1);
-    }
-
-    /**
-     * Convert a complex template expression into a plain string representation that can be predictably serialized.
+     * Convert a template expression into a plain string representation that can be predictably serialized.
      * All ${...} spans containing complex expressions are replaced in the string by hashes of the expression text.
      *
-     * @example complexTemplateExpressionToString(`Edit ${action?.type === 'IOU' ? 'expense' : 'comment'} on ${date}`)
+     * @example templateExpressionToString(`Edit ${action?.type === 'IOU' ? 'expense' : 'comment'} on ${date}`)
      *       => `Edit ${HASH1} on ${date}`
      */
-    private complexTemplateExpressionToString(expression: TemplateExpression): string {
+    private templateExpressionToString(expression: TemplateExpression): string {
         let result = expression.head.text;
         for (const span of expression.templateSpans) {
             const expressionText = span.expression.getText();
@@ -250,6 +243,10 @@ class TranslationGenerator {
         return result;
     }
 
+    /**
+     * Convert our string-encoded template expression to a template expression.
+     * If the template contains any complex spans, those must be translated first, and those translations need to be passed in.
+     */
     private stringToTemplateExpression(input: string, translatedComplexSpans = new Map<number, ts.TemplateSpan>()): ts.TemplateExpression {
         const regex = /\$\{([^}]*)}/g;
         const spans: ts.TemplateSpan[] = [];
