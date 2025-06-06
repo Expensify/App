@@ -4,8 +4,8 @@ import type {ReportTransactionsDerivedValue} from '@src/types/onyx';
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS,
-    dependencies: [ONYXKEYS.COLLECTION.TRANSACTION],
-    compute: ([transactions]) => {
+    dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
+    compute: ([transactions, violations]) => {
         if (!transactions) {
             return {};
         }
@@ -17,10 +17,17 @@ export default createOnyxDerivedValueConfig({
             }
 
             if (!acc[reportID]) {
-                acc[reportID] = [];
+                acc[reportID] = {
+                    transactions: [],
+                    violations: {},
+                };
             }
-
-            acc[reportID].push(transaction);
+            const transactionID = transaction.transactionID;
+            const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+            if (transactionViolations && transactionViolations.length > 0) {
+                acc[reportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = transactionViolations;
+            }
+            acc[reportID].transactions.push(transaction);
 
             return acc;
         }, {});

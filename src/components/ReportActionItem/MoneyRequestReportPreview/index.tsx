@@ -4,7 +4,6 @@ import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
-import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,9 +50,10 @@ function MoneyRequestReportPreview({
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
         canBeMissing: true,
     });
-    const [iouReport, violations] = useReportTransactionViolations(iouReportID, transactionsByReportID);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const violations = transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.violations ?? {};
     const policy = usePolicy(policyID);
-    const transactions = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? [], [transactionsByReportID, iouReportID]);
+    const transactions = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], [transactionsByReportID, iouReportID]);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();

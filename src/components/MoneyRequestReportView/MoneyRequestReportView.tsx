@@ -100,7 +100,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    const transactions = transactionsByReportID[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? [];
+    const transactions = transactionsByReportID[reportID ?? CONST.DEFAULT_NUMBER_ID].transactions ?? [];
     const reportTransactionIDs = transactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
     const prevTransactions = usePrevious(transactions);

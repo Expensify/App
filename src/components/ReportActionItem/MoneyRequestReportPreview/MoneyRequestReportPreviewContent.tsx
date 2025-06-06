@@ -116,7 +116,7 @@ function MoneyRequestReportPreviewContent({
     shouldShowBorder = false,
     onPress,
 }: MoneyRequestReportPreviewContentProps) {
-    const transactions = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? [], [transactionsByReportID, iouReportID]);
+    const transactions = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], [transactionsByReportID, iouReportID]);
     const lastTransaction = transactions?.at(0);
     const shouldShowEmptyPlaceholder = transactions.length === 0;
     const theme = useTheme();

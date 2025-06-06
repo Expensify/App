@@ -25,7 +25,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -163,8 +162,9 @@ function ReportPreview({
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: false});
-    const transactions = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? [], [transactionsByReportID, iouReportID]);
-    const [iouReport, violations] = useReportTransactionViolations(iouReportID, transactionsByReportID);
+    const transactions = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], [transactionsByReportID, iouReportID]);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const violations = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.violations ?? {}, [transactionsByReportID, iouReportID]);
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];

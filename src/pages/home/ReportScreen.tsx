@@ -296,7 +296,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [transactionsByReportID = {}] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
         canBeMissing: false,
     });
-    const reportTransactions = getAllNonDeletedTransactions(transactionsByReportID?.[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? [], reportActions);
+
+    const reportTransactions = getAllNonDeletedTransactions(transactionsByReportID?.[reportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], reportActions);
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});

@@ -21,7 +21,7 @@ function useTripTransactions(reportID: string | undefined, transactionsByReportI
                 .map((report) => report?.reportID),
     });
 
-    const tripTransactions = tripTransactionReportIDs.flatMap((transactionReportID) => transactionsByReportID[transactionReportID ?? CONST.DEFAULT_NUMBER_ID]);
+    const tripTransactions = tripTransactionReportIDs.flatMap((transactionReportID) => transactionsByReportID[transactionReportID ?? CONST.DEFAULT_NUMBER_ID].transactions ?? []);
 
     return tripTransactions;
 }
