@@ -437,6 +437,7 @@ function SearchPage({route}: SearchPageProps) {
                 const source = URL.createObjectURL(resizedFile as Blob);
                 const newReportID = generateReportID();
                 initMoneyRequest({
+                    isFromGlobalCreate: true,
                     reportID: newReportID,
                     newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 });
