@@ -849,10 +849,7 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
 ### testBuild
-The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (standalone iOS, standalone Android, web, and desktop) directly from pull requests in the App repository. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. To initiate this workflow, the PR number from the App repository is required as input.
-
-### testBuildHybrid
-The [`testBuildHybrid` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuildHybrid.yml) builds ad-hoc staging versions of hybrid apps (iOS and Android) from pull requests submitted to the App and Mobile-Expensify repositories. This workflow facilitates testing changes by accepting up to two inputs:
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (hybrid iOS, hybrid Android, web, and desktop) from pull requests submitted to the App and Mobile-Expensify repositories. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. This workflow accepts up to two inputs:
 - A PR number from the App repository for testing New Dot (ND) changes.
 - A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
 
