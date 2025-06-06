@@ -10970,7 +10970,7 @@ function bulkHold(transactionIDs: string[], comment: string, reportID: string, s
         );
 
         // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
-        if (searchHash) {
+        if (searchHash !== -1) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,

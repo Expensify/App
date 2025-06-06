@@ -22,7 +22,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                bulkHold(context.selectedTransactionIDs, comment, reportID, context.currentSearchHash);
+                bulkHold(context.selectedTransactionIDs, comment, reportID, context.isOnSearch ? context.currentSearchHash : undefined);
                 context.clearSelectedTransactions(true);
             } else {
                 holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment);
