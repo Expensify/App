@@ -76,14 +76,11 @@ describe('getPrimaryAction', () => {
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = {
-            type: CONST.POLICY.TYPE.TEAM,
             approver: CURRENT_USER_EMAIL,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         };
         const transaction = {
             reportID: `${REPORT_ID}`,
-            merchant: "test123",
-            amount: -100,
             comment: {
                 hold: 'Hold',
             },

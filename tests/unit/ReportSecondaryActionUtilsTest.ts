@@ -111,8 +111,6 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'TRANSACTION_ID';
         const transaction = {
             transactionID: TRANSACTION_ID,
-            merchant: "test123",
-            amount: -100,
         } as unknown as Transaction;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
@@ -143,8 +141,6 @@ describe('getSecondaryAction', () => {
 
         const transaction = {
             transactionID: TRANSACTION_ID,
-            merchant: "test123",
-            amount: -100,
         } as unknown as Transaction;
 
         const violation = {
@@ -173,8 +169,6 @@ describe('getSecondaryAction', () => {
 
         const transaction = {
             transactionID: TRANSACTION_ID,
-            merchant: "test123",
-            amount: -100,
         } as unknown as Transaction;
 
         const violation = {
