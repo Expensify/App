@@ -147,6 +147,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Container style to be applied to the popover of the dropdown menu */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to use modal padding style for the popover menu */
+    shouldUseModalPaddingStyle?: boolean;
 };
 
 export type {

@@ -5181,6 +5181,24 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        plaidIcon: {
+            height: variables.iconSizeMegaLarge,
+            width: variables.iconSizeMegaLarge,
+            position: 'absolute',
+            right: 24,
+            top: 20,
+            zIndex: 1,
+        },
+
+        plaidIconSmall: {
+            height: variables.iconSizeMedium,
+            width: variables.iconSizeMedium,
+            position: 'absolute',
+            right: 4,
+            zIndex: 1,
+            top: 4,
+        },
+
         walletCardNumber: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,

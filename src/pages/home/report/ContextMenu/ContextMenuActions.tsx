@@ -86,14 +86,12 @@ import {
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
-    getIOUForwardedMessage,
     getIOUReportActionDisplayMessage,
     getOriginalReportID,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyForwardedMessage,
     getReportName,
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
@@ -108,6 +106,7 @@ import {
     deleteReportActionDraft,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
+    openReport,
     readNewestAction,
     saveReportActionDraft,
     toggleEmojiReaction,
@@ -327,8 +326,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             if (isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
-                const originalReportID = getOriginalReportID(reportID, reportAction);
-                navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
+                const childReportID = reportAction?.childReportID;
+                openReport(childReportID);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
             const editAction = () => {
@@ -575,9 +575,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
-                        setClipboardMessage(getReportAutomaticallyForwardedMessage(reportAction, reportID));
+                        setClipboardMessage(translateLocal('iou.automaticallyForwarded'));
                     } else {
-                        Clipboard.setString(getIOUForwardedMessage(reportAction, reportID));
+                        Clipboard.setString(translateLocal('iou.forwarded'));
                     }
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
                     const displayMessage = getRejectedReportMessage();
