@@ -647,8 +647,8 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                 };
 
                 if (parentReport && personalDetails) {
-                    // eslint-disable-next-line deprecation/deprecation
                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+                    // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
                     const parentReportName = getReportName(parentReport, policy, undefined, undefined);
                     const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
