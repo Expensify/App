@@ -22,9 +22,16 @@ describe('compareUserInList', () => {
     });
 
     it('Should compare the accountID if both the weight and displayName are the same', () => {
-        const first = {login: 'águero', weight: 2, accountID: 6};
+        const first = {login: 'aguero', weight: 2, accountID: 6};
         const second = {login: 'aguero', weight: 2, accountID: 7};
         expect(compareUserInList(first, second)).toBe(-1);
         expect(compareUserInList(second, first)).toBe(1);
+    });
+
+    it('Should compare the displayName with different diacritics if the weight is the same', () => {
+        const first = {login: 'águero', weight: 2, accountID: 8};
+        const second = {login: 'aguero', weight: 2, accountID: 8};
+        expect(compareUserInList(first, second)).toBe(1);
+        expect(compareUserInList(second, first)).toBe(-1);
     });
 });
