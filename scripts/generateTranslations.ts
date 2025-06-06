@@ -312,12 +312,10 @@ class TranslationGenerator {
                             return node;
                         }
 
-                        if (this.isSimpleTemplateExpression(node)) {
-                            return this.stringToTemplateExpression(translatedTemplate);
-                        }
-
-                        // Template expression is complex: recursively translate all complex template spans first
+                        // Recursively translate all complex template spans first
                         const translatedComplexSpans = new Map<number, ts.TemplateSpan>();
+
+                        // Template expression is complex:
                         for (const span of node.templateSpans) {
                             if (this.isSimpleTemplateSpan(span)) {
                                 continue;
