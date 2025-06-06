@@ -58,6 +58,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
+import {removeDraftTransactions} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -449,7 +450,9 @@ function IOURequestStepConfirmation({
 
                 const onFailure = () => {
                     isScanFilesCanBeRead = false;
-                    setMoneyRequestReceipt(item.transactionID, '', '', true);
+                    if (initialTransactionID === item.transactionID) {
+                        setMoneyRequestReceipt(item.transactionID, '', '', true);
+                    }
                 };
 
                 return checkIfScanFileCanBeRead(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure);
@@ -463,7 +466,7 @@ function IOURequestStepConfirmation({
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                 return;
             }
-            navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
+            removeDraftTransactions(true).then(() => navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID));
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
