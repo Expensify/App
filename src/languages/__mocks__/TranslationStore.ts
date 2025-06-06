@@ -57,7 +57,6 @@ class TranslationStore {
     }
 
     static get<TPath extends TranslationPaths>(key: TPath, locale?: ValueOf<typeof CONST.LOCALES>) {
-        console.log(`TranslationStore.get called with key: ${key}, locale: ${locale}`);
         const localeToUse = locale && this.localeCache.has(locale) ? locale : this.currentLocale;
         if (!localeToUse) {
             return null;

@@ -1,9 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import * as Localize from './Localize';
+import {translate} from './Localize';
 import memoize from './memoize';
-import * as NumberFormatUtils from './NumberFormatUtils';
+import {format, formatToParts} from './NumberFormatUtils';
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
@@ -17,9 +17,9 @@ const getLocaleDigits = memoize(
     (locale: Locale | undefined): string[] => {
         const localeDigits = [...STANDARD_DIGITS];
         for (let i = 0; i <= 9; i++) {
-            localeDigits[i] = NumberFormatUtils.format(locale, i);
+            localeDigits[i] = format(locale, i);
         }
-        NumberFormatUtils.formatToParts(locale, 1000000.5).forEach((part) => {
+        formatToParts(locale, 1000000.5).forEach((part) => {
             switch (part.type) {
                 case 'decimal':
                     localeDigits[INDEX_DECIMAL] = part.value;
@@ -88,7 +88,7 @@ function toLocaleOrdinal(locale: Locale | undefined, number: number, writtenOrdi
     const lastTwoDigits = number % 100;
 
     if (writtenOrdinals && number >= 1 && number <= 10) {
-        return Localize.translate(locale, `workflowsPage.frequencies.ordinals.${number}` as TranslationPaths);
+        return translate(locale, `workflowsPage.frequencies.ordinals.${number}` as TranslationPaths);
     }
 
     if (lastDigit === 1 && lastTwoDigits !== 11) {
@@ -99,7 +99,7 @@ function toLocaleOrdinal(locale: Locale | undefined, number: number, writtenOrdi
         suffixKey = 'workflowsPage.frequencies.ordinals.few';
     }
 
-    const suffix = Localize.translate(locale, suffixKey);
+    const suffix = translate(locale, suffixKey);
 
     return `${number}${suffix}`;
 }
