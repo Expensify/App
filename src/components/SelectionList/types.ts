@@ -794,7 +794,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     shouldUseDefaultRightHandSideCheckmark?: boolean;
 
     /** Whether the list is fully loaded and ready to be treated as such */
-    isReady: boolean;
+    isReady?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
