@@ -15,7 +15,6 @@ import type {TupleToUnion} from 'type-fest';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
-import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
@@ -50,6 +49,7 @@ import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {
     getMoneyRequestParticipantsFromReport,
     replaceReceipt,
