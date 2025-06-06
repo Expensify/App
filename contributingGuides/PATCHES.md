@@ -6,6 +6,29 @@ To ensure patches remain maintainable and traceable over time, follow the guidel
 
 ---
 
+## 🛠️ Creating a Patch
+
+To create a patch for a third-party library that you've modified:
+
+1. Make your changes to the library code in the `node_modules/<edited-library>` directory
+2. Run the following command to generate the patch file:
+
+```
+npm run patch-package -- <edited-library> --append "<short-patch-description>"
+```
+
+For example:
+```
+npm run patch-package -- react-native-pdf --append "fix-pdf-rendering-on-ios"
+```
+
+This will create a patch file in the `patches/` directory. After creating the patch:
+
+- Create or update the `details.md` file in the library's patch directory
+- Document the patch according to the [`details.md` format](#-detailsmd-format)
+
+---
+
 ## 🗂️ Folder Structure
 
 Each library with patch (or patches) should have its own directory inside `patches/`. Each directory should contain:
