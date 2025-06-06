@@ -25,6 +25,9 @@ type TransactionItemRowRBRProps = {
 
     /** Styles for the RBR messages container */
     containerStyles?: ViewStyle[];
+
+    /** Error message for missing required fields in the transaction */
+    missingFieldError?: string;
 };
 
 /**
@@ -64,7 +67,7 @@ const extractErrorMessages = (errors: Errors | ReceiptErrors, errorActions: Repo
     return Array.from(uniqueMessages);
 };
 
-function TransactionItemRowRBRWithOnyx({transaction, containerStyles}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const {translate} = useLocalize();
@@ -79,6 +82,7 @@ function TransactionItemRowRBRWithOnyx({transaction, containerStyles}: Transacti
     );
 
     const RBRMessages = [
+        ...(missingFieldError ? [missingFieldError] : []),
         ...getErrorMessages(
             transaction?.errors,
             transactionThreadActions?.filter((e) => !!e.errors),
