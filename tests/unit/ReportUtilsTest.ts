@@ -3096,9 +3096,8 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             // When it's checked if the description can be edited
-            // const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            // const result = canEditReportDescription(report, isReportArchived.current);
-            const result = canEditReportDescription(report, policy);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canEditReportDescription(report, policy, isReportArchived.current);
 
             // Then it can be edited
             expect(result).toBeTruthy();
@@ -3107,7 +3106,7 @@ describe('ReportUtils', () => {
         it('should return false for an archived policy room', async () => {
             // Given an archived policy room
             const report: Report = {
-                ...createRandomReport(40001),
+                ...createRandomReport(40002),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
             };
@@ -3115,9 +3114,8 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
 
             // When it's checked if the description can be edited
-            // const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            // const result = canEditReportDescription(report, isReportArchived.current);
-            const result = canEditReportDescription(report, policy);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canEditReportDescription(report, policy, isReportArchived.current);
 
             // Then it cannot be edited
             expect(result).toBeFalsy();
