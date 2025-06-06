@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {useWindowDimensions} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,11 +13,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -52,7 +51,7 @@ type MenuItem = {
 
 function AboutPage() {
     const {translate} = useLocalize();
-    const {width} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const popoverAnchor = useRef<View>(null);
@@ -171,7 +170,7 @@ function AboutPage() {
                 </View>
                 <View style={[styles.sidebarFooter, styles.mb5]}>
                     <RenderHtml
-                        contentWidth={width}
+                        contentWidth={windowWidth}
                         systemFonts={systemFonts}
                         source={{
                             html: translate('initialSettingsPage.readTheTermsAndPrivacy.full')
