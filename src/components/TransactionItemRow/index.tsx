@@ -96,7 +96,7 @@ type TransactionItemRowProps = {
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInReportTableView?: boolean;
-    isInSingleTransactionReport?:boolean;
+    isInSingleTransactionReport?: boolean;
 };
 
 /** If merchant name is empty or (none), then it falls back to description if screen is narrow */
@@ -301,7 +301,10 @@ function TransactionItemRow({
             StyleUtils,
             createdAt,
             isActionLoading,
-            isReportItemChild, isDateColumnWide, isInSingleTransactionReport, isSelected,
+            isReportItemChild,
+            isDateColumnWide,
+            isInSingleTransactionReport,
+            isSelected,
             merchantOrDescriptionName,
             onButtonPress,
             shouldShowTooltip,
