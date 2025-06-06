@@ -111,7 +111,7 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'TRANSACTION_ID';
         const transaction = {
             transactionID: TRANSACTION_ID,
-            merchant: 'test123',
+            merchant: "test123",
             amount: -100,
         } as unknown as Transaction;
 
@@ -143,7 +143,7 @@ describe('getSecondaryAction', () => {
 
         const transaction = {
             transactionID: TRANSACTION_ID,
-            merchant: 'test123',
+            merchant: "test123",
             amount: -100,
         } as unknown as Transaction;
 
@@ -173,7 +173,7 @@ describe('getSecondaryAction', () => {
 
         const transaction = {
             transactionID: TRANSACTION_ID,
-            merchant: 'test123',
+            merchant: "test123",
             amount: -100,
         } as unknown as Transaction;
 

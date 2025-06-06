@@ -116,8 +116,8 @@ describe('getReportPreviewAction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             const transaction = {
                 reportID: `${REPORT_ID}`,
-                merchant: 'test123',
-                amount: -100,
+                merchant: "test123",
+                amount: -100
             } as unknown as Transaction;
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
@@ -146,13 +146,13 @@ describe('getReportPreviewAction', () => {
                 reportID: `${REPORT_ID}`,
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
-                    merchant: 'test123',
-                    amount: -100,
+                    merchant: "test123",
+                    amount: -100
                 },
             } as unknown as Transaction;
 
             expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], false)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
-        });
+});
 
         it("should return true for the current report manager regardless of whether they're in the current approval workflow", async () => {
             const report = {
@@ -174,8 +174,8 @@ describe('getReportPreviewAction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             const transaction = {
                 reportID: `${REPORT_ID}`,
-                merchant: 'test123',
-                amount: -100,
+                merchant: "test123",
+                amount: -100
             } as unknown as Transaction;
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));

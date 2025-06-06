@@ -2,7 +2,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
-import {canApproveIOU} from './actions/IOU';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
@@ -46,6 +45,7 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
+import { canApproveIOU } from "./actions/IOU";
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     const isExpenseReport = isExpenseReportUtils(report);

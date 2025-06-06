@@ -82,7 +82,7 @@ describe('getPrimaryAction', () => {
         };
         const transaction = {
             reportID: `${REPORT_ID}`,
-            merchant: 'test123',
+            merchant: "test123",
             amount: -100,
             comment: {
                 hold: 'Hold',
