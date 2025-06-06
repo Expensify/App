@@ -97,12 +97,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getReportRouteByID: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(),
     getActiveRoute: jest.fn(),
-}));
-
-jest.mock('@src/libs/Navigation/navigationRef', () => ({
-    getRootState: () => ({
-        routes: [],
-    }),
+    navigationRef: {
+        getRootState: jest.fn(),
+    },
 }));
 
 jest.mock('@react-navigation/native');
@@ -4008,12 +4005,10 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -4175,12 +4170,10 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -5506,7 +5499,12 @@ describe('actions/IOU', () => {
         it('should merge transaction draft onyx value', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    initMoneyRequest(fakeReport.reportID, fakePolicy, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                    initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
@@ -5516,7 +5514,13 @@ describe('actions/IOU', () => {
         it('should modify transaction draft when currentIouRequestType is different', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest(fakeReport.reportID, fakePolicy, true, CONST.IOU.REQUEST_TYPE.MANUAL, CONST.IOU.REQUEST_TYPE.SCAN);
+                    return initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        isFromGlobalCreate: true,
+                        currentIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
@@ -5528,7 +5532,11 @@ describe('actions/IOU', () => {
         it('should return personal currency when policy is missing', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest(fakeReport.reportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                    return initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({

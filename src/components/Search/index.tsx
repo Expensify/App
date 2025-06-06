@@ -1,7 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
@@ -56,7 +55,7 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: ContentStyle;
+    contentContainerStyle?: StyleProp<ViewStyle>;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
@@ -80,11 +79,11 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, report
     ];
 }
 
-function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
     return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
     if (isTaskListItemType(item)) {
         return {
             ...item,
@@ -100,11 +99,11 @@ function mapToItemWithSelectionInfo(item: SearchListItem, selectedTransactions: 
     }
 
     return isTransactionListItemType(item)
-        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
+        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
         : {
               ...item,
               shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
               isSelected: item?.transactions?.length > 0 && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
@@ -167,7 +166,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         () =>
             Object.values(reportActions ?? {})
                 .filter((reportAction) => !!reportAction)
-                .flatMap((fillteredReportActions) => Object.values(fillteredReportActions ?? {})),
+                .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
         [reportActions],
     );
     const {translate} = useLocalize();
@@ -175,7 +174,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
-    const {canUseTableReportView} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -414,7 +413,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             const backTo = Navigation.getActiveRoute();
             const shouldHandleTransactionAsReport = isReportListItemType(item) || (isTransactionItem && isOpenedAsReport);
 
-            if (canUseTableReportView && shouldHandleTransactionAsReport) {
+            if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && shouldHandleTransactionAsReport) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
                 return;
             }
@@ -442,7 +441,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [canUseTableReportView, hash, selectionMode?.isEnabled, toggleTransaction],
+        [isBetaEnabled, hash, selectionMode?.isEnabled, toggleTransaction],
     );
 
     const onViewableItemsChanged = useCallback(
@@ -499,7 +498,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         // Determine if either the base key or any transaction key matches
         const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-        return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
+        return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
@@ -597,7 +596,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         />
                     )
                 }
-                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
+                contentContainerStyle={[contentContainerStyle, styles.pb3]}
                 containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 shouldGroupByReports={shouldGroupByReports}
@@ -613,7 +612,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     ) : undefined
                 }
                 queryJSONHash={hash}
-                queryJSONType={type}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />

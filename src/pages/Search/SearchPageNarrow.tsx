@@ -5,8 +5,8 @@ import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, us
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import NavigationTabBarDummy from '@components/Navigation/NavigationTabBar/NavigationTabBarDummy';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -141,7 +141,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
             testID={SearchPageNarrow.displayName}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
+            bottomContent={<NavigationTabBarDummy selectedTab={NAVIGATION_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
@@ -158,7 +158,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
                         </View>
                         <View style={[styles.flex1]}>
                             <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
-                                <View style={[styles.narrowSearchHeaderStyle, styles.flex1]}>
+                                <View style={[styles.flex1, styles.pt2, styles.appBG]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}
                                         searchRouterListVisible={searchRouterListVisible}

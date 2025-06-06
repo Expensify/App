@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import Animated, {Easing, Keyframe, LayoutAnimationConfig, SequencedTransition, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -6,7 +6,6 @@ import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import variables from '@styles/variables';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
-
 
 type OpacityViewProps = {
     /** Should we dim the view */
@@ -73,7 +72,6 @@ function OpacityView({
 
         return SlideOut.duration(300);
     }, []);
-    
 
     return (
         <LayoutAnimationConfig skipEntering>

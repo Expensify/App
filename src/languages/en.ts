@@ -83,7 +83,6 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FormattedMaxLengthParams,
-    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
@@ -112,6 +111,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    MovedFromReportParams,
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
@@ -255,6 +255,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        count: 'Count',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
         yes: 'Yes',
@@ -888,6 +889,7 @@ const translations = {
             return added > 1 ? `${added} members have been added.` : '1 member has been added.';
         },
         importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
+        importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfulDescriptionParams) =>
             rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.',
         importFailedTitle: 'Import failed',
@@ -918,6 +920,7 @@ const translations = {
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
+        multiScan: 'multi-scan',
         shutter: 'shutter',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
@@ -976,6 +979,7 @@ const translations = {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report, ${merchant} - ${amount}`,
+        movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'moved this expense to your personal space',
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
@@ -1078,8 +1082,8 @@ const translations = {
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         approvedMessage: `approved`,
         unapproved: `unapproved`,
-        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
-        forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
+        automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
+        forwarded: `approved`,
         rejectedThisReport: 'rejected this report',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceled the payment`,
@@ -3895,6 +3899,8 @@ const translations = {
             assignedCard: ({assignee, link}: AssignedCardParams) => `assigned ${assignee} a ${link}! Imported transactions will appear in this chat.`,
             companyCard: 'company card',
             chooseCardFeed: 'Choose card feed',
+            ukRegulation:
+                'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -4235,7 +4241,11 @@ const translations = {
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",
+                //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
+                subtitle1: 'Import a spreadsheet to add tags for tracking projects, locations, departments, and more.',
+                subtitle2: ' Learn more',
+                subtitle3: ' about formatting tag files.',
             },
             deleteTag: 'Delete tag',
             deleteTags: 'Delete tags',
@@ -4252,6 +4262,27 @@ const translations = {
             tagRules: 'Tag rules',
             approverDescription: 'Approver',
             importTags: 'Import tags',
+            importTagsSupportingText: 'Code your expenses with one type of tag or many.',
+            configureMultiLevelTags: 'Configure your list of tags for multi-level tagging. ',
+            importMultiLevelTagsSupportingText: `Here's a preview of your tags. If everything looks good, click below to import them.`,
+            importMultiLevelTags: {
+                firstRowTitle: 'The first row is the title for each tag list',
+                independentTags: 'These are independent tags',
+                glAdjacentColumn: 'There is a GL code in the adjacent column',
+            },
+            tagLevel: {
+                singleLevel: 'Single level of tags',
+                multiLevel: 'Multi-level tags',
+            },
+            switchSingleToMultiLevelTagWarning: {
+                title: 'Switch Tag Levels',
+                prompt1: 'Switching tag levels will erase all current tags.',
+                prompt2: ' We suggest you first',
+                prompt3: ' download a backup',
+                prompt4: ' by exporting your tags.',
+                prompt5: ' Learn more',
+                prompt6: ' about tag levels.',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
             cannotDeleteOrDisableAllTags: {
@@ -4262,6 +4293,10 @@ const translations = {
                 title: 'Cannot make all tags optional',
                 description: `At least one tag must remain required because your workspace settings require tags.`,
             },
+            tagCount: () => ({
+                one: '1 Tag',
+                other: (count: number) => `${count} Tags`,
+            }),
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -4879,6 +4914,12 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
             },
+            multiLevelTags: {
+                title: 'Multi-level tags',
+                description:
+                    'Multi-Level Tags help you track expenses with greater precision. Assign multiple tags to each line item—such as department, client, or cost center—to capture the full context of every expense. This enables more detailed reporting, approval workflows, and accounting exports.',
+                onlyAvailableOnPlan: 'Multi-level tags are only available on the Control plan, starting at ',
+            },
             pricing: {
                 perActiveMember: 'per active member per month.',
                 perMember: 'per member per month.',
@@ -4990,11 +5031,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                alcohol: 'alcohol',
-                hotelIncidentals: 'hotel incidentals',
-                gambling: 'gambling',
-                tobacco: 'tobacco',
-                adultEntertainment: 'adult entertainment',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Hotel incidentals',
+                gambling: 'Gambling',
+                tobacco: 'Tobacco',
+                adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
@@ -5875,7 +5916,7 @@ const translations = {
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
-        hold: 'Hold',
+        hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
     },
     reportViolations: {
