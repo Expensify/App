@@ -963,7 +963,7 @@ Onyx.connect({
 
 let reportsTransactions: Record<string, Transaction[]> = {};
 Onyx.connect({
-    key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS,
+    key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
     callback: (value) => {
         if (!value) {
             return;

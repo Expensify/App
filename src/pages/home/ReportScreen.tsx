@@ -293,11 +293,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
-    const [transactionsByReportID = {}] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS, {
+    const [transactionsAndViolationsByReport = {}] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
         canBeMissing: false,
     });
 
-    const reportTransactions = getAllNonDeletedTransactions(transactionsByReportID?.[reportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], reportActions);
+    const reportTransactions = getAllNonDeletedTransactions(transactionsAndViolationsByReport?.[reportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], reportActions);
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
@@ -823,7 +823,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
-                                        transactionsByReportID={transactionsByReportID}
+                                        transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                                     />
                                 ) : null}
                                 {!!report && shouldDisplayMoneyRequestActionsList ? (
@@ -831,7 +831,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         report={report}
                                         policy={policy}
                                         reportActions={reportActions}
-                                        transactionsByReportID={transactionsByReportID}
+                                        transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}

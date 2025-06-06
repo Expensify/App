@@ -181,7 +181,7 @@ type PureReportActionItemProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
     /** All transactions grouped by reportID */
-    transactionsByReportID?: OnyxTypes.ReportTransactionsDerivedValue;
+    transactionsAndViolationsByReport?: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -355,7 +355,7 @@ function PureReportActionItem({
     action,
     report,
     transactionThreadReport,
-    transactionsByReportID = {},
+    transactionsAndViolationsByReport = {},
     linkedReportActionID,
     displayAsGroup,
     index,
@@ -878,7 +878,7 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
-                    transactionsByReportID={transactionsByReportID}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -899,7 +899,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
-                    transactionsByReportID={transactionsByReportID}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
@@ -918,7 +918,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     isWhisper={isWhisper}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
-                    transactionsByReportID={transactionsByReportID}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1335,7 +1335,7 @@ function PureReportActionItem({
         return (
             <TripSummary
                 reportID={getOriginalMessage(action)?.linkedReportID}
-                transactionsByReportID={transactionsByReportID}
+                transactionsAndViolationsByReport={transactionsAndViolationsByReport}
             />
         );
     }

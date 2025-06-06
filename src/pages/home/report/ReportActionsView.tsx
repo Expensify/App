@@ -63,7 +63,7 @@ type ReportActionsViewProps = {
     hasOlderActions: boolean;
 
     /** All transactions grouped by reportID */
-    transactionsByReportID: OnyxTypes.ReportTransactionsDerivedValue;
+    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -76,7 +76,7 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
-    transactionsByReportID,
+    transactionsAndViolationsByReport,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -99,7 +99,7 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-    const reportTransactions = getAllNonDeletedTransactions(transactionsByReportID?.[reportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], allReportActions ?? []);
+    const reportTransactions = getAllNonDeletedTransactions(transactionsAndViolationsByReport?.[reportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], allReportActions ?? []);
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
 
     useEffect(() => {
@@ -308,7 +308,7 @@ function ReportActionsView({
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
-                transactionsByReportID={transactionsByReportID}
+                transactionsAndViolationsByReport={transactionsAndViolationsByReport}
             />
             <UserTypingEventListener report={report} />
         </>

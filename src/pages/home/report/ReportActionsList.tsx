@@ -110,7 +110,7 @@ type ReportActionsListProps = {
     shouldEnableAutoScrollToTopThreshold?: boolean;
 
     /** All transactions grouped by reportID */
-    transactionsByReportID: OnyxTypes.ReportTransactionsDerivedValue;
+    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 };
 
 const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
@@ -151,7 +151,7 @@ function ReportActionsList({
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
-    transactionsByReportID,
+    transactionsAndViolationsByReport,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
@@ -587,7 +587,7 @@ function ReportActionsList({
                     index={index}
                     report={report}
                     transactionThreadReport={transactionThreadReport}
-                    transactionsByReportID={transactionsByReportID}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
                         !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
@@ -608,7 +608,7 @@ function ReportActionsList({
             parentReportActionForTransactionThread,
             report,
             transactionThreadReport,
-            transactionsByReportID,
+            transactionsAndViolationsByReport,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,

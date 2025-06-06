@@ -83,7 +83,7 @@ type MoneyRequestReportListProps = {
     reportActions?: OnyxTypes.ReportAction[];
 
     /** All transactions grouped by reportID */
-    transactionsByReportID: OnyxTypes.ReportTransactionsDerivedValue;
+    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
@@ -109,7 +109,7 @@ function MoneyRequestReportActionsList({
     report,
     policy,
     reportActions = [],
-    transactionsByReportID,
+    transactionsAndViolationsByReport,
     newTransactions,
     hasNewerActions,
     hasOlderActions,
@@ -124,7 +124,7 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const transactions = useMemo(() => transactionsByReportID?.[report.reportID]?.transactions ?? [], [transactionsByReportID, report.reportID]);
+    const transactions = useMemo(() => transactionsAndViolationsByReport?.[report.reportID]?.transactions ?? [], [transactionsAndViolationsByReport, report.reportID]);
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
 
     const reportID = report?.reportID;
@@ -481,7 +481,7 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
-                    transactionsByReportID={transactionsByReportID}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         },
@@ -495,7 +495,7 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            transactionsByReportID,
+            transactionsAndViolationsByReport,
         ],
     );
 

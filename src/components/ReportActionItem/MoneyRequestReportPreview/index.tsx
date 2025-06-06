@@ -35,7 +35,7 @@ function MoneyRequestReportPreview({
     shouldDisplayContextMenu = true,
     isInvoice = false,
     shouldShowBorder,
-    transactionsByReportID,
+    transactionsAndViolationsByReport,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -51,9 +51,9 @@ function MoneyRequestReportPreview({
         canBeMissing: true,
     });
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const violations = transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.violations ?? {};
+    const violations = transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.violations ?? {};
     const policy = usePolicy(policyID);
-    const transactions = useMemo(() => transactionsByReportID[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], [transactionsByReportID, iouReportID]);
+    const transactions = useMemo(() => transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions ?? [], [transactionsAndViolationsByReport, iouReportID]);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
@@ -121,7 +121,7 @@ function MoneyRequestReportPreview({
             checkIfContextMenuActive={checkIfContextMenuActive}
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
-            transactionsByReportID={transactionsByReportID}
+            transactionsAndViolationsByReport={transactionsAndViolationsByReport}
             violations={violations}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}

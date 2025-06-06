@@ -830,7 +830,7 @@ const ONYXKEYS = {
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
-        REPORT_TRANSACTIONS: 'reportTransactions',
+        REPORT_TRANSACTIONS_AND_VIOLATIONS: 'reportTransactionsAndViolations',
     },
 } as const;
 
@@ -1179,7 +1179,7 @@ type OnyxValuesMapping = {
 
 type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: OnyxTypes.ReportAttributesDerivedValue;
-    [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS]: OnyxTypes.ReportTransactionsDerivedValue;
+    [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

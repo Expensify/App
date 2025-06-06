@@ -1,16 +1,16 @@
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportTransactionsDerivedValue} from '@src/types/onyx';
+import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx';
 
 export default createOnyxDerivedValueConfig({
-    key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS,
+    key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
     compute: ([transactions, violations]) => {
         if (!transactions) {
             return {};
         }
 
-        return Object.values(transactions).reduce<ReportTransactionsDerivedValue>((acc, transaction) => {
+        return Object.values(transactions).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, transaction) => {
             const reportID = transaction?.reportID;
             if (!reportID) {
                 return acc;
@@ -25,7 +25,10 @@ export default createOnyxDerivedValueConfig({
             const transactionID = transaction.transactionID;
             const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
             if (transactionViolations && transactionViolations.length > 0) {
-                acc[reportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = transactionViolations;
+                acc[reportID].violations = {
+                    ...acc[reportID].violations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: transactionViolations,
+                };
             }
             acc[reportID].transactions.push(transaction);
 

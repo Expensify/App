@@ -57,7 +57,7 @@ type ReportActionItemParentActionProps = {
     shouldUseThreadDividerLine?: boolean;
 
     /** All transactions grouped by reportID */
-    transactionsByReportID: OnyxTypes.ReportTransactionsDerivedValue;
+    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 };
 
 function ReportActionItemParentAction({
@@ -70,7 +70,7 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
-    transactionsByReportID,
+    transactionsAndViolationsByReport,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -156,7 +156,7 @@ function ReportActionItemParentAction({
                             isFirstVisibleReportAction={isFirstVisibleReportAction}
                             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                             isThreadReportParentAction
-                            transactionsByReportID={transactionsByReportID}
+                            transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                         />
                     </OfflineWithFeedback>
                 );
