@@ -343,10 +343,6 @@ function SettlementButton({
             buttonOptions.push(approveButtonOption);
         }
 
-        // Put the preferred payment method to the front of the array, so it's shown as default. We assume their last payment method is their preferred.
-        if (lastPaymentMethodRef.current && !isInvoiceReport) {
-            return buttonOptions.sort((method) => (method.value === lastPaymentMethod && lastPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE ? -1 : 0));
-        }
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible except for component initialization when the last payment method is not initialized yet.
         // We need to be sure that onPress should be wrapped in an useCallback to prevent unnecessary updates.
