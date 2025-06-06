@@ -51,7 +51,6 @@ import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import * as HybridAppActions from '@userActions/HybridApp';
 import type HybridAppSettings from '@userActions/HybridApp/types';
-import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
@@ -850,7 +849,6 @@ function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetAllChecks();
-    PriorityMode.resetHasReadRequiredDataFromStorage();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();

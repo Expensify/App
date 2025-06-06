@@ -58,7 +58,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const {isBlockedFromSpotnanaTravel, isTravelVerified} = usePermissions();
+    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -132,7 +132,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
                 });
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
-        } else if (!isTravelVerified) {
+        } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             setVerificationModalVisibility(true);
         }
         // Determine the domain to associate with the workspace during provisioning in Spotnana.
@@ -162,7 +162,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         hybridApp?.isSingleNewDotEntry,
         isUserValidated,
         groupPaidPolicies.length,
-        isTravelVerified,
+        isBetaEnabled,
     ]);
 
     return (
