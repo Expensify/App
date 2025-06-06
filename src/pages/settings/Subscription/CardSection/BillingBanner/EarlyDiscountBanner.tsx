@@ -120,7 +120,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
         return null;
     }
 
-    const title = !isSubscriptionPage ? (
+    const title = isSubscriptionPage ? (
         <RenderHtml
             contentWidth={width}
             source={{
