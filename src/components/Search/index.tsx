@@ -614,6 +614,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 queryJSONHash={hash}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
+                shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
             />
         </SearchScopeProvider>
     );

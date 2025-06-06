@@ -4,7 +4,7 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
+import Animated, {SequencedTransition} from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -69,6 +69,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
 
+    /** Whether to animate the items in the list */
+    shouldAnimate?: boolean;
+
     /** The hash of the queryJSON */
     queryJSONHash: number;
 
@@ -105,6 +108,7 @@ function SearchList(
         shouldGroupByReports,
         onViewableItemsChanged,
         onLayout,
+        shouldAnimate,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -403,6 +407,7 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
+                itemLayoutAnimation={shouldAnimate ? SequencedTransition : undefined}
             />
             <Modal
                 isVisible={isModalVisible}

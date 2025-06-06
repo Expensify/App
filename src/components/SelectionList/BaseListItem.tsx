@@ -41,7 +41,6 @@ function BaseListItem<TItem extends ListItem>({
     onLongPressRow,
     testID,
     shouldUseDefaultRightHandSideCheckmark = true,
-    shouldAnimate = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -116,7 +115,6 @@ function BaseListItem<TItem extends ListItem>({
                 tabIndex={item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
                 testID={testID}
-                shouldAnimate={shouldAnimate}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}

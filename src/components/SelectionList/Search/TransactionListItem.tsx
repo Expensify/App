@@ -97,24 +97,7 @@ function TransactionListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, styles.overflowHidden]}
-            shouldAnimate
         >
-<<<<<<< HEAD
-            
-                <TransactionListItemRow
-                    item={transactionItem}
-                    showTooltip={showTooltip}
-                    onButtonPress={() => {
-                        handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
-                    }}
-                    onCheckboxPress={() => onCheckboxPress?.(item)}
-                    isDisabled={!!isDisabled}
-                    canSelectMultiple={!!canSelectMultiple}
-                    isButtonSelected={item.isSelected}
-                    shouldShowTransactionCheckbox={false}
-                    isLoading={isLoading ?? transactionItem.isActionLoading}
-                />
-=======
             {(hovered) => (
                 <>
                     {!isLargeScreenWidth && (
@@ -143,7 +126,6 @@ function TransactionListItem<TItem extends ListItem>({
                     />
                 </>
             )}
->>>>>>> main
         </BaseListItem>
     );
 }

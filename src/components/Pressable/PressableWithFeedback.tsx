@@ -43,8 +43,6 @@ type PressableWithFeedbackProps = PressableProps & {
      * This is needed for buttons that allow content to display under them.
      */
     shouldBlendOpacity?: boolean;
-
-    shouldAnimate?: boolean;
 };
 
 function PressableWithFeedback(
@@ -56,7 +54,6 @@ function PressableWithFeedback(
         hoverDimmingValue = variables.hoverDimValue,
         dimAnimationDuration,
         shouldBlendOpacity,
-        shouldAnimate,
         ...rest
     }: PressableWithFeedbackProps,
     ref: PressableRef,
@@ -71,7 +68,6 @@ function PressableWithFeedback(
             dimAnimationDuration={dimAnimationDuration}
             style={wrapperStyle}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
-            shouldAnimate={shouldAnimate}
         >
             <GenericPressable
                 ref={ref}
