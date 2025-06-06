@@ -29,7 +29,7 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
     const [onfidoKey, setOnfidoKey] = useState(() => Math.floor(Math.random() * 1000000));
 
     const policyID = reimbursementAccount?.achData?.policyID;
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
 
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
