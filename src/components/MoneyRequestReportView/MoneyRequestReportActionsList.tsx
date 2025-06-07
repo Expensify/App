@@ -144,6 +144,18 @@ function MoneyRequestReportActionsList({
 
     const canPerformWriteAction = canUserPerformWriteAction(report);
 
+    const isMissingReportActions = useMemo(() => {
+        return (
+            reportActions.filter(
+                (reportAction) =>
+                    (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction),
+            )?.length === 0
+        );
+    }, [canPerformWriteAction, isOffline, reportActions]);
+
+    const shouldShowSkeleton = isLoadingInitialReportActions && isMissingReportActions && !isOffline;
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -624,7 +636,7 @@ function MoneyRequestReportActionsList({
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
-                                    isLoadingInitialReportActions={isLoadingInitialReportActions}
+                                    isLoadingInitialReportActions={shouldShowSkeleton}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                 />
                             </>
@@ -633,7 +645,7 @@ function MoneyRequestReportActionsList({
                         onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
                         ref={reportScrollManager.ref}
-                        ListEmptyComponent={!isOffline && isLoadingInitialReportActions ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
+                        ListEmptyComponent={shouldShowSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                     />
                 )}
             </View>
