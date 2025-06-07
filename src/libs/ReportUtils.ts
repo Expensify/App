@@ -154,7 +154,6 @@ import {
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionMessageText,
-    getReportActions,
     getReportActionText,
     getRetractedMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -1716,14 +1715,6 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     return !!report && report?.reportID === conciergeReportID;
 }
 
-/**
- * Returns true if the report is a Concierge chat report from another account due to account merge, returns false otherwise.
- */
-function isMergedConciergeChatReport(reportOrID: OnyxInputOrEntry<Report> | Report['reportID']): boolean {
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
-    return !!report && chatIncludesConcierge(report) && getArchiveReason(getReportActions(report)) === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED;
-}
-
 function findSelfDMReportID(): string | undefined {
     if (!allReports) {
         return;
@@ -1910,7 +1901,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
             // eslint-disable-next-line deprecation/deprecation
             const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
 
-            return !isSystemChat(report) && (!isArchivedReport(reportNameValuePairs) || isMergedConciergeChatReport(report));
+            return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs);
         }) ?? [];
 
     // At least two reports remain: self DM and Concierge chat.
@@ -1948,7 +1939,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    return (!(isExpenseReport(report) || isExpenseRequest(report)) && !!reportNameValuePairs?.private_isArchived) || isMergedConciergeChatReport(report);
+    return !(isExpenseReport(report) || isExpenseRequest(report)) && !!reportNameValuePairs?.private_isArchived;
 }
 
 /**
@@ -2891,16 +2882,6 @@ function getIcons(
     invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>,
 ): Icon[] {
     const ownerDetails = report?.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
-    if (isMergedConciergeChatReport(report)) {
-        const conciergeIcon: Icon = {
-            source: allPersonalDetails?.[CONST.ACCOUNT_ID.CONCIERGE]?.avatar ?? CONST.CONCIERGE_ICON_URL,
-            type: CONST.ICON_TYPE_AVATAR,
-            name: allPersonalDetails?.[CONST.ACCOUNT_ID.CONCIERGE]?.displayName ?? CONST.CONCIERGE_DISPLAY_NAME,
-            id: CONST.ACCOUNT_ID.CONCIERGE,
-        };
-
-        return [conciergeIcon];
-    }
 
     if (isEmptyObject(report)) {
         const fallbackIcon: Icon = {
@@ -2974,9 +2955,10 @@ function getIcons(
         return [domainIcon];
     }
 
+    const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
+    if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || (isArchivedNonExpenseReport(report, reportNameValuePairs) && !chatIncludesConcierge(report))) {
         const icons = [getWorkspaceIcon(report, policy)];
 
         if (isInvoiceRoom(report)) {
@@ -3373,7 +3355,7 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    if (isReportArchived || isMergedConciergeChatReport(optionOrReport.reportID)) {
+    if (isReportArchived) {
         return null;
     }
 
@@ -4736,6 +4718,10 @@ function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
 
+function generateArchivedReportName(reportName: string): string {
+    return `${reportName} (${translateLocal('common.archived')}) `;
+}
+
 function getReportNameInternal({
     report,
     policy,
@@ -4744,7 +4730,7 @@ function getReportNameInternal({
     invoiceReceiverPolicy,
     transactions,
     reports,
-    reportNameValuePairs,
+    reportNameValuePairs = allReportNameValuePair,
     policies,
 }: GetReportNameParams): string {
     let formattedName: string | undefined;
@@ -4755,6 +4741,10 @@ function getReportNameInternal({
         parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
     }
     const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(
+        report,
+        reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)}`],
+    );
 
     if (
         isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
@@ -4877,8 +4867,8 @@ function getReportNameInternal({
 
             // This will get removed as part of https://github.com/Expensify/App/issues/59961
             // eslint-disable-next-line deprecation/deprecation
-            if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID, reportNameValuePairs))) {
-                formattedName += ` (${translateLocal('common.archived')})`;
+            if (isArchivedNonExpense) {
+                formattedName = generateArchivedReportName(formattedName);
             }
             return formatReportLastMessageText(formattedName);
         }
@@ -4923,8 +4913,8 @@ function getReportNameInternal({
 
         // This will get removed as part of https://github.com/Expensify/App/issues/59961
         // eslint-disable-next-line deprecation/deprecation
-        if (reportActionMessage && isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID, reportNameValuePairs))) {
-            return `${reportActionMessage} (${translateLocal('common.archived')})`;
+        if (reportActionMessage && isArchivedNonExpense) {
+            return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
             const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
@@ -4967,28 +4957,18 @@ function getReportNameInternal({
         formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
     }
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
-        formattedName += ` (${translateLocal('common.archived')})`;
-    }
-
-    if (isMergedConciergeChatReport(report)) {
-        return `${CONST.CONCIERGE_CHAT_NAME} (${translateLocal('common.archived')})`;
-    }
-
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldAddCurrentUserPostfix: true, personalDetailsData: personalDetails});
     }
 
     if (formattedName) {
-        return formatReportLastMessageText(formattedName);
+        return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName);
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
     formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
-    return formattedName;
+    return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName;
 }
 
 /**
@@ -11149,7 +11129,6 @@ export {
     navigateOnDeleteExpense,
     hasReportBeenReopened,
     getMoneyReportPreviewName,
-    isMergedConciergeChatReport,
 };
 
 export type {
