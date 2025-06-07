@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
-import {Linking, useWindowDimensions} from 'react-native';
+import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
+import type {CustomRendererProps} from 'react-native-render-html';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -26,6 +26,7 @@ import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCo
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
@@ -57,7 +58,7 @@ const options: Array<OptionsPickerItem<SubscriptionType>> = [
 function SubscriptionSettings() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {width} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -184,10 +185,10 @@ function SubscriptionSettings() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <RenderHtml
-                    contentWidth={width}
+                    contentWidth={windowWidth}
                     systemFonts={systemFonts}
                     source={{
-                        html: translate('subscription.subscriptionSettings.learnMore.full'),
+                        html: translate('subscription.subscriptionSettings.learnMore'),
                     }}
                     tagsStyles={{
                         a: {...styles.link},
@@ -197,7 +198,7 @@ function SubscriptionSettings() {
                         },
                     }}
                     renderers={{
-                        a: ({TDefaultRenderer, ...props}) => {
+                        a: ({TDefaultRenderer, ...props}: CustomRendererProps<any>) => {
                             // Determine which link to use based on the href or position
                             const isAdminsRoom = !!adminsChatReportID && props?.tnode?.domNode?.children?.[0]?.data?.includes('#admins');
                             if (isAdminsRoom) {

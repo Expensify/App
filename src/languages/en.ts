@@ -6156,9 +6156,7 @@ const translations = {
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renews on ${date}.`,
             pricingConfiguration: 'Pricing depends on configuration. For the lowest price, choose an annual subscription and get the Expensify Card.',
-            learnMore: {
-                full: 'Learn more on our <a>pricing page</a> or chat with our team in your <a>#admins room</a>.',
-            },
+            learnMore: 'Learn more on our <a>pricing page</a> or chat with our team in your <a>#admins room</a>.',
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
         },
