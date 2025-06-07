@@ -224,7 +224,7 @@ describe('actions/Task', () => {
         it('Completes test drive task', () => {
             const writeSpy = jest.spyOn(API, 'write');
 
-            completeTestDriveTask();
+            completeTestDriveTask(testDriveTaskReport, testDriveTaskReport.reportID);
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.COMPLETE_TASK, expect.anything(), expect.anything());
         });

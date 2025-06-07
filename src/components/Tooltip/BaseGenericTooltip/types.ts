@@ -38,7 +38,16 @@ type BaseGenericTooltipProps = {
     isEducationTooltip?: boolean;
 } & Pick<
     SharedTooltipProps,
-    'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onTooltipPress'
+    | 'renderTooltipContent'
+    | 'maxWidth'
+    | 'numberOfLines'
+    | 'text'
+    | 'shouldForceRenderingBelow'
+    | 'wrapperStyle'
+    | 'anchorAlignment'
+    | 'shouldUseOverlay'
+    | 'onTooltipPress'
+    | 'computeHorizontalShiftForNative'
 >;
 
 // eslint-disable-next-line import/prefer-default-export
