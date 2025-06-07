@@ -294,12 +294,12 @@ function Button(
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
                     !!secondLineText && styles.noPaddingBottom,
-                    textStyles,
                     isHovered && textHoverStyles,
-                    link && styles.link,
-                    link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
                     link && styles.fontWeightNormal,
                     link && styles.fontSizeLabel,
+                    textStyles,
+                    link && styles.link,
+                    link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
@@ -333,13 +333,13 @@ function Button(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles]}>
+                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
                             <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
+                                    fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -354,7 +354,7 @@ function Button(
                             {!isSplitButton ? (
                                 <Icon
                                     src={iconRight}
-                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
+                                    fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -363,7 +363,7 @@ function Button(
                             ) : (
                                 <Icon
                                     src={iconRight}
-                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
+                                    fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
                                     small={small}
                                     medium={medium}
                                     large={large}

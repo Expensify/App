@@ -12,12 +12,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {payMoneyRequest} from '@libs/actions/IOU';
+import {getBankAccountRoute} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
@@ -39,7 +39,6 @@ type ActionCellProps = {
     parentAction?: string;
     isLoading?: boolean;
     policyID?: string;
-    bankAccountRoute?: Route;
     reportID?: string;
 };
 
@@ -52,7 +51,6 @@ function ActionCell({
     parentAction = '',
     isLoading = false,
     policyID = '',
-    bankAccountRoute = ROUTES.BANK_ACCOUNT as Route,
     reportID = '',
 }: ActionCellProps) {
     const {translate} = useLocalize();
@@ -65,6 +63,7 @@ function ActionCell({
     const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
+    const bankAccountRoute = getBankAccountRoute(chatReport);
 
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined) => {
@@ -77,7 +76,7 @@ function ActionCell({
         [chatReport, iouReport],
     );
 
-    if ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || (action === CONST.SEARCH.ACTION_TYPES.DONE && !isChildListItem)) {
+    if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
         return (
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge

@@ -12,8 +12,8 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
-import {getSubmitToAccountID} from '@libs/PolicyUtils';
-import {getReportType, hasHeldExpenses} from '@libs/ReportUtils';
+import {getPersonalPolicy, getSubmitToAccountID} from '@libs/PolicyUtils';
+import {hasHeldExpenses, getReportType} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -82,12 +82,15 @@ function getLastPolicyPaymentMethod(
     policyID: string | undefined,
     lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
     reportType: keyof LastPaymentMethodType = 'lastUsed',
+    isIOUReport?: boolean,
 ): ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined {
     if (!policyID) {
         return undefined;
     }
 
-    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID];
+    const personalPolicy = getPersonalPolicy();
+
+    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? (isIOUReport && personalPolicy ? lastPaymentMethods?.[personalPolicy.id] : undefined);
     const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.name;
 
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
@@ -403,13 +406,12 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
         reportIDList,
         transactionIDList,
-        policyIDs,
     }) as Params;
 
     const formData = new FormData();
@@ -424,13 +426,12 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
     fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams) {
+function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
         reportIDList,
         transactionIDList,
-        policyIDs,
     }) as ExportSearchItemsToCSVParams;
 
     API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters);

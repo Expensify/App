@@ -124,6 +124,17 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 
 {% include end-selector.html %}
 
+## Bulk Upload Expenses from Desktop
+1. Check your files, they must be:
+    - Under 10MB each
+    - PDF or common image files
+    - Under 30 files in total
+2. Select and drag your files into Expensify
+    - **Scan Receipts** will add them as separate expenses
+    - **Add Attachments** will attach them to a report or chat as supporting documentation
+3. Unsupported or oversized files will trigger a pop-up — choose to skip them or cancel entirely
+4. Add details such as coding for SmartScanning receipts, or confirm Attachments
+
 # How to Delete an Expense
 
 {% include selector.html values="desktop, mobile" %}

@@ -1,4 +1,4 @@
-import {generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
@@ -34,12 +34,12 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.COLLECTION.TRANSACTION,
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions], {currentValue, sourceValues, areAllConnectionsSet}) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
@@ -65,7 +65,25 @@ export default createOnyxDerivedValueConfig({
 
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
-        const updates = [...Object.keys(reportUpdates), ...Object.keys(reportMetadataUpdates), ...Object.keys(reportActionsUpdates), ...Object.keys(reportNameValuePairsUpdates)];
+
+        const reportUpdatesRelatedToReportActions: string[] = [];
+
+        Object.keys(reportActionsUpdates).forEach((reportKey) => {
+            Object.keys(reportActionsUpdates[reportKey] ?? {}).forEach((reportActionKey) => {
+                const reportAction = reportActions?.[reportKey]?.[reportActionKey];
+                if (reportAction?.childReportID) {
+                    reportUpdatesRelatedToReportActions.push(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
+                }
+            });
+        });
+
+        const updates = [
+            ...Object.keys(reportUpdates),
+            ...Object.keys(reportMetadataUpdates),
+            ...Object.keys(reportActionsUpdates),
+            ...Object.keys(reportNameValuePairsUpdates),
+            ...reportUpdatesRelatedToReportActions,
+        ];
 
         if (isFullyComputed) {
             // if there are report-related updates, iterate over the updates
@@ -73,13 +91,13 @@ export default createOnyxDerivedValueConfig({
                 dataToIterate = prepareReportKeys(updates);
                 recentlyUpdated = updates;
             } else if (!!transactionsUpdates || !!transactionViolationsUpdates) {
-                let transactionReportIds: string[] = [];
+                let transactionReportIDs: string[] = [];
                 if (transactionsUpdates) {
-                    transactionReportIds = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+                    transactionReportIDs = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
                 }
                 // if transactions are updated, they might not be directly related to the reports yet (e.g. transaction is optimistically created)
                 // so we use report keys that were updated before to recompute the reports
-                const recentReportKeys = prepareReportKeys([...recentlyUpdated, ...transactionReportIds]);
+                const recentReportKeys = prepareReportKeys([...recentlyUpdated, ...transactionReportIDs]);
                 dataToIterate = recentReportKeys;
             }
         }
@@ -92,7 +110,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const {hasAnyViolations, requiresAttention, isReportArchived} = generateReportAttributes({
+            const {hasAnyViolations, requiresAttention, isReportArchived, reportErrors} = generateReportAttributes({
                 report,
                 reportActions,
                 transactionViolations,
@@ -101,7 +119,7 @@ export default createOnyxDerivedValueConfig({
 
             let brickRoadStatus;
             // if report has errors or violations, show red dot
-            if (SidebarUtils.shouldShowRedBrickRoad(report, reportActionsList, hasAnyViolations, transactionViolations, !!isReportArchived)) {
+            if (SidebarUtils.shouldShowRedBrickRoad(report, reportActionsList, hasAnyViolations, reportErrors, transactions, transactionViolations, !!isReportArchived)) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
             // if report does not have error, check if it should show green dot
@@ -111,7 +129,10 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: generateReportName(report),
+                isEmpty: generateIsEmptyReport(report),
                 brickRoadStatus,
+                requiresAttention,
+                reportErrors,
             };
 
             return acc;

@@ -42,6 +42,14 @@ Onyx.connect({
     },
 });
 
+let customCardNames: OnyxEntry<Record<string, string>> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
+    callback: (value) => {
+        customCardNames = value;
+    },
+});
+
 /**
  * @returns string with a month in MM format
  */
@@ -76,9 +84,11 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     if (!card) {
         return '';
     }
+    const isPlaid = !!getPlaidInstitutionId(card.bank);
+    const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
-    const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : getBankName(card.bank as CompanyCardFeed);
-    return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+    const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
+    return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -263,8 +273,8 @@ function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, poli
 
 function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
-        const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
-        const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
+        const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
+        const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
         const aName = getDisplayNameOrDefault(userA);
         const bName = getDisplayNameOrDefault(userB);
         return localeCompare(aName, bName);
@@ -405,6 +415,23 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     return customFeedName ?? formattedFeedName;
 }
 
+function getPlaidInstitutionIconUrl(feedName?: string) {
+    const institutionId = getPlaidInstitutionId(feedName);
+    if (!institutionId) {
+        return '';
+    }
+    return `${CONST.COMPANY_CARD_PLAID}${institutionId}.png`;
+}
+
+function getPlaidInstitutionId(feedName?: string) {
+    const feed = feedName?.split('.');
+    if (!feed || feed?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+        return '';
+    }
+
+    return feed.at(1);
+}
+
 function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData: CardFeedData | undefined): number {
     return cardFeedData?.domainID ?? workspaceAccountID;
 }
@@ -442,13 +469,25 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
     return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
 };
 
+function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) {
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
+        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
+    }
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
+        return CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION;
+    }
+
+    return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
+}
+
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
     const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeed | undefined;
     return lastSelectedFeed ?? defaultFeed;
 }
 
 function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): boolean {
-    if (!directFeed) {
+    if (!directFeed || !directFeed.expiration) {
         return false;
     }
 
@@ -494,12 +533,12 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
-function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds) {
+function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds, plaidBank?: string) {
     const prevFeeds = Object.keys(prevFeedsData);
     const currentFeeds = Object.keys(currentFeedsData);
 
     return {
-        isNewFeedConnected: currentFeeds.length > prevFeeds.length,
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length || (plaidBank && currentFeeds.includes(`${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`)),
         newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeed | undefined,
     };
 }
@@ -629,6 +668,10 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
+function getCustomCardName(cardID: string) {
+    return customCardNames?.[cardID];
+}
+
 export {
     isExpensifyCard,
     getDomainCards,
@@ -674,4 +717,8 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
+    getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
+    getCorrectStepForPlaidSelectedBank,
+    getCustomCardName,
 };

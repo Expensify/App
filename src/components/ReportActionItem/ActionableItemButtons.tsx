@@ -10,7 +10,6 @@ type ActionableItem = {
     key: string;
     onPress: () => void;
     text: string;
-    isMediumSized?: boolean;
     shouldUseLocalization?: boolean;
 };
 
@@ -31,8 +30,7 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     key={item.key}
                     onPress={item.onPress}
                     text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
-                    small={!item.isMediumSized}
-                    medium={item.isMediumSized}
+                    medium
                     success={item.isPrimary}
                 />
             ))}

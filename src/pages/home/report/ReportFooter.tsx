@@ -102,7 +102,7 @@ function ReportFooter({
         },
         canBeMissing: true,
     });
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
@@ -122,7 +122,7 @@ function ReportFooter({
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
-            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
             if (!match) {
                 return false;
             }
@@ -164,7 +164,7 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            addComment(report.reportID, text);
+            addComment(report.reportID, text, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],
