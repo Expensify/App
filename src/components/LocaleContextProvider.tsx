@@ -73,7 +73,7 @@ const LocaleContext = createContext<LocaleContextProps>({
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
-    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(undefined);
+    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => TranslationStore.getCurrentLocale());
 
     useEffect(() => {
         if (areTranslationsLoading) {

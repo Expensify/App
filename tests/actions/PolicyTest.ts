@@ -35,6 +35,7 @@ describe('actions/Policy', () => {
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
+        TranslationStore.load(CONST.LOCALES.EN);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 

@@ -22,7 +22,10 @@ class TranslationStore {
                 return Promise.resolve();
             }
             return import('./en').then((module) => {
-                const flattened = flattenObject(module.default);
+                // it is needed because in jest test the modules are imported in double nested default object
+                const flattened = flattenObject(
+                    (module.default as Record<string, unknown>).default ? ((module.default as Record<string, unknown>).default as typeof module.default) : module.default,
+                );
                 this.localeCache.set(CONST.LOCALES.EN, flattened);
             });
         },
@@ -31,7 +34,10 @@ class TranslationStore {
                 return Promise.resolve();
             }
             return import('./es').then((module) => {
-                const flattened = flattenObject(module.default);
+                // it is needed because in jest test the modules are imported in double nested default object
+                const flattened = flattenObject(
+                    (module.default as Record<string, unknown>).default ? ((module.default as Record<string, unknown>).default as typeof module.default) : module.default,
+                );
                 this.localeCache.set(CONST.LOCALES.ES, flattened);
             });
         },
