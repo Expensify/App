@@ -439,6 +439,7 @@ function ReportActionCompose({
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
                             reportID={reportID}
+                            shouldHandleNavigationBack
                         >
                             {({displayFileInModal}) => (
                                 <>
