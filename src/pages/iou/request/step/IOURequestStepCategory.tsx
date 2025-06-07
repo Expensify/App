@@ -58,12 +58,15 @@ function IOURequestStepCategory({
             reportID = reportReal.parentReportID;
         }
     }
+
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false, canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const {currentSearchHash} = useSearchContext();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -192,7 +195,7 @@ function IOURequestStepCategory({
                                     }
 
                                     if (!policy.areCategoriesEnabled) {
-                                        enablePolicyCategories(policy.id, true, false);
+                                        enablePolicyCategories(policy.id, true, policyTagLists, allTransactionViolations, false);
                                     }
                                     InteractionManager.runAfterInteractions(() => {
                                         Navigation.navigate(
