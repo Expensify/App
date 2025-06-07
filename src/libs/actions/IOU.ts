@@ -11382,10 +11382,10 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isPolicyInstantSubmit = isInstantSubmitEnabled(policy);
 
-    const autoAddedActionReportActionID = rand64();
-    const removedFromReportActionID = rand64();
-    const declinedActionReportActionID = rand64();
-    const declinedCommentReportActionID = rand64();
+    const autoAddedActionReportActionID = NumberUtils.rand64();
+    const removedFromReportActionID = NumberUtils.rand64();
+    const declinedActionReportActionID = NumberUtils.rand64();
+    const declinedCommentReportActionID = NumberUtils.rand64();
     let movedToReportID;
     let movedToReport;
 
@@ -11560,7 +11560,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         actionName: CONST.REPORT.ACTIONS.TYPE.REJECT_TRANSACTION,
         actorAccountID: currentUserAccountID,
         created: DateUtils.getDBTime(),
-        reportActionID: rand64(),
+        reportActionID: NumberUtils.rand64(),
         message: [
             {
                 type: 'TEXT',
@@ -11657,7 +11657,7 @@ function markDeclineViolationAsResolved(transactionID: string) {
         return;
     }
 
-    const markedAsResolvedReportActionID = rand64();
+    const markedAsResolvedReportActionID = NumberUtils.rand64();
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.REJECTED_EXPENSE);
     const currentUserAccountID = getCurrentUserAccountID();
