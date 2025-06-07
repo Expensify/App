@@ -192,6 +192,7 @@ import type {
     UnshareParams,
     UntilTimeParams,
     UpdatedCustomFieldParams,
+    UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -5197,6 +5198,15 @@ const translations = {
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
+        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
+            if (!newValue) {
+                return `removed the description hint "${oldValue}" from the category "${categoryName}"`;
+            }
+
+            return !oldValue
+                ? `added the description hint "${newValue}" to the category "${categoryName}"`
+                : `changed the "${categoryName}" category description hint to “${newValue}” (previously “${oldValue}”)`;
+        },
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,

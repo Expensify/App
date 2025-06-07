@@ -2031,7 +2031,8 @@ function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
-    const {categoryName, oldValue, newName, oldName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {categoryName, oldValue, newValue, newName, oldName, updatedField} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
         return translateLocal('workspaceActions.addCategory', {
@@ -2046,6 +2047,13 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
+        if (updatedField === 'commentHint') {
+            return translateLocal('workspaceActions.updatedDescriptionHint', {
+                oldValue: oldValue as string | undefined,
+                newValue: newValue as string | undefined,
+                categoryName,
+            });
+        }
         return translateLocal('workspaceActions.updateCategory', {
             oldValue: !!oldValue,
             categoryName,
