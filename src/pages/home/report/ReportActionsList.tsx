@@ -578,6 +578,7 @@ function ReportActionsList({
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             const originalMessage = getOriginalMessage(reportAction);
             const taskReport = originalMessage && 'taskReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.taskReportID}`] : undefined;
+            const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
 
             return (
                 <ReportActionsListItemRenderer
@@ -587,9 +588,10 @@ function ReportActionsList({
                     parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                     index={index}
                     report={report}
+                    taskReport={taskReport}
+                    linkedReport={linkedReport}
                     transactionThreadReport={transactionThreadReport}
                     linkedReportActionID={linkedReportActionID}
-                    taskReport={taskReport}
                     displayAsGroup={
                         !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
                         isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)

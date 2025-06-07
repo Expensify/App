@@ -243,6 +243,9 @@ type PureReportActionItemProps = {
     /** The task report associated with this action, if any */
     taskReport: OnyxTypes.Report | undefined;
 
+    /** The linked report associated with this action, if any */
+    linkedReport: OnyxTypes.Report | undefined;
+
     /** All the emoji reactions for the report action. */
     emojiReactions?: OnyxTypes.ReportActionReactions;
 
@@ -372,6 +375,7 @@ function PureReportActionItem({
     draftMessage,
     iouReport,
     taskReport,
+    linkedReport,
     emojiReactions,
     linkedTransactionRouteError,
     reportNameValuePairs,
@@ -872,7 +876,7 @@ function PureReportActionItem({
             children = (
                 <TripRoomPreview
                     action={action}
-                    chatReportID={getOriginalMessage(action)?.linkedReportID}
+                    chatReport={linkedReport}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
@@ -938,8 +942,8 @@ function PureReportActionItem({
                 </ShowContextMenuContext.Provider>
             );
         } else if (isReimbursementQueuedAction(action)) {
-            const linkedReport = isChatThread(report) ? parentReport : report;
-            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
+            const originalReportOfReimbursementQueuedAction = isChatThread(report) ? parentReport : report;
+            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[originalReportOfReimbursementQueuedAction?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
             const paymentType = getOriginalMessage(action)?.paymentType ?? '';
 
             children = (
@@ -952,7 +956,7 @@ function PureReportActionItem({
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
-                                onPress={() => openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID, undefined, undefined, isUserValidated)}
+                                onPress={() => openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? originalReportOfReimbursementQueuedAction?.reportID, undefined, undefined, isUserValidated)}
                                 pressOnEnter
                                 large
                             />
@@ -963,7 +967,7 @@ function PureReportActionItem({
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                chatReportID={linkedReport?.reportID}
+                                chatReportID={originalReportOfReimbursementQueuedAction?.reportID}
                                 iouReport={iouReport}
                             >
                                 {(triggerKYCFlow, buttonRef) => (

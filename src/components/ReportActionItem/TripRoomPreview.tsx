@@ -29,7 +29,8 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
 type TripRoomPreviewProps = {
@@ -37,7 +38,7 @@ type TripRoomPreviewProps = {
     action: ReportAction;
 
     /** The associated chatReport */
-    chatReportID: string | undefined;
+    chatReport: OnyxEntry<Report>;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
@@ -119,7 +120,7 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
 
 function TripRoomPreview({
     action,
-    chatReportID,
+    chatReport,
     containerStyles,
     contextMenuAnchor,
     isHovered = false,
@@ -128,7 +129,7 @@ function TripRoomPreview({
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
+    const chatReportID = chatReport?.reportID;
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {canBeMissing: true});
     const tripTransactions = useTripTransactions(chatReportID);
 
