@@ -1461,10 +1461,7 @@ const translations = {
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
-            phrase1: 'Read the',
-            phrase2: 'Terms of Service',
-            phrase3: 'and',
-            phrase4: 'Privacy',
+            full: 'Read the <a>Terms of Service</a> and <a>Privacy</a>',
         },
         help: 'Help',
         accountSettings: 'Account settings',
@@ -2001,12 +1998,7 @@ const translations = {
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {
-        phrase1: 'By logging in, you agree to the',
-        phrase2: 'Terms of Service',
-        phrase3: 'and',
-        phrase4: 'Privacy',
-        phrase5: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its`,
-        phrase6: 'licenses',
+        full: `By logging in, you agree to the <a href='Terms'>Terms of Service</a> and <a href='Privacy'>Privacy</a> Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href='licenses'>licenses</a>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
@@ -2302,15 +2294,11 @@ const translations = {
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         hasPhoneLoginError: {
-            phrase1: 'To connect a bank account, please',
-            link: 'add an email as your primary login',
-            phrase2: ' and try again. You can add your phone number as a secondary login.',
+            full: 'To connect a bank account, please <a>add an email as your primary login</a> and try again. You can add your phone number as a secondary login.',
         },
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: {
-            phrase1: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to ',
-            link: 'your workspace settings',
-            phrase2: ' to set it to USD and try again.',
+            full: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a>your workspace settings</a> to set it to USD and try again.',
         },
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
@@ -2919,9 +2907,7 @@ const translations = {
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: {
-            phrase1: 'Please',
-            link: 'add a work email as your primary login',
-            phrase2: ' to book travel.',
+            full: 'Please <a>add a work email as your primary login</a> to book travel.',
         },
         domainSelector: {
             title: 'Domain',
@@ -4801,8 +4787,9 @@ const translations = {
             changeOwnerPageTitle: 'Transfer owner',
             addPaymentCardTitle: 'Enter your payment card to transfer ownership',
             addPaymentCardButtonText: 'Accept terms & add payment card',
-            addPaymentCardReadAndAcceptTextPart1: 'Read and accept',
-            addPaymentCardReadAndAcceptTextPart2: 'policy to add your card',
+            addPaymentCardReadAndAcceptText: {
+                full: 'Read and accept policy to add your card',
+            },
             addPaymentCardTerms: 'terms',
             addPaymentCardPrivacy: 'privacy',
             addPaymentCardAnd: '&',
@@ -5800,14 +5787,13 @@ const translations = {
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chat with your setup specialist in ',
-            phrase2: ' for help',
+            full: 'Chat with your setup specialist in  for help',
         },
         default: {
-            phrase1: 'Message ',
-            phrase2: ' for help with setup',
+            full: 'Message  for help with setup',
         },
     },
+
     violations: {
         allTagLevelsRequired: 'All tags required',
         autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,
@@ -6061,12 +6047,10 @@ const translations = {
                 claimOffer: 'Claim offer',
                 noThanks: 'No thanks',
                 subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
-                    phrase2: `Just add a payment card and start an annual subscription.`,
+                    full: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year! Just add a payment card and start an annual subscription.`,
                 },
                 onboardingChatTitle: {
-                    phrase1: 'Limited-time offer:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
+                    full: ({discountType}: EarlyDiscountTitleParams) => `Limited-time offer: ${discountType}% off your first year!`,
                 },
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim within ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
@@ -6085,9 +6069,7 @@ const translations = {
             authenticatePayment: 'Authenticate payment',
             requestRefund: 'Request refund',
             requestRefundModal: {
-                phrase1: 'Getting a refund is easy, just downgrade your account before your next billing date and you’ll receive a refund.',
-                phrase2:
-                    'Heads up: Downgrading your account means your workspace(s) will be deleted. This action can’t be undone, but you can always create a new workspace if you change your mind.',
+                full: 'Getting a refund is easy, just downgrade your account before your next billing date and you’ll receive a refund. Heads up: Downgrading your account means your workspace(s) will be deleted. This action can’t be undone, but you can always create a new workspace if you change your mind.',
                 confirm: 'Delete workspace(s) and downgrade',
             },
             viewPaymentHistory: 'View payment history',
@@ -6197,10 +6179,7 @@ const translations = {
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renews on ${date}.`,
             pricingConfiguration: 'Pricing depends on configuration. For the lowest price, choose an annual subscription and get the Expensify Card.',
             learnMore: {
-                part1: 'Learn more on our ',
-                pricingPage: 'pricing page',
-                part2: ' or chat with our team in your ',
-                adminsRoom: '#admins room.',
+                full: 'Learn more on our <a> pricing page <a/> or chat with our team in your <a> #admins room </a>',
             },
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
@@ -6213,23 +6192,17 @@ const translations = {
                 subtitle: 'Your annual subscription has been canceled.',
                 info: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
                 preventFutureActivity: {
-                    part1: 'If you’d like to prevent future activity and charges, you must ',
-                    link: 'delete your workspace(s)',
-                    part2: '. Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
+                    full: 'If you’d like to prevent future activity and charges, you must <a> delete your workspace(s) <a/> . Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
                 },
             },
             requestSubmitted: {
                 title: 'Request submitted',
                 subtitle: {
-                    part1: 'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with ',
-                    link: 'Concierge',
-                    part2: '.',
+                    full: 'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with <a>Concierge</a> .',
                 },
             },
             acknowledgement: {
-                part1: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify ',
-                link: 'Terms of Service',
-                part2: ' or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
+                full: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify <a>Terms of Service</a>  or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
             },
         },
     },
@@ -6385,64 +6358,39 @@ const translations = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: {
-            part1: 'Get started',
-            part2: ' here!',
+            full: 'Get started <strong>here!</strong>',
         },
         saveSearchTooltip: {
-            part1: 'Rename your saved searches',
-            part2: ' here!',
+            full: '<strong>Rename your saved searches</strong> here!',
         },
         bottomNavInboxTooltip: {
-            part1: 'Check what ',
-            part2: 'needs your attention',
-            part3: '\nand ',
-            part4: 'chat about expenses.',
+            full: 'Check what <strong>needs your attention</strong> \nand <strong>chat about expenses</strong>.',
         },
         workspaceChatTooltip: {
-            part1: 'Chat with ',
-            part2: 'approvers',
+            full: 'Chat with <strong>approvers</strong>',
         },
         globalCreateTooltip: {
-            part1: 'Create expenses',
-            part2: ', start chatting,',
-            part3: '\nand more.',
-            part4: ' Try it out!',
+            full: '<strong>Create expenses</strong>, start chatting,\nand more. Try it out!',
         },
         GBRRBRChat: {
-            part1: 'You’ll see 🟢 on ',
-            part2: 'actions to take',
-            part3: ',\nand 🔴 on ',
-            part4: 'items to review.',
+            full: 'You’ll see 🟢 on <strong>actions to take</strong>,\nand 🔴 on <strong>items to review</strong>.',
         },
         accountSwitcher: {
-            part1: 'Access your ',
-            part2: 'Copilot accounts',
-            part3: ' here',
+            full: 'Access your <strong>Copilot accounts</strong> here',
         },
         expenseReportsFilter: {
-            part1: 'Welcome! Find all of your',
-            part2: "\ncompany's reports",
-            part3: ' here.',
+            full: "Welcome! Find all of your<strong>\ncompany's reports</strong> here.",
         },
         scanTestTooltip: {
-            part1: 'Want to see how Scan works?',
-            part2: ' Try a test receipt!',
-            part3: 'Choose our',
-            part4: ' test manager',
-            part5: ' to try it out!',
-            part6: 'Now,',
-            part7: ' submit your expense',
-            part8: ' and watch the\nmagic happen!',
+            full: 'Want to see how Scan works? <strong>Try a test receipt!</strong>Choose our <strong>test manager</strong> to try it out!Now, <strong>submit your expense</strong> and watch the\nmagic happen!',
             tryItOut: 'Try it out',
             noThanks: 'No thanks',
         },
         outstandingFilter: {
-            part1: 'Filter for expenses\nthat ',
-            part2: 'need approval',
+            full: 'Filter for expenses\nthat <strong>need approval</strong>',
         },
         scanTestDriveTooltip: {
-            part1: 'Send this receipt to\n',
-            part2: 'complete the test drive!',
+            full: 'Send this receipt to\n<strong>complete the test drive!</strong>',
         },
     },
     discardChangesConfirmation: {
