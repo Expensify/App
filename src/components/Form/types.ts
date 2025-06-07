@@ -101,6 +101,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     errorText?: string;
     shouldSetTouchedOnBlurOnly?: boolean;
     isFocused?: boolean;
+    autoFocus?: boolean;
     measureLayout?: (ref: unknown, callback: MeasureLayoutOnSuccessCallback) => void;
     focus?: () => void;
     label?: string;
