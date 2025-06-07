@@ -6,28 +6,22 @@ keywords: [New Expensify, delete expenses, remove expense, company card, undo su
 
 <div id="new-expensify" markdown="1">
 
-Do you need to remove an expense in New Expensify? The steps differ depending on whether the expense is still open or already submitted. This guide covers how to remove company card and personal expenses.
+Need to remove an expense in New Expensify? The steps differ depending on whether the report is still open or already submitted. This guide covers both personal and company card expenses.
 
-# Delete an Individual Expense
+# Delete Expenses
 
-1. From the left-hand menu, head to **Reports > Expenses**.
-2. Check the box next to the expense(s).
-3. Click the green **Selected** button and choose **Delete**. 
-
----
-
-# Delete an Expense on an Open Expense Report
+## If the Expense Report is Open
 
 You can delete any out-of-pocket expense that hasn’t been submitted yet:
 
-1. From the left-hand menu, head to **Reports > Expense Reports**.
+1. Go to the **Reports** tab.
 2. Open the report containing the expense.
 3. Select the checkbox next to the expense you want to delete.
 4. Choose **Delete** from the drop-down menu.
 
 ---
 
-# The Expense Report is Submitted or Marked as "Done"
+## If the Expense Report is Submitted or Marked as `Done`
 
 You’ll need to reopen the report first:
 
@@ -38,12 +32,12 @@ You’ll need to reopen the report first:
 
 ---
 
-# Deleting Company Card Expenses
+## Deleting Company Card Expenses
 
 Some company card expenses can’t be deleted if the card settings don’t allow it. This usually happens when the card was imported without the **Allow Deleting Transactions** setting enabled. Once **Allow Deleting Transactions** is enabled, any future imported expenses can be deleted normally.
 
 To delete existing company card draft expenses:
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Company cards**.
+1. Go to **Settings > Workspaces > Workspace Name > Company cards**.
 2. Unassign the card connected to the expenses you want to delete.
 3. All **draft expenses** from that card will be removed automatically.
 
@@ -55,12 +49,12 @@ To delete existing company card draft expenses:
 
 # FAQ
 
-## Why can't I delete certain expenses?
+## Why can't I delete some expenses?
 
-Expenses tied to company cards without the **Allow deleting transactions** setting enabled cannot be deleted unless the card is unassigned.
+Expenses tied to company cards without the **Allow Deleting Transactions** setting enabled cannot be deleted unless the card is unassigned.
 
-## Can I reopen a report after it’s been approved or paid?
+## Can I undo a report after it’s been approved or paid?
 
-No, once a report is approved or paid, it cannot be reopened. Only reports in a **Closed** or **Processing** state can be reopened to delete the expenses.
+No, once a report is approved or paid, it cannot be reopened. Only reports in a **Closed** or **Processing** state can be undone.
 
 </div>

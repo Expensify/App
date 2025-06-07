@@ -1,14 +1,11 @@
 import {format, setYear} from 'date-fns';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import mergeRefs from '@libs/mergeRefs';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
@@ -16,26 +13,23 @@ import type {DateInputWithPickerProps} from './types';
 
 const PADDING_MODAL_DATE_PICKER = 8;
 
-function DatePicker(
-    {
-        defaultValue,
-        disabled,
-        errorText,
-        inputID,
-        label,
-        minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-        maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
-        onInputChange,
-        onTouched = () => {},
-        placeholder,
-        value,
-        shouldSaveDraft = false,
-        formID,
-        autoFocus = false,
-        shouldHideClearButton = false,
-    }: DateInputWithPickerProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function DatePicker({
+    defaultValue,
+    disabled,
+    errorText,
+    inputID,
+    label,
+    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    onInputChange,
+    onTouched = () => {},
+    placeholder,
+    value,
+    shouldSaveDraft = false,
+    formID,
+    autoFocus = false,
+    shouldHideClearButton = false,
+}: DateInputWithPickerProps) {
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -43,7 +37,7 @@ function DatePicker(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
-    const textInputRef = useRef<BaseTextInputRef>(null);
+    const textInputRef = useRef<HTMLFormElement | null>(null);
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
     const isAutoFocused = useRef(false);
@@ -125,7 +119,7 @@ function DatePicker(
                 style={styles.mv2}
             >
                 <TextInput
-                    ref={mergeRefs(ref, textInputRef)}
+                    ref={textInputRef}
                     inputID={inputID}
                     forceActiveLabel
                     icon={selectedDate ? null : Expensicons.Calendar}

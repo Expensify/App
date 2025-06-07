@@ -46,16 +46,6 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
 
-type GetReportPrimaryActionParams = {
-    report: Report;
-    reportTransactions: Transaction[];
-    violations: OnyxCollection<TransactionViolation[]>;
-    policy?: Policy;
-    reportNameValuePairs?: ReportNameValuePairs;
-    reportActions?: ReportAction[];
-    isChatReportArchived?: boolean;
-};
-
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -136,10 +126,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     return false;
 }
 
-function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean) {
-    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
-        return false;
-    }
+function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
@@ -152,6 +139,10 @@ function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePair
 
     const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+
+    if (isArchivedReport(reportNameValuePairs)) {
+        return false;
+    }
 
     if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend > 0) {
         return true;
@@ -295,10 +286,15 @@ function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: Repor
     return reportActions?.filter((action) => isMoneyRequestAction(action) && action.childType === CONST.REPORT.TYPE.CHAT && canHoldUnholdReportAction(action).canUnholdRequest);
 }
 
-function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
-    const {report, reportTransactions, violations, policy, reportNameValuePairs, reportActions, isChatReportArchived} = params;
-
-    const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+function getReportPrimaryAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    violations: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+    reportActions?: ReportAction[],
+): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID);
 
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
@@ -324,7 +320,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived)) {
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
