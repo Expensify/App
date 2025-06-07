@@ -3,6 +3,7 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -12,11 +13,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -50,7 +51,9 @@ type MenuItem = {
 
 function AboutPage() {
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
+    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -166,26 +169,17 @@ function AboutPage() {
                     </Section>
                 </View>
                 <View style={[styles.sidebarFooter, styles.mb5]}>
-                    <Text
-                        style={[styles.chatItemMessageHeaderTimestamp]}
-                        numberOfLines={1}
-                    >
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
-                        </TextLink>{' '}
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
-                        </TextLink>
-                        .
-                    </Text>
+                    <RenderHtml
+                        contentWidth={windowWidth}
+                        systemFonts={systemFonts}
+                        source={{
+                            html: translate('initialSettingsPage.readTheTermsAndPrivacy'),
+                        }}
+                        tagsStyles={{
+                            a: {...styles.textMicroSupporting, ...styles.link, textDecorationLine: 'none'},
+                        }}
+                        baseStyle={styles.chatItemMessageHeaderTimestamp}
+                    />
                 </View>
             </ScrollView>
         </ScreenWrapper>
