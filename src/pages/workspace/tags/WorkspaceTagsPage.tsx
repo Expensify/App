@@ -323,8 +323,25 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
-
     const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
+    const navigateToImportSpreadsheet = useCallback(() => {
+        if (isOffline) {
+            close(() => setIsOfflineModalVisible(true));
+            return;
+        }
+        if (isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS)) {
+            Navigation.navigate(
+                isQuickSettingsFlow
+                    ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                    : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
+            );
+        } else {
+            Navigation.navigate(
+                isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+            );
+        }
+    }, [backTo, isOffline, isQuickSettingsFlow, policyID, isBetaEnabled]);
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
@@ -339,25 +356,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
-                onSelected: () => {
-                    if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    if (isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS)) {
-                        Navigation.navigate(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
-                        );
-                    } else {
-                        Navigation.navigate(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                        );
-                    }
-                },
+                onSelected: navigateToImportSpreadsheet,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
             });
         }
@@ -388,14 +387,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToTagsSettings, isBetaEnabled, hasDependentTags, policy, hasVisibleTags, isOffline, isQuickSettingsFlow, policyID, backTo, hasIndependentTags]);
+    }, [translate, navigateToTagsSettings, isBetaEnabled, hasDependentTags, policy, hasVisibleTags, isOffline, policyID, hasIndependentTags, navigateToImportSpreadsheet]);
 
     const getHeaderButtons = () => {
         const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTags.length === 0) {
-            const hasPrimaryActions = !hasAccountingConnections && !isMultiLevelTags;
+            const hasPrimaryActions = !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
             return (
                 <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                     {hasPrimaryActions && (
@@ -630,19 +629,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 headerContentStyles={styles.emptyStateFolderWebStyles}
                                 buttons={[
                                     {
-                                        buttonText: translate('spreadsheet.importSpreadsheet'),
                                         success: true,
-                                        buttonAction: () => {
-                                            if (isOffline) {
-                                                close(() => setIsOfflineModalVisible(true));
-                                                return;
-                                            }
-                                            Navigation.navigate(
-                                                isQuickSettingsFlow
-                                                    ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                                    : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
-                                            );
-                                        },
+                                        buttonAction: navigateToCreateTagPage,
+                                        icon: Expensicons.Plus,
+                                        buttonText: translate('workspace.tags.addTag'),
+                                    },
+                                    {
+                                        icon: Expensicons.Table,
+                                        buttonText: translate('common.import'),
+                                        buttonAction: navigateToImportSpreadsheet,
                                     },
                                 ]}
                             />
