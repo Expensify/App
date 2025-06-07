@@ -10906,6 +10906,7 @@ export {
     getGroupChatName,
     prepareOnboardingOnyxData,
     getIOUReportActionDisplayMessage,
+    getMoneyRequestReportName,
     getIOUReportActionMessage,
     getReportAutomaticallyForwardedMessage,
     getIOUForwardedMessage,
