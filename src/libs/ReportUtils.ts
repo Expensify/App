@@ -65,6 +65,7 @@ import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/o
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
+import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
@@ -201,6 +202,7 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {getNavatticURL} from './TourUtils';
 import {
@@ -4055,6 +4057,24 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
         Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
     }
+};
+
+const declineMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void => {
+    if (!isMoneyRequestAction(reportAction)) {
+        return;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const moneyRequestReportID = originalMessage?.IOUReportID;
+    const transactionID = originalMessage?.IOUTransactionID;
+
+    if (!transactionID || !moneyRequestReportID) {
+        Log.warn('Missing transactionID and moneyRequestReportID during the change of the money request hold status');
+        return;
+    }
+
+    const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
+    Navigation.navigate(ROUTES.DECLINE_MONEY_REQUEST_REASON.getRoute(transactionID, moneyRequestReportID, activeRoute));
 };
 
 /**
@@ -10664,6 +10684,31 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         })
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
+function canDeclineReportAction(report: Report, policy?: Policy): boolean {
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const isReportBeingProcessed = isProcessingReport(report);
+    const isApproved = isReportApproved({report});
+    const isReportPayer = isPayer(getSession(), report, false, policy);
+
+    // If user is not a manager/approver and not a payer, they can't decline
+    if (!isCurrentUserManager && !isPayer) {
+        return false;
+    }
+
+    // If user is a manager/approver, they can only decline when report is processing
+    if (isCurrentUserManager && isReportApprover && isReportBeingProcessed) {
+        return true;
+    }
+
+    // If user is a payer, they can only decline when report is approved
+    if (isReportPayer && isApproved) {
+        return true;
+    }
+
+    return false;
+}
 
 function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
     if (!reportActions) {
@@ -10986,6 +11031,7 @@ export {
     isCurrentUserInvoiceReceiver,
     isDraftReport,
     changeMoneyRequestHoldStatus,
+    declineMoneyRequestReason,
     isAdminOwnerApproverOrReportOwner,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
@@ -11054,10 +11100,10 @@ export {
     findReportIDForAction,
     isWorkspaceEligibleForReportChange,
     navigateOnDeleteExpense,
+    canDeclineReportAction,
     hasReportBeenReopened,
-    getMoneyReportPreviewName,
+    getMoneyReportPreviewName
 };
-
 export type {
     Ancestor,
     DisplayNameWithTooltips,

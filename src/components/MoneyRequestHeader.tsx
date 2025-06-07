@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
+import {deleteMoneyRequest, markDeclineViolationAsResolved, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -174,6 +174,18 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 onPress={() => {
                     changeMoneyRequestHoldStatus(parentReportAction);
                 }}
+            />
+        ),
+        [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED]: (
+            <Button
+                success
+                onPress={() => {
+                    if (!transaction?.transactionID) {
+                        return;
+                    }
+                    markDeclineViolationAsResolved(transaction?.transactionID);
+                }}
+                text={translate('iou.markAsResolved')}
             />
         ),
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (

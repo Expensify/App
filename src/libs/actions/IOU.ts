@@ -14,8 +14,10 @@ import type {
     CreateDistanceRequestParams,
     CreatePerDiemRequestParams,
     CreateWorkspaceParams,
+    DeclineMoneyRequestParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
+    MarkTransactionViolationAsResolvedParams,
     MergeDuplicatesParams,
     PayInvoiceParams,
     PayMoneyRequestParams,
@@ -76,6 +78,7 @@ import {
     getSubmitToAccountID,
     hasDependentTags,
     isControlPolicy,
+    isInstantSubmitEnabled,
     isPaidGroupPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
@@ -125,11 +128,13 @@ import {
     buildOptimisticUnHoldReportAction,
     canBeAutoReimbursed,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getAllPolicyReports,
     getApprovalChain,
     getChatByParticipants,
     getDisplayedReportID,
+    getDisplayNameForParticipant,
     getInvoiceChatByParticipants,
     getMoneyRequestSpendBreakdown,
     getOptimisticDataForParentReportAction,
@@ -149,6 +154,7 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportReportUtils,
     isInvoiceRoom,
+    isIOUReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOneOnOneChat,
     isOneTransactionThread,
@@ -11350,6 +11356,381 @@ function getSearchOnyxUpdate({participant, transaction, iouReport}: GetSearchOny
     }
 }
 
+function dismissDeclineUseExplanation() {
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION,
+            value: true,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+    });
+}
+
+function declineMoneyRequest(transactionID: string, reportID: string, comment: string) {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const policy = getPolicy(report?.policyID);
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const isPolicyInstantSubmit = isInstantSubmitEnabled(policy);
+
+    const autoAddedActionReportActionID = NumberUtils.rand64();
+    const removedFromReportActionID = NumberUtils.rand64();
+    const declinedActionReportActionID = NumberUtils.rand64();
+    const declinedCommentReportActionID = NumberUtils.rand64();
+    let movedToReportID;
+    let movedToReport;
+
+    const hasMultipleExpenses = (() => {
+        let count = 0;
+        for (const key in allTransactions ?? {}) {
+            if (allTransactions?.[key]?.reportID === reportID) {
+                count++;
+                if (count > 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    })();
+
+    // Build optimistic data updates
+    const optimisticData: OnyxUpdate[] = [];
+
+    // TODO: Define successData and failureData.
+    // TOOD: Do we show RBR and pending actions - will the action be delete/update in this scenario.
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    // Add all system messages to the expense report
+
+    if (isPolicyInstantSubmit) {
+        if (hasMultipleExpenses) {
+            // For reports with multiple expenses: Update report total
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                },
+            });
+        } else {
+            // For reports with single expense: Delete the report
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: null,
+            });
+        }
+    } else if (hasMultipleExpenses) {
+        // For reports with multiple expenses:
+        // 1. Update report total
+        // 2. Remove expense from report
+        // 3. Add to existing draft report or create new one
+        movedToReportID = generateReportID();
+        movedToReport = buildOptimisticExpenseReport(movedToReportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, transaction?.currency ?? '');
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`,
+                value: {
+                    ...movedToReport,
+                    total: (movedToReport?.total ?? 0) + (transaction?.amount ?? 0),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    reportID: movedToReportID,
+                },
+            },
+        );
+    } else {
+        // For reports with single expense: Change report state to DRAFT
+        // First remove from reports collection
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: null,
+        });
+
+        // Then add to report_draft collection
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`,
+            value: {
+                ...report,
+            },
+        });
+    }
+
+    // Add rter transaction violation
+    // TODO: Clarify move the expense to another report based on "Scheduled Submit"
+    if (!isIOUReport(report)) {
+        // Add rejectedExpense violation
+        const currentTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
+            value: [
+                ...currentTransactionViolations,
+                {
+                    name: CONST.VIOLATIONS.REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {
+                        rejectReason: comment ?? '',
+                    },
+                },
+            ],
+        });
+    }
+
+    // Create system messages in both expense report and expense thread
+    const declineAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.DECLINED,
+        actorAccountID: currentUserAccountID,
+        created: DateUtils.getDBTime(),
+        reportActionID: declinedActionReportActionID,
+        message: [
+            {
+                type: 'TEXT',
+                text: Localize.translateLocal('common.decline'),
+            },
+        ],
+    };
+
+    const declineCommentAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        actorAccountID: currentUserAccountID,
+        created: DateUtils.getDBTime(),
+        reportActionID: declinedCommentReportActionID,
+        message: [
+            {
+                type: 'TEXT',
+                text: comment,
+            },
+        ],
+    };
+
+    const approverName = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldUseShortForm: true});
+    const merchantName = getMerchant(transaction);
+
+    // Add system message in expense report: "[Approver] removed [$X.XX from Merchant]"
+    const removedFromReportAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_REMOVEDFROMREPORT,
+        actorAccountID: currentUserAccountID,
+        created: DateUtils.getDBTime(),
+        reportActionID: removedFromReportActionID,
+        message: [
+            {
+                type: 'TEXT',
+                text: Localize.translateLocal('iou.decline.removedFromReport', {
+                    approver: approverName,
+                    amount: convertToDisplayString(transaction?.amount ?? 0, transaction?.currency ?? ''),
+                    merchant: merchantName,
+                }),
+            },
+        ],
+        originalMessage: {
+            amount: transaction?.amount,
+            currency: transaction?.currency,
+            merchant: merchantName,
+            transactionID,
+        },
+    };
+
+    // Add system message in transaction thread: "[Approver] declined this expense"
+    const rejectTransactionAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.REJECT_TRANSACTION,
+        actorAccountID: currentUserAccountID,
+        created: DateUtils.getDBTime(),
+        reportActionID: NumberUtils.rand64(),
+        message: [
+            {
+                type: 'TEXT',
+                text: Localize.translateLocal('iou.decline.declinedExpense', {
+                    approver: approverName,
+                }),
+            },
+        ],
+    };
+
+    // Add system message for auto-added expense if applicable
+    if (movedToReportID) {
+        const autoAddedAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_AUTOADDED,
+            actorAccountID: currentUserAccountID,
+            created: DateUtils.getDBTime(),
+            reportActionID: autoAddedActionReportActionID,
+            message: [
+                {
+                    type: 'TEXT',
+                    text: Localize.translateLocal('iou.decline.autoAddedToReport', {
+                        approver: approverName,
+                        amount: convertToDisplayString(transaction?.amount ?? 0, transaction?.currency ?? ''),
+                        merchant: merchantName,
+                    }),
+                },
+            ],
+            originalMessage: {
+                amount: transaction?.amount,
+                currency: transaction?.currency,
+                merchant: merchantName,
+                transactionID,
+            },
+        };
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${movedToReportID}`,
+            value: {
+                [autoAddedActionReportActionID]: autoAddedAction,
+            },
+        });
+    }
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [removedFromReportActionID]: removedFromReportAction,
+            [declinedActionReportActionID]: declineAction,
+            [declinedCommentReportActionID]: declineCommentAction,
+        },
+    });
+
+    // Add system messages to the transaction thread
+    if (transaction?.transactionThreadReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.transactionThreadReportID}`,
+            value: {
+                [rejectTransactionAction.reportActionID]: rejectTransactionAction,
+            },
+        });
+    }
+
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(declineAction.created, 1);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            lastReadTime,
+        },
+    });
+
+    // Build API parameters
+    const parameters: DeclineMoneyRequestParams = {
+        transactionID,
+        reportID,
+        comment,
+        movedToReportID,
+        autoAddedActionReportActionID,
+        removedFromReportActionID,
+        declinedActionReportActionID,
+        declinedCommentReportActionID,
+    };
+
+    // Make API call
+    API.write(WRITE_COMMANDS.DECLINE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+}
+
+function markDeclineViolationAsResolved(transactionID: string) {
+    const transaction = allTransactions?.[transactionID];
+    if (!transaction) {
+        return;
+    }
+
+    const markedAsResolvedReportActionID = NumberUtils.rand64();
+    const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.REJECTED_EXPENSE);
+    const currentUserAccountID = getCurrentUserAccountID();
+    const currentUser = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldUseShortForm: true});
+
+    // Build optimistic data
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: updatedViolations,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.transactionThreadReportID}`,
+            value: {
+                [markedAsResolvedReportActionID]: {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED,
+                    actorAccountID: currentUserAccountID,
+                    avatar: currentUserPersonalDetails?.avatar,
+                    created: DateUtils.getDBTime(),
+                    message: [
+                        {
+                            type: 'TEXT',
+                            text: Localize.translateLocal('iou.decline.markedAsResolved', {
+                                user: currentUser,
+                            }),
+                        },
+                    ],
+                    person: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            style: 'strong',
+                            text: currentUser,
+                        },
+                    ],
+                    reportActionID: markedAsResolvedReportActionID,
+                    shouldShow: true,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: updatedViolations,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentViolations,
+        },
+    ];
+
+    const parameters: MarkTransactionViolationAsResolvedParams = {
+        transactionID,
+        markedAsResolvedReportActionID,
+    };
+
+    // Make API call
+    API.write(WRITE_COMMANDS.MARK_TRANSACTION_VIOLATION_AS_RESOLVED, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
@@ -11755,6 +12136,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
 }
 
+
 export {
     adjustRemainingSplitShares,
     getNextApproverAccountID,
@@ -11849,6 +12231,9 @@ export {
     canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
+    dismissDeclineUseExplanation,
+    declineMoneyRequest,
+    markDeclineViolationAsResolved,
     initSplitExpense,
     addSplitExpenseField,
     updateSplitExpenseAmountField,

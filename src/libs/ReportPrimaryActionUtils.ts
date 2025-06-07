@@ -287,6 +287,20 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
+function isMarkAsResolvedAction(report: Report, transaction: Transaction, policy?: Policy) {
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const userControlsReport = isReportSubmitter || isAdmin;
+
+    if (!userControlsReport) {
+        return false;
+    }
+
+    // Check if transaction has been declined (has rterRejectedExpense in comment)
+    const comment = transaction.comment?.comment ?? '';
+    return comment.includes(CONST.VIOLATIONS.REJECTED_EXPENSE);
+}
+
 function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: ReportAction[]) {
     if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
         return [];
@@ -366,6 +380,10 @@ function getTransactionThreadPrimaryAction(
     violations: TransactionViolation[],
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
+    if (isMarkAsResolvedAction(parentReport, reportTransaction, policy)) {
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED;
+    }
+
     if (isHoldCreator(reportTransaction, transactionThreadReport.reportID)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD;
     }
@@ -381,4 +399,4 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, getAllExpensesToHoldIfApplicable};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, isMarkAsResolvedAction, getAllExpensesToHoldIfApplicable};

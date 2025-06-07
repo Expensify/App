@@ -1248,6 +1248,17 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+        decline: {
+            educationalTitle: '¿Deberías',
+            questionMark: '?',
+            educationalText: 'Si no está listo para aprobar o pagar un gasto, tiene dos opciones:',
+            holdExpenseTitle: 'Retener un gasto para solicitar más detalles antes de la aprobación o el pago.',
+            heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando se aprueba un informe completo.',
+            declineExpenseTitle: 'Rechazar un gasto cuando no tienes intención de aprobarlo o pagarlo.',
+            reasonPageTitle: 'Rechazar gastos',
+            reasonPageDescription1: 'Rechace un gasto si no planea aprobarlo ni pagarlo. De lo contrario, use "Retener" para pausar el gasto y solicitar más información.',
+            reasonPageDescription2: 'Si va a rechazar el gasto, agregue un comentario para explicar por qué:',
+        },
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
     },
     share: {
