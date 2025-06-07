@@ -1,10 +1,8 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -22,13 +20,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
-
     const selectReport = (item: ReportListItem) => {
         if (selectedTransactionIDs.length === 0) {
             return;
         }
-        if (item.value !== transactionReport?.reportID) {
+        if (item.value !== reportID) {
             changeTransactionsReport(selectedTransactionIDs, item.value);
             clearSelectedTransactions(true);
         }
@@ -38,7 +34,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionsReports={transactionReport ? [transactionReport] : []}
+            selectedReportID={reportID}
             selectReport={selectReport}
         />
     );
