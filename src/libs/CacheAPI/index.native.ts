@@ -1,8 +1,8 @@
-function init(keys: string[]) {}
-function put(cacheName: string, key: string, value: Response) {}
-function get(cacheName: string, key: string) {}
-function remove(cacheName: string, key: string) {}
-function clear(cacheName: string) {}
+function init() {}
+function put() {}
+function get() {}
+function remove() {}
+function clear() {}
 
 export default {
     init,

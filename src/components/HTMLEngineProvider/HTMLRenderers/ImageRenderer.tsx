@@ -1,4 +1,4 @@
-import React, {memo, useEffect} from 'react';
+import React, {memo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -12,8 +12,7 @@ import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAttachmentSource} from '@libs/actions/Attachment';
-import {getFileName, getFileType, isLocalFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
