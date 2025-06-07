@@ -652,7 +652,6 @@ function MoneyReportHeader({
             policies,
             isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
             isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW),
-            isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
         );
     }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
 
