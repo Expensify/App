@@ -140,13 +140,13 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 updateSelectedFeed(newFeed, policyID);
             }
             Navigation.closeRHPFlow();
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
             return;
         }
         if (!shouldBlockWindowOpen) {
             customWindow = openBankConnection(url);
         }
-    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline, assignCard]);
+    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline, assignCard?.data?.dateOption]);
 
     return (
         <ScreenWrapper
