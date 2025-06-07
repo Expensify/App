@@ -117,7 +117,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'web/robots.txt'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
-                {from: 'web/thirdPartyScripts.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'assets/sounds', to: 'sounds'},
