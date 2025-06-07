@@ -107,7 +107,7 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
         },
         {} as Record<string, null>,
     );
-    Onyx.multiSet(draftTransactionsSet);
+    return Onyx.multiSet(draftTransactionsSet);
 }
 
 function removeTransactionReceipt(transactionID: string | undefined) {

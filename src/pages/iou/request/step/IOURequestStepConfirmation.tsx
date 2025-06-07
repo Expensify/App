@@ -13,6 +13,7 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PDFThumbnail from '@components/PDFThumbnail';
+import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
@@ -57,6 +58,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
+import {removeDraftTransactions} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,7 +82,15 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
+        params: {
+            iouType,
+            reportID,
+            transactionID: initialTransactionID,
+            action,
+            participantsAutoAssigned: participantsAutoAssignedFromRoute,
+            backToReport,
+            currentTransactionID = initialTransactionID,
+        },
     },
     transaction: initialTransaction,
     isLoadingTransaction,
@@ -101,7 +111,7 @@ function IOURequestStepConfirmation({
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
+    const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
     const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${currentTransactionID}`, {canBeMissing: true});
     const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${currentTransactionID}`, {canBeMissing: true});
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
@@ -250,7 +260,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         // Exit early if the transaction is still loading
-        if (isLoadingTransaction) {
+        if (!!isLoadingTransaction || isLoadingCurrentTransaction) {
             return;
         }
 
@@ -275,7 +285,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
+    }, [isLoadingTransaction, isLoadingCurrentTransaction, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
         transactions.forEach((item) => {
@@ -447,7 +457,9 @@ function IOURequestStepConfirmation({
 
                 const onFailure = () => {
                     isScanFilesCanBeRead = false;
-                    setMoneyRequestReceipt(item.transactionID, '', '', true);
+                    if (initialTransactionID === item.transactionID) {
+                        setMoneyRequestReceipt(item.transactionID, '', '', true);
+                    }
                 };
 
                 return checkIfScanFileCanBeRead(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure);
@@ -461,12 +473,12 @@ function IOURequestStepConfirmation({
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                 return;
             }
-            navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
+            removeDraftTransactions(true).then(() => navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID));
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
     const requestMoney = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, gpsPoints?: GpsPoint) => {
+        (selectedParticipants: Participant[], gpsPoints?: GpsPoint) => {
             if (!transactions.length) {
                 return;
             }
@@ -505,7 +517,7 @@ function IOURequestStepConfirmation({
                         currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
                         created: item.created,
                         merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant,
-                        comment: trimmedComment,
+                        comment: item?.comment?.comment?.trim() ?? '',
                         receipt,
                         category: item.category,
                         tag: item.tag,
@@ -581,7 +593,7 @@ function IOURequestStepConfirmation({
     );
 
     const trackExpense = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, gpsPoints?: GpsPoint) => {
+        (selectedParticipants: Participant[], gpsPoints?: GpsPoint) => {
             if (!report || !transactions.length) {
                 return;
             }
@@ -609,7 +621,7 @@ function IOURequestStepConfirmation({
                         currency: item.currency,
                         created: item.created,
                         merchant: item.merchant,
-                        comment: trimmedComment,
+                        comment: item?.comment?.comment?.trim() ?? '',
                         receipt: receiptFiles[item.transactionID],
                         category: item.category,
                         tag: item.tag,
@@ -815,7 +827,7 @@ function IOURequestStepConfirmation({
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                         if (userLocation) {
-                            trackExpense(selectedParticipants, trimmedComment, {
+                            trackExpense(selectedParticipants, {
                                 lat: userLocation.latitude,
                                 long: userLocation.longitude,
                             });
@@ -824,7 +836,7 @@ function IOURequestStepConfirmation({
 
                         getCurrentPosition(
                             (successData) => {
-                                trackExpense(selectedParticipants, trimmedComment, {
+                                trackExpense(selectedParticipants, {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 });
@@ -832,7 +844,7 @@ function IOURequestStepConfirmation({
                             (errorData) => {
                                 Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                trackExpense(selectedParticipants, trimmedComment);
+                                trackExpense(selectedParticipants);
                             },
                             {
                                 maximumAge: CONST.GPS.MAX_AGE,
@@ -843,10 +855,10 @@ function IOURequestStepConfirmation({
                     }
 
                     // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                    trackExpense(selectedParticipants, trimmedComment);
+                    trackExpense(selectedParticipants);
                     return;
                 }
-                trackExpense(selectedParticipants, trimmedComment);
+                trackExpense(selectedParticipants);
                 return;
             }
 
@@ -865,7 +877,7 @@ function IOURequestStepConfirmation({
                     !selectedParticipants.some((participant) => isSelectedManagerMcTest(participant.login))
                 ) {
                     if (userLocation) {
-                        requestMoney(selectedParticipants, trimmedComment, {
+                        requestMoney(selectedParticipants, {
                             lat: userLocation.latitude,
                             long: userLocation.longitude,
                         });
@@ -874,7 +886,7 @@ function IOURequestStepConfirmation({
 
                     getCurrentPosition(
                         (successData) => {
-                            requestMoney(selectedParticipants, trimmedComment, {
+                            requestMoney(selectedParticipants, {
                                 lat: successData.coords.latitude,
                                 long: successData.coords.longitude,
                             });
@@ -882,7 +894,7 @@ function IOURequestStepConfirmation({
                         (errorData) => {
                             Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            requestMoney(selectedParticipants, trimmedComment);
+                            requestMoney(selectedParticipants);
                         },
                         {
                             maximumAge: CONST.GPS.MAX_AGE,
@@ -893,11 +905,11 @@ function IOURequestStepConfirmation({
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                requestMoney(selectedParticipants, trimmedComment);
+                requestMoney(selectedParticipants);
                 return;
             }
 
-            requestMoney(selectedParticipants, trimmedComment);
+            requestMoney(selectedParticipants);
         },
         [
             iouType,
@@ -1006,6 +1018,42 @@ function IOURequestStepConfirmation({
         />
     ) : null;
 
+    const showNextTransaction = () => {
+        const nextTransaction = transactions.at(currentTransactionIndex + 1);
+        if (nextTransaction) {
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    action,
+                    iouType,
+                    initialTransactionID,
+                    reportID,
+                    backToReport,
+                    participantsAutoAssignedFromRoute === 'true',
+                    nextTransaction.transactionID,
+                ),
+                {forceReplace: true},
+            );
+        }
+    };
+
+    const showPreviousTransaction = () => {
+        const previousTransaction = transactions.at(currentTransactionIndex - 1);
+        if (previousTransaction) {
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    action,
+                    iouType,
+                    initialTransactionID,
+                    reportID,
+                    backToReport,
+                    participantsAutoAssignedFromRoute === 'true',
+                    previousTransaction.transactionID,
+                ),
+                {forceReplace: true},
+            );
+        }
+    };
+
     const shouldShowThreeDotsButton =
         requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
 
@@ -1025,6 +1073,7 @@ function IOURequestStepConfirmation({
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
+                        subtitle={transactions.length > 1 ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                         onBackButtonPress={navigateBack}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                         threeDotsAnchorPosition={threeDotsAnchorPosition}
@@ -1035,7 +1084,16 @@ function IOURequestStepConfirmation({
                                 onSelected: navigateToAddReceipt,
                             },
                         ]}
-                    />
+                    >
+                        {transactions.length > 1 ? (
+                            <PrevNextButtons
+                                isPrevButtonDisabled={currentTransactionIndex === 0}
+                                isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
+                                onNext={showNextTransaction}
+                                onPrevious={showPreviousTransaction}
+                            />
+                        ) : null}
+                    </HeaderWithBackButton>
                     {(isLoading || isLoadingReceipt || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFThumbnailView}
                     {/* TODO: remove beta check after the feature is enabled */}
@@ -1123,6 +1181,7 @@ function IOURequestStepConfirmation({
                         payeePersonalDetails={payeePersonalDetails}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        expensesNumber={transactions.length}
                         isReceiptEditable
                     />
                 </View>

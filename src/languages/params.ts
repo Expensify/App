@@ -165,6 +165,8 @@ type PayerPaidParams = {payer: string};
 
 type PayerSettledParams = {amount: number | string};
 
+type CreateExpensesParams = {expensesNumber: number};
+
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
@@ -952,6 +954,7 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
+    CreateExpensesParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
 };
