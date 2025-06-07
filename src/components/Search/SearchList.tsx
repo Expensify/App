@@ -22,6 +22,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyxCustomHook from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -139,7 +140,7 @@ function SearchList(
         canBeMissing: true,
     });
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allReports] = useOnyxCustomHook(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     useEffect(() => {
         selectionRef.current = selectedItemsLength;
