@@ -458,7 +458,7 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     policies?: OnyxCollection<Policy>;
 
     /** All the data of the report collection */
-    allReports: OnyxCollection<Report>;
+    allReports?: OnyxCollection<Report>;
 };
 
 type ValidListItem =
