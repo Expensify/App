@@ -98,6 +98,7 @@ type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigato
 type ReportScreenProps = ReportScreenNavigationProps;
 
 const defaultReportMetadata = {
+    hasOnceLoadedReportActions: false,
     isLoadingInitialReportActions: true,
     isLoadingOlderReportActions: false,
     hasLoadingOlderReportActionsError: false,
@@ -152,7 +153,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true});
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: false, allowStaleData: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
         canEvict: false,
@@ -307,6 +308,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
+    // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
+    // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
+    const isStillLoadingData = !!reportMetadata.isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
+    const shouldWaitForTransactions =
+        isStillLoadingData &&
+        isMoneyRequestReport(report) &&
+        reportTransactions?.length === 0 &&
+        !isTransactionThreadView &&
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+        !reportMetadata?.hasOnceLoadedReportActions;
 
     const prevTransactions = usePrevious(reportTransactions);
 
@@ -812,8 +823,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!report && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList ? (
+                                {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -824,7 +835,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
                                 ) : null}
-                                {!!report && shouldDisplayMoneyRequestActionsList ? (
+                                {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                     <MoneyRequestReportActionsList
                                         report={report}
                                         policy={policy}
@@ -833,7 +844,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
-                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                        showReportActionsLoadingState={reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                     />
                                 ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (
