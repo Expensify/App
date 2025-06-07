@@ -30,6 +30,7 @@ import {
     getGroupChatName,
     getIconsForParticipants,
     getInvoiceChatByParticipants,
+    getMoneyRequestReportName,
     getMostRecentlyVisitedReport,
     getParticipantsList,
     getPolicyExpenseChat,
