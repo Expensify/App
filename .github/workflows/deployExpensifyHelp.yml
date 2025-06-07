@@ -81,8 +81,3 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body: ${{ format('A preview of your ExpensifyHelp changes have been deployed to {0} ⚡️', steps.deploy.outputs.alias) }}
-
-      - name: Reindex google search
-        if: ${{ github.event_name == 'push' }}
-        run : |
-          curl "https://www.google.com/ping?sitemap=https://help.expensify.com/sitemap.xml"
