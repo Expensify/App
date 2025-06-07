@@ -1153,6 +1153,20 @@ function getReport(reportID: string, reports: SearchReport[] | OnyxCollection<Re
 }
 
 /**
+ *
+ * @param reportOrID - The report or report ID to get the chatReportID from
+ * @returns The chat report id of the current report.
+ */
+function getChatReportID(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): string | undefined {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) ?? null : reportOrID;
+    if (!report) {
+        return undefined;
+    }
+
+    return report.chatReportID;
+}
+
+/**
  * Returns the type of report.
  */
 function getReportType(reportOrID?: OnyxInputOrEntry<Report> | SearchReport | string): string | undefined {
@@ -1528,12 +1542,14 @@ function isTripRoom(report: OnyxEntry<Report>): boolean {
     return isChatReport(report) && getChatType(report) === CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 }
 
-function isIndividualInvoiceRoom(report: OnyxEntry<Report>): boolean {
-    return isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+function isIndividualInvoiceRoom(reportOrID: OnyxEntry<Report> | string): boolean {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) ?? null : reportOrID;
+    return !!report && isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 }
 
-function isBusinessInvoiceRoom(report: OnyxEntry<Report>): boolean {
-    return isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
+function isBusinessInvoiceRoom(reportOrID: OnyxEntry<Report> | string): boolean {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) ?? null : reportOrID;
+    return !!report && isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
 }
 
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
@@ -11185,6 +11201,7 @@ export {
     navigateOnDeleteExpense,
     hasReportBeenReopened,
     getMoneyReportPreviewName,
+    getChatReportID,
 };
 
 export type {

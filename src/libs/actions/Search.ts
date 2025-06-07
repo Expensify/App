@@ -8,12 +8,13 @@ import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
-import {getPersonalPolicy, getSubmitToAccountID} from '@libs/PolicyUtils';
-import {hasHeldExpenses, getReportType} from '@libs/ReportUtils';
+import {getSubmitToAccountID, getPersonalPolicy} from '@libs/PolicyUtils';
+import {getChatReportID, getReportType, hasHeldExpenses, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -96,9 +97,23 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
+function areAllTheInvoicesSameType(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions): boolean {
+    const transactionKeys = Object.keys(selectedTransactions ?? {});
+
+    return selectedReports.length > 0
+        ? selectedReports.every((report) => isIndividualInvoiceRoom(getChatReportID(report))) || selectedReports.every((report) => !isIndividualInvoiceRoom(getChatReportID(report)))
+        : transactionKeys.every(
+              (transactionIdKey) =>
+                  isIndividualInvoiceRoom(getChatReportID(selectedTransactions[transactionIdKey].reportID)) ||
+                  !isIndividualInvoiceRoom(getChatReportID(selectedTransactions[transactionIdKey].reportID)),
+          );
+}
+
 function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
+    const firstReport = selectedReports.at(0);
+    const hasInvoiceReport = isInvoiceReport(firstReport?.reportID) || (firstTransaction && isInvoiceReport(firstTransaction.reportID));
     const hasLastPaymentMethod =
         selectedReports.length > 0
             ? selectedReports.some((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
@@ -106,16 +121,26 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
     const shouldShowPayOption =
         selectedReports.length > 0
             ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY) &&
-              selectedReports.every((report) => getReportType(report.reportID) === getReportType(selectedReports.at(0)?.reportID)) &&
-              selectedReports.every((report) => report.policyID === selectedReports.at(0)?.policyID)
+              selectedReports.every((report) => getReportType(report.reportID) === getReportType(firstReport?.reportID)) &&
+              selectedReports.every((report) => report.policyID === firstReport?.policyID)
             : transactionKeys.every((transactionIdKey) => selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY) &&
               transactionKeys.every((transactionIdKey) => getReportType(selectedTransactions[transactionIdKey].reportID) === getReportType(firstTransaction?.reportID)) &&
               transactionKeys.every((transactionIdKey) => selectedTransactions[transactionIdKey].policyID === firstTransaction?.policyID);
 
     return {
-        shouldEnablePayOption: shouldShowPayOption,
+        shouldEnablePayOption: hasInvoiceReport ? shouldShowPayOption && areAllTheInvoicesSameType(selectedReports, selectedTransactions) : shouldShowPayOption,
         isFirstTimePayment: !hasLastPaymentMethod,
     };
+}
+
+function getFormatedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency: string): string {
+    const transactionKeys = Object.keys(selectedTransactions ?? {});
+    const totalAmount =
+        selectedReports.length > 0
+            ? selectedReports.reduce((acc, report) => acc + (Math.abs(report.total) ?? 0), 0)
+            : transactionKeys.reduce((acc, transactionIdKey) => acc + (Math.abs(selectedTransactions[transactionIdKey].amount) ?? 0), 0);
+    const formattedAmount = convertToDisplayString(totalAmount, currency);
+    return formattedAmount ?? '';
 }
 
 function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
@@ -482,4 +507,5 @@ export {
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     getPayOption,
+    getFormatedAmount,
 };
