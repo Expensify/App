@@ -5557,7 +5557,7 @@ const translations = {
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
                     automaticActionThree: 'and successfully created a record for',
                     reimburseableLink: 'out-of-pocket expenses',
-                    nonReimbursableLink: 'company card expenses.',
+                    nonReimbursableLink: 'company card expenses',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
