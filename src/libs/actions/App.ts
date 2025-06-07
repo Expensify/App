@@ -20,6 +20,7 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -62,6 +63,7 @@ Onyx.connect({
     callback: (val) => {
         preferredLocale = val;
         if (preferredLocale) {
+            TranslationStore.load(preferredLocale as Locale);
             importEmojiLocale(preferredLocale as Locale).then(() => {
                 buildEmojisTrie(preferredLocale as Locale);
             });
@@ -196,10 +198,6 @@ function setLocale(locale: Locale) {
     const parameters: UpdatePreferredLocaleParams = {
         value: locale,
     };
-
-    importEmojiLocale(locale).then(() => {
-        buildEmojisTrie(locale);
-    });
 
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
 }

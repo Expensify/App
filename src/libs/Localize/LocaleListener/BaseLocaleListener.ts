@@ -1,35 +1,31 @@
 import Onyx from 'react-native-onyx';
-import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocaleListenerConnect} from './types';
-import type BaseLocale from './types';
-
-let preferredLocale: BaseLocale = CONST.LOCALES.DEFAULT;
 
 /**
  * Adds event listener for changes to the locale. Callbacks are executed when the locale changes in Onyx.
  */
 const connect: LocaleListenerConnect = (callbackAfterChange = () => {}) => {
     Onyx.connect({
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+        initWithStoredValues: false,
         callback: (val) => {
-            if (!val) {
+            if (val ?? true) {
                 return;
             }
 
-            preferredLocale = val;
-            callbackAfterChange(val);
+            const preferredLocale = TranslationStore.getCurrentLocale();
+            if (!preferredLocale) {
+                return;
+            }
+            callbackAfterChange(preferredLocale);
         },
     });
 };
 
-function getPreferredLocale(): BaseLocale {
-    return preferredLocale;
-}
-
 const BaseLocaleListener = {
     connect,
-    getPreferredLocale,
 };
 
 export default BaseLocaleListener;

@@ -5,6 +5,7 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -927,6 +928,9 @@ const reportsListItems = [
 ] as ReportListItemType[];
 
 describe('SearchUIUtils', () => {
+    beforeAll(async () => {
+        await TranslationStore.load('en');
+    });
     describe('Test getAction', () => {
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
             let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`);
