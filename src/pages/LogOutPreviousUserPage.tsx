@@ -25,7 +25,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isAccountLoading = account?.isLoading;
-    const {authTokenType, shortLivedAuthToken = ''} = route?.params ?? {};
+    const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
 
     useEffect(() => {
         const sessionEmail = session?.email;
@@ -58,7 +58,6 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     }, [initialURL]);
 
     useEffect(() => {
-        const exitTo = route?.params?.exitTo as Route | null;
         const sessionEmail = session?.email;
         const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
@@ -71,7 +70,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 // remove this screen and navigate to exit route
                 Navigation.goBack();
                 if (exitTo) {
-                    Navigation.navigate(exitTo);
+                    Navigation.navigate(exitTo as Route);
                 }
             });
         }
