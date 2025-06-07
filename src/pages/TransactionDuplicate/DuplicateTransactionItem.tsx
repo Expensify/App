@@ -3,8 +3,9 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -15,12 +16,13 @@ type DuplicateTransactionItemProps = {
 
 function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`, {canBeMissing: false});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: false});
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
-        const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : -1;
+        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         return IOUTransactionID === props.transaction?.transactionID;
     });
 
@@ -31,9 +33,10 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
     return (
         <View style={styles.pb2}>
             <ReportActionItem
+                allReports={allReports}
                 action={action}
                 report={report}
-                parentReportAction={ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '')}
+                parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
                 index={props.index}
                 reportActions={Object.values(reportActions ?? {})}
                 displayAsGroup={false}

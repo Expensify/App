@@ -14,7 +14,6 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,17 +29,17 @@ import Parser from '@libs/Parser';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The ID of the associated policy */
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
-    /** The ID of the associated taskReport */
-    taskReportID: string | undefined;
+
+    /** The task report associated with this action, if any */
+    taskReport: OnyxEntry<Report>;
 
     /** Whether the task preview is hovered so we can modify its style */
     isHovered: boolean;
@@ -68,7 +67,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 };
 
 function TaskPreview({
-    taskReportID,
+    taskReport,
     action,
     contextMenuAnchor,
     chatReportID,
@@ -83,7 +82,7 @@ function TaskPreview({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {canBeMissing: true});
+    const taskReportID = taskReport?.reportID;
     const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
 
     const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
