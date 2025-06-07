@@ -21,6 +21,10 @@ const POSSIBLE_COST_SAVINGS = {
         [CONST.POLICY.TYPE.TEAM]: 1600,
         [CONST.POLICY.TYPE.CORPORATE]: 3200,
     },
+    [CONST.PAYMENT_CARD_CURRENCY.EUR]: {
+        [CONST.POLICY.TYPE.TEAM]: 1000,
+        [CONST.POLICY.TYPE.CORPORATE]: 1600,
+    },
 } as const;
 
 function useSubscriptionPossibleCostSavings(): number {
