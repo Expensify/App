@@ -77,7 +77,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             pendingAction: companyFeeds[feed]?.pendingAction,
             brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             canShowSeveralIndicators: isFeedConnectionBroken,
-            leftElement: feed ? (
+            leftElement: plaidUrl ? (
                 <PlaidCardFeedIcon
                     plaidUrl={plaidUrl}
                     style={styles.mr3}

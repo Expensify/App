@@ -22,7 +22,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
@@ -38,7 +38,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {isOnHold} from '@libs/TransactionUtils';
+import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -79,11 +79,11 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, report
     ];
 }
 
-function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
     return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
     if (isTaskListItemType(item)) {
         return {
             ...item,
@@ -99,12 +99,14 @@ function mapToItemWithSelectionInfo(item: SearchListItem, selectedTransactions: 
     }
 
     return isTransactionListItemType(item)
-        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
+        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
         : {
               ...item,
               shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
-              isSelected: item?.transactions?.length > 0 && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
+              isSelected:
+                  item?.transactions?.length > 0 &&
+                  item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
 
@@ -364,7 +366,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 if (!item.keyForList) {
                     return;
                 }
-
+                if (isTransactionPendingDelete(item)) {
+                    return;
+                }
                 setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray), data);
                 return;
             }
@@ -383,7 +387,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             setSelectedTransactions(
                 {
                     ...selectedTransactions,
-                    ...Object.fromEntries(item.transactions.map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+                    ...Object.fromEntries(
+                        item.transactions.filter((t) => !isTransactionPendingDelete(t)).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
+                    ),
                 },
                 data,
             );
@@ -400,28 +406,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
-            const backTo = Navigation.getActiveRoute();
 
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const transactionThreadReportID = generateReportID();
-                const reportAction = getReportAction(item.reportID, item.moneyRequestReportActionID);
-                const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
-
-                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReportID);
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({
-                        reportID: transactionThreadReportID,
-                        backTo,
-                        moneyRequestReportActionID: item.moneyRequestReportActionID,
-                        transactionID: item.transactionID,
-                        iouReportID,
-                    }),
-                );
-                return;
-            }
-
-            const reportID =
+            let reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
                     ? item.transactionThreadReportID
                     : item.reportID;
@@ -430,10 +416,26 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 return;
             }
 
+            const backTo = Navigation.getActiveRoute();
             const shouldHandleTransactionAsReport = isReportListItemType(item) || (isTransactionItem && isOpenedAsReport);
 
             if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && shouldHandleTransactionAsReport) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                return;
+            }
+
+            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                reportID = generateReportID();
+                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, reportID);
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({
+                        reportID,
+                        backTo,
+                        moneyRequestReportActionID: item.moneyRequestReportActionID,
+                        transactionID: item.transactionID,
+                    }),
+                );
                 return;
             }
 
@@ -502,7 +504,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         // Determine if either the base key or any transaction key matches
         const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-        return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
+        return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
@@ -552,7 +554,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         if (areItemsOfReportType) {
             setSelectedTransactions(
                 Object.fromEntries(
-                    (data as ReportListItemType[]).flatMap((item) => item.transactions.map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+                    (data as ReportListItemType[]).flatMap((item) =>
+                        item.transactions.filter((t) => !isTransactionPendingDelete(t)).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
+                    ),
                 ),
                 data,
             );
@@ -561,7 +565,11 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
 
         setSelectedTransactions(
-            Object.fromEntries((data as TransactionListItemType[]).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+            Object.fromEntries(
+                (data as TransactionListItemType[])
+                    .filter((t) => !isTransactionPendingDelete(t))
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
+            ),
             data,
         );
     };
