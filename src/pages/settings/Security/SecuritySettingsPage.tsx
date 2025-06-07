@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LockedAccountModal from '@components/LockedAccountModal';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -77,6 +78,10 @@ function SecuritySettingsPage() {
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
 
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
+
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
             return;
@@ -118,7 +123,17 @@ function SecuritySettingsPage() {
             {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())),
+                action: () => {
+                    if (isActingAsDelegate) {
+                        showDelegateNoAccessMenu();
+                        return;
+                    }
+                    if (isAccountLocked) {
+                        setIsLockedAccountModalOpen(true);
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+                },
             },
         ];
 
@@ -144,7 +159,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, isBetaEnabled]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, isBetaEnabled, isAccountLocked]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
@@ -227,6 +242,10 @@ function SecuritySettingsPage() {
                     modalClose(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
                 }
+                if (isAccountLocked) {
+                    modalClose(() => setIsLockedAccountModalOpen(true));
+                    return;
+                }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                 setShouldShowDelegatePopoverMenu(false);
                 setSelectedDelegate(undefined);
@@ -239,6 +258,10 @@ function SecuritySettingsPage() {
             onPress: () => {
                 if (isActingAsDelegate) {
                     modalClose(() => setIsNoDelegateAccessMenuVisible(true));
+                    return;
+                }
+                if (isAccountLocked) {
+                    modalClose(() => setIsLockedAccountModalOpen(true));
                     return;
                 }
                 modalClose(() => {
@@ -321,6 +344,10 @@ function SecuritySettingsPage() {
                                                     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_DELEGATE));
                                                     return;
                                                 }
+                                                if (isAccountLocked) {
+                                                    setIsLockedAccountModalOpen(true);
+                                                    return;
+                                                }
                                                 Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
                                             }}
                                             shouldShowRightIcon
@@ -375,6 +402,10 @@ function SecuritySettingsPage() {
                     <DelegateNoAccessModal
                         isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                         onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                    />
+                    <LockedAccountModal
+                        isLockedAccountModalOpen={isLockedAccountModalOpen}
+                        onClose={() => setIsLockedAccountModalOpen(false)}
                     />
                 </>
             )}
