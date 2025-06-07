@@ -96,7 +96,10 @@ function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFie
     ].join(' ');
     return (
         RBRMessages.length > 0 && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}>
+            <View
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}
+                testID="TransactionItemRowRBRWithOnyx"
+            >
                 <Icon
                     src={DotIndicator}
                     fill={theme.danger}

@@ -46,7 +46,10 @@ function TransactionItemRowRBR({transactionViolations, containerStyles, missingF
     ].join(' ');
     return (
         RBRMessages.length > 0 && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}>
+            <View
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}
+                testID="TransactionItemRowRBR"
+            >
                 <Icon
                     src={DotIndicator}
                     fill={theme.danger}
