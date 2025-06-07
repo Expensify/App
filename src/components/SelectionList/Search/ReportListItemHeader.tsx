@@ -145,6 +145,8 @@ function HeaderFirstRow<TItem extends ListItem>({
                         goToItem={handleOnButtonPress}
                         isSelected={reportItem.isSelected}
                         isLoading={reportItem.isActionLoading}
+                        policyID={reportItem.policyID}
+                        reportID={reportItem.reportID}
                     />
                 </View>
             )}

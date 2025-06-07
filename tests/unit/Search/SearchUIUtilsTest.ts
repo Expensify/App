@@ -489,6 +489,7 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: false,
         violations: [],
+        isPolicyExpenseChat: false,
     },
     {
         accountID: 18439984,
@@ -556,6 +557,7 @@ const transactionsListItems = [
                 type: CONST.VIOLATION_TYPES.VIOLATION,
             },
         ],
+        isPolicyExpenseChat: false,
     },
     {
         accountID: 18439984,
@@ -618,6 +620,7 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        isPolicyExpenseChat: false,
     },
     {
         accountID: 18439984,
@@ -680,6 +683,7 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        isPolicyExpenseChat: false,
     },
 ] as TransactionListItemType[];
 
@@ -777,6 +781,7 @@ const reportsListItems = [
                 errors: undefined,
                 isActionLoading: false,
                 violations: [],
+                isPolicyExpenseChat: false,
             },
         ],
         type: 'expense',
@@ -880,6 +885,7 @@ const reportsListItems = [
                 pendingAction: undefined,
                 errors: undefined,
                 isActionLoading: false,
+                isPolicyExpenseChat: false,
             },
         ],
         type: 'expense',

@@ -4900,6 +4900,12 @@ const styles = (theme: ThemeColors) =>
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
 
+        settlementButtonListContainer: {
+            maxHeight: 500,
+            paddingBottom: 0,
+            paddingTop: 0,
+        },
+
         moneyRequestViewImage: {
             ...spacing.mh5,
             overflow: 'hidden',

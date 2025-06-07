@@ -1193,6 +1193,18 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
     return {};
 }
 
+function getOptionMargin(itemIndex: number, itemsLen: number) {
+    if (itemIndex === itemsLen && itemsLen > 5) {
+        return {marginBottom: 16};
+    }
+
+    if (itemIndex === 0 && itemsLen > 5) {
+        return {marginTop: 16};
+    }
+
+    return {};
+}
+
 const staticStyleUtils = {
     positioning,
     searchHeaderDefaultOffset,
@@ -1274,6 +1286,7 @@ const staticStyleUtils = {
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
     getNavigationBarType,
+    getOptionMargin,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
