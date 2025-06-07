@@ -1184,6 +1184,33 @@ function isTagModificationAction(actionName: string): boolean {
     );
 }
 
+/**
+ * Used for Send Money flow, which is a special case where we have no IOU create action and only one IOU pay action.
+ * In other reports, pay actions do not count as a transactions, but this is an exception to this rule.
+ */
+function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions> | ReportAction[], chatReportID?: string) {
+    if (!chatReportID) {
+        return undefined;
+    }
+
+    const iouActions = Object.values(actions ?? {}).filter(isMoneyRequestAction);
+
+    // sendMoneyFlow has only one IOU action...
+    if (iouActions.length !== 1) {
+        return undefined;
+    }
+
+    // ...which is 'pay'...
+    const isFirstActionPay = getOriginalMessage(iouActions.at(0))?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+
+    const {type, chatType, parentReportID, parentReportActionID} = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? {};
+
+    // ...and can only be triggered on DM chats
+    const isDM = type === CONST.REPORT.TYPE.CHAT && !chatType && !(parentReportID && parentReportActionID);
+
+    return isFirstActionPay && isDM ? iouActions.at(0)?.childReportID : undefined;
+}
+
 /** Whether action has no linked report by design */
 const isIOUActionTypeExcludedFromFiltering = (type: OriginalMessageIOU['type'] | undefined) =>
     [CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.PAY].some((actionType) => actionType === type);
@@ -1234,6 +1261,12 @@ function getOneTransactionThreadReportID(
     const reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
     if (!reportActionsArray.length) {
         return;
+    }
+
+    const sendMoneyFlowID = getSendMoneyFlowOneTransactionThreadID(reportActions, report?.chatReportID);
+
+    if (sendMoneyFlowID) {
+        return sendMoneyFlowID;
     }
 
     const iouRequestActions = [];
@@ -2601,6 +2634,7 @@ export {
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceCustomUnitRateAddedMessage,
+    getSendMoneyFlowOneTransactionThreadID,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
