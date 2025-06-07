@@ -196,6 +196,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 inputID={INPUT_IDS.CURRENCY}
                                 label={translate('workspace.editor.currencyInputLabel')}
                                 defaultValue={userCurrency}
+                                shouldSyncPickerVisibilityWithNavigation
                             />
                         </View>
                     </View>
