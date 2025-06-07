@@ -2,6 +2,7 @@ import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import HeaderGap from '@components/HeaderGap';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -16,8 +17,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
-import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
+import NavigationTabBarDummy from './NavigationTabBar/NavigationTabBarDummy';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -66,6 +67,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     return (
         <View style={styles.searchSidebar}>
             <View style={styles.flex1}>
+                <HeaderGap />
                 <TopBar
                     shouldShowLoadingBar={shouldShowLoadingState}
                     breadcrumbLabel={translate('common.reports')}
@@ -74,7 +76,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                 />
                 <SearchTypeMenu queryJSON={queryJSON} />
             </View>
-            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
+            <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>
     );
 }

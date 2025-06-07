@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as CategoryOptionsListUtils from '@libs/CategoryOptionListUtils';
+import {getCategoryListSections, getCategoryOptionTree, sortCategories} from '@libs/CategoryOptionListUtils';
+import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -8,8 +9,9 @@ describe('CategoryOptionListUtils', () => {
         const search = 'Food';
         const emptySearch = '';
         const wrongSearch = 'bla bla';
+        const employeeSearch = 'Employee Office';
         const recentlyUsedCategories = ['Taxi', 'Restaurant'];
-        const selectedOptions: CategoryOptionsListUtils.Category[] = [
+        const selectedOptions: Category[] = [
             {
                 name: 'Medical',
                 enabled: true,
@@ -56,12 +58,31 @@ describe('CategoryOptionListUtils', () => {
                 origin: '',
                 pendingAction: undefined,
             },
+            'Employee Meals Office': {
+                enabled: true,
+                name: 'Employee Meals Office',
+                unencodedName: 'Employee Meals Office',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+                pendingAction: undefined,
+            },
         };
-        const smallResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const smallResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
                 data: [
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
                     {
                         text: 'Food',
                         keyForList: 'Food',
@@ -90,10 +111,10 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: 'delete',
                     },
                 ],
-                indexOffset: 3,
+                indexOffset: 4,
             },
         ];
-        const smallSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const smallSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -120,7 +141,7 @@ describe('CategoryOptionListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const smallWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -256,7 +277,7 @@ describe('CategoryOptionListUtils', () => {
                 origin: '',
             },
         };
-        const largeResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const largeResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -396,7 +417,7 @@ describe('CategoryOptionListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const largeSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -432,7 +453,7 @@ describe('CategoryOptionListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const largeWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -441,7 +462,7 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
         const emptyCategoriesList = {};
-        const emptySelectedResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const emptySelectedResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -460,19 +481,41 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        const smallResult = CategoryOptionsListUtils.getCategoryListSections({
+        const employeeSearchResultList: CategoryTreeSection[] = [
+            {
+                title: '',
+                shouldShow: true,
+                indexOffset: 1,
+                data: [
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                ],
+            },
+        ];
+
+        const smallResult = getCategoryListSections({
             searchValue: emptySearch,
             categories: smallCategoriesList,
         });
         expect(smallResult).toStrictEqual(smallResultList);
 
-        const smallSearchResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: search, categories: smallCategoriesList});
+        const smallSearchResult = getCategoryListSections({searchValue: search, categories: smallCategoriesList});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
-        const smallWrongSearchResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList});
+        const smallWrongSearchResult = getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
-        const largeResult = CategoryOptionsListUtils.getCategoryListSections({
+        const employeeSearchResult = getCategoryListSections({searchValue: employeeSearch, categories: smallCategoriesList});
+        expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
+
+        const largeResult = getCategoryListSections({
             searchValue: emptySearch,
             selectedOptions,
             categories: largeCategoriesList,
@@ -480,7 +523,7 @@ describe('CategoryOptionListUtils', () => {
         });
         expect(largeResult).toStrictEqual(largeResultList);
 
-        const largeSearchResult = CategoryOptionsListUtils.getCategoryListSections({
+        const largeSearchResult = getCategoryListSections({
             searchValue: search,
             selectedOptions,
             categories: largeCategoriesList,
@@ -488,7 +531,7 @@ describe('CategoryOptionListUtils', () => {
         });
         expect(largeSearchResult).toStrictEqual(largeSearchResultList);
 
-        const largeWrongSearchResult = CategoryOptionsListUtils.getCategoryListSections({
+        const largeWrongSearchResult = getCategoryListSections({
             searchValue: wrongSearch,
             selectedOptions,
             categories: largeCategoriesList,
@@ -496,7 +539,7 @@ describe('CategoryOptionListUtils', () => {
         });
         expect(largeWrongSearchResult).toStrictEqual(largeWrongSearchResultList);
 
-        const emptyResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList});
+        const emptyResult = getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList});
         expect(emptyResult).toStrictEqual(emptySelectedResultList);
     });
 
@@ -883,8 +926,8 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        expect(CategoryOptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
-        expect(CategoryOptionsListUtils.getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
+        expect(getCategoryOptionTree(categories)).toStrictEqual(result);
+        expect(getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
     });
 
     it('sortCategories', () => {
@@ -893,12 +936,12 @@ describe('CategoryOptionListUtils', () => {
                 name: 'Taxi',
                 enabled: false,
             },
-            'Test1: Subtest2': {
-                name: 'Test1: Subtest2',
+            'Test1: Sub-test2': {
+                name: 'Test1: Sub-test2',
                 enabled: true,
             },
-            'Test: Test1: Subtest4': {
-                name: 'Test: Test1: Subtest4',
+            'Test: Test1: Sub-test4': {
+                name: 'Test: Test1: Sub-test4',
                 enabled: true,
             },
             Taxes: {
@@ -918,24 +961,24 @@ describe('CategoryOptionListUtils', () => {
                 name: 'Travel: Nested-Travel',
                 enabled: true,
             },
-            'Test1: Subtest1': {
-                name: 'Test1: Subtest1',
+            'Test1: Sub-test1': {
+                name: 'Test1: Sub-test1',
                 enabled: true,
             },
             'Test: Test1': {
                 name: 'Test: Test1',
                 enabled: true,
             },
-            'Test: Test1: Subtest1': {
-                name: 'Test: Test1: Subtest1',
+            'Test: Test1: Sub-test1': {
+                name: 'Test: Test1: Sub-test1',
                 enabled: true,
             },
-            'Test: Test1: Subtest3': {
-                name: 'Test: Test1: Subtest3',
+            'Test: Test1: Sub-test3': {
+                name: 'Test: Test1: Sub-test3',
                 enabled: false,
             },
-            'Test: Test1: Subtest2': {
-                name: 'Test: Test1: Subtest2',
+            'Test: Test1: Sub-test2': {
+                name: 'Test: Test1: Sub-test2',
                 enabled: true,
             },
             'Test: Test2': {
@@ -950,12 +993,12 @@ describe('CategoryOptionListUtils', () => {
                 name: 'Utilities',
                 enabled: true,
             },
-            'Test: Test3: Subtest1': {
-                name: 'Test: Test3: Subtest1',
+            'Test: Test3: Sub-test1': {
+                name: 'Test: Test3: Sub-test1',
                 enabled: true,
             },
-            'Test1: Subtest3': {
-                name: 'Test1: Subtest3',
+            'Test1: Sub-test3': {
+                name: 'Test1: Sub-test3',
                 enabled: true,
             },
         };
@@ -981,22 +1024,22 @@ describe('CategoryOptionListUtils', () => {
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test1: Subtest1',
+                name: 'Test: Test1: Sub-test1',
                 enabled: true,
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test1: Subtest2',
+                name: 'Test: Test1: Sub-test2',
                 enabled: true,
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test1: Subtest3',
+                name: 'Test: Test1: Sub-test3',
                 enabled: false,
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test1: Subtest4',
+                name: 'Test: Test1: Sub-test4',
                 enabled: true,
                 pendingAction: undefined,
             },
@@ -1006,7 +1049,7 @@ describe('CategoryOptionListUtils', () => {
                 pendingAction: undefined,
             },
             {
-                name: 'Test: Test3: Subtest1',
+                name: 'Test: Test3: Sub-test1',
                 enabled: true,
                 pendingAction: undefined,
             },
@@ -1016,17 +1059,17 @@ describe('CategoryOptionListUtils', () => {
                 pendingAction: undefined,
             },
             {
-                name: 'Test1: Subtest1',
+                name: 'Test1: Sub-test1',
                 enabled: true,
                 pendingAction: undefined,
             },
             {
-                name: 'Test1: Subtest2',
+                name: 'Test1: Sub-test2',
                 enabled: true,
                 pendingAction: undefined,
             },
             {
-                name: 'Test1: Subtest3',
+                name: 'Test1: Sub-test3',
                 enabled: true,
                 pendingAction: undefined,
             },
@@ -1235,8 +1278,8 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        expect(CategoryOptionsListUtils.sortCategories(categoriesIncorrectOrdering)).toStrictEqual(result);
-        expect(CategoryOptionsListUtils.sortCategories(categoriesIncorrectOrdering2)).toStrictEqual(result2);
-        expect(CategoryOptionsListUtils.sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
+        expect(sortCategories(categoriesIncorrectOrdering)).toStrictEqual(result);
+        expect(sortCategories(categoriesIncorrectOrdering2)).toStrictEqual(result2);
+        expect(sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
     });
 });
