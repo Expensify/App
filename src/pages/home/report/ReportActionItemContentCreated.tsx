@@ -33,7 +33,7 @@ type ReportActionItemContentCreatedProps = {
 
     /** The parent report */
     parentReport: OnyxEntry<OnyxTypes.Report>;
-    
+
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 

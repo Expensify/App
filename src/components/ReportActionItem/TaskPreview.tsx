@@ -30,7 +30,7 @@ import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/Rep
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction, Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
