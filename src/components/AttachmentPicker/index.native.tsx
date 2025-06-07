@@ -221,7 +221,7 @@ function AttachmentPicker({
             if (localCopy.status !== 'success') {
                 throw new Error("Couldn't create local file copy");
             }
-            console.log('picked files', localCopy.localUri);
+
             return {
                 name: file.name,
                 uri: localCopy.localUri,

@@ -678,7 +678,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     const mediaUrls = [...reportCommentText.matchAll(markdownMediaRegex)].map((m) => m[1]);
     const reportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
     const attachments = mediaUrls.map((src, index) => ({uri: src, attachmentID: `${reportActionID}_${++index}`}));
-    console.log('markdownMediaRegex', attachments);
+
     attachments.forEach((attachment) => {
         storeAttachment(attachment.attachmentID, attachment.uri ?? '');
     });
