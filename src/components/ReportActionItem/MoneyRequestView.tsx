@@ -3,6 +3,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import HighlightableIOUMenuItem from '@components/HighlightableIOUMenuItem';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -16,6 +17,7 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -455,7 +457,18 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
-        const shouldShow = !!tagForDisplay || hasEnabledOptions(tags);
+        let shouldShow = false;
+        if (hasDependentTags(policy, policyTagList)) {
+            if (index === 0) {
+                shouldShow = true;
+            } else {
+                const prevTagValue = getTagForDisplay(transaction, index - 1);
+                shouldShow = !!prevTagValue;
+            }
+        } else {
+            shouldShow = !!tagForDisplay || hasEnabledOptions(tags);
+        }
+
         if (!shouldShow) {
             return null;
         }
@@ -469,12 +482,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             hasDependentTags(policy, policyTagList),
             tagForDisplay,
         );
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/rules-of-hooks
+        const previousValue = usePrevious(shouldShow);
         return (
             <OfflineWithFeedback
                 key={name}
                 pendingAction={getPendingFieldAction('tag')}
             >
-                <MenuItemWithTopDescription
+                <HighlightableIOUMenuItem
+                    highlighted={shouldShow && !getTagForDisplay(transaction, index) && !previousValue}
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
@@ -491,6 +507,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     }}
                     brickRoadIndicator={tagError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={tagError}
+                    shouldShowBasicTitle
+                    shouldShowDescriptionOnTop
                 />
             </OfflineWithFeedback>
         );
