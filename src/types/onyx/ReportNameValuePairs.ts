@@ -75,6 +75,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The time the report export failed */
     exportFailedTime?: string;
+
+    /** Agent Zero processing request indicator message */
+    agentZeroProcessingRequestIndicator?: string;
 }>;
 
 /** Collection of reportNameValuePairs, indexed by reportNameValuePairs_{reportID} */
