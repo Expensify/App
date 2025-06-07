@@ -82,16 +82,16 @@ function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFie
     );
 
     const RBRMessages = [
-        ...(missingFieldError ? [missingFieldError] : []),
         ...getErrorMessages(
             transaction?.errors,
             transactionThreadActions?.filter((e) => !!e.errors),
         ),
+        ...(missingFieldError ? [`${missingFieldError}.`] : []),
         // Some violations end with a period already so lets make sure the connected messages have only single period between them
         // and end with a single dot.
         ...transactionViolations.map((violation) => {
             const message = ViolationsUtils.getViolationTranslation(violation, translate);
-            return message.endsWith('.') || transactionViolations.length === 1 ? message : `${message}.`;
+            return message.endsWith('.') ? message : `${message}.`;
         }),
     ].join(' ');
     return (
