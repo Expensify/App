@@ -5903,6 +5903,12 @@ const styles = (theme: ThemeColors) =>
         thumbnailImageContainerHighlight: {
             backgroundColor: theme.highlightBG,
         },
+
+        multiScanEducationalPopupImage: {
+            backgroundColor: colors.pink700,
+            overflow: 'hidden',
+            height: 220,
+        },
     }) satisfies Styles;
 
 type ThemeStyles = ReturnType<typeof styles>;

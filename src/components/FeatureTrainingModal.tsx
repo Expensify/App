@@ -2,7 +2,7 @@ import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
 import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 import {Image, InteractionManager, View} from 'react-native';
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageResizeMode, ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -64,6 +64,9 @@ type BaseFeatureTrainingModalProps = {
     /** Secondary description rendered with additional space */
     secondaryDescription?: string;
 
+    /** Style for the title */
+    titleStyles?: StyleProp<TextStyle>;
+
     /** Whether to show `Don't show me this again` option */
     shouldShowDismissModalOption?: boolean;
 
@@ -120,6 +123,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether the user can confirm the tutorial while offline */
     canConfirmWhileOffline?: boolean;
+
+    /** Whether to navigate back when closing the modal */
+    shouldGoBack?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -163,6 +169,7 @@ function FeatureTrainingModal({
     title = '',
     description = '',
     secondaryDescription = '',
+    titleStyles,
     shouldShowDismissModalOption = false,
     confirmText = '',
     onConfirm = () => {},
@@ -183,6 +190,7 @@ function FeatureTrainingModal({
     shouldUseScrollView = false,
     shouldShowConfirmationLoader = false,
     canConfirmWhileOffline = true,
+    shouldGoBack = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -319,10 +327,12 @@ function FeatureTrainingModal({
         }
         setIsModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
-            Navigation.goBack();
+            if (shouldGoBack) {
+                Navigation.goBack();
+            }
             onClose?.();
         });
-    }, [onClose, willShowAgain]);
+    }, [onClose, shouldGoBack, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
         if (shouldCloseOnConfirm) {
@@ -375,7 +385,7 @@ function FeatureTrainingModal({
                 <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                     {!!title && !!description && (
                         <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
-                            {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
+                            {typeof title === 'string' ? <Text style={[styles.textHeadlineH1, titleStyles]}>{title}</Text> : title}
                             {shouldRenderHTMLDescription ? (
                                 <Text>
                                     <RenderHTML html={description} />

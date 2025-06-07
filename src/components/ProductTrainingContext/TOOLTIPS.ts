@@ -17,9 +17,10 @@ const {
     ACCOUNT_SWITCHER,
     EXPENSE_REPORTS_FILTER,
     SCAN_TEST_DRIVE_CONFIRMATION,
+    MULTI_SCAN_EDUCATIONAL_MODAL,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
-type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
+type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof MULTI_SCAN_EDUCATIONAL_MODAL>;
 
 type ShouldShowConditionProps = {
     shouldUseNarrowLayout: boolean;
