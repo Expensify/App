@@ -173,9 +173,10 @@ function AboutPage() {
                         contentWidth={windowWidth}
                         systemFonts={systemFonts}
                         source={{
-                            html: translate('initialSettingsPage.readTheTermsAndPrivacy.full')
-                                .replace('<a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}" style="color: ${styles.link.color}; text-decoration: none;">`)
-                                .replace('<a>', `<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}" style="color: ${styles.link.color}; text-decoration: none;">`),
+                            html: translate('initialSettingsPage.readTheTermsAndPrivacy'),
+                        }}
+                        tagsStyles={{
+                            a: {...styles.textMicroSupporting, ...styles.link, textDecorationLine: 'none'},
                         }}
                         baseStyle={styles.chatItemMessageHeaderTimestamp}
                     />

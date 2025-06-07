@@ -1456,9 +1456,7 @@ const translations = {
         restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            full: 'Read the <a>Terms of Service</a> and <a>Privacy</a>.',
-        },
+        readTheTermsAndPrivacy: `Read the <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Terms of Service</a> and <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Privacy</a>.`,
         help: 'Help',
         accountSettings: 'Account settings',
         account: 'Account',

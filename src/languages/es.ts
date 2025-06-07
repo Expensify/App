@@ -1454,9 +1454,7 @@ const translations = {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            full: 'Lee los <a>Términos del Servicio</a> y la <a>Política de Privacidad</a>.',
-        },
+        readTheTermsAndPrivacy: 'Leer los <a>Términos de Servicio</a> y <a>Privacidad</a>.',
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
