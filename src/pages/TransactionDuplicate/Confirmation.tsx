@@ -45,7 +45,8 @@ function Confirmation() {
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID);
-    const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
+    const isFromExpense = route.params.isFromExpense;
+    const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo, isFromExpense);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`, {canBeMissing: true});
@@ -61,12 +62,12 @@ function Confirmation() {
             return;
         }
         IOU.mergeDuplicates(transactionsMergeParams);
-        if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
+        if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) || isFromExpense) {
             Navigation.dismissModal();
             return;
         }
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID), {compareParams: false});
-    }, [reportAction?.childReportID, transactionsMergeParams, isBetaEnabled]);
+    }, [reportAction?.childReportID, transactionsMergeParams, isBetaEnabled, isFromExpense]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);

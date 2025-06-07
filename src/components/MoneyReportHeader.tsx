@@ -206,6 +206,9 @@ function MoneyReportHeader({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
+
+    const {isBetaEnabled} = usePermissions();
+
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getValidConnectedIntegration(policy);
@@ -615,7 +618,7 @@ function MoneyReportHeader({
                     if (!threadID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
+                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID, undefined, !isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) ? true : undefined));
                 }}
             />
         ),
@@ -631,7 +634,6 @@ function MoneyReportHeader({
     };
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const {isBetaEnabled} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
