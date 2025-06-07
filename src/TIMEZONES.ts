@@ -564,9 +564,10 @@ const timezoneBackwardToNewMap: Record<string, TupleToUnion<typeof TIMEZONES>> =
     WET: 'Europe/Lisbon',
 };
 
-const timezoneNewToBackwardMap = Object.fromEntries(
-    Object.entries(timezoneBackwardToNewMap).map(([oldTimezone, newTimezone]) => [newTimezone, oldTimezone]),
-) as Record<TupleToUnion<typeof TIMEZONES>, string>;
+const timezoneNewToBackwardMap = Object.fromEntries(Object.entries(timezoneBackwardToNewMap).map(([oldTimezone, newTimezone]) => [newTimezone, oldTimezone])) as Record<
+    TupleToUnion<typeof TIMEZONES>,
+    string
+>;
 
 export {timezoneBackwardToNewMap, timezoneNewToBackwardMap};
 

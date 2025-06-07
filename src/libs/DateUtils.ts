@@ -218,8 +218,8 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 
 // There is no need to check same timezone support again and again as it will not change on runtime.
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string  => {
-    try{
+const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string => {
+    try {
         // Check whether the timezone value work on the current system
         const date = new Date();
         const testDate = toZonedTime(date, timezoneInput);
