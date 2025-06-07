@@ -85,10 +85,7 @@ function RequestEarlyCancellationPage() {
                         contentWidth={windowWidth}
                         systemFonts={systemFonts}
                         source={{
-                            html: translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.full').replace(
-                                '<a>',
-                                `<a href="${ROUTES.WORKSPACES_LIST.route} style="color: ${styles.link.color}; text-decoration: 'none';">`,
-                            ),
+                            html: translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity').replace('<a>', `<a href="${ROUTES.WORKSPACES_LIST.route}">`),
                         }}
                         tagsStyles={{
                             a: {...styles.link, textDecorationLine: 'none'},
