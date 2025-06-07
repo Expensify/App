@@ -6450,12 +6450,6 @@ const translations = {
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
     },
-    aiSales: {
-        talkToSales: 'Talk to sales',
-        getHelp: 'Get help',
-        talkToConcierge: 'Talk to Concierge',
-        hangUp: 'Hang up',
-    },
     scheduledCall: {
         book: {
             title: 'Schedule call',

@@ -48,7 +48,6 @@ export default function () {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
             },
-            [ONYXKEYS.TALK_TO_AI_SALES]: {isLoading: false, isTalkingToAISales: false},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
