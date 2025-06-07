@@ -240,6 +240,9 @@ type PureReportActionItemProps = {
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
 
+    /** The task report associated with this action, if any */
+    taskReport: OnyxTypes.Report | undefined;
+
     /** All the emoji reactions for the report action. */
     emojiReactions?: OnyxTypes.ReportActionReactions;
 
@@ -368,6 +371,7 @@ function PureReportActionItem({
     parentReportActionForTransactionThread,
     draftMessage,
     iouReport,
+    taskReport,
     emojiReactions,
     linkedTransactionRouteError,
     reportNameValuePairs,
@@ -921,7 +925,7 @@ function PureReportActionItem({
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
                         style={displayAsGroup ? [] : [styles.mt1]}
-                        taskReportID={getOriginalMessage(action)?.taskReportID?.toString()}
+                        taskReport={taskReport}
                         chatReportID={reportID}
                         action={action}
                         isHovered={hovered}

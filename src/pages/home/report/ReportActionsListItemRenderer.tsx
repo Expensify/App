@@ -26,6 +26,9 @@ type ReportActionsListItemRendererProps = {
     /** Report for this action */
     report: OnyxEntry<Report>;
 
+    /** The task report associated with this action, if any */
+    taskReport: OnyxEntry<Report>;
+
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;
 
@@ -60,6 +63,7 @@ function ReportActionsListItemRenderer({
     parentReportAction,
     index,
     report,
+    taskReport,
     transactionThreadReport,
     displayAsGroup,
     mostRecentIOUReportActionID = '',
@@ -166,6 +170,7 @@ function ReportActionsListItemRenderer({
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
+            taskReport={taskReport}
             transactionThreadReport={transactionThreadReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}

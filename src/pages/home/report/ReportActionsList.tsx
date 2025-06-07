@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
     getFirstVisibleReportActionID,
+    getOriginalMessage,
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
@@ -165,6 +166,7 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
@@ -574,6 +576,9 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            const originalMessage = getOriginalMessage(reportAction);
+            const taskReport = originalMessage && 'taskReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.taskReportID}`] : undefined;
+
             return (
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
@@ -584,6 +589,7 @@ function ReportActionsList({
                     report={report}
                     transactionThreadReport={transactionThreadReport}
                     linkedReportActionID={linkedReportActionID}
+                    taskReport={taskReport}
                     displayAsGroup={
                         !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
                         isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
@@ -599,6 +605,7 @@ function ReportActionsList({
         },
         [
             report,
+            allReports,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
