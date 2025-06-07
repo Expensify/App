@@ -1,12 +1,12 @@
 import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -14,7 +14,6 @@ import TextLink from '@components/TextLink';
 import useCancellationType from '@hooks/useCancellationType';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,9 +24,7 @@ import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
-    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -38,22 +35,7 @@ function RequestEarlyCancellationPage() {
         cancelBillingSubscription(cancellationReason, cancellationNote);
     };
 
-    const acknowledgementText = useMemo(
-        () => (
-            <RenderHtml
-                contentWidth={windowWidth}
-                systemFonts={systemFonts}
-                source={{
-                    html: translate('subscription.requestEarlyCancellation.acknowledgement'),
-                }}
-                tagsStyles={{
-                    a: {...styles.link, textDecorationLine: 'none'},
-                    body: {...styles.textNormalThemeText},
-                }}
-            />
-        ),
-        [translate],
-    );
+    const acknowledgementText = useMemo(() => <RenderHTML html={translate('subscription.requestEarlyCancellation.acknowledgement')} />, [translate]);
 
     const manualCancellationContent = useMemo(
         () => (
