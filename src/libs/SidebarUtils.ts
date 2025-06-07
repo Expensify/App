@@ -229,7 +229,6 @@ function getOrderedReportIDs(
             });
             return;
         }
-
         const isSystemChat = isSystemChatUtil(report);
         const isReportArchived = isArchivedReport(reportNameValuePairs);
         const shouldOverrideHidden =

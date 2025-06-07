@@ -26,11 +26,6 @@ type ReportAttributes = {
      * The errors of the report.
      */
     reportErrors: Errors;
-
-    /**
-     * Archive reason for the report, if any.
-     */
-    archiveReason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | null | undefined;
 };
 
 /**

@@ -304,7 +304,7 @@ function OptionRowLHN({
                                                         !!optionItem.isInvoiceReport ||
                                                         isGroupChat(report) ||
                                                         isSystemChat(report) ||
-                                                        !!isMergedConciergeChatReport(report)
+                                                        isMergedConciergeChatReport(report)
                                                     }
                                                 />
                                                 {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
