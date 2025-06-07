@@ -1159,6 +1159,7 @@ const CONST = {
         WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
         BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
         EXPENSIFY_APPROVED_PROGRAM_URL: `${USE_EXPENSIFY_URL}/accountants-program`,
+        FEES_URL: `${EXPENSIFY_URL}/fees`,
     },
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
@@ -3227,7 +3228,6 @@ const CONST = {
         CFPB_PREPAID: 'cfpb.gov/prepaid',
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
         FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
-        USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
     },
 
     LAYOUT_WIDTH: {
