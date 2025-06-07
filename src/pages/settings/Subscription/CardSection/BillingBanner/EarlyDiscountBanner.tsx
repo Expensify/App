@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useWindowDimensions} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import Button from '@components/Button';
@@ -8,13 +7,13 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithFeedback} from '@components/Pressable';
-import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEarlyDiscountInfo} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -41,7 +40,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {width} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
@@ -123,7 +122,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
 
     const title = isSubscriptionPage ? (
         <RenderHtml
-            contentWidth={width}
+            contentWidth={windowWidth}
             systemFonts={systemFonts}
             source={{
                 html: translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.full', {
@@ -134,7 +133,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
     ) : (
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
             <RenderHtml
-                contentWidth={width}
+                contentWidth={windowWidth}
                 systemFonts={systemFonts}
                 source={{
                     html: translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.full', {
