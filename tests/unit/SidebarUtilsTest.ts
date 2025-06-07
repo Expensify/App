@@ -734,7 +734,7 @@ describe('SidebarUtils', () => {
         });
     });
 
-    describe('getOptionsData', () => {
+    describe('getOptionData', () => {
         it('returns the last action message as an alternate text if the action is POLICY_CHANGE_LOG.LEAVE_ROOM type', async () => {
             // When a report has last action of POLICY_CHANGE_LOG.LEAVE_ROOM type
             const report: Report = {
