@@ -139,6 +139,8 @@ function SearchList(
         canBeMissing: true,
     });
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+
     useEffect(() => {
         selectionRef.current = selectedItemsLength;
 
@@ -336,6 +338,7 @@ function SearchList(
                     queryJSONHash={queryJSONHash}
                     policies={policies}
                     isDisabled={isDisabled}
+                    allReports={allReports}
                 />
             );
         },
@@ -351,6 +354,7 @@ function SearchList(
             queryJSONHash,
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
+            allReports,
         ],
     );
 

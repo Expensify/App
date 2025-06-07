@@ -15,6 +15,7 @@ type DuplicateTransactionItemProps = {
 
 function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
 
@@ -31,6 +32,7 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
     return (
         <View style={styles.pb2}>
             <ReportActionItem
+                allReports={allReports}
                 action={action}
                 report={report}
                 parentReportAction={ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '')}
