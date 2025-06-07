@@ -9585,6 +9585,7 @@ function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
+    shouldAllowSubmittedReport = true,
 ): boolean {
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
@@ -9595,8 +9596,8 @@ function isReportOutstanding(
         iouReport?.stateNum !== undefined &&
         iouReport?.statusNum !== undefined &&
         iouReport?.policyID === policyID &&
-        iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
-        iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
+        (shouldAllowSubmittedReport ? iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED : iouReport?.stateNum < CONST.REPORT.STATE_NUM.SUBMITTED) &&
+        (shouldAllowSubmittedReport ? iouReport?.statusNum <= CONST.REPORT.STATE_NUM.SUBMITTED : iouReport?.statusNum < CONST.REPORT.STATE_NUM.SUBMITTED) &&
         !hasForwardedAction(iouReport.reportID) &&
         !isArchivedReport(reportNameValuePair)
     );
@@ -9607,6 +9608,7 @@ function isReportOutstanding(
  * @param policyID - The policy ID to filter reports by
  * @param reportOwnerAccountID - The accountID of the report owner
  * @param reports - Collection of reports to filter
+ * @param shouldAllowSubmittedReport - Whether to include submitted reports
  * @returns Array of outstanding expense reports sorted by name
  */
 function getOutstandingReportsForUser(
@@ -9614,12 +9616,13 @@ function getOutstandingReportsForUser(
     reportOwnerAccountID: number | undefined,
     reports: OnyxCollection<Report> = allReports,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
+    shouldAllowSubmittedReport = true,
 ): Array<OnyxEntry<Report>> {
     if (!reports) {
         return [];
     }
     return Object.values(reports)
-        .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
+        .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs, shouldAllowSubmittedReport) && report?.ownerAccountID === reportOwnerAccountID)
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
