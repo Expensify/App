@@ -1,6 +1,8 @@
 import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
+import type {CustomRendererProps} from 'react-native-render-html';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -13,6 +15,7 @@ import TextLink from '@components/TextLink';
 import useCancellationType from '@hooks/useCancellationType';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +26,9 @@ import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
+    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -76,13 +81,24 @@ function RequestEarlyCancellationPage() {
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.title')}</Text>
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.subtitle')}</Text>
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
-                    <Text>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.route)}>
-                            {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.link')}
-                        </TextLink>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part2')}
-                    </Text>
+                    <RenderHtml
+                        contentWidth={windowWidth}
+                        systemFonts={systemFonts}
+                        source={{
+                            html: translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity').replace('<a>', `<a href="${ROUTES.WORKSPACES_LIST.route}">`),
+                        }}
+                        tagsStyles={{
+                            a: {...styles.link, textDecorationLine: 'none'},
+                            p: {...styles.textNormalThemeText},
+                        }}
+                        renderers={{
+                            a: ({TDefaultRenderer, ...props}: CustomRendererProps<any>) => (
+                                <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.route)}>
+                                    <TDefaultRenderer {...props} />
+                                </TextLink>
+                            ),
+                        }}
+                    />
                 </View>
                 <FixedFooter style={styles.ph0}>
                     <Button
