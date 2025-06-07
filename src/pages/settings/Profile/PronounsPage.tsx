@@ -71,7 +71,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             return;
         }
         isOptionSelected.current = true;
-        updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : selectedPronouns?.value ?? '');
+        updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : (selectedPronouns?.value ?? ''));
         Navigation.goBack();
     };
 

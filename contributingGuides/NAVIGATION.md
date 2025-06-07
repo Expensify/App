@@ -38,14 +38,15 @@ When creating RHP flows, you have to remember a couple of things:
 
 ### Example of usage
 
-An example of adding `Settings_Workspaces` page:
+An example of adding `Settings_Display_Name` page:
 
 1. Add the page name to `SCREENS.ts` which will be reused throughout the app (linkingConfig, navigators, etc.):
-    
 ```ts
 const SCREENS = {
     SETTINGS: {
-        WORKSPACES: 'Settings_Workspaces',
+        PROFILE:{
+            DISPLAY_NAME: 'Settings_Display_Name'
+        }
     },
 } as const;
 ```
@@ -55,21 +56,21 @@ const SCREENS = {
 ```ts
 export const ROUTES = {
     // static route
-    SETTINGS_WORKSPACES: 'settings/workspaces',
+    SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     // dynamic route
-    SETTINGS_WORKSPACES: {
-        route: 'settings/:accountID',
-        getRoute: (accountID: number) => `settings/${accountID}` as const,
+    SETTINGS_DISPLAY_NAME: {
+        route: 'settings/profile/:accountID',
+        getRoute: (accountID: number) => `settings/profile/${accountID}` as const,
     },
 };
 
 ```
 
-3. Add `Settings_Workspaces` page to proper RHP flow in `linkingConfig.ts`: https://github.com/Expensify/App/blob/fbc11ca729ffa4676fb3bc8cd110ac3890debff6/src/libs/Navigation/linkingConfig.ts#L47-L50
+3. Add `Settings_Display_Name` page to proper RHP flow in `linkingConfig.ts`: https://github.com/Expensify/App/blob/fbc11ca729ffa4676fb3bc8cd110ac3890debff6/src/libs/Navigation/linkingConfig.ts#L143-L145
 
-4. Add your page to proper navigator (it should be aligned with where you've put it in the previous step) https://github.com/Expensify/App/blob/fbc11ca729ffa4676fb3bc8cd110ac3890debff6/src/libs/Navigation/AppNavigator/ModalStackNavigators.js#L141
+4. Add your page to proper navigator (it should be aligned with where you've put it in the previous step) https://github.com/Expensify/App/blob/7f840a5dc810bda4e06b48a4c14093699ad0251c/src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx#L262
 
-5. Make sure `HeaderWithBackButton` leads to the previous page in navigation flow of your page: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/pages/workspace/WorkspacesListPage.js#L186
+5. Make sure `HeaderWithBackButton` leads to the previous page in navigation flow of your page: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/pages/settings/Profile/DisplayNamePage.js#L80
 
 ## Performance solutions
 
