@@ -59,7 +59,7 @@ describe('useFastSearchFromOptions', () => {
             ],
         } as Options;
         const {result} = renderHook(() => useFastSearchFromOptions(options));
-        const search = result.current;
+        const {search} = result.current;
 
         const {personalDetails, recentReports} = search('Ah Ga');
 
@@ -68,7 +68,7 @@ describe('useFastSearchFromOptions', () => {
     });
     it('should return reports/personalDetails with non-latin characters', () => {
         const {result} = renderHook(() => useFastSearchFromOptions(nonLatinOptions));
-        const search = result.current;
+        const {search} = result.current;
 
         const {personalDetails, recentReports} = search('Fabio');
 
@@ -77,7 +77,7 @@ describe('useFastSearchFromOptions', () => {
     });
     it('should return reports/personalDetails with multiple word query and non-latin character', () => {
         const {result} = renderHook(() => useFastSearchFromOptions(nonLatinOptions));
-        const search = result.current;
+        const {search} = result.current;
 
         const {recentReports, personalDetails} = search('John Fabio');
 
