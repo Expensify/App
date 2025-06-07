@@ -143,32 +143,31 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 shouldValidateOnChange={shouldValidateOnChange}
                 shouldTrimValues={false}
                 footerContent={
-                    <View style={styles.mb2}>
-                        <OfflineWithFeedback
-                            shouldDisplayErrorAbove
-                            errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
-                            errorRowStyles={[styles.mt2, styles.textWrap]}
-                            onClose={() => setOnboardingErrorMessage('')}
-                        >
-                            <Button
-                                large
-                                text={translate('common.skip')}
-                                testID="onboardingPrivateEmailSkipButton"
-                                onPress={() => {
-                                    setOnboardingErrorMessage('');
+                    <OfflineWithFeedback
+                        shouldDisplayErrorAbove
+                        style={styles.mb3}
+                        errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
+                        errorRowStyles={[styles.mt2, styles.textWrap]}
+                        onClose={() => setOnboardingErrorMessage('')}
+                    >
+                        <Button
+                            large
+                            text={translate('common.skip')}
+                            testID="onboardingPrivateEmailSkipButton"
+                            onPress={() => {
+                                setOnboardingErrorMessage('');
 
-                                    setOnboardingMergeAccountStepValue(true);
-                                    // Once we skip the private email step, we need to force replace the screen
-                                    // so that we don't navigate back on back button press
-                                    if (isVsb) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-                                }}
-                            />
-                        </OfflineWithFeedback>
-                    </View>
+                                setOnboardingMergeAccountStepValue(true);
+                                // Once we skip the private email step, we need to force replace the screen
+                                // so that we don't navigate back on back button press
+                                if (isVsb) {
+                                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+                            }}
+                        />
+                    </OfflineWithFeedback>
                 }
                 shouldRenderFooterAboveSubmit
                 shouldHideFixErrorsAlert

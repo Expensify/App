@@ -104,7 +104,7 @@ function FormAlertWithSubmitButton({
     shouldPreventDefaultFocusOnPress = false,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
+    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
