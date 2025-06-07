@@ -40,13 +40,14 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {timezoneBackwardMap} from '@src/TIMEZONES';
+import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
 import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import Log from './Log';
+import memoize from './memoize';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
@@ -147,7 +148,8 @@ function setLocale(localeString: Locale) {
  * Gets the user's stored time zone NVP and returns a localized
  * Date object for the given ISO-formatted datetime string
  */
-function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: string | SelectedTimezone = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
         const res = toZonedTime(new Date(), currentSelectedTimezone);
@@ -214,6 +216,21 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
     return isSameDay(date, yesterdayInTimeZone);
 }
 
+// There is no need to check same timezone support again and again as it will not change on runtime.
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string => {
+    try {
+        // Check whether the timezone value work on the current system
+        const date = new Date();
+        const testDate = toZonedTime(date, timezoneInput);
+        format(testDate, CONST.DATE.FNS_FORMAT_STRING); // This will throw an error if the timezone is not supported
+        return timezoneInput;
+    } catch (error) {
+        // If the timezone is not supported, fallback to the default timezone
+        return timezoneNewToBackwardMap[timezoneInput];
+    }
+});
+
 /**
  * Formats an ISO-formatted datetime string to local date and time string
  *
@@ -223,7 +240,7 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
 function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZone = false, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
-    const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
+    const date = getLocalDateFromDatetime(locale, datetime, fallbackToSupportedTimezone(currentSelectedTimezone));
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translate(locale, 'common.todayAt');
     let tomorrowAt = translate(locale, 'common.tomorrowAt');
@@ -757,7 +774,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
 /**
  *
  * @param timezone
- * function format unsupported timezone to supported timezone
+ * Convert unsupported old timezone to app supported timezone
  * @returns Timezone
  */
 function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
@@ -765,7 +782,7 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
         return timezoneInput;
     }
     return {
-        selected: timezoneBackwardMap[timezoneInput.selected] ?? timezoneInput.selected,
+        selected: timezoneBackwardToNewMap[timezoneInput.selected] ?? timezoneInput.selected,
         automatic: timezoneInput.automatic,
     };
 }
@@ -967,7 +984,7 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
         // On macOs and iOS devices some platform use deprecated old timezone values which results in invalid time string error.
         // Try with backward timezone values on error.
     } catch {
-        return formatInTimeZone(date, timezoneBackwardMap[timeZone], formatStr, options);
+        return formatInTimeZone(date, timezoneNewToBackwardMap[timeZone as SelectedTimezone], formatStr, options);
     }
 };
 
