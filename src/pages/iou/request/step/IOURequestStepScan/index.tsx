@@ -18,8 +18,9 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import DownloadAppBanner from '@components/DownloadAppBanner';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZoneUI';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -1053,7 +1054,7 @@ function IOURequestStepScan({
                         </View>
                         {/* TODO: remove beta check after the feature is enabled */}
                         {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
-                            <DropZoneUI
+                            <DragAndDropConsumer
                                 onDrop={(e) => {
                                     const file = e?.dataTransfer?.files[0];
                                     if (file) {
@@ -1061,12 +1062,15 @@ function IOURequestStepScan({
                                         setReceiptAndNavigate(file);
                                     }
                                 }}
-                                icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
-                                dropStyles={styles.receiptDropOverlay}
-                                dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
-                                dropTextStyles={styles.receiptDropText}
-                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
-                            />
+                            >
+                                <DropZoneUI
+                                    icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                                    dropStyles={styles.receiptDropOverlay(true)}
+                                    dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
+                                    dropTextStyles={styles.receiptDropText}
+                                    dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                                />
+                            </DragAndDropConsumer>
                         ) : (
                             <ReceiptDropUI
                                 onDrop={(e) => {
