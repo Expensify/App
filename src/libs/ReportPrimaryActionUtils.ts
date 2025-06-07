@@ -222,7 +222,7 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     return false;
 }
 
-function isRemoveHoldAction(report: Report, reportTransactions: Transaction[]) {
+function isRemoveHoldAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
     const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
 
     if (!isReportOnHold) {
@@ -236,10 +236,13 @@ function isRemoveHoldAction(report: Report, reportTransactions: Transaction[]) {
         return false;
     }
 
+    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
     // Transaction is attached to expense report but hold action is attached to transaction thread report
     const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
 
-    return isHolder;
+    return isHolder || isReportApprover || isAdmin;
 }
 
 function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
@@ -312,7 +315,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isRemoveHoldAction(report, reportTransactions) || isPayActionWithAllExpensesHeld) {
+    if (isRemoveHoldAction(report, reportTransactions, policy) || isPayActionWithAllExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
