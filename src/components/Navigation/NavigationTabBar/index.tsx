@@ -23,8 +23,8 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import getWorkspaceTabNavigationAction from '@libs/Navigation/helpers/getWorkspaceTabNavigationAction';
 import {getLastVisitedTabPath, getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -140,34 +140,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showWorkspaces = useCallback(() => {
-        const navigationAction = getWorkspaceTabNavigationAction({shouldUseNarrowLayout, currentUserLogin});
-
-        switch (navigationAction?.type) {
-            case 'goBack':
-                if (navigationAction.route) {
-                    Navigation.goBack(navigationAction.route);
-                }
-                break;
-
-            case 'navigate':
-                if (navigationAction.route) {
-                    Navigation.navigate(navigationAction.route);
-                }
-                break;
-
-            case 'dispatch':
-                if (navigationAction.dispatchType && navigationAction.payload) {
-                    navigationRef.dispatch({
-                        type: navigationAction.dispatchType,
-                        payload: navigationAction.payload,
-                    });
-                }
-                break;
-
-            case 'return':
-            default:
-                break;
-        }
+        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin});
     }, [shouldUseNarrowLayout, currentUserLogin]);
 
     if (!shouldUseNarrowLayout) {

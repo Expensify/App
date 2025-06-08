@@ -1,7 +1,7 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import getWorkspaceTabNavigationAction from '@libs/Navigation/helpers/getWorkspaceTabNavigationAction';
 // eslint-disable-next-line no-restricted-syntax
 import * as lastVisitedTabPathUtils from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import getWorkspaceTabNavigationAction from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import navigationRef from '@libs/Navigation/navigationRef';
 // eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
