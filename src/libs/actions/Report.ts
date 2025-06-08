@@ -661,7 +661,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID, attachmentID);
+        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID, undefined, attachmentID);
         attachmentAction = attachment.reportAction;
         storeAttachment(attachmentID, file.uri ?? '');
     }
@@ -1881,24 +1881,25 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     if (!reportActionID || !originalReportID || !reportID) {
         return;
     }
-
+    console.log('delete', reportAction, reportAction.message);
     if (Array.isArray(reportAction.message) && reportAction.message.length > 0) {
         reportAction.message.forEach((message) => {
             const reportCommentText = message?.html ?? '';
 
             const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT)];
+            console.log('report action chat', reportCommentText, attachmentTags);
+
             const attachments = attachmentTags.flatMap((htmlTag, index) => {
                 const tag = htmlTag[0];
-                // [2] means the exact value, in this case source url and attachment id of the attachment tag
-                const source = tag.match(CONST.REGEX.ATTACHMENT_SOURCE)?.[2];
-                const attachmentID = tag.match(CONST.REGEX.ATTACHMENT_ID)?.[2];
 
-                if (!source) {
-                    return [];
-                }
+                const attachmentID = tag.match(CONST.REGEX.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
+                console.log('detail', {
+                    tag,
+
+                    attachmentID,
+                });
 
                 return {
-                    uri: source,
                     attachmentID: attachmentID ?? `${reportActionID}_${index + 1}`,
                 };
             });
