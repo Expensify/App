@@ -171,7 +171,7 @@ function AttachmentPicker({
                         }
 
                         return {
-                            ...response.assets![index],
+                            ...(response.assets?.at(index) ?? {}),
                             uri: localCopy.localUri,
                         };
                     });

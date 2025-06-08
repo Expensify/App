@@ -663,7 +663,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
         const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID, attachmentID);
         attachmentAction = attachment.reportAction;
-        storeAttachment(attachmentID, file.uri as string);
+        storeAttachment(attachmentID, file.uri ?? '');
     }
 
     if (text && file) {
@@ -683,7 +683,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         const tag = htmlTag[0];
         // [2] means the exact value, in this case source url and attachment id of the attachment tag
         const source = tag.match(CONST.REGEX.ATTACHMENT_SOURCE)?.[2];
-        const attachmentID = tag.match(CONST.REGEX.ATTACHMENT_ID)?.[2];
+        const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT_ID)?.[2];
 
         if (!source) {
             return [];
@@ -691,7 +691,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
         return {
             uri: source,
-            attachmentID: attachmentID || `${reportActionID}_${++index}`,
+            attachmentID: dataAttachmentID ?? `${reportActionID}_${index + 1}`,
         };
     });
 
@@ -1899,7 +1899,7 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
 
                 return {
                     uri: source,
-                    attachmentID: attachmentID || `${reportActionID}_${++index}`,
+                    attachmentID: attachmentID ?? `${reportActionID}_${index + 1}`,
                 };
             });
 
