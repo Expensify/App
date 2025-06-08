@@ -262,6 +262,7 @@ function BaseTextInput(
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
+        !hasLabel && styles.pt0,
         textInputContainerStyles,
         !shouldApplyPaddingToContainer && styles.p0,
         !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
@@ -271,7 +272,6 @@ function BaseTextInput(
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
         isAutoGrowHeightMarkdown && styles.pb2,
         inputProps.disabled && styles.textInputDisabledContainer,
-        !hasLabel && styles.pt0,
         shouldAddPaddingBottom && styles.pb1,
     ]);
 

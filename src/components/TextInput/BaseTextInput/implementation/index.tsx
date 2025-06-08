@@ -268,6 +268,7 @@ function BaseTextInput(
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         !shouldApplyPaddingToContainer && styles.p0,
+        !hasLabel && styles.pt0,
         textInputContainerStyles,
         (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
         !hideFocusedState && isFocused && styles.borderColorFocus,
@@ -275,7 +276,6 @@ function BaseTextInput(
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
         isAutoGrowHeightMarkdown && styles.pb2,
         inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
-        !hasLabel && styles.pt0,
         shouldAddPaddingBottom && styles.pb1,
     ]);
     const isMultiline = multiline || autoGrowHeight;
