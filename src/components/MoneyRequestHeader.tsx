@@ -11,12 +11,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, markDeclineViolationAsResolved, deleteTrackExpense, initSplitExpense, declineMoneyRequest} from '@libs/actions/IOU';
+import {deleteMoneyRequest, markDeclineViolationAsResolved, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus, declineMoneyRequestReason, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
@@ -35,6 +35,7 @@ import SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {dismissDeclineUseExplanation} from '@userActions/IOU';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -43,15 +44,14 @@ import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import LoadingBar from '@components/LoadingBar';
+import * as Expensicons from './Icon/Expensicons';
+import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
-import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
+import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
-import {useSearchContext} from '@components/Search/SearchContext';
-import HoldOrDeclineEducationalModal from '@components/HoldOrDeclineEducationalModal';
-import {dismissDeclineUseExplanation} from '@libs/actions/User';
-import {declineMoneyRequestReason} from '@libs/ReportUtils';
+import {useSearchContext} from './Search/SearchContext';
+import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
+
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
@@ -279,7 +279,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 if (dismissedDeclineUseExplanation) {
                     if (parentReportAction) {
                         declineMoneyRequestReason(parentReportAction);
-                        declineMoneyRequest(parentReportAction);
                     }
                 } else {
                     setIsDeclineEducationalModalVisible(true);
