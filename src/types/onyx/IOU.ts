@@ -143,6 +143,12 @@ type SplitExpense = {
 
     /** Timestamp when this split was created */
     created: string;
+
+    /** Merchant where the amount was spent */
+    merchant?: string;
+
+    /** The status of the transaction report */
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
 /** Model of IOU request */

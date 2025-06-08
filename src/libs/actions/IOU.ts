@@ -183,6 +183,7 @@ import {
     getCurrency,
     getDistanceInMeters,
     getMerchant,
+    getOriginalTransactionWithSplitInfo,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
@@ -11607,12 +11608,15 @@ function getSearchOnyxUpdate({participant, transaction, iouReport}: GetSearchOny
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string, isOpenCreatedSplit?: boolean) {
+function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
     if (!transaction) {
         return;
     }
 
-    if (isOpenCreatedSplit) {
+    const reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+
+    const isExpenseSplitTransaction = getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit;
+    if (isExpenseSplitTransaction) {
         const originalTransactionID = transaction.comment?.originalTransactionID;
         const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
 
@@ -11628,6 +11632,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
             transactionParams: {
                 splitExpenses: relatedTransactions.map((currentTransaction) => {
                     const currentTransactionDetails = getTransactionDetails(currentTransaction);
+                    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
                     return {
                         transactionID: currentTransaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                         amount: currentTransactionDetails?.amount ?? 0,
@@ -11635,26 +11640,22 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                         category: currentTransactionDetails?.category,
                         tags: currentTransactionDetails?.tag ? [currentTransactionDetails?.tag] : [],
                         created: currentTransaction?.created ?? '',
+                        statusNum: currentReport?.statusNum,
+                        merchant: currentTransactionDetails?.merchant,
                     };
                 }),
                 amount: transactionDetails?.amount ?? 0,
                 currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
-                merchant: transactionDetails?.merchant ?? '',
                 participants: transaction?.participants,
                 attendees: transactionDetails?.attendees as Attendee[],
-                reportID: originalTransaction?.reportID,
+                reportID,
             },
         });
 
         Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
 
         Navigation.navigate(
-            ROUTES.SPLIT_EXPENSE.getRoute(
-                originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
-                originalTransactionID,
-                transaction.transactionID,
-                Navigation.getActiveRouteWithoutParams(),
-            ),
+            ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()),
         );
         return;
     }
@@ -11673,6 +11674,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                     category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
                     created: transactionDetails?.created ?? DateUtils.getDBTime(),
+                    merchant: transactionDetails?.merchant ?? '',
                 },
                 {
                     transactionID: NumberUtils.rand64(),
@@ -11681,6 +11683,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                     category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
                     created: transactionDetails?.created ?? DateUtils.getDBTime(),
+                    merchant: transactionDetails?.merchant ?? '',
                 },
             ],
             amount: transactionDetailsAmount,
@@ -11694,7 +11697,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
 
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
 
-    Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID ?? String(CONST.DEFAULT_NUMBER_ID), transaction.transactionID, undefined, Navigation.getActiveRoute()));
+    Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
 }
 
 /**
@@ -11718,7 +11721,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
             comment: splitTransactionData?.description,
             tag: splitTransactionData?.tags?.at(0),
-            merchant: transactionDetails?.merchant ?? '',
+            merchant: splitTransactionData?.merchant,
             participants: draftTransaction?.participants,
             attendees: transactionDetails?.attendees as Attendee[],
             reportID,
@@ -11753,6 +11756,7 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
                     category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
                     created: transactionDetails?.created ?? DateUtils.getDBTime(),
+                    merchant: transactionDetails?.merchant,
                 },
             ],
         },
@@ -11881,7 +11885,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 amount: splitExpense.amount ?? 0,
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 created: splitExpense.created,
-                merchant: draftTransaction?.merchant ?? '',
+                merchant: splitExpense.merchant ?? '',
                 comment: splitExpense.description,
                 category: splitExpense.category,
                 tag: splitExpense.tags?.[0],

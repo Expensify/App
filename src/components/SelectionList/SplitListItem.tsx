@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {Folder, Tag} from '@components/Icon/Expensicons';
@@ -37,6 +37,10 @@ function SplitListItem<TItem extends ListItem>({
     };
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
+
+    const [prefixCharacterMargin, setPrefixCharacterMargin] = useState(8);
+    const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
+    const contentWidth = formattedOriginalAmount.length * 8;
 
     return (
         <BaseListItem
@@ -123,31 +127,57 @@ function SplitListItem<TItem extends ListItem>({
                 </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
-                        <MoneyRequestAmountInput
-                            autoGrow={false}
-                            amount={splitItem.amount}
-                            currency={splitItem.currency}
-                            prefixCharacter={splitItem.currencySymbol}
-                            disableKeyboard={false}
-                            isCurrencyPressable={false}
-                            hideFocusedState={false}
-                            hideCurrencySymbol
-                            submitBehavior="blurAndSubmit"
-                            formatAmountOnBlur
-                            onAmountChange={onSplitExpenseAmountChange}
-                            prefixContainerStyle={[styles.pv0]}
-                            inputStyle={[styles.optionRowAmountInput]}
-                            containerStyle={[styles.textInputContainer]}
-                            touchableInputWrapperStyle={[styles.ml3]}
-                            maxLength={formattedOriginalAmount.length}
-                            contentWidth={formattedOriginalAmount.length * 8}
-                        />
+                        {splitItem.isCannotEdit ? (
+                            <View style={[styles.flexRow, styles.h13, styles.alignItemsCenter]}>
+                                <Text
+                                    style={[styles.optionRowAmountInput, styles.pAbsolute]}
+                                    onLayout={(event) => {
+                                        if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
+                                            return;
+                                        }
+                                        setPrefixCharacterMargin(event?.nativeEvent?.layout.width);
+                                    }}
+                                >
+                                    {splitItem.currencySymbol}
+                                </Text>
+                                <Text
+                                    style={[styles.optionRowAmountInput, styles.getSplitListItemAmountStyle(inputMarginLeft, contentWidth)]}
+                                    numberOfLines={1}
+                                >
+                                    {convertToDisplayStringWithoutCurrency(splitItem.amount, splitItem.currency)}
+                                </Text>
+                            </View>
+                        ) : (
+                            <MoneyRequestAmountInput
+                                autoGrow={false}
+                                amount={splitItem.amount}
+                                currency={splitItem.currency}
+                                prefixCharacter={splitItem.currencySymbol}
+                                disableKeyboard={false}
+                                isCurrencyPressable={false}
+                                hideFocusedState={false}
+                                hideCurrencySymbol
+                                submitBehavior="blurAndSubmit"
+                                formatAmountOnBlur
+                                onAmountChange={onSplitExpenseAmountChange}
+                                prefixContainerStyle={[styles.pv0]}
+                                inputStyle={[styles.optionRowAmountInput]}
+                                containerStyle={[styles.textInputContainer]}
+                                touchableInputWrapperStyle={[styles.ml3]}
+                                maxLength={formattedOriginalAmount.length}
+                                contentWidth={contentWidth}
+                            />
+                        )}
                     </View>
-                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={theme.icon}
-                        />
+                    <View style={[styles.popoverMenuIcon]}>
+                        {splitItem.isCannotEdit ? null : (
+                            <View style={styles.pointerEventsAuto}>
+                                <Icon
+                                    src={Expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                />
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>

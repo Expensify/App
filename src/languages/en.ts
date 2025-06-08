@@ -960,6 +960,8 @@ const translations = {
         splitExpenseZeroAmount: 'Please enter a valid amount before continuing.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Edit ${amount} for ${merchant}`,
         removeSplit: 'Remove split',
+        splitExpenseCannotEditModalTitle: "This expense can't be edited",
+        splitExpenseCannotEditModalDescription: 'Approved or paid expenses cannot be edited',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         expense: 'Expense',
         categorize: 'Categorize',

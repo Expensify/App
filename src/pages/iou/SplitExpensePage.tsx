@@ -1,8 +1,9 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -39,6 +40,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [isCannotEditModalVisible, setCannotEditModalVisible] = useState(false);
 
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
     const {currentSearchHash} = useSearchContext();
@@ -116,13 +118,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 headerText,
                 originalAmount: transactionDetailsAmount,
                 amount: transactionDetailsAmount >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
-                merchant: draftTransaction?.merchant ?? '',
+                merchant: item?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 currencySymbol,
                 onSplitExpenseAmountChange,
                 isTransactionLinked: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
+                isCannotEdit: !!item.statusNum && item.statusNum >= CONST.REPORT.STATUS_NUM.CLOSED,
             };
         });
 
@@ -193,6 +196,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     />
                     <SelectionList
                         onSelectRow={(item) => {
+                            if (item.isCannotEdit) {
+                                setCannotEditModalVisible(true);
+                                return;
+                            }
                             Keyboard.dismiss();
                             InteractionManager.runAfterInteractions(() => {
                                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
@@ -210,6 +217,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         shouldPreventDefaultFocusOnSelectRow
                     />
                 </View>
+                <ConfirmModal
+                    title={translate('iou.splitExpenseCannotEditModalTitle')}
+                    prompt={translate('iou.splitExpenseCannotEditModalDescription')}
+                    onConfirm={() => setCannotEditModalVisible(false)}
+                    onCancel={() => setCannotEditModalVisible(false)}
+                    confirmText={translate('common.buttonConfirm')}
+                    isVisible={isCannotEditModalVisible}
+                    shouldShowCancelButton={false}
+                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

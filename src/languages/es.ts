@@ -955,6 +955,8 @@ const translations = {
         splitExpenseZeroAmount: 'Por favor, introduce un importe válido antes de continuar.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Editar ${amount} para ${merchant}`,
         removeSplit: 'Eliminar división',
+        splitExpenseCannotEditModalTitle: 'Este gasto no se puede editar',
+        splitExpenseCannotEditModalDescription: 'Los gastos aprobados o pagados no se pueden editar',
         addExpense: 'Agregar gasto',
         expense: 'Gasto',
         categorize: 'Categorizar',

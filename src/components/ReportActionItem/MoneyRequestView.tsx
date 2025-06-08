@@ -67,7 +67,7 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import {cleanUpMoneyRequest, updateMoneyRequestBillable} from '@userActions/IOU';
+import {cleanUpMoneyRequest, initSplitExpense, updateMoneyRequestBillable} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -196,9 +196,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction) && canUserPerformWriteAction;
+    const isExpenseSplit = getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit;
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
-    const canEditAmount = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
+    const canEditAmount = (canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT)) || isExpenseSplit;
     const canEditMerchant = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -294,15 +295,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
-        if (getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
-        }
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isApproved) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (isSettled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
+        }
+        if (isExpenseSplit) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
     }
 
@@ -617,6 +618,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             if (!transaction?.transactionID || !report?.reportID) {
                                 return;
                             }
+
+                            if (canEditAmount) {
+                                initSplitExpense(transaction);
+                                return;
+                            }
+
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, '', getReportRHPActiveRoute()),
                             );

@@ -5830,6 +5830,12 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 20,
         }),
 
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+            marginLeft: inputMarginLeft,
+            width: amountWidth,
+            marginRight: 4,
+        }),
+
         getSelectionListPopoverHeight: (itemCount: number) => ({
             height: itemCount * variables.optionRowHeightCompact,
             ...sizing.mh65vh,
