@@ -1248,6 +1248,7 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+        markedAsResolved: 'Marcar como resuelto',
         decline: {
             educationalTitle: '¿Deberías',
             questionMark: '?',
