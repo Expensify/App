@@ -1645,27 +1645,47 @@ function generateDefaultWorkspaceName(email = ''): string {
         displayNameForWorkspace = userDetails?.phoneNumber ?? '';
     }
 
-    if (`@${domain}` === CONST.SMS.DOMAIN) {
-        return translateLocal('workspace.new.myGroupWorkspace');
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+    const myGroupWorkspaceName = translateLocal('workspace.new.myGroupWorkspace');
+
+   if (isSMSDomain) {
+        displayNameForWorkspace = myGroupWorkspaceName;
     }
 
     if (isEmptyObject(allPolicies)) {
-        return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
+        // ✅ Use SMS-specific translation key or default logic
+        return isSMSDomain
+            ? myGroupWorkspaceName
+            : translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
     }
 
-    // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
-    const workspaceTranslations = CONST.LANGUAGES.map((lang) => translate(lang, 'workspace.common.workspace')).join('|');
+    const workspaceTranslations = CONST.LANGUAGES.map((lang) =>
+        translate(lang, 'workspace.common.workspace')
+    ).join('|');
 
-    const workspaceRegex = new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
+    const workspaceRegex = isSMSDomain
+        ? new RegExp(`^${escapedName}(?:\\s*(\\d+))?$`, 'i') // e.g. My Group Workspace, My Group Workspace 1, etc.
+        : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
 
     const workspaceNumbers = Object.values(allPolicies)
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
-        .filter(Boolean) // Remove null matches
+        .filter(Boolean)
         .map((match) => Number(match?.[1] ?? '0'));
+
     const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
 
-    return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
+    if (isSMSDomain) {
+        return lastWorkspaceNumber !== undefined
+            ? `${myGroupWorkspaceName} ${lastWorkspaceNumber + 1}`
+            : myGroupWorkspaceName;
+    }
+
+    return translateLocal('workspace.new.workspaceName', {
+        userName: displayNameForWorkspace,
+        workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined,
+    });
+
 }
 
 /**
