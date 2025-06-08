@@ -7187,6 +7187,10 @@ const CONST = {
     },
 
     ONBOARDING_HELP: {
+        SCHEDULE_CALL: 'scheduleCall',
+        EVENT_TIME: 'eventTime',
+        RESCHEDULE: 'reschedule',
+        CANCEL: 'cancel',
         TALK_TO_SALES: 'talkToSales',
         REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
