@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -61,10 +62,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             if (!onboardingPurposeSelected) {
                 return;
             }
-
+            const {onboardingMessages} = getOnboardingMessages();
             completeOnboardingReport({
                 engagementChoice: onboardingPurposeSelected,
-                onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                onboardingMessage: onboardingMessages[onboardingPurposeSelected],
                 firstName,
                 lastName,
                 adminsChatReportID: onboardingAdminsChatReportID,

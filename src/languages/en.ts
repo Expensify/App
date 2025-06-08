@@ -2120,11 +2120,11 @@ const translations = {
         },
         tasks: {
             testDriveAdminTask: {
-                title: ({testDriveURL}) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive'),
+                title: ({testDriveURL}) => (`Take a [test drive](${testDriveURL})`),
                 description: ({testDriveURL}) => `[Take a quick product tour](${testDriveURL}) to see why Expensify is the fastest way to do your expenses.`,
             },
             testDriveEmployeeTask: {
-                title: ({testDriveURL}) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive'),
+                title: ({testDriveURL}) => (`Take a [test drive](${testDriveURL})`),
                 description: ({testDriveURL}) => `Take us for a [test drive](${testDriveURL}) and get your team *3 free months of Expensify!*`,
             },
             createTestDriveAdminWorkspaceTask: {
@@ -2323,9 +2323,14 @@ const translations = {
                     '2. Click *Workspaces* > [Your workspace].\n' +
                     `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
             },
-          
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
-        testDriveTaskName: 'Take a test drive',
+        testDrive: {
+            name: ({testDriveURL}:{testDriveURL?:string}) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive'),
+            embeddedDemoIframeTitle: 'Test Drive',
+            employeeFakeReceipt: {
+                description:'My test drive receipt!',
+            }
+        },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             onboardingPersonalSpendMessage: 'Here’s how to track your spend in a few clicks.',

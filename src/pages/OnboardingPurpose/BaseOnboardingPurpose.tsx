@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
@@ -86,9 +87,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 }
 
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
+                    const {onboardingMessages} = getOnboardingMessages();
                     completeOnboarding({
                         engagementChoice: choice,
-                        onboardingMessage: CONST.ONBOARDING_MESSAGES[choice],
+                        onboardingMessage: onboardingMessages[choice],
                         firstName: personalDetailsForm.firstName,
                         lastName: personalDetailsForm.lastName,
                         adminsChatReportID: onboardingAdminsChatReportID ?? undefined,

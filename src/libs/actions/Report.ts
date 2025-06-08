@@ -203,6 +203,7 @@ import {
 import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
+import getOnboardingMessages from './Welcome/OnboardingFlowTasks';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -250,6 +251,9 @@ type GuidedSetupData = Array<
 type ReportError = {
     type?: string;
 };
+
+type OnboardingMessagesType = ValueOf<ReturnType<typeof getOnboardingMessages>['onboardingMessages']>;
+
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeReportID: string | undefined;
 let currentUserAccountID = -1;
@@ -1105,9 +1109,10 @@ function openReport(
         const {choice, inviteType} = introSelected;
         const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+        const {onboardingMessages} = getOnboardingMessages();
 
         if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
-            const onboardingMessage = CONST.ONBOARDING_MESSAGES[choice];
+            const onboardingMessage = onboardingMessages[choice];
             if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
                 const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
                 onboardingMessage.tasks = updatedTasks;
@@ -4116,7 +4121,7 @@ function completeOnboarding({
     wasInvited,
 }: {
     engagementChoice: OnboardingPurpose;
-    onboardingMessage: ValueOf<typeof CONST.ONBOARDING_MESSAGES>;
+    onboardingMessage: OnboardingMessagesType;
     firstName?: string;
     lastName?: string;
     adminsChatReportID?: string;

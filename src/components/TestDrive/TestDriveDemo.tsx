@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAdminRoom} from '@libs/ReportUtils';
 import {getTestDriveURL} from '@libs/TourUtils';
@@ -27,6 +28,7 @@ function TestDriveDemo() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
     const viewTourReportID = introSelected?.viewTour;
     const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
+    const {testDrive} = getOnboardingMessages();
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -65,7 +67,7 @@ function TestDriveDemo() {
                     <FullPageOfflineBlockingView>
                         <EmbeddedDemo
                             url={getTestDriveURL(environment, shouldUseNarrowLayout)}
-                            iframeTitle={CONST.TEST_DRIVE.EMBEDDED_DEMO_IFRAME_TITLE}
+                            iframeTitle={testDrive.EMBEDDED_DEMO_IFRAME_TITLE}
                         />
                     </FullPageOfflineBlockingView>
                 </Modal>

@@ -28,6 +28,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
@@ -216,9 +217,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             setOnboardingPolicyID(policyID);
         }
 
+        const {onboardingMessages} = getOnboardingMessages();
         completeOnboarding({
             engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
             adminsChatReportID,
             onboardingPolicyID: policyID,
             companySize: onboardingCompanySize,

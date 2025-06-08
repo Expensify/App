@@ -5,6 +5,7 @@ import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -1590,10 +1591,11 @@ describe('actions/Report', () => {
             const adminsChatReportID = '7957055873634067';
             const onboardingPolicyID = 'A70D00C752416807';
             const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+            const {onboardingMessages} = getOnboardingMessages();
 
             Report.completeOnboarding({
                 engagementChoice,
-                onboardingMessage: CONST.ONBOARDING_MESSAGES[engagementChoice],
+                onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID,
                 onboardingPolicyID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
