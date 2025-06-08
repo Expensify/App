@@ -1881,23 +1881,16 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     if (!reportActionID || !originalReportID || !reportID) {
         return;
     }
-    console.log('delete', reportAction, reportAction.message);
     if (Array.isArray(reportAction.message) && reportAction.message.length > 0) {
         reportAction.message.forEach((message) => {
             const reportCommentText = message?.html ?? '';
 
             const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT)];
-            console.log('report action chat', reportCommentText, attachmentTags);
 
             const attachments = attachmentTags.flatMap((htmlTag, index) => {
                 const tag = htmlTag[0];
 
                 const attachmentID = tag.match(CONST.REGEX.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
-                console.log('detail', {
-                    tag,
-
-                    attachmentID,
-                });
 
                 return {
                     attachmentID: attachmentID ?? `${reportActionID}_${index + 1}`,
