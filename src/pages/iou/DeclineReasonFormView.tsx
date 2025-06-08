@@ -17,10 +17,10 @@ import INPUT_IDS from '@src/types/form/MoneyRequestDeclineReasonForm';
 
 type DeclineReasonFormViewProps = {
     /** Submit function for submitting form */
-    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => void;
+    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM>) => void;
 
     /** Submit function for validating form */
-    validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => Partial<Record<'comment', string | undefined>>;
+    validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM>) => Partial<Record<'comment', string | undefined>>;
 
     /** Link to previous page */
     backTo: Route;
@@ -62,8 +62,8 @@ function DeclineReasonFormView({backTo, validate, onSubmit}: DeclineReasonFormVi
                         valueType="string"
                         name="comment"
                         defaultValue={undefined}
-                        label={translate('iou.decline.reasonPageTitle')}
-                        accessibilityLabel={translate('iou.decline.reasonPageTitle')}
+                        label={translate('iou.decline.declineReason')}
+                        accessibilityLabel={translate('iou.decline.declineReason')}
                         ref={inputCallbackRef}
                     />
                 </View>

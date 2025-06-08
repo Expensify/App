@@ -21,14 +21,14 @@ function DeclineReasonPage({route}: DeclineReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
 
-    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM>) => {
         IOU.declineMoneyRequest(transactionID, reportID, values.comment);
         Navigation.goBack(backTo);
     };
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM> = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
 
             if (!values.comment) {
                 errors.comment = translate('common.error.fieldRequired');
@@ -39,8 +39,8 @@ function DeclineReasonPage({route}: DeclineReasonPageProps) {
     );
 
     useEffect(() => {
-        FormActions.clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
-        FormActions.clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
+        FormActions.clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM);
+        FormActions.clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM);
     }, []);
 
     return (
