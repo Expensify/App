@@ -603,6 +603,10 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
+    if (canDeclineReportAction(parentReport, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE);
+    }
+
     return options;
 }
 export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction};

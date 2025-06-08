@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, markDeclineViolationAsResolved, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
+import {deleteMoneyRequest, markDeclineViolationAsResolved, deleteTrackExpense, initSplitExpense, declineMoneyRequest} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -43,13 +43,15 @@ import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import LoadingBar from './LoadingBar';
+import * as Expensicons from '@components/Icon/Expensicons';
+import LoadingBar from '@components/LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
-import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
-import {useSearchContext} from './Search/SearchContext';
-import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
+import {useSearchContext} from '@components/Search/SearchContext';
+import HoldOrDeclineEducationalModal from '@components/HoldOrDeclineEducationalModal';
+import {dismissDeclineUseExplanation} from '@libs/actions/User';
+import {declineMoneyRequestReason} from '@libs/ReportUtils';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
@@ -96,6 +98,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const reportID = report?.reportID;
     const {isBetaEnabled} = usePermissions();
     const {removeTransaction} = useSearchContext();
+    const hasUseDeclineDismissedRef = useRef(false);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
@@ -220,6 +223,17 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS));
     }, [isBetaEnabled, parentReport, policy, transaction]);
 
+    const dismissModalAndUpdateUseDecline = () => {
+        setIsDeclineEducationalModalVisible(false);
+        if (!hasUseDeclineDismissedRef.current) {
+            dismissDeclineUseExplanation();
+            hasUseDeclineDismissedRef.current = true;
+            if (parentReportAction) {
+                declineMoneyRequestReason(parentReportAction);
+            }
+        }
+    };
+
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
             text: translate('iou.hold'),
@@ -265,6 +279,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 if (dismissedDeclineUseExplanation) {
                     if (parentReportAction) {
                         declineMoneyRequestReason(parentReportAction);
+                        declineMoneyRequest(parentReportAction);
                     }
                 } else {
                     setIsDeclineEducationalModalVisible(true);
@@ -374,24 +389,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             />
             {!!isDeclineEducationalModalVisible && (
                 <HoldOrDeclineEducationalModal
-                    onClose={() => {
-                        setIsDeclineEducationalModalVisible(false);
-                        if (!dismissedDeclineUseExplanation) {
-                            dismissDeclineUseExplanation();
-                            if (parentReportAction) {
-                                declineMoneyRequestReason(parentReportAction);
-                            }
-                        }
-                    }}
-                    onConfirm={() => {
-                        setIsDeclineEducationalModalVisible(false);
-                        if (!dismissedDeclineUseExplanation) {
-                            dismissDeclineUseExplanation();
-                            if (parentReportAction) {
-                                declineMoneyRequestReason(parentReportAction);
-                            }
-                        }
-                    }}
+                    onClose={dismissModalAndUpdateUseDecline}
+                    onConfirm={dismissModalAndUpdateUseDecline}
                 />
             )}
         </View>
