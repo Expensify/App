@@ -19,7 +19,7 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useFileValidation from '@hooks/useActiveElementRole/useFileValidation';
+import useFileValidation from '@hooks/useFileValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
