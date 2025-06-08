@@ -135,7 +135,7 @@ function AttachmentPicker({
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
             new Promise((resolve, reject) => {
-                imagePickerFunc(getImagePickerOptions(type, fileLimit), (response: ImagePickerResponse) => {
+                imagePickerFunc(getImagePickerOptions(type, fileLimit), async (response: ImagePickerResponse) => {
                     if (response.didCancel) {
                         // When the user cancelled resolve with no attachment
                         return resolve();
@@ -153,9 +153,36 @@ function AttachmentPicker({
                         return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                     }
 
-                    const targetAsset = response.assets?.[0];
-                    const targetAssetUri = targetAsset?.uri;
+                    if (!response.assets?.length) {
+                        return resolve();
+                    }
 
+                    const localCopies = await keepLocalCopy({
+                        files: response.assets.map((asset) => ({
+                            uri: asset.uri,
+                            fileName: asset.fileName ?? '',
+                        })) as [FileToCopy, ...FileToCopy[]],
+                        destination: 'documentDirectory',
+                    });
+
+                    const assets = localCopies.map((localCopy, index) => {
+                        if (localCopy.status !== 'success') {
+                            throw new Error('Failed to create local copy for file');
+                        }
+
+                        return {
+                            ...response.assets![index],
+                            uri: localCopy.localUri,
+                        };
+                    });
+
+                    const targetAsset = assets?.[0];
+                    const targetAssetUri = targetAsset?.uri;
+                    console.log('targetAssetUri', {
+                        targetAssetUri,
+                        assets,
+                        localCopies,
+                    });
                     if (!targetAssetUri) {
                         return resolve();
                     }
@@ -185,12 +212,12 @@ function AttachmentPicker({
                                         })
                                         .catch((err) => reject(err));
                                 } else {
-                                    return resolve(response.assets);
+                                    return resolve(assets);
                                 }
                             })
                             .catch((err) => reject(err));
                     } else {
-                        return resolve(response.assets);
+                        return resolve(assets);
                     }
                 });
             }),
@@ -206,27 +233,26 @@ function AttachmentPicker({
             allowMultiSelection: fileLimit !== 1,
         });
 
+        const filesToCopy = pickedFiles.map((file) => ({
+            uri: file.uri,
+            fileName: file.name ?? '',
+        })) as [FileToCopy, ...FileToCopy[]];
+
         const localCopies = await keepLocalCopy({
-            files: pickedFiles.map((file) => {
-                return {
-                    uri: file.uri,
-                    fileName: file.name ?? '',
-                };
-            }) as [FileToCopy, ...FileToCopy[]],
+            files: filesToCopy,
             destination: 'documentDirectory',
         });
 
-        return pickedFiles.map((file, index) => {
-            const localCopy = localCopies[index];
+        return localCopies.map((localCopy, index) => {
             if (localCopy.status !== 'success') {
-                throw new Error("Couldn't create local file copy");
+                throw new Error(`Failed to create local copy for file ${index + 1}: ${localCopy.copyError ?? 'Unknown error'}`);
             }
 
             return {
-                name: file.name,
+                name: pickedFiles[index].name,
                 uri: localCopy.localUri,
-                size: file.size,
-                type: file.type,
+                size: pickedFiles[index].size,
+                type: pickedFiles[index].type,
             };
         });
     }, [fileLimit, type]);

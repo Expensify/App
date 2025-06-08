@@ -10,9 +10,8 @@ function init(keys: string[]) {
         caches.has(key).then((isExist) => {
             if (isExist) {
                 return;
-            } else {
-                caches.open(key);
             }
+            caches.open(key);
         });
     });
 }
