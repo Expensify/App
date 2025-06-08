@@ -678,17 +678,12 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     const reportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
     const attachmentRegex = CONST.REGEX.ATTACHMENT;
     const attachmentTags = [...reportCommentText.matchAll(attachmentRegex)];
-    console.log('attachmentTags', reportCommentText, attachmentTags);
+
     const attachments = attachmentTags.flatMap((htmlTag, index) => {
         const tag = htmlTag[0];
         // [2] means the exact value, in this case source url and attachment id of the attachment tag
         const source = tag.match(CONST.REGEX.ATTACHMENT_SOURCE)?.[2];
         const attachmentID = tag.match(CONST.REGEX.ATTACHMENT_ID)?.[2];
-        console.log('details', {
-            tag,
-            source,
-            attachmentID,
-        });
 
         if (!source) {
             return [];
