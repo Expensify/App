@@ -12136,7 +12136,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
 }
 
-
 export {
     adjustRemainingSplitShares,
     getNextApproverAccountID,

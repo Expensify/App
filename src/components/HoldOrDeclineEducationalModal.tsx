@@ -104,9 +104,7 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
                             src={section.icon}
                             additionalStyles={[styles.mr4]}
                         />
-                        <Text style={[styles.mb1, styles.textStrong]}>
-                            {translate(section.titleTranslationKey)}
-                        </Text>
+                        <Text style={[styles.mb1, styles.textStrong]}>{translate(section.titleTranslationKey)}</Text>
                     </View>
                 ))}
             </>

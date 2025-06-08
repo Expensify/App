@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, markDeclineViolationAsResolved, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
+import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense, markDeclineViolationAsResolved} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -27,6 +27,7 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
+import {dismissDeclineUseExplanation} from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,7 +36,6 @@ import SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {dismissDeclineUseExplanation} from '@userActions/IOU';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -43,6 +43,7 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
@@ -50,8 +51,6 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {useSearchContext} from './Search/SearchContext';
-import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
-
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
