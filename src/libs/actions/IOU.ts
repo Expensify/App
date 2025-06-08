@@ -11647,6 +11647,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
                 amount: transactionDetails?.amount ?? 0,
                 currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
                 participants: transaction?.participants,
+                merchant: transactionDetails?.merchant ?? '',
                 attendees: transactionDetails?.attendees as Attendee[],
                 reportID,
             },
@@ -11654,9 +11655,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
 
         Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
 
-        Navigation.navigate(
-            ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()),
-        );
+        Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
         return;
     }
 
@@ -11856,7 +11855,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 category: split.category ?? '',
                 tag: split.tags?.[0] ?? '',
                 created: DateUtils.extractDate(split.created),
-                merchant: draftTransaction?.merchant ?? '',
+                merchant: split?.merchant ?? '',
                 transactionID: split.transactionID,
                 comment: {
                     comment: currentDescription,
@@ -11870,7 +11869,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     splitExpenses.forEach((splitExpense, index) => {
         const requestMoneyInformation = {
-            report: expenseReport,
             participantParams: {
                 participant: participants.at(0) ?? ({} as Participant),
                 payeeEmail: currentUserPersonalDetails?.login ?? '',
@@ -11893,14 +11891,12 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 attendees: draftTransaction?.comment?.attendees,
                 source: CONST.IOU.TYPE.SPLIT,
             },
-        };
+            parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
+        } as MoneyRequestInformationParams;
 
-        const {report, participantParams, policyParams, transactionParams} = requestMoneyInformation;
+        const {participantParams, policyParams, transactionParams, parentChatReport} = requestMoneyInformation;
         const parsedComment = getParsedComment(transactionParams.comment ?? '');
         transactionParams.comment = parsedComment;
-
-        const currentChatReport = getReportOrDraftReport(report?.chatReportID);
-        const parentChatReport = getReportOrDraftReport(currentChatReport?.parentReportID);
 
         const existingTransactionID = splitExpense.transactionID;
 
@@ -11909,7 +11905,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             parentChatReport,
             policyParams,
             transactionParams,
-            moneyRequestReportID: report?.reportID,
+            moneyRequestReportID: expenseReport?.reportID,
             existingTransaction: originalTransaction,
             existingTransactionID,
             isSplitExpense: true,
@@ -11929,6 +11925,16 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     });
 
     optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+        value: {
+            ...originalTransaction,
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        },
+    });
+
+    // TODO: will be removed after BE updates
+    successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
         value: {
