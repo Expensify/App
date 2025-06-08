@@ -1627,7 +1627,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
-    [SCREENS.RIGHT_MODAL.COMPANY_CARDS_ASSIGN_CARD]: NavigatorScreenParams<AssignCompanyCardNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.ASSIGN_COMPANY_CARD]: NavigatorScreenParams<AssignCompanyCardNavigatorParamList>;
 };
 
 type TravelNavigatorParamList = {

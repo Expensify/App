@@ -149,7 +149,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.NewTaskModalStackNavigator}
                         />
                         <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.COMPANY_CARDS_ASSIGN_CARD}
+                            name={SCREENS.RIGHT_MODAL.ASSIGN_COMPANY_CARD}
                             component={ModalStackNavigators.AssignCompanyCardsModalStackNavigator}
                         />
                         <Stack.Screen

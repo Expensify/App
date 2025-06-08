@@ -11,13 +11,16 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
+import Navigation from '@libs/Navigation/Navigation';
 import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
 import TransactionStartDateStep from './TransactionStartDateStep';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ROUTES, { Route } from '@src/ROUTES';
 
 type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
 
@@ -50,53 +53,69 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         );
     }
 
-    switch (currentStep) {
-        case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
-            return (
-                <BankConnection
-                    policyID={policyID}
-                    feed={feed}
-                />
-            );
-        case CONST.COMPANY_CARD.STEP.ASSIGNEE:
-            return (
-                <AssigneeStep
-                    policy={policy}
-                    feed={feed}
-                />
-            );
-        case CONST.COMPANY_CARD.STEP.CARD:
-            return (
-                <CardSelectionStep
-                    feed={feed}
-                    policyID={policyID}
-                />
-            );
-        case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
-            return (
-                <TransactionStartDateStep
-                    policyID={policyID}
-                    feed={feed}
-                    backTo={backTo}
-                />
-            );
-        case CONST.COMPANY_CARD.STEP.CARD_NAME:
-            return <CardNameStep policyID={policyID} />;
-        case CONST.COMPANY_CARD.STEP.CONFIRMATION:
-            return (
-                <ConfirmationStep
-                    policyID={policyID}
-                    backTo={shouldUseBackToParam ? backTo : undefined}
-                />
-            );
-        default:
-            return (
-                <AssigneeStep
-                    policy={policy}
-                    feed={feed}
-                />
-            );
+     // Navigate to appropriate step based on current state
+     useEffect(() => {
+        if (isActingAsDelegate) {
+            return; // Show delegate access denied
+        }
+
+        // const currentStep = assignCard?.currentStep;
+        
+        // Determine which screen to navigate to based on current step
+        const getScreenForStep = (step: string | undefined): Route | undefined => {
+            if(!policyID){
+                return undefined;
+            }
+            if (!step || !feed) {
+                return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_ASSIGNEE.getRoute(policyID, feed, backTo || '');
+            }
+        
+            switch (step) {
+                case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
+                    return ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, feed, backTo || '');
+        
+                case CONST.COMPANY_CARD.STEP.ASSIGNEE:
+                    return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_ASSIGNEE.getRoute(policyID, feed, backTo || '');
+                case CONST.COMPANY_CARD.STEP.CARD:
+                //     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_CARD_SELECTION.getRoute(policyID, feed, backTo || '');
+                // case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
+                //     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_TRANSACTION_START_DATE.getRoute(policyID, feed, backTo || '');
+                // case CONST.COMPANY_CARD.STEP.CARD_NAME:
+                //     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_CARD_NAME.getRoute(policyID, feed, backTo || '');
+                // case CONST.COMPANY_CARD.STEP.CONFIRMATION:
+                //     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_CONFIRMATION.getRoute(policyID, feed, backTo || '');
+                default:
+                    return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_ASSIGNEE.getRoute(policyID, feed, backTo || '');
+            }
+        };
+
+        const targetScreen = getScreenForStep(currentStep);
+
+            if(targetScreen) {
+                // Navigate to the appropriate step
+                Navigation.navigate(targetScreen);
+            }
+        }, [assignCard?.currentStep, isActingAsDelegate, Navigation, feed, policyID, backTo]);
+
+    if (isActingAsDelegate) {
+        return (
+            <ScreenWrapper
+                testID={AssignCardFeedPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+            </ScreenWrapper>
+        );
     }
+
+    // // Show loading or empty state while navigation happens
+    // return (
+    //     <ScreenWrapper testID={AssignCardFeedPage.displayName}>
+    //        <FullScreenLoadingIndicator
+    //        />
+    //     </ScreenWrapper>
+    // );
 }
 
 AssignCardFeedPage.displayName = 'AssignCardFeedPage';

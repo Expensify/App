@@ -204,7 +204,7 @@ const SCREENS = {
         DEBUG: 'Debug',
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
-        COMPANY_CARDS_ASSIGN_CARD: 'AssignCompanyCard',
+        ASSIGN_COMPANY_CARD: 'AssignCompanyCard',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     ONBOARDING_MODAL: {
