@@ -23,6 +23,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {shallowCompare} from '@libs/ObjectUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -217,14 +218,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
-    useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-
-        handleSearch({queryJSON, offset});
-    }, [handleSearch, isOffline, offset, queryJSON]);
-
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
@@ -249,6 +242,20 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
         return getSections(type, status, searchResults.data, searchResults.search, shouldGroupByReports);
     }, [searchResults, isDataLoaded, type, status, shouldGroupByReports]);
+
+    const previousQuery = usePrevious(queryJSON);
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
+        // If we already loaded initial transactions and we scroll back to the top again, don't reload them
+        if (data?.length && shallowCompare(previousQuery, queryJSON) && offset === 0) {
+            return;
+        }
+
+        handleSearch({queryJSON, offset});
+    }, [handleSearch, isOffline, offset, queryJSON, data?.length, previousQuery]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -535,6 +542,14 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         },
         [shouldShowLoadingState],
     );
+
+    const previousColumns = usePrevious(searchResults?.search.columnsToShow);
+    const currentColumns = useMemo(() => searchResults?.search.columnsToShow, [searchResults?.search.columnsToShow]);
+    useEffect(() => {
+        if (previousColumns && !shallowCompare(previousColumns, currentColumns)) {
+            // todo trigger animation
+        }
+    }, [previousColumns, currentColumns]);
 
     if (shouldShowLoadingState) {
         return (
