@@ -3589,7 +3589,10 @@ const CONST = {
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
-        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+        ATTACHMENT: /<(img|video)[^>]*>/gi,
+        ATTACHMENT_ID: /data-attachment-id=(["'])(.*?)\1/,
+        ATTACHMENT_SOURCE_ID: /chat-attachments\/(\d+)/,
+        ATTACHMENT_SOURCE: /(src|data-expensify-source|data-optimistic-src)="([^"]+)"/i,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
         EMPTY_COMMENT: /^(\s)*$/,
@@ -6473,6 +6476,10 @@ const CONST = {
             TRAVEL_EXPENSE: 'travelExpense',
         },
         BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
+    },
+
+    CACHE_API_KEYS: {
+        ATTACHMENTS: 'attachments',
     },
 
     SESSION_STORAGE_KEYS: {

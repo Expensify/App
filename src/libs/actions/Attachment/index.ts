@@ -1,6 +1,7 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
 import CacheAPI from '@libs/CacheAPI';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 
@@ -20,14 +21,13 @@ function storeAttachment(attachmentID: string, uri: string) {
             if (!response.ok) {
                 throw new Error('Failed to store attachment');
             }
-            CacheAPI.put('attachments', attachmentID, response);
+            CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response);
             Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                 attachmentID,
                 remoteSource: isLocalFile(uri) ? '' : uri,
             });
         })
-        .catch((error) => {
-            console.error(error);
+        .catch(() => {
             throw new Error('Failed to store attachment');
         });
 }
@@ -43,7 +43,7 @@ function getAttachmentSource(attachmentID: string, currentSource: string) {
         return currentSource;
     }
 
-    return CacheAPI.get('attachments', attachmentID)?.then((response) => {
+    return CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID)?.then((response) => {
         if (!response) {
             throw new Error('Failed to get attachment');
         }
@@ -53,11 +53,19 @@ function getAttachmentSource(attachmentID: string, currentSource: string) {
                 const source = URL.createObjectURL(attachment);
                 return source;
             })
-            .catch((error) => {
-                console.error(error);
+            .catch(() => {
                 throw new Error('Failed to get attachment');
             });
     });
 }
 
-export {storeAttachment, getAttachmentSource};
+function deleteAttachment(attachmentID: string) {
+    if (!attachmentID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
+    CacheAPI.remove(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID);
+}
+
+export {storeAttachment, getAttachmentSource, deleteAttachment};

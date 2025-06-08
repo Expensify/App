@@ -54,7 +54,9 @@ export default function () {
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
 
-    CacheAPI.init(['attachments']);
+    const CacheAPIKeys = Object.values(CONST.CACHE_API_KEYS);
+
+    CacheAPI.init(CacheAPIKeys);
 
     initOnyxDerivedValues();
 

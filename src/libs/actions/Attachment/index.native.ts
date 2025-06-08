@@ -66,4 +66,11 @@ function getAttachmentSource(attachmentID: string, currentSource: string) {
     return attachment?.source;
 }
 
-export {storeAttachment, getAttachmentSource};
+function deleteAttachment(attachmentID: string) {
+    if (!attachmentID) {
+        return;
+    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
+}
+
+export {storeAttachment, getAttachmentSource, deleteAttachment};

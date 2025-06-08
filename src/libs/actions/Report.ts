@@ -187,7 +187,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {storeAttachment} from './Attachment';
+import {deleteAttachment, storeAttachment} from './Attachment';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -674,10 +674,31 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
     }
 
-    const markdownMediaRegex = /<(?:img|video)[^>]*src=['"]([^'"]*)['"]/gi;
-    const mediaUrls = [...reportCommentText.matchAll(markdownMediaRegex)].map((m) => m[1]);
+    // Store all markdown text attachments i.e `![](https://images.unsplash.com/...)`
     const reportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
-    const attachments = mediaUrls.map((src, index) => ({uri: src, attachmentID: `${reportActionID}_${++index}`}));
+    const attachmentRegex = CONST.REGEX.ATTACHMENT;
+    const attachmentTags = [...reportCommentText.matchAll(attachmentRegex)];
+    console.log('attachmentTags', reportCommentText, attachmentTags);
+    const attachments = attachmentTags.flatMap((htmlTag, index) => {
+        const tag = htmlTag[0];
+        // [2] means the exact value, in this case source url and attachment id of the attachment tag
+        const source = tag.match(CONST.REGEX.ATTACHMENT_SOURCE)?.[2];
+        const attachmentID = tag.match(CONST.REGEX.ATTACHMENT_ID)?.[2];
+        console.log('details', {
+            tag,
+            source,
+            attachmentID,
+        });
+
+        if (!source) {
+            return [];
+        }
+
+        return {
+            uri: source,
+            attachmentID: attachmentID || `${reportActionID}_${++index}`,
+        };
+    });
 
     attachments.forEach((attachment) => {
         storeAttachment(attachment.attachmentID, attachment.uri ?? '');
@@ -717,7 +738,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     }
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
-        reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
+        reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
@@ -1864,6 +1885,33 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
 
     if (!reportActionID || !originalReportID || !reportID) {
         return;
+    }
+
+    if (Array.isArray(reportAction.message) && reportAction.message.length > 0) {
+        reportAction.message.forEach((message) => {
+            const reportCommentText = message?.html ?? '';
+
+            const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT)];
+            const attachments = attachmentTags.flatMap((htmlTag, index) => {
+                const tag = htmlTag[0];
+                // [2] means the exact value, in this case source url and attachment id of the attachment tag
+                const source = tag.match(CONST.REGEX.ATTACHMENT_SOURCE)?.[2];
+                const attachmentID = tag.match(CONST.REGEX.ATTACHMENT_ID)?.[2];
+
+                if (!source) {
+                    return [];
+                }
+
+                return {
+                    uri: source,
+                    attachmentID: attachmentID || `${reportActionID}_${++index}`,
+                };
+            });
+
+            attachments.forEach((attachment) => {
+                deleteAttachment(attachment.attachmentID);
+            });
+        });
     }
 
     const isDeletedParentAction = ReportActionsUtils.isThreadParentMessage(reportAction, reportID);

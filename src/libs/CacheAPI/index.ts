@@ -1,4 +1,7 @@
 function init(keys: string[]) {
+    if (!keys || keys.length === 0) {
+        return;
+    }
     // Exit early if the Cache API is not supported in the current browser.
     if (!('caches' in window)) {
         throw new Error('Cache API is not supported');
@@ -39,11 +42,21 @@ function remove(cacheName: string, key: string) {
         cache.delete(key);
     });
 }
-function clear(cacheName: string) {
-    if (!cacheName) {
+function clear(keys: string[]) {
+    if (!keys || keys.length === 0) {
         return;
     }
-    caches.delete(cacheName);
+    keys.forEach((key) => {
+        if (!key) {
+            return;
+        }
+        caches.has(key).then((isExist) => {
+            if (isExist) {
+                return;
+            }
+            caches.delete(key);
+        });
+    });
 }
 export default {
     init,
