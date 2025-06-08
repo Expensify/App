@@ -176,7 +176,7 @@ function AttachmentPicker({
                         };
                     });
 
-                    const targetAsset = assets?.[0];
+                    const targetAsset = assets.at(0);
                     const targetAssetUri = targetAsset?.uri;
                     if (!targetAssetUri) {
                         return resolve();

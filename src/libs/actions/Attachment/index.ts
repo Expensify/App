@@ -1,4 +1,5 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import CacheAPI from '@libs/CacheAPI';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
@@ -49,8 +50,8 @@ function getAttachmentSource(attachmentID: string, currentSource: string) {
         }
         return response
             .blob()
-            .then((attachment) => {
-                const source = URL.createObjectURL(attachment);
+            .then((attachmentFile) => {
+                const source = URL.createObjectURL(attachmentFile);
                 return source;
             })
             .catch(() => {
