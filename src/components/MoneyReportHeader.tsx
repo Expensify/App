@@ -437,6 +437,9 @@ function MoneyReportHeader({
         if (!hasUseDeclineDismissedRef.current) {
             dismissDeclineUseExplanation();
             hasUseDeclineDismissedRef.current = true;
+            if (requestParentReportAction) {
+                declineMoneyRequestReason(requestParentReportAction);
+            }
         }
     };
 
@@ -883,6 +886,7 @@ function MoneyReportHeader({
                     setIsDeclineEducationalModalVisible(true);
                 }
             },
+            shouldShow: transactions.length === 1,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
             text: translate('iou.addExpense'),

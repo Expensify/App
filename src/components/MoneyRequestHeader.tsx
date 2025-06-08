@@ -49,6 +49,7 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {useSearchContext} from './Search/SearchContext';
+import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
@@ -82,6 +83,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+    const [isDeclineEducationalModalVisible, setIsDeclineEducationalModalVisible] = useState(false);
+    const [dismissedDeclineUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION, {initialValue: false, canBeMissing: true});
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
@@ -254,6 +257,20 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 setIsDeleteModalVisible(true);
             },
         },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE]: {
+            text: translate('common.decline'),
+            icon: Expensicons.ThumbsDown,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE,
+            onSelected: () => {
+                if (dismissedDeclineUseExplanation) {
+                    if (parentReportAction) {
+                        declineMoneyRequestReason(parentReportAction);
+                    }
+                } else {
+                    setIsDeclineEducationalModalVisible(true);
+                }
+            },
+        },
     };
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
@@ -355,6 +372,28 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 danger
                 shouldEnableNewFocusManagement
             />
+            {!!isDeclineEducationalModalVisible && (
+                <HoldOrDeclineEducationalModal
+                    onClose={() => {
+                        setIsDeclineEducationalModalVisible(false);
+                        if (!dismissedDeclineUseExplanation) {
+                            dismissDeclineUseExplanation();
+                            if (parentReportAction) {
+                                declineMoneyRequestReason(parentReportAction);
+                            }
+                        }
+                    }}
+                    onConfirm={() => {
+                        setIsDeclineEducationalModalVisible(false);
+                        if (!dismissedDeclineUseExplanation) {
+                            dismissDeclineUseExplanation();
+                            if (parentReportAction) {
+                                declineMoneyRequestReason(parentReportAction);
+                            }
+                        }
+                    }}
+                />
+            )}
         </View>
     );
 }
