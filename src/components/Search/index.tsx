@@ -245,8 +245,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
-        return getSections(type, status, searchResults.data, searchResults.search, shouldGroupByReports);
-    }, [searchResults, isDataLoaded, type, status, shouldGroupByReports]);
+        return getSections(type, searchResults.data, searchResults.search, shouldGroupByReports, reportActions);
+    }, [searchResults, isDataLoaded, type, shouldGroupByReports, reportActions]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
