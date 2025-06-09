@@ -523,19 +523,23 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                             headerContentStyles={styles.emptyStateFolderWebStyles}
-                            buttons={[
-                                {
-                                    icon: Expensicons.Plus,
-                                    buttonText: translate('workspace.categories.addCategory'),
-                                    buttonAction: navigateToCreateCategoryPage,
-                                    success: true,
-                                },
-                                {
-                                    icon: Expensicons.Table,
-                                    buttonText: translate('common.import'),
-                                    buttonAction: navigateToImportSpreadsheet,
-                                },
-                            ]}
+                            buttons={
+                                !policyHasAccountingConnections
+                                    ? [
+                                          {
+                                              icon: Expensicons.Plus,
+                                              buttonText: translate('workspace.categories.addCategory'),
+                                              buttonAction: navigateToCreateCategoryPage,
+                                              success: true,
+                                          },
+                                          {
+                                              icon: Expensicons.Table,
+                                              buttonText: translate('common.import'),
+                                              buttonAction: navigateToImportSpreadsheet,
+                                          },
+                                      ]
+                                    : undefined
+                            }
                         />
                     </ScrollView>
                 )}

@@ -345,6 +345,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
     }, [backTo, isOffline, isQuickSettingsFlow, policyID, isBetaEnabled]);
 
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const secondaryActions = useMemo(() => {
         const menuItems = [];
         menuItems.push({
@@ -354,7 +355,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
         });
 
-        if (!hasAccountingConnectionsPolicyUtils(policy)) {
+        if (!hasAccountingConnections) {
             menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
@@ -389,10 +390,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToTagsSettings, isBetaEnabled, hasDependentTags, policy, hasVisibleTags, isOffline, policyID, hasIndependentTags, navigateToImportSpreadsheet]);
+    }, [translate, navigateToTagsSettings, isBetaEnabled, hasDependentTags, hasVisibleTags, isOffline, policyID, hasIndependentTags, hasAccountingConnections, navigateToImportSpreadsheet]);
 
     const getHeaderButtons = () => {
-        const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTags.length === 0) {
@@ -629,19 +629,23 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                                 headerContentStyles={styles.emptyStateFolderWebStyles}
-                                buttons={[
-                                    {
-                                        success: true,
-                                        buttonAction: navigateToCreateTagPage,
-                                        icon: Expensicons.Plus,
-                                        buttonText: translate('workspace.tags.addTag'),
-                                    },
-                                    {
-                                        icon: Expensicons.Table,
-                                        buttonText: translate('common.import'),
-                                        buttonAction: navigateToImportSpreadsheet,
-                                    },
-                                ]}
+                                buttons={
+                                    !hasAccountingConnections
+                                        ? [
+                                              {
+                                                  success: true,
+                                                  buttonAction: navigateToCreateTagPage,
+                                                  icon: Expensicons.Plus,
+                                                  buttonText: translate('workspace.tags.addTag'),
+                                              },
+                                              {
+                                                  icon: Expensicons.Table,
+                                                  buttonText: translate('common.import'),
+                                                  buttonAction: navigateToImportSpreadsheet,
+                                              },
+                                          ]
+                                        : undefined
+                                }
                             />
                         </ScrollView>
                     )}
