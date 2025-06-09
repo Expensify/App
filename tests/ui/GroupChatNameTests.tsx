@@ -208,7 +208,7 @@ describe('Tests for group chat name', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                act(() => transitionEndCB?.());
                 const name = 'A, B, C, D';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
@@ -244,7 +244,7 @@ describe('Tests for group chat name', () => {
             .then(() => navigateToSidebarOption(0))
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                act(() => transitionEndCB?.());
                 const name = 'A, B, C, D, E...';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
@@ -271,7 +271,7 @@ describe('Tests for group chat name', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                act(() => transitionEndCB?.());
                 const name = 'Test chat';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
@@ -298,7 +298,7 @@ describe('Tests for group chat name', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                act(() => transitionEndCB?.());
                 const name = "Let's talk";
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
