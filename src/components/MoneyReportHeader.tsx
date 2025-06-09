@@ -443,6 +443,7 @@ function MoneyReportHeader({
         }
         return getReportPrimaryAction({
             report: moneyRequestReport,
+            chatReport,
             reportTransactions: transactions,
             violations,
             policy,
@@ -644,6 +645,7 @@ function MoneyReportHeader({
         }
         return getSecondaryReportActions(
             moneyRequestReport,
+            chatReport,
             transactions,
             violations,
             policy,
