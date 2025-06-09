@@ -411,8 +411,7 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
         return '';
     }
 
-    const formattedFeedName = translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
-    return customFeedName ?? formattedFeedName;
+    return translateLocal('workspace.companyCards.feedName', {feedName: customFeedName ?? getBankName(feed)});
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
@@ -430,6 +429,13 @@ function getPlaidInstitutionId(feedName?: string) {
     }
 
     return feed.at(1);
+}
+
+function isPlaidCountrySupported(selectedCountry?: string) {
+    if (!selectedCountry) {
+        return false;
+    }
+    return CONST.PLAID_SUPPORT_COUNTRIES.includes(selectedCountry);
 }
 
 function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData: CardFeedData | undefined): number {
@@ -695,6 +701,7 @@ export {
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
     isCardClosed,
+    isPlaidCountrySupported,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
