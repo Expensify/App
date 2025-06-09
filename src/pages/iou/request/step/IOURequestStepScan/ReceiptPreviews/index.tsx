@@ -41,6 +41,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    const backTo = Navigation.getActiveRoute();
     const isPreviewsVisible = useSharedValue(false);
     const previewsHeight = styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2;
     const previewItemWidth = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
@@ -96,7 +97,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                 accessible
                 accessibilityLabel={translate('common.receipt')}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.getRoute(item.transactionID))}
+                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.getRoute(item.transactionID, backTo))}
             >
                 <Image
                     source={{uri: item.source}}

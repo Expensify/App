@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeTransactionReceipt} from '@userActions/TransactionEdit';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 type ReceiptWithTransactionIDAndSource = Receipt & ReceiptFile;
@@ -21,6 +22,7 @@ type ReceiptViewModalProps = {
     route: {
         params: {
             transactionID: string;
+            backTo: Route;
         };
     };
 };
@@ -71,17 +73,21 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         handleDeleteReceipt();
     }, [handleDeleteReceipt]);
 
+    const handleGoBack = useCallback(() => {
+        Navigation.goBack(route.params.backTo);
+    }, [route.params.backTo]);
+
     return (
         <>
             <Modal
                 type="centered"
                 isVisible
-                onClose={Navigation.goBack}
+                onClose={handleGoBack}
                 onModalHide={clearAttachmentErrors}
             >
                 <HeaderWithBackButton
                     title={translate('common.receipt')}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={handleGoBack}
                     shouldShowThreeDotsButton
                     threeDotsMenuIcon={Expensicons.Trashcan}
                     onThreeDotsButtonPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
@@ -92,7 +98,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                     page={page}
                     setPage={setPage}
                     attachmentID={currentReceipt?.transactionID}
-                    onClose={Navigation.goBack}
+                    onClose={handleGoBack}
                     autoHideArrows={autoHideArrows}
                     cancelAutoHideArrow={cancelAutoHideArrows}
                     setShouldShowArrows={setShouldShowArrows}
