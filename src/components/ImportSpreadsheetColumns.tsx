@@ -25,7 +25,7 @@ type ImportSpreadsheetColumnsProps = {
     columnNames: string[];
 
     // An array of column roles to define the role of each column.
-    columnRoles: ColumnRole[];
+    columnRoles?: ColumnRole[];
 
     // A function to perform the import operation.
     importFunction: () => void;
@@ -38,13 +38,32 @@ type ImportSpreadsheetColumnsProps = {
 
     // Link to learn more about the file preparation for import.
     learnMoreLink?: string;
+
+    // An optional boolean indicating whether to show the column header.
+    shouldShowColumnHeader?: boolean;
+
+    // An optional boolean indicating whether to show the dropdown menu.
+    shouldShowDropdownMenu?: boolean;
+
+    customHeaderText?: string;
 };
 
-function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, learnMoreLink}: ImportSpreadsheetColumnsProps) {
+function ImportSpreadsheetColumns({
+    spreadsheetColumns,
+    columnNames,
+    columnRoles,
+    errors,
+    importFunction,
+    isButtonLoading,
+    learnMoreLink,
+    shouldShowColumnHeader = true,
+    shouldShowDropdownMenu = true,
+    customHeaderText,
+}: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const {containsHeader = true} = spreadsheet ?? {};
 
     return (
@@ -52,21 +71,25 @@ function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles,
             <ScrollView>
                 <View style={styles.mh5}>
                     <Text>
-                        {translate('spreadsheet.importDescription')}
-                        <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
+                        {customHeaderText ?? (
+                            <>
+                                {translate('spreadsheet.importDescription')}
+                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
+                            </>
+                        )}
                     </Text>
+                    {shouldShowColumnHeader && (
+                        <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                            <Text>{translate('spreadsheet.fileContainsHeader')}</Text>
 
-                    <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text>{translate('spreadsheet.fileContainsHeader')}</Text>
-
-                        <Switch
-                            accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
-                            isOn={containsHeader}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onToggle={setContainsHeader}
-                        />
-                    </View>
-
+                            <Switch
+                                accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
+                                isOn={containsHeader}
+                                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                onToggle={setContainsHeader}
+                            />
+                        </View>
+                    )}
                     {spreadsheetColumns.map((column, index) => {
                         return (
                             <ImportColumn
@@ -75,6 +98,7 @@ function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles,
                                 columnName={columnNames.at(index) ?? ''}
                                 columnRoles={columnRoles}
                                 columnIndex={index}
+                                shouldShowDropdownMenu={shouldShowDropdownMenu}
                             />
                         );
                     })}

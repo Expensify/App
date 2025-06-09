@@ -153,6 +153,7 @@ import MoneyCircle from '@assets/images/money-circle.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
+import MultiTag from '@assets/images/multi-tag.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
@@ -173,6 +174,7 @@ import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
+import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
@@ -320,6 +322,7 @@ export {
     Fullscreen,
     Folder,
     Tag,
+    MultiTag,
     Coins,
     Thread,
     Gallery,
@@ -385,6 +388,7 @@ export {
     RemoveMembers,
     ReceiptSearch,
     ReplaceReceipt,
+    ReceiptMultiple,
     Rotate,
     RotateLeft,
     Scan,
