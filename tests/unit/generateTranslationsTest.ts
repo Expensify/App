@@ -40,19 +40,19 @@ describe('generateTranslations', () => {
         fs.writeFileSync(
             EN_PATH,
             StringUtils.dedent(`
-                    const strings = {
-                        greeting: 'Hello',
-                        farewell: 'Goodbye',
-                        unnecessaryTemplate: \`This template contains no spans\`,
-                        message: (username: string, count: number) => \`Hi \${username}, you have \${count} messages\`,
-                        some: {
-                            nested: {
-                                str: 'nested string',
-                                fnc: ({destructuredArg}) => \`My template string contains a single \${destructuredArg} argument\`,
-                            }
+                const strings = {
+                    greeting: 'Hello',
+                    farewell: 'Goodbye',
+                    unnecessaryTemplate: \`This template contains no spans\`,
+                    message: (username: string, count: number) => \`Hi \${username}, you have \${count} messages\`,
+                    some: {
+                        nested: {
+                            str: 'nested string',
+                            fnc: ({destructuredArg}) => \`My template string contains a single \${destructuredArg} argument\`,
                         }
-                    };
-                    export default strings;
+                    }
+                };
+                export default strings;
             `),
             'utf8',
         );
@@ -60,19 +60,19 @@ describe('generateTranslations', () => {
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
             StringUtils.dedent(`
-                    const strings = {
-                        greeting: '[it] Hello',
-                        farewell: '[it] Goodbye',
-                        unnecessaryTemplate: \`[it] This template contains no spans\`,
-                        message: (username: string, count: number) => \`[it] Hi \${username}, you have \${count} messages\`,
-                        some: {
-                            nested: {
-                                str: '[it] nested string',
-                                fnc: ({destructuredArg}) => \`[it] My template string contains a single \${destructuredArg} argument\`,
-                            },
+                const strings = {
+                    greeting: '[it] Hello',
+                    farewell: '[it] Goodbye',
+                    unnecessaryTemplate: \`[it] This template contains no spans\`,
+                    message: (username: string, count: number) => \`[it] Hi \${username}, you have \${count} messages\`,
+                    some: {
+                        nested: {
+                            str: '[it] nested string',
+                            fnc: ({destructuredArg}) => \`[it] My template string contains a single \${destructuredArg} argument\`,
                         },
-                    };
-                    export default strings;
+                    },
+                };
+                export default strings;
             `),
         );
     });
@@ -81,27 +81,27 @@ describe('generateTranslations', () => {
         fs.writeFileSync(
             EN_PATH,
             StringUtils.dedent(`
-                    import Log from '@libs/Log';
-                    import CONST from '@src/CONST';
+                import Log from '@libs/Log';
+                import CONST from '@src/CONST';
 
-                    if (CONST.REPORT.TYPE.EXPENSE == 'true') {
-                        Log.info('This should not be translated');
-                        console.log('This should not be translated either');
-                    }
-                    function myFunction(myVariable: string): boolean | string {
-                        if (myVariable === 'Hello world') {
-                            return true;
-                        } else {
-                            switch (myVariable) {
-                                case 'Hello':
-                                    return true;
-                                case 'Goodbye':
-                                    return false;
-                                default:
-                                    return myVariable === 'Goodnight' ? 'Moon' : 'Sun';
-                            }
+                if (CONST.REPORT.TYPE.EXPENSE == 'true') {
+                    Log.info('This should not be translated');
+                    console.log('This should not be translated either');
+                }
+                function myFunction(myVariable: string): boolean | string {
+                    if (myVariable === 'Hello world') {
+                        return true;
+                    } else {
+                        switch (myVariable) {
+                            case 'Hello':
+                                return true;
+                            case 'Goodbye':
+                                return false;
+                            default:
+                                return myVariable === 'Goodnight' ? 'Moon' : 'Sun';
                         }
                     }
+                }
             `),
             'utf8',
         );
@@ -109,27 +109,27 @@ describe('generateTranslations', () => {
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
             StringUtils.dedent(`
-                    import Log from '@libs/Log';
-                    import CONST from '@src/CONST';
+                import Log from '@libs/Log';
+                import CONST from '@src/CONST';
 
-                    if (CONST.REPORT.TYPE.EXPENSE == 'true') {
-                        Log.info('This should not be translated');
-                        console.log('This should not be translated either');
-                    }
-                    function myFunction(myVariable: string): boolean | string {
-                        if (myVariable === 'Hello world') {
-                            return true;
-                        } else {
-                            switch (myVariable) {
-                                case 'Hello':
-                                    return true;
-                                case 'Goodbye':
-                                    return false;
-                                default:
-                                    return myVariable === 'Goodnight' ? '[it] Moon' : '[it] Sun';
-                            }
+                if (CONST.REPORT.TYPE.EXPENSE == 'true') {
+                    Log.info('This should not be translated');
+                    console.log('This should not be translated either');
+                }
+                function myFunction(myVariable: string): boolean | string {
+                    if (myVariable === 'Hello world') {
+                        return true;
+                    } else {
+                        switch (myVariable) {
+                            case 'Hello':
+                                return true;
+                            case 'Goodbye':
+                                return false;
+                            default:
+                                return myVariable === 'Goodnight' ? '[it] Moon' : '[it] Sun';
                         }
                     }
+                }
             `),
         );
     });
@@ -138,17 +138,28 @@ describe('generateTranslations', () => {
         fs.writeFileSync(
             EN_PATH,
             StringUtils.dedent(`
-                    const strings = {
-                        simple: (name: string, greeting: string) => \`\${greeting} good sir \${name}!\`,
-                        simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`\${myParams.greeting} good sir \${myParams.greeting}!\`,
-                        complex: (action: {actionName: string}) => \`Edit \${action.actionName === 'shouldNotBeTranslated' ? 'expense' : 'comment'}\`,
-                        complexWithNullishCoalesce: (name: string) => \`Pay \${name ?? 'someone'}\`,
-                        complexWithFalsyCoalesce: (name: string) => \`Pay \${name || 'someone'}\`,
-                        extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
-                        extraComplexButJustWhitespace: (payer: string) => \`\${payer ? \`\${payer} \` : ''}paid elsewhere\`,
-                        whiteSpaceWithComplexSpans: (shouldBeFormal: string, name: string) => \`\${shouldBeFormal ? 'Salutations' : 'Sup'} \${shouldBeFormal ? \`Sir \${name}\` : \` \${name}\`}}\`,
-                        evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`\${someBool ? \`\${someOtherBool ? 'Hello' : 'Goodbye'} moon\` : 'Goodnight, moon' }, kupo\`,
-                        tooComplex: (numScanning: number, numPending: number) => {
+                const strings = {
+                    simple: (name: string, greeting: string) => \`\${greeting} good sir \${name}!\`,
+                    simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`\${myParams.greeting} good sir \${myParams.greeting}!\`,
+                    complex: (action: {actionName: string}) => \`Edit \${action.actionName === 'shouldNotBeTranslated' ? 'expense' : 'comment'}\`,
+                    complexWithNullishCoalesce: (name: string) => \`Pay \${name ?? 'someone'}\`,
+                    complexWithFalsyCoalesce: (name: string) => \`Pay \${name || 'someone'}\`,
+                    extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
+                    extraComplexButJustWhitespace: (payer: string) => \`\${payer ? \`\${payer} \` : ''}paid elsewhere\`,
+                    whiteSpaceWithComplexSpans: (shouldBeFormal: string, name: string) => \`\${shouldBeFormal ? 'Salutations' : 'Sup'} \${shouldBeFormal ? \`Sir \${name}\` : \` \${name}\`}}\`,
+                    evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`\${someBool ? \`\${someOtherBool ? 'Hello' : 'Goodbye'} moon\` : 'Goodnight, moon' }, kupo\`,
+                    tooComplex: (numScanning: number, numPending: number) => {
+                        const statusText: string[] = [];
+                        if (numScanning > 0) {
+                            statusText.push(\`\${numScanning} scanning\`);
+                        }
+                        if (numPending > 0) {
+                            statusText.push(\`\${numPending} pending\`);
+                        }
+                        return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
+                    },
+                    unrealisticallyComplex: (numScanning: number, numPending: number) =>
+                        \`\${(() => {
                             const statusText: string[] = [];
                             if (numScanning > 0) {
                                 statusText.push(\`\${numScanning} scanning\`);
@@ -157,20 +168,9 @@ describe('generateTranslations', () => {
                                 statusText.push(\`\${numPending} pending\`);
                             }
                             return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
-                        },
-                        unrealisticallyComplex: (numScanning: number, numPending: number) =>
-                            \`\${(() => {
-                                const statusText: string[] = [];
-                                if (numScanning > 0) {
-                                    statusText.push(\`\${numScanning} scanning\`);
-                                }
-                                if (numPending > 0) {
-                                    statusText.push(\`\${numPending} pending\`);
-                                }
-                                return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
-                            })()} If someone really uses an IIFE in here, then we've got bigger problems.\`,
-                    };
-                    export default strings;
+                        })()} If someone really uses an IIFE in here, then we've got bigger problems.\`,
+                };
+                export default strings;
             `),
             'utf8',
         );
@@ -178,17 +178,28 @@ describe('generateTranslations', () => {
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
             StringUtils.dedent(`
-                    const strings = {
-                        simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
-                        simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
-                        complex: (action: {actionName: string}) => \`[it] Edit \${action.actionName === 'shouldNotBeTranslated' ? '[it] expense' : '[it] comment'}\`,
-                        complexWithNullishCoalesce: (name: string) => \`[it] Pay \${name ?? '[it] someone'}\`,
-                        complexWithFalsyCoalesce: (name: string) => \`[it] Pay \${name || '[it] someone'}\`,
-                        extraComplex: (payer: string) => \`[it] \${payer ? \`[it] \${payer} as payer \` : ''}paid elsewhere\`,
-                        extraComplexButJustWhitespace: (payer: string) => \`[it] \${payer ? \`\${payer} \` : ''}paid elsewhere\`,
-                        whiteSpaceWithComplexSpans: (shouldBeFormal: string, name: string) => \`\${shouldBeFormal ? '[it] Salutations' : '[it] Sup'} \${shouldBeFormal ? \`[it] Sir \${name}\` : \` \${name}\`}}\`,
-                        evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`[it] \${someBool ? \`[it] \${someOtherBool ? '[it] Hello' : '[it] Goodbye'} moon\` : '[it] Goodnight, moon'}, kupo\`,
-                        tooComplex: (numScanning: number, numPending: number) => {
+                const strings = {
+                    simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
+                    simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
+                    complex: (action: {actionName: string}) => \`[it] Edit \${action.actionName === 'shouldNotBeTranslated' ? '[it] expense' : '[it] comment'}\`,
+                    complexWithNullishCoalesce: (name: string) => \`[it] Pay \${name ?? '[it] someone'}\`,
+                    complexWithFalsyCoalesce: (name: string) => \`[it] Pay \${name || '[it] someone'}\`,
+                    extraComplex: (payer: string) => \`[it] \${payer ? \`[it] \${payer} as payer \` : ''}paid elsewhere\`,
+                    extraComplexButJustWhitespace: (payer: string) => \`[it] \${payer ? \`\${payer} \` : ''}paid elsewhere\`,
+                    whiteSpaceWithComplexSpans: (shouldBeFormal: string, name: string) => \`\${shouldBeFormal ? '[it] Salutations' : '[it] Sup'} \${shouldBeFormal ? \`[it] Sir \${name}\` : \` \${name}\`}}\`,
+                    evenMoreComplex: (someBool: boolean, someOtherBool: boolean) => \`[it] \${someBool ? \`[it] \${someOtherBool ? '[it] Hello' : '[it] Goodbye'} moon\` : '[it] Goodnight, moon'}, kupo\`,
+                    tooComplex: (numScanning: number, numPending: number) => {
+                        const statusText: string[] = [];
+                        if (numScanning > 0) {
+                            statusText.push(\`[it] \${numScanning} scanning\`);
+                        }
+                        if (numPending > 0) {
+                            statusText.push(\`[it] \${numPending} pending\`);
+                        }
+                        return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
+                    },
+                    unrealisticallyComplex: (numScanning: number, numPending: number) =>
+                        \`[it] \${(() => {
                             const statusText: string[] = [];
                             if (numScanning > 0) {
                                 statusText.push(\`[it] \${numScanning} scanning\`);
@@ -197,20 +208,102 @@ describe('generateTranslations', () => {
                                 statusText.push(\`[it] \${numPending} pending\`);
                             }
                             return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
-                        },
-                        unrealisticallyComplex: (numScanning: number, numPending: number) =>
-                            \`[it] \${(() => {
-                                const statusText: string[] = [];
-                                if (numScanning > 0) {
-                                    statusText.push(\`[it] \${numScanning} scanning\`);
-                                }
-                                if (numPending > 0) {
-                                    statusText.push(\`[it] \${numPending} pending\`);
-                                }
-                                return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
-                            })()} If someone really uses an IIFE in here, then we've got bigger problems.\`,
-                    };
-                    export default strings;
+                        })()} If someone really uses an IIFE in here, then we've got bigger problems.\`,
+                };
+                export default strings;
+            `),
+        );
+    });
+
+    it('Handles context annotations', async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            StringUtils.dedent(`
+                const strings = {
+                    // @context As in a financial institution
+                    bank: 'Bank',
+                    // @context As in a financial institution
+                    bankTemplate: \`Bank\`,
+
+                    // @context As in an aviation maneuver
+                    aviationBank: 'Bank',
+
+                    // This key has regular comments mixed with context-comments
+                    // eslint-disable-next-line max-len
+                    // @context foo
+                    foo: 'Foo',
+
+                    // What about if the context comment isn't the last comment?
+                    @context bar
+                    bar: 'Bar',
+
+                    some: {
+                        nested: {
+                            // @context Context for a nested string
+                            str: 'nested string',
+                            // @context for my template function
+                            func: ({destructuredArg}) => \`My template string contains a single \${destructuredArg} argument\`,
+                        }
+                    }
+
+                    // @context will be applied to both translations
+                    boolFunc: (flag: boolean) => flag ? 'ValueIfTrue' : 'ValueIfFalse',
+
+                    separateContextTernaries: (flag: boolean) => flag
+                        // @context only for value if true
+                        ? 'True with context'
+                        : 'False without context,
+
+                    // @context formal greeting, only provided to outermost template translation
+                    onlyInTopLevelOfTemplates: (name: string) => \`Salutations, \${name ?? 'my very good friend'}\`
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        expect(itContent).toStrictEqual(
+            StringUtils.dedent(`
+                const strings = {
+                    // @context As in a financial institution
+                    bank: '[it][ctx: As in a financial institution] Bank',
+                    // @context As in a financial institution
+                    bankTemplate: \`[it][ctx: As in a financial institution] Bank\`,
+
+                    // @context As in an aviation maneuver
+                    aviationBank: '[it][ctx: As in an aviation maneuver] Bank',
+
+                    // This key has regular comments mixed with context-comments
+                    // eslint-disable-next-line max-len
+                    // @context foo
+                    foo: '[it][ctx: foo] Foo',
+
+                    // What about if the context comment isn't the last comment?
+                    @context bar
+                    bar: '[it][ctx: bar] Bar',
+
+                    some: {
+                        nested: {
+                            // @context nested
+                            str: '[it][ctx: nested] nested string',
+                            // @context for my template function
+                            func: ({destructuredArg}) => \`[it][ctx: for my template function] My template string contains a single \${destructuredArg} argument\`,
+                        }
+                    }
+
+                    // @context will be applied to both translations
+                    boolFunc: (flag: boolean) => flag ? '[it][ctx: will be applied to both translations] ValueIfTrue' : '[it][ctx: will be applied to both translations] ValueIfFalse',
+
+                    separateContextTernaries: (flag: boolean) => flag
+                        // @context only for value if true
+                        ? '[it][ctx: only for value if true] True with context'
+                        : 'False without context,
+
+                    // @context formal greeting, only provided to outermost template translation
+                    onlyInTopLevelOfTemplates: (name: string) => \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? 'my very good friend'}\`
+                };
+                export default strings;
             `),
         );
     });
