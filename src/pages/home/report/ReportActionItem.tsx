@@ -11,7 +11,6 @@ import {
     getIndicatedMissingPaymentMethod,
     getOriginalReportID,
     getReimbursementDeQueuedOrCanceledActionMessage,
-    getReportAutomaticallyForwardedMessage,
     getTransactionsWithReceipts,
     isArchivedNonExpenseReportWithID,
     isChatThread,
@@ -33,7 +32,12 @@ import type {ReportAction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-function ReportActionItem({action, report, ...props}: PureReportActionItemProps) {
+type ReportActionItemProps = PureReportActionItemProps & {
+    /** Whether to show the draft message or not */
+    shouldShowDraftMessage?: boolean;
+};
+
+function ReportActionItem({action, report, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
@@ -42,6 +46,9 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         canBeMissing: true,
         selector: (draftMessagesForReport) => {
+            if (!shouldShowDraftMessage) {
+                return undefined;
+            }
             const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
             return typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
         },
@@ -102,7 +109,6 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
-            reportAutomaticallyForwardedMessage={getReportAutomaticallyForwardedMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportID)}
         />
     );
 }

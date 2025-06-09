@@ -71,7 +71,7 @@ describe('getSecondaryAction', () => {
             transactionID: TRANSACTION_ID,
         } as unknown as Transaction;
 
-        const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, undefined, undefined, true, true, true);
+        const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, undefined, undefined, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
 
@@ -89,6 +89,27 @@ describe('getSecondaryAction', () => {
             harvesting: {
                 enabled: true,
             },
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions(report, [], {}, policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('includes SUBMIT option for admin', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        } as unknown as Report;
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
@@ -320,7 +341,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -351,7 +372,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -384,7 +405,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -430,7 +451,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, oldPolicy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, oldPolicy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -476,7 +497,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: APPROVER_EMAIL, accountID: APPROVER_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -524,7 +545,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
