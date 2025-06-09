@@ -82,7 +82,6 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FormattedMaxLengthParams,
-    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
@@ -111,6 +110,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    MovedFromReportParams,
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
@@ -246,6 +246,7 @@ import type {TranslationDeepObject} from './types';
 /* eslint-disable max-len */
 const translations = {
     common: {
+        count: 'Contar',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
         yes: 'Sí',
@@ -884,6 +885,7 @@ const translations = {
             return added > 1 ? `Se han agregado ${added} miembros` : 'Se ha agregado 1 miembro.';
         },
         importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
+        importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfulDescriptionParams) =>
             rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.',
         importSuccessfulTitle: 'Importar categorías',
@@ -913,6 +915,7 @@ const translations = {
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
         flash: 'flash',
+        multiScan: 'escaneo múltiple',
         shutter: 'obturador',
         gallery: 'galería',
         deleteReceipt: 'Eliminar recibo',
@@ -976,7 +979,8 @@ const translations = {
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto a ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : '[eliminado]'}`,
+        movedFromReport: ({reportName}: MovedFromReportParams) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'movió este gasto a tu espacio personal',
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
@@ -1073,9 +1077,8 @@ const translations = {
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         approvedMessage: `aprobado`,
         unapproved: `no aprobado`,
-        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
-            `aprobó ${amount} mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
-        forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
+        automaticallyForwarded: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
+        forwarded: `aprobó`,
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago`,
@@ -1513,7 +1516,7 @@ const translations = {
             beforeFirstEmail: 'No puedes fusionar ',
             beforeDomain: ' porque está controlado por ',
             afterDomain: '. Póngase ',
-            linkText: 'en contacto con Conserjería',
+            linkText: 'en contacto con Concierge',
             afterLink: ' si necesita ayuda.',
         },
         mergeFailureSAMLAccount: {
@@ -1531,7 +1534,7 @@ const translations = {
         mergeFailureAccountLocked: {
             beforeEmail: 'No puedes fusionar ',
             afterEmail: ' porque está bloqueado. Póngase ',
-            linkText: 'en contacto con Conserjería',
+            linkText: 'en contacto con Concierge',
             afterLink: ` si necesita ayuda.`,
         },
         mergeFailureUncreatedAccount: {
@@ -1564,6 +1567,27 @@ const translations = {
             description: 'No puedes combinar una cuenta consigo misma.',
         },
         mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
+    },
+    lockAccountPage: {
+        lockAccount: 'Bloquear cuenta',
+        unlockAccount: 'Desbloquear cuenta',
+        compromisedDescription:
+            'Si sospechas que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar nuevas transacciones con la Tarjeta Expensify y bloquear cambios no deseados en la cuenta.',
+        domainAdminsDescriptionPartOne: 'Para los administradores de dominio, ',
+        domainAdminsDescriptionPartTwo: 'esta acción detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas ',
+        domainAdminsDescriptionPartThree: 'en todos tus dominios.',
+        warning: `Una vez que tu cuenta esté bloqueada, nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberás trabajar con Concierge para asegurar tu cuenta.`,
+    },
+    failedToLockAccountPage: {
+        failedToLockAccount: 'No se pudo bloquear la cuenta',
+        failedToLockAccountDescription: 'No pudimos bloquear tu cuenta. Por favor, chatea con Concierge para resolver este problema.',
+        chatWithConcierge: 'Chatear con Concierge',
+    },
+    unlockAccountPage: {
+        accountLocked: 'Cuenta bloqueada',
+        yourAccountIsLocked: 'Tu cuenta está bloqueada',
+        chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad y desbloquear tu cuenta.',
+        chatWithConcierge: 'Chatear con Concierge',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
@@ -1878,7 +1902,7 @@ const translations = {
         error: {
             thatDidNotMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
             throttled:
-                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Conserjería para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
+                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Concierge para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
         },
     },
     getPhysicalCard: {
@@ -3935,6 +3959,8 @@ const translations = {
             assignedCard: ({assignee, link}: AssignedCardParams) => `ha asignado a ${assignee} una ${link}! Las transacciones importadas aparecerán en este chat.`,
             companyCard: 'tarjeta de empresa',
             chooseCardFeed: 'Elige feed de tarjetas',
+            ukRegulation:
+                'Expensify Limited es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -4282,6 +4308,9 @@ const translations = {
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
+                subtitle1: 'Importa una hoja de cálculo para añadir etiquetas y organizar proyectos, ubicaciones, departamentos y más.',
+                subtitle2: ' Obtén más información',
+                subtitle3: ' sobre cómo dar formato a los archivos de etiquetas.',
             },
             deleteTag: 'Eliminar etiqueta',
             deleteTags: 'Eliminar etiquetas',
@@ -4298,6 +4327,28 @@ const translations = {
             tagRules: 'Reglas de etiquetas',
             approverDescription: 'Aprobador',
             importTags: 'Importar categorías',
+            importTagsSupportingText: 'Clasifica tus gastos con un tipo de etiqueta o con varios.',
+            configureMultiLevelTags: 'Configura etiquetas multinivel',
+            importMultiLevelTagsSupportingText: `Aquí tienes una vista previa de tus etiquetas. Si todo se ve bien, haz clic abajo para importarlas.`,
+            importMultiLevelTags: {
+                firstRowTitle: 'La primera fila es el título de cada lista de etiquetas',
+                independentTags: 'Estas son etiquetas independientes',
+                glAdjacentColumn: 'Hay un código GL en la columna adyacente',
+            },
+            tagLevel: {
+                singleLevel: 'Nivel único de etiquetas',
+                multiLevel: 'Etiquetas multinivel',
+            },
+            switchSingleToMultiLevelTagWarning: {
+                title: 'Cambiar niveles de etiquetas',
+                prompt1: 'Cambiar el nivel de etiquetas eliminará todas las etiquetas actuales.',
+                prompt2: ' Te recomendamos primero',
+                prompt3: ' descargar una copia de seguridad',
+                prompt4: ' exportando tus etiquetas.',
+                prompt5: ' Aprende más',
+                prompt6: ' sobre los niveles de etiquetas.',
+            },
+
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
             cannotDeleteOrDisableAllTags: {
@@ -4308,6 +4359,10 @@ const translations = {
                 title: 'No se pueden hacer opcionales todas las etiquetas',
                 description: `Debe haber al menos una etiqueta obligatoria porque la configuración de tu espacio de trabajo requiere etiquetas.`,
             },
+            tagCount: () => ({
+                one: '1 etiqueta',
+                other: (count: number) => `${count} etiquetas`,
+            }),
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -4850,7 +4905,7 @@ const translations = {
             successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
             errorTitle: '¡Ups! No tan rapido...',
             errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
-            errorDescriptionPartTwo: 'contacta con el conserje',
+            errorDescriptionPartTwo: 'contacta con Concierge',
             errorDescriptionPartThree: 'por ayuda.',
         },
 
@@ -4947,6 +5002,12 @@ const translations = {
                 description:
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: 'Los viajes están disponibles en el plan Recopilar, a partir de ',
+            },
+            multiLevelTags: {
+                title: 'Etiquetas multinivel',
+                description:
+                    'Las etiquetas multinivel te ayudan a llevar un control más preciso de los gastos. Asigna múltiples etiquetas a cada partida, como departamento, cliente o centro de costos, para capturar el contexto completo de cada gasto. Esto permite informes más detallados, flujos de aprobación y exportaciones contables.',
+                onlyAvailableOnPlan: 'Las etiquetas multinivel solo están disponibles en el plan Control, a partir de ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
@@ -5060,11 +5121,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
                 prohibitedExpenses: 'Gastos prohibidos',
-                alcohol: 'alcohol',
-                hotelIncidentals: 'gastos adicionales de hotel',
-                gambling: 'juegos de apuestas',
-                tobacco: 'tabaco',
-                adultEntertainment: 'entretenimiento para adultos',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Gastos adicionales de hotel',
+                gambling: 'Juegos de apuestas',
+                tobacco: 'Tabaco',
+                adultEntertainment: 'Entretenimiento para adultos',
             },
             expenseReportRules: {
                 examples: 'Ejemplos:',
@@ -5144,6 +5205,8 @@ const translations = {
         scheduleACall: 'Programar llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
+        registerForWebinar: 'Registrarse para el seminario web',
+        onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
@@ -5577,7 +5640,7 @@ const translations = {
                     manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
                     automaticActionThree: 'y creó un registro con éxito para',
                     reimburseableLink: 'Exportar gastos por cuenta propia como',
-                    nonReimbursableLink: 'gastos de la tarjeta de empresa.',
+                    nonReimbursableLink: 'gastos de la tarjeta de empresa',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
                 integrationsMessage: ({label, errorMessage, linkText, linkURL}: IntegrationSyncFailedParams) =>
@@ -6402,7 +6465,7 @@ const translations = {
         keepThisOne: 'Mantener éste',
         confirmDetails: 'Confirma los detalles que conservas',
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
-        hold: 'Retenido',
+        hold: 'Este gasto está retenido',
         resolvedDuplicates: 'resolvió el duplicado',
     },
     reportViolations: {

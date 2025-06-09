@@ -34,7 +34,7 @@ type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
 };
 
 function ModalComponent({type, ...props}: ModalComponentProps) {
-    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && props.id !== 'FeatureTrainingModal') {
+    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <BottomDockedModal {...(props as ModalProps)} />;
     }
@@ -82,7 +82,6 @@ function BaseModal(
         shouldPreventScrollOnFocus = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-        id,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -212,8 +211,9 @@ function BaseModal(
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
+                shouldUseModalPaddingStyle,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle],
     );
 
     const modalPaddingStyles = useMemo(() => {
@@ -308,7 +308,6 @@ function BaseModal(
                         avoidKeyboard={avoidKeyboard}
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
-                        id={id}
                     >
                         <ModalContent
                             onModalWillShow={saveFocusState}
