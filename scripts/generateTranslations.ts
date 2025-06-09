@@ -35,7 +35,7 @@ type StringWithContext = {
  *  - It also formats the files using prettier.
  */
 class TranslationGenerator {
-    private static readonly CONTEXT_REGEX = /@context\s+([^*/\n]+)/;
+    private static readonly CONTEXT_REGEX = /^\s*(?:\/{2}|\*|\/\*)?\s*@context\s+([^\n*\/]+)/;
 
     /**
      * The languages to generate translations for.

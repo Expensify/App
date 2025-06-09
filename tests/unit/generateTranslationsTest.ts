@@ -245,7 +245,8 @@ describe('generateTranslations', () => {
                     boolFunc: (flag: boolean) => flag ? 'ValueIfTrue' : 'ValueIfFalse',
                     separateContextTernaries: ((flag: boolean) => flag ? /* @context only for true */ 'True with context' : 'False without context'),
                     // @context formal greeting, only provided to outermost template translation
-                    onlyInTopLevelOfTemplates: (name: string) => \`Salutations, \${name ?? /* @context inline context */ 'my very good friend'}\`,
+                    onlyInTopLevelOfTemplates: (name: string) =>
+                        \`Salutations, \${name ?? /* @context inline context */ 'my very good friend'}\`,
                 };
                 export default strings;
             `),
@@ -281,7 +282,8 @@ describe('generateTranslations', () => {
                     boolFunc: (flag: boolean) => (flag ? '[it][ctx: will be applied to both translations] ValueIfTrue' : '[it][ctx: will be applied to both translations] ValueIfFalse'),
                     separateContextTernaries: (flag: boolean) => (flag ? /* @context only for true */ '[it][ctx: only for true] True with context' : '[it] False without context'),
                     // @context formal greeting, only provided to outermost template translation
-                    onlyInTopLevelOfTemplates: (name: string) => \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? /* @context inline context */ '[it][ctx: inline context] my very good friend'}\`,
+                    onlyInTopLevelOfTemplates: (name: string) =>
+                        \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? /* @context inline context */ '[it][ctx: inline context] my very good friend'}\`,
                 };
                 export default strings;
             `),
