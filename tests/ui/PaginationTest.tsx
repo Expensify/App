@@ -91,7 +91,7 @@ function getReportActions(reportID?: string) {
 async function navigateToSidebarOption(reportID: string): Promise<void> {
     const optionRow = screen.getByTestId(reportID);
     fireEvent(optionRow, 'press');
-    await act(() => {
+    act(() => {
         (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
     });
     // ReportScreen relies on the onLayout event to receive updates from onyx.
@@ -335,7 +335,7 @@ describe('Pagination', () => {
 
         const link = screen.getByText('Link 1');
         fireEvent(link, 'press');
-        await act(() => {
+        act(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
         // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
