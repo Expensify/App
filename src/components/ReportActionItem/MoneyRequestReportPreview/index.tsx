@@ -50,7 +50,7 @@ function MoneyRequestReportPreview({
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
         canBeMissing: true,
     });
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const {transactions: reportTransactions, violations} = transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const policy = usePolicy(policyID);
     const transactions = useMemo(() => Object.values(reportTransactions ?? {}) ?? [], [reportTransactions]);

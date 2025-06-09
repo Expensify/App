@@ -73,7 +73,7 @@ function ReportActionItemParentAction({
     transactionsAndViolationsByReport,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
