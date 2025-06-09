@@ -40,9 +40,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
-    getIOUActionForReportID,
     getOneTransactionThreadReportID,
-    getReportAction,
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
@@ -50,15 +48,11 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
-    buildTransactionThread,
     canEditReportAction,
     canUserPerformWriteAction,
     findLastAccessedReport,
-    generateReportID,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
-    getReportOrDraftReport,
-    getReportTransactions,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -296,7 +290,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // The linked report actions should have at least 15 messages (counting as 1 page) above them to fill the screen.
     // If the count is too high (equal to or exceeds the web pagination size / 50) and there are no cached messages in the report,
-    // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
+    // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back.
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
     const [reportTransactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -305,7 +299,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -472,7 +465,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && transactionThreadReportID !== CONST.FAKE_REPORT_ID) {
+        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT) {
             return;
         }
 
@@ -480,41 +473,26 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
+        const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
+        const transactionID: string | undefined = route.params?.transactionID;
 
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (transactionID && currentUserEmail && !report) {
-            const iouReport = getReportOrDraftReport(iouReportID);
-            const iouAction = getReportAction(iouReportID, moneyRequestReportActionID);
-            const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportIDFromRoute);
-            openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
+        if (transactionID && currentUserEmail) {
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
             return;
         }
-
-        // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && parentReportAction?.childMoneyRequestCount === 1 && currentUserEmail) {
-            const optimisticTransactionThreadReportID = generateReportID();
-            const transactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            const oneTransactionID = transactions.at(0)?.transactionID;
-            const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-            const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
-            openReport(optimisticTransactionThreadReportID, undefined, [currentUserEmail], optimisticTransactionThread, iouAction?.reportActionID);
-        }
-
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
-        parentReportAction?.childMoneyRequestCount,
         reportMetadata.isOptimisticReport,
+        report?.type,
+        report?.errorFields?.notFound,
         isOffline,
-        route.params,
+        route.params?.moneyRequestReportActionID,
+        route.params?.transactionID,
         currentUserEmail,
         reportIDFromRoute,
         reportActionIDFromRoute,
-        report,
-        reportID,
-        transactionThreadReport,
-        transactionThreadReportID,
     ]);
 
     useEffect(() => {
@@ -581,7 +559,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // There should be only one openReport execution per page start or navigating
         fetchReport();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute, transactionThreadReportID]);
+    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
@@ -654,14 +632,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 if (isMoneyRequestReportPendingDeletion(prevReport.parentReportID)) {
                     return;
                 }
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                Navigation.isNavigationReady().then(() => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                });
                 return;
             }
 
             Navigation.isNavigationReady().then(() => {
-                InteractionManager.runAfterInteractions(() => {
-                    navigateToConciergeChat();
-                });
+                navigateToConciergeChat();
             });
             return;
         }
@@ -787,7 +765,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
     return (
         <ActionListContext.Provider value={actionListValue}>
