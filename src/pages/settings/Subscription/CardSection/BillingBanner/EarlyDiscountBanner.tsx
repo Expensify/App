@@ -140,7 +140,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
                         discountType: discountInfo?.discountType,
                     }),
                 }}
-                baseStyle={[styles.textStrong, styles.flexShrink1]}
+                baseStyle={{...styles.textStrong, ...styles.flexShrink1}}
             />
             {shouldUseNarrowLayout && dismissButton}
         </View>
