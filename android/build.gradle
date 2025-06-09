@@ -79,7 +79,7 @@ allprojects {
         }
         if (!patchedArtifactsConfig.buildFromSource) {
             maven {
-                url "https://example.com/"
+                url getProperty('patchedArtifacts.mavenRepositoryUrl')
                 // We don't want gradle to search for other artifacts in our patched artifacts repository
                 content {
                     includeGroup("com.expensify.react-standalone")

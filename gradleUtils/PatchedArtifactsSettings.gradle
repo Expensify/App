@@ -29,7 +29,7 @@ def getReactNativeVersion() {
 
 def getArtifactsCandidates(packageName) {
     def mavenMetadata= new XmlSlurper().parse(
-        new URL("https://example.com/com/expensify/${packageName}/react-android/maven-metadata.xml").openConnection().with {
+        new URL("${getProperty('patchedArtifacts.mavenRepositoryUrl')}/com/expensify/${packageName}/react-android/maven-metadata.xml").openConnection().with {
             getInputStream()
         }
     )
@@ -40,7 +40,7 @@ def getArtifactsCandidates(packageName) {
 
 def getPomFile(version, packageName) {
     return new XmlSlurper().parse(
-        new URL("https://example.com/com/expensify/${packageName}/react-android/${version}/react-android-${version}.pom").openConnection().with {
+        new URL("${getProperty('patchedArtifacts.mavenRepositoryUrl')}/com/expensify/${packageName}/react-android/${version}/react-android-${version}.pom").openConnection().with {
             getInputStream()
         }
     )
