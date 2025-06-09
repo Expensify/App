@@ -536,21 +536,23 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         }
         return Object.values(reportActions).some((action) => isConciergeCategoryOptions(action));
     }, [reportActions]);
+    console.log('*** hasConciergeCategoryOptionsAction', hasConciergeCategoryOptionsAction);
 
     // Show "Analyzing..." when transaction doesn't have a category or there's no CONCIERGE_CATEGORY_OPTIONS action
     const shouldShowCategoryAnalyzing = useMemo(() => {
         const categoryValue = updatedTransaction?.category ?? transactionCategory;
         const isUncategorized = !categoryValue || categoryValue === 'uncategorized' || categoryValue === 'Uncategorized';
-        
+
         // Don't show analyzing text for partial transactions (merchant is empty and amount is zero)
         const isPartialTransaction = isEmptyMerchant && transactionAmount === 0;
         if (isPartialTransaction) {
             return false;
         }
-        
-        return isUncategorized || !hasConciergeCategoryOptionsAction;
+
+        return isUncategorized && !hasConciergeCategoryOptionsAction;
     }, [updatedTransaction?.category, transactionCategory, hasConciergeCategoryOptionsAction, isEmptyMerchant, transactionAmount]);
 
+    console.log('*** shouldShowCategoryAnalyzing', shouldShowCategoryAnalyzing);
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
