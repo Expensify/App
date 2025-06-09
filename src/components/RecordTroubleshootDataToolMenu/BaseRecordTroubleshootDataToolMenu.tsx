@@ -85,6 +85,7 @@ function BaseRecordTroubleshootDataToolMenu({
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: true});
     const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
     const [shareUrls, setShareUrls] = useState<string[]>();
+    const [isDisabled, setIsDisabled] = useState<boolean>(false);
 
     const onToggleProfiling = useCallback(() => {
         const shouldProfiling = !isProfilingInProgress;
@@ -129,6 +130,8 @@ function BaseRecordTroubleshootDataToolMenu({
             return;
         }
 
+        setIsDisabled(true);
+
         if (!capturedLogs) {
             Alert.alert(translate('initialSettingsPage.troubleshoot.noLogsToShare'));
             Console.disableLoggingAndFlushLogs();
@@ -147,6 +150,7 @@ function BaseRecordTroubleshootDataToolMenu({
                 Console.disableLoggingAndFlushLogs();
                 Troubleshoot.setShouldRecordTroubleshootData(false);
                 // onDisableSwitch();
+                setIsDisabled(false);
             });
         });
     };
@@ -209,6 +213,7 @@ function BaseRecordTroubleshootDataToolMenu({
                     accessibilityLabel={translate('initialSettingsPage.troubleshoot.recordTroubleshootData')}
                     isOn={!!shouldRecordTroubleshootData}
                     onToggle={onToggle}
+                    disabled={isDisabled}
                 />
             </TestToolRow>
             {(shareUrls?.length ?? 0) > 0 && showShareButton && (
