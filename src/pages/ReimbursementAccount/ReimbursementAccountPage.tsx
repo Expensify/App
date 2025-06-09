@@ -383,9 +383,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const userHasPhonePrimaryEmail = Str.endsWith(session?.email ?? '', CONST.SMS.DOMAIN);
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
-    const route1 = backTo ? ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo) : ROUTES.HOME;
-    console.log(route1);
-
     if (userHasPhonePrimaryEmail) {
         errorText = (
             <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}>
