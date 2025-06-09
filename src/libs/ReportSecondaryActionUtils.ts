@@ -122,7 +122,9 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-    if (!isReportSubmitter && !isReportApprover) {
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = report.managerID === getCurrentUserAccountID();
+    if (!isReportSubmitter && !isReportApprover && !isAdmin && !isManager) {
         return false;
     }
 
@@ -141,8 +143,6 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = report.managerID === getCurrentUserAccountID();
     if (isAdmin || isManager) {
         return true;
     }
