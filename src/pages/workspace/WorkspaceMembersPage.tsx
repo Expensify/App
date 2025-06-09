@@ -257,7 +257,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         clearInviteDraft(route.params.policyID);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
-    }, [route.params.policyID]);
+    }, [route.params.policyID, isAccountLocked]);
 
     /**
      * Remove selected users from the workspace

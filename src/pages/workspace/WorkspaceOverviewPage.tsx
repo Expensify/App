@@ -398,9 +398,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <Button
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
-                                    onPress={() => {
-                                        isAccountLocked ? setIsLockedAccountModalOpen(true) : onPressShare();
-                                    }}
+                                    onPress={() => (isAccountLocked ? setIsLockedAccountModalOpen(true) : onPressShare())}
                                     icon={QrCode}
                                 />
                                 {isOwner && (

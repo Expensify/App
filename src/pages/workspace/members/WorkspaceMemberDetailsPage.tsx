@@ -254,7 +254,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             policyID,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    }, [accountID, hasMultipleFeeds, memberLogin, policyID]);
+    }, [accountID, hasMultipleFeeds, memberLogin, policyID, isAccountLocked]);
 
     const openRoleSelectionModal = useCallback(() => {
         setIsRoleSelectionModalVisible(true);
@@ -331,9 +331,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             ) : (
                                 <Button
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
-                                    onPress={() => {
-                                        isAccountLocked ? setIsLockedAccountModalOpen(true) : askForConfirmationToRemove();
-                                    }}
+                                    onPress={() => (isAccountLocked ? setIsLockedAccountModalOpen(true) : askForConfirmationToRemove())}
                                     isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                     icon={Expensicons.RemoveMembers}
                                     style={styles.mb5}

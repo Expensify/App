@@ -80,6 +80,7 @@ function SecuritySettingsPage() {
     });
     const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: false});
     const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -89,10 +90,6 @@ function SecuritySettingsPage() {
 
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
-
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
-    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
