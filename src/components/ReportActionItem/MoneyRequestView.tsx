@@ -536,7 +536,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         }
         return Object.values(reportActions).some((action) => isConciergeCategoryOptions(action));
     }, [reportActions]);
-    console.log('*** hasConciergeCategoryOptionsAction', hasConciergeCategoryOptionsAction);
 
     // Show "Analyzing..." when transaction doesn't have a category or there's no CONCIERGE_CATEGORY_OPTIONS action
     const shouldShowCategoryAnalyzing = useMemo(() => {
@@ -552,7 +551,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         return isUncategorized && !hasConciergeCategoryOptionsAction;
     }, [updatedTransaction?.category, transactionCategory, hasConciergeCategoryOptionsAction, isEmptyMerchant, transactionAmount]);
 
-    console.log('*** shouldShowCategoryAnalyzing', shouldShowCategoryAnalyzing);
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
