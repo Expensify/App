@@ -83,12 +83,8 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
             const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
-
-            await act(async () => {
-                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-            });
-            return waitForBatchedUpdatesWithAct();
         })
+        .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
             subscribeToUserEvents();
             return waitForBatchedUpdates();
