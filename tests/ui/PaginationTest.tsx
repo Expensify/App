@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
-import { addSeconds, format, subMinutes } from 'date-fns';
+import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import { translateLocal } from '@libs/Localize';
-import { waitForIdle } from '@libs/Network/SequentialQueue';
-import { setSidebarLoaded } from '@userActions/App';
-import { subscribeToUserEvents } from '@userActions/User';
+import {translateLocal} from '@libs/Localize';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
+import {setSidebarLoaded} from '@userActions/App';
+import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { ReportAction } from '@src/types/onyx';
-import type { NativeNavigationMock } from '../../__mocks__/@react-navigation/native';
+import type {ReportAction} from '@src/types/onyx';
+import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(60000);
