@@ -265,4 +265,5 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
+    LockAccountDetails,
 };

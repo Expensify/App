@@ -173,7 +173,6 @@ export type {default as SubmitReportParams} from './SubmitReportParams';
 export type {default as DetachReceiptParams} from './DetachReceiptParams';
 export type {default as PayMoneyRequestParams} from './PayMoneyRequestParams';
 export type {default as HoldMoneyRequestParams} from './HoldMoneyRequestParams';
-export type {default as BulkHoldRequestParams} from './BulkHoldRequestParams';
 export type {default as UnHoldMoneyRequestParams} from './UnHoldMoneyRequestParams';
 export type {default as CancelPaymentParams} from './CancelPaymentParams';
 export type {default as AcceptACHContractForBankAccount} from './AcceptACHContractForBankAccount';
@@ -393,6 +392,7 @@ export type {default as SaveCorpayOnboardingDirectorInformationParams} from './S
 export type {default as MoveIOUReportToPolicyAndInviteSubmitterParams} from './MoveIOUReportToPolicyAndInviteSubmitterParams';
 export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOUReportToExistingPolicyParams';
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
+export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './ChangeReportPolicyAndInviteSubmitterParams';
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
 export type {default as SendRecapInAdminsRoomParams} from './SendRecapInAdminsRoomParams';
@@ -403,6 +403,7 @@ export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenPara
 export type {default as RetractReportParams} from './RetractReportParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
+export type {default as LockAccountParams} from './LockAccountParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
