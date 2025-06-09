@@ -24,7 +24,7 @@ To connect QuickBooks Desktop to Expensify, you must log in as an Admin in Quick
 7. Click **Copy** to copy the link, then paste the link into the computer that runs QuickBooks Desktop  
 8. Select your QuickBooks Desktop version  
 
-    ![QuickBooks Desktop version selection](https://help.expensify.com/assets/images/QBO_desktop_02.png){:width="100%"}
+![QuickBooks Desktop version selection](https://help.expensify.com/assets/images/QBO_desktop_02.png){:width="100%"}
 
 ---
 
@@ -34,7 +34,7 @@ To connect QuickBooks Desktop to Expensify, you must log in as an Admin in Quick
 2. Open the Web Connector  
 3. When prompted, download the config file and open it using File Explorer. This will automatically load the application into the Web Connector  
 
-Make sure the correct company file is open in QuickBooks Desktop and that it’s the only one open.
+**Note:** Make sure the correct company file is open in QuickBooks Desktop and that it’s the only one open.
 
 ---
 
@@ -46,8 +46,7 @@ Make sure the correct company file is open in QuickBooks Desktop and that it’s
 4. Paste the password into the **Password** field in the Web Connector and press **Enter**  
 5. Click **Yes** to save the password. The new connection will appear in the Web Connector. Save this password in a secure password manager. You'll need it for future configuration updates or troubleshooting.
 
-
-    ![Save Web Connector password](https://help.expensify.com/assets/images/QBO_desktop_07.png){:width="100%"}
+![Save Web Connector password](https://help.expensify.com/assets/images/QBO_desktop_07.png){:width="100%"}
 
 ---
 
