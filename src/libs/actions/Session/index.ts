@@ -245,7 +245,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     const accountID = session.accountID;
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
-    showSigningOutPage();
+    if (!isTransitioning) {
+        showSigningOutPage();
+    }
 
     if (isAnonymousUser()) {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
