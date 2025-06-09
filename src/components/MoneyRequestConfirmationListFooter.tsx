@@ -296,12 +296,7 @@ function MoneyRequestConfirmationListFooter({
         reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
     }
 
-    const availableOutstandingReports = getOutstandingReportsForUser(
-        policyID,
-        selectedParticipants?.at(0)?.ownerAccountID,
-        allReports,
-        reportNameValuePairs,
-    );
+    const availableOutstandingReports = getOutstandingReportsForUser(policyID, selectedParticipants?.at(0)?.ownerAccountID, allReports, reportNameValuePairs);
     const shouldReportBeEditable = availableOutstandingReports.length > 1;
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
