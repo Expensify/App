@@ -66,7 +66,7 @@ class TranslationGenerator {
             const translations = new Map<number, string>();
             const translationPromises = [];
             for (const [key, value] of stringsToTranslate) {
-                const translationPromise = promisePool.add(() => this.translator.translate(value, targetLanguage).then((result) => translations.set(key, result)));
+                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, value).then((result) => translations.set(key, result)));
                 translationPromises.push(translationPromise);
             }
             await Promise.allSettled(translationPromises);

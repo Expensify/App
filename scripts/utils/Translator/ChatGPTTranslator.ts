@@ -14,7 +14,7 @@ class ChatGPTTranslator extends Translator {
         });
     }
 
-    protected async performTranslation(text: string, targetLang: string): Promise<string> {
+    protected async performTranslation(targetLang: string, text: string): Promise<string> {
         try {
             const response = await this.openai.chat.completions.create({
                 model: 'gpt-4',
