@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
-import type {CustomRendererProps} from 'react-native-render-html';
+import type {CustomRendererProps, TNode} from 'react-native-render-html';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -28,7 +28,6 @@ function RequestEarlyCancellationPage() {
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
-    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -74,8 +73,10 @@ function RequestEarlyCancellationPage() {
         [styles, translate],
     );
 
-    const automaticCancellationContent = useMemo(
-        () => (
+    const automaticCancellationContent = useMemo(() => {
+        const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
+
+        return (
             <View style={[styles.flexGrow1, styles.justifyContentBetween, styles.mh5]}>
                 <View>
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.title')}</Text>
@@ -92,9 +93,13 @@ function RequestEarlyCancellationPage() {
                             p: {...styles.textNormalThemeText},
                         }}
                         renderers={{
-                            a: ({TDefaultRenderer, ...props}: CustomRendererProps<any>) => (
+                            a: ({TDefaultRenderer, ...props}: CustomRendererProps<TNode>) => (
                                 <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.route)}>
-                                    <TDefaultRenderer {...props} />
+                                    <TDefaultRenderer
+                                        /* eslint-disable-next-line react/jsx-props-no-spreading */
+                                        {...props}
+                                        /* eslint-enable react/jsx-props-no-spreading */
+                                    />
                                 </TextLink>
                             ),
                         }}
@@ -109,10 +114,8 @@ function RequestEarlyCancellationPage() {
                     />
                 </FixedFooter>
             </View>
-        ),
-        [styles, translate],
-    );
-
+        );
+    }, [styles, translate, windowWidth]);
     const surveyContent = useMemo(
         () => (
             <FeedbackSurvey
