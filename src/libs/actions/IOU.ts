@@ -11592,11 +11592,13 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const originalTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
+    // List of all child transactions that have been removed from the split list but still require deletion in onyx data
     let undeletedTransactions = Object.values(allTransactions).filter((currentTransaction) => {
         const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         return currentTransaction?.comment?.originalTransactionID === originalTransactionID && !!currentReport && currentReport?.stateNum !== CONST.REPORT.STATUS_NUM.CLOSED;
     });
 
+    // A value that prevents API call from being called if there are no updates in the split item
     let canBeClosedWithoutUpdates = true;
 
     const policy = getPolicy(expenseReport?.policyID);
@@ -11604,6 +11606,8 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+
+    const isReverseSplitOperation = splitExpenses.length === 1;
     let totalAmount = 0;
 
     const splits: SplitTransactionSplitsParam =
@@ -11628,6 +11632,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const optimisticData = [] as OnyxUpdate[];
 
     splitExpenses.forEach((splitExpense, index) => {
+        const existingTransactionID = splitExpense.transactionID;
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense.transactionID}`];
         const splitReportActions = getAllReportActions(splitTransaction?.reportID);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
@@ -11666,8 +11671,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         const parsedComment = getParsedComment(transactionParams.comment ?? '');
         transactionParams.comment = parsedComment;
 
-        const existingTransactionID = splitExpense.transactionID;
-
         const {transactionThreadReportID, createdReportActionIDForThread, onyxData, iouAction} = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
@@ -11680,6 +11683,9 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
+
+        // In case of already created split transactions we have to update fields change messages
+        // In case of new transactions we will simply ignore this
         if (splitTransaction) {
             undeletedTransactions = undeletedTransactions.filter((undeletedTransaction) => undeletedTransaction?.transactionID !== splitTransaction.transactionID);
             const currentSplit = splits.at(index);
@@ -11730,6 +11736,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         failureData.push(...(onyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
     });
 
+    // All transactions that were deleted in the split list will be marked as deleted in onyx
     undeletedTransactions.forEach((undeletedTransaction) => {
         canBeClosedWithoutUpdates = false;
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
@@ -11750,6 +11757,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         failureData.push(...(deleteExpenseFailureData ?? []));
     });
 
+    // Called if there are no updates in the split item
     if (canBeClosedWithoutUpdates) {
         InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
         Navigation.dismissModal();
@@ -11763,6 +11771,12 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             ...originalTransaction,
             reportID: CONST.REPORT.SPLIT_REPORT_ID,
         },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+        value: originalTransaction,
     });
 
     // TODO: will be removed after BE updates
@@ -11795,12 +11809,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             },
         });
     }
-
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
-        value: originalTransaction,
-    });
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -11837,7 +11845,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const parameters: SplitTransactionParams = {
         ...splitApiParams,
-        isReverseSplitOperation: false,
+        isReverseSplitOperation,
         transactionID: originalTransactionID,
     };
 
