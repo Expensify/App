@@ -11,6 +11,8 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import useParentReport from '@hooks/useParentReport';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openExternalLink, openLink} from '@libs/actions/Link';
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -36,8 +38,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
-    const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const parentReport = useParentReport(report?.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const styles = useThemeStyles();
     const htmlAttribs = tnode.attributes;

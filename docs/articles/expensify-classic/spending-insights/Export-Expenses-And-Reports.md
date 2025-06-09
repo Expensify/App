@@ -127,7 +127,8 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | Expenses Count | Is the number of total expenses on the report of this specific expense.|
 | {report:expensescount} | Would output 10 assuming that there were 10 expenses on the given report for this expense.|
 | Workspace Name | Is the name of the workspace applied to the report.|
-| {report:policyname} | Would output Sales assuming that the given report was under a workspace named Sales.|
+| {report:workspaceName} | Would output Sales assuming that the given report was under a workspace named Sales.|
+| {report:policyName} | Same as the workspace name. Policy is an older term for workspace.|
 | Status | Is the current state of the report when it was exported.|
 | {report:status} | Would output Approved assuming that the report has been approved and not yet reimbursed.|
 | Custom Fields | |

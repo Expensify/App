@@ -6,10 +6,12 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
-import initializeLastVisitedPath from './initializeLastVisitedPath';
 import platformSetup from './platformSetup';
+import telemetry from './telemetry';
 
 export default function () {
+    telemetry();
+
     /*
      * Initialize the Onyx store when the app loads for the first time.
      *
@@ -46,8 +48,6 @@ export default function () {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
             },
-            // Always open the home route on app startup for native platforms by clearing the lastVisitedPath
-            [ONYXKEYS.LAST_VISITED_PATH]: initializeLastVisitedPath(),
             [ONYXKEYS.TALK_TO_AI_SALES]: {isLoading: false, isTalkingToAISales: false},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
