@@ -24,12 +24,19 @@ function TestDriveDemo() {
     const styles = useThemeStyles();
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
             setIsVisible(true);
-            completeTestDriveTask();
+            completeTestDriveTask(viewTourReport, viewTourReportID);
         });
+
+        // This should fire only during mount.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const closeModal = useCallback(() => {
