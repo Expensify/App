@@ -451,7 +451,7 @@ function MoneyReportHeader({
             reportActions,
             isChatReportArchived,
         });
-    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions, isChatReportArchived]);
+    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions, isChatReportArchived, chatReport]);
 
     const confirmExport = useCallback(() => {
         setExportModalStatus(null);
@@ -655,7 +655,7 @@ function MoneyReportHeader({
             isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
             isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
         );
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, chatReport]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,

@@ -65,7 +65,7 @@ import {
     isTransactionThread,
     shouldReportActionBeVisibleAsLastAction,
 } from './ReportActionsUtils';
-import {OptionData} from './ReportUtils';
+import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     formatReportLastMessageText,

@@ -336,13 +336,13 @@ describe('getPrimaryAction', () => {
 
     it('should return an empty string for invoice report when the chat report is archived', async () => {
         // Given the invoice data
-        const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+        const {policy, convertedInvoiceChat: invoiceChatReport}: InvoiceTestData = InvoiceData;
         const report = {
             type: CONST.REPORT.TYPE.INVOICE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            chatReportID: chatReport.chatReportID,
+            chatReportID: invoiceChatReport.chatReportID,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
@@ -358,9 +358,16 @@ describe('getPrimaryAction', () => {
         const {result: isChatReportArchived} = renderHook(() => useReportIsArchived(report?.chatReportID));
 
         // Then the getReportPrimaryAction should return the empty string
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         expect(
-            getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: isChatReportArchived.current}),
+            getReportPrimaryAction({
+                report,
+                chatReport: invoiceChatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                policy: policy as Policy,
+                isChatReportArchived: isChatReportArchived.current,
+            }),
         ).toBe('');
     });
 });

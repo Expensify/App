@@ -171,7 +171,7 @@ function BaseReportActionContextMenu({
 
     const transactionThreadReportID = useMemo(
         () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
-        [childReport?.reportID, paginatedReportActions, isOffline],
+        [paginatedReportActions, isOffline, childReport, childChatReport],
     );
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
