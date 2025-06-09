@@ -298,8 +298,8 @@ function MoneyRequestConfirmationListFooter({
 
     const availableOutstandingReports = getOutstandingReportsForUser(
         policyID,
-        selectedParticipants?.at(0)?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
-        allReports ?? {},
+        selectedParticipants?.at(0)?.ownerAccountID,
+        allReports,
         reportNameValuePairs,
     );
     const shouldReportBeEditable = availableOutstandingReports.length > 1;
