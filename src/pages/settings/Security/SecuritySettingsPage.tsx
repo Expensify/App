@@ -158,7 +158,18 @@ function SecuritySettingsPage() {
         baseMenuItems.push({
             translationKey: 'closeAccountPage.closeAccount',
             icon: Expensicons.ClosedSign,
-            action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
+            action: () => {
+                if (isActingAsDelegate) {
+                    showDelegateNoAccessMenu();
+                    return;
+                }
+
+                if (isAccountLocked) {
+                    setIsLockedAccountModalOpen(true);
+                    return;
+                }
+                waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE));
+            },
         });
         return baseMenuItems.map((item) => ({
             key: item.translationKey,

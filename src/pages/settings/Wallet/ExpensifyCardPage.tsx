@@ -8,6 +8,7 @@ import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import LockedAccountModal from '@components/LockedAccountModal';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -107,6 +108,9 @@ function ExpensifyCardPage({
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
     const [validateError, setValidateError] = useState<Errors>({});
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const openValidateCodeModal = (revealedCardID: number) => {
         setCurrentCardID(revealedCardID);
@@ -321,7 +325,13 @@ function ExpensifyCardPage({
                                     title={translate('reportCardLostOrDamaged.report')}
                                     icon={Expensicons.Flag}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)))}
+                                    onPress={() => {
+                                        if (isAccountLocked) {
+                                            setIsLockedAccountModalOpen(true);
+                                            return;
+                                        }
+                                        Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
+                                    }}
                                 />
                             </>
                         )}
@@ -377,6 +387,10 @@ function ExpensifyCardPage({
                 isVisible={isValidateCodeActionModalVisible}
                 title={translate('cardPage.validateCardTitle')}
                 descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            />
+            <LockedAccountModal
+                isLockedAccountModalOpen={isLockedAccountModalOpen}
+                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </ScreenWrapper>
     );

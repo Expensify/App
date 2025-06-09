@@ -10,6 +10,7 @@ import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffl
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import LockedAccountModal from '@components/LockedAccountModal';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -99,6 +100,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
@@ -322,7 +326,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             ) : (
                                 <Button
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
-                                    onPress={askForConfirmationToRemove}
+                                    onPress={() => {isAccountLocked ? setIsLockedAccountModalOpen(true) : askForConfirmationToRemove()}}
                                     isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                     icon={Expensicons.RemoveMembers}
                                     style={styles.mb5}
@@ -435,6 +439,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                         </View>
                     </View>
                 </ScrollView>
+                <LockedAccountModal
+                    isLockedAccountModalOpen={isLockedAccountModalOpen}
+                    onClose={() => setIsLockedAccountModalOpen(false)}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

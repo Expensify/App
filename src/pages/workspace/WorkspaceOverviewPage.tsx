@@ -48,6 +48,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
+import LockedAccountModal from '@components/LockedAccountModal';
 
 type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
@@ -132,6 +133,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const isOwner = isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -380,6 +384,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         accessibilityLabel={translate('common.invite')}
                                         text={translate('common.invite')}
                                         onPress={() => {
+                                            if (isAccountLocked) {
+                                                setIsLockedAccountModalOpen(true);
+                                                return;
+                                            }
                                             clearInviteDraft(route.params.policyID);
                                             Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
                                         }}
@@ -390,7 +398,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <Button
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
-                                    onPress={onPressShare}
+                                    onPress={() => {isAccountLocked ? setIsLockedAccountModalOpen(true) : onPressShare()}}
                                     icon={QrCode}
                                 />
                                 {isOwner && (
@@ -416,6 +424,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger
+                    />
+                    <LockedAccountModal
+                        isLockedAccountModalOpen={isLockedAccountModalOpen}
+                        onClose={() => setIsLockedAccountModalOpen(false)}
                     />
                 </View>
             )}

@@ -14,6 +14,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
 import {ReceiptWrangler} from '@components/Icon/Illustrations';
+import LockedAccountModal from '@components/LockedAccountModal';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -109,6 +110,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber} = useLocalize();
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: false});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const filterEmployees = useCallback(
         (employee?: PolicyEmployee) => {
@@ -627,6 +631,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 icon: Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
+                    if (isAccountLocked) {
+                        setIsLockedAccountModalOpen(true);
+                        return;
+                    }
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
                         return;
@@ -655,9 +663,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline, isPolicyAdmin]);
+    }, [policyID, translate, isOffline, isPolicyAdmin, isAccountLocked]);
 
-    const getHeaderButtons = () => {
+    const getHeaderButtons = useMemo(() => {
         if (!isPolicyAdmin) {
             return null;
         }
@@ -676,7 +684,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
                     success
-                    onPress={inviteUser}
+                    onPress={() => {isAccountLocked ? setIsLockedAccountModalOpen(true) : inviteUser()}}
                     text={translate('workspace.invite.member')}
                     icon={Plus}
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
@@ -693,7 +701,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 />
             </View>
         );
-    };
+    }, [isAccountLocked]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -726,7 +734,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             icon={!selectionModeHeader ? ReceiptWrangler : undefined}
-            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
+            headerContent={!shouldUseNarrowLayout && getHeaderButtons}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldUseHeadlineHeader={!selectionModeHeader}
@@ -743,7 +751,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons}</View>}
                     <ConfirmModal
                         isVisible={isOfflineModalVisible}
                         onConfirm={() => setIsOfflineModalVisible(false)}
@@ -808,6 +816,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
+                    />
+                    <LockedAccountModal
+                        isLockedAccountModalOpen={isLockedAccountModalOpen}
+                        onClose={() => setIsLockedAccountModalOpen(false)}
                     />
                 </>
             )}
