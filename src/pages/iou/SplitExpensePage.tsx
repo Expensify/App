@@ -23,12 +23,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
@@ -48,6 +49,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
@@ -102,12 +104,25 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
         const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
             const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
+            const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
+            const report = getReportOrDraftReport(currentTransaction?.reportID) as Report;
+            const isApproved = isReportApproved({report});
+            const isSettled = isSettledReportUtils(report?.reportID);
+            const isCancelled = report && report?.isCancelledIOU;
 
             const date = DateUtils.formatWithUTCTimeZone(
                 item.created,
                 DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
             );
             previewHeaderText.unshift({text: date}, dotSeparator);
+
+            if (isCancelled) {
+                previewHeaderText.push({text: translate('iou.canceled')}, dotSeparator);
+            } else if (isApproved) {
+                previewHeaderText.push({text: translate('iou.approved')}, dotSeparator);
+            } else if (isSettled) {
+                previewHeaderText.push({text: translate('iou.settledExpensify')}, dotSeparator);
+            }
 
             const headerText = previewHeaderText.reduce((text, currentKey) => {
                 return `${text}${getTranslatedText(currentKey)}`;
@@ -132,7 +147,18 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
 
         return [newSections];
-    }, [transaction, draftTransaction, getTranslatedText, transactionDetailsAmount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID]);
+    }, [
+        transaction,
+        draftTransaction?.comment?.splitExpenses,
+        draftTransaction?.currency,
+        allTransactions,
+        transactionDetailsAmount,
+        currencySymbol,
+        onSplitExpenseAmountChange,
+        splitExpenseTransactionID,
+        translate,
+        getTranslatedText,
+    ]);
 
     const headerContent = useMemo(
         () => (

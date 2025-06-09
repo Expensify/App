@@ -11868,6 +11868,13 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const optimisticData = [] as OnyxUpdate[];
 
     splitExpenses.forEach((splitExpense, index) => {
+        const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense.transactionID}`];
+        const splitReportActions = getAllReportActions(splitTransaction?.reportID);
+        const currentReportAction = Object.values(splitReportActions).find((action) => {
+            const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+            return transactionID === splitExpense.transactionID;
+        });
+
         const requestMoneyInformation = {
             participantParams: {
                 participant: participants.at(0) ?? ({} as Participant),
@@ -11890,6 +11897,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 originalTransactionID,
                 attendees: draftTransaction?.comment?.attendees,
                 source: CONST.IOU.TYPE.SPLIT,
+                linkedTrackedExpenseReportAction: currentReportAction,
             },
             parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
         } as MoneyRequestInformationParams;
@@ -11911,6 +11919,37 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             isSplitExpense: true,
         });
 
+        let updateMoneyRequestParamsOnyxData: OnyxData = {};
+        if (splitTransaction) {
+            const currentSplit = splits.at(index);
+            const existing = getTransactionDetails(splitTransaction);
+
+            const transactionChanges = {
+                ...currentSplit,
+                comment: currentSplit?.comment?.comment,
+            };
+
+            Object.keys(transactionChanges).forEach((key) => {
+                const newValue = transactionChanges[key as keyof typeof transactionChanges];
+                const oldValue = existing?.[key as keyof typeof existing];
+                if (newValue === oldValue) {
+                    delete transactionChanges[key as keyof typeof transactionChanges];
+                }
+            });
+
+            if (Object.keys(transactionChanges).length > 0) {
+                const {onyxData: moneyRequestParamsOnyxData} = getUpdateMoneyRequestParams(
+                    splitExpense?.transactionID,
+                    transactionThreadReportID,
+                    transactionChanges,
+                    policy,
+                    policyTags ?? null,
+                    policyCategories ?? null,
+                );
+                updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
+            }
+        }
+
         const split = splits.at(index);
         if (split) {
             // For request params we need to have the transactionThreadReportID, createdReportActionIDForThread and splitReportActionID which we get from moneyRequestInformation
@@ -11919,9 +11958,9 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             split.splitReportActionID = iouAction.reportActionID;
         }
 
-        optimisticData.push(...(onyxData.optimisticData ?? []));
-        successData.push(...(onyxData.successData ?? []));
-        failureData.push(...(onyxData.failureData ?? []));
+        optimisticData.push(...(onyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
+        successData.push(...(onyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []));
+        failureData.push(...(onyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
     });
 
     optimisticData.push({

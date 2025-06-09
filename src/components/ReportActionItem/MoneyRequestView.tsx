@@ -302,9 +302,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         } else if (isSettled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
         }
-        if (isExpenseSplit) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
-        }
+    }
+    if (isExpenseSplit) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
 
     let receiptURIs;
