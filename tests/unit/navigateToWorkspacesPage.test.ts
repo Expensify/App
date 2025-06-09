@@ -1,8 +1,10 @@
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+// eslint-disable-next-line no-restricted-syntax
 import * as lastVisitedTabPathUtils from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+// eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
