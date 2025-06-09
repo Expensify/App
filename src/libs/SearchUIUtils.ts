@@ -1119,9 +1119,6 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             return false;
         }).length > 0;
 
-    // TODO: This option will be enabled soon (removing the && false). We are waiting on changes to support this
-    // feature fully, but lets keep the code here for simplicity
-    // https://github.com/Expensify/Expensify/issues/505933
     const showExportSuggestion =
         Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
             if (!policy || !email) {
@@ -1135,7 +1132,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             const isXeroExporter = policy.connections?.xero?.config?.export?.exporter === email;
 
             return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
-        }).length > 0 && false;
+        }).length > 0;
 
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
