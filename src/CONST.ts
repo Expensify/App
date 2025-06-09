@@ -6558,6 +6558,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             DONE: 'done',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
         BULK_ACTION_TYPES: {

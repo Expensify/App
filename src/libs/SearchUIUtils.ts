@@ -544,9 +544,12 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
+    // JACK_TODO: Condition for exporting
+
     if (isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
+
     if (isClosedReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
@@ -1255,6 +1258,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         exporter: [`${session.accountID}`],
                         status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
