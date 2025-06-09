@@ -274,7 +274,7 @@ function IOURequestStepAmount({
 
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         const transactionCurrency = getCurrency(currentTransaction);
-        if (newAmount === getAmount(currentTransaction, false, false, true) && currency === transactionCurrency) {
+        if (newAmount === getAmount(currentTransaction, false, false, true, !allowNegative) && currency === transactionCurrency) {
             navigateBack();
             return;
         }
