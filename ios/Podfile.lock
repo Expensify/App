@@ -774,7 +774,6 @@ PODS:
     - React-Fabric/componentregistry (= 0.79.2)
     - React-Fabric/componentregistrynative (= 0.79.2)
     - React-Fabric/components (= 0.79.2)
-    - React-Fabric/consistency (= 0.79.2)
     - React-Fabric/core (= 0.79.2)
     - React-Fabric/dom (= 0.79.2)
     - React-Fabric/imagemanager (= 0.79.2)
@@ -999,28 +998,6 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/core
     - Yoga
-  - React-Fabric/consistency (0.79.2):
-    - DoubleConversion
-    - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
-    - glog
-    - hermes-engine
-    - RCT-Folly/Fabric (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-cxxreact
-    - React-debug
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-jsi
-    - React-jsiexecutor
-    - React-logger
-    - React-rendererdebug
-    - React-runtimescheduler
-    - React-utils
-    - ReactCommon/turbomodule/core
   - React-Fabric/core (0.79.2):
     - DoubleConversion
     - fast_float (= 6.1.4)
@@ -2808,7 +2785,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.260):
+  - RNLiveMarkdown (0.1.287):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3700,7 +3677,7 @@ SPEC CHECKSUMS:
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
   fullstory_react-native: 86d27070ffd12056ffb70d215cfc41f851f9c2f3
-  glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
+  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -3824,7 +3801,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 5d8431415d4b8518e86e289e9ad5bb9be78f6dba
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: f05580f3bd29e936b5ea8eee01323deaa9c866f5
+  RNLiveMarkdown: dd1f4716a874608a541942fb25d2b9973592bf19
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: ef00aafe2cbef8808f2aa6168e3f86ce103058bc
   RNNitroSQLite: 1ad7b0fb50f6cd2ceed494a1625af433f75ca300

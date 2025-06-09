@@ -1571,6 +1571,26 @@ const translations = {
         },
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
+    lockAccountPage: {
+        lockAccount: 'Lock account',
+        unlockAccount: 'Unlock account',
+        compromisedDescription: 'If you suspect your Expensify account is compromised, you can lock it to prevent new Expensify Card transactions and block unwanted account changes.',
+        domainAdminsDescriptionPartOne: 'For domain admins, ',
+        domainAdminsDescriptionPartTwo: 'this action halts all Expensify Card activity and admin actions ',
+        domainAdminsDescriptionPartThree: 'across your domain(s).',
+        warning: `Once your account is locked, our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge to secure your account.`,
+    },
+    failedToLockAccountPage: {
+        failedToLockAccount: 'Failed to lock account',
+        failedToLockAccountDescription: `We couldn't lock your account. Please chat with Concierge to resolve this problem.`,
+        chatWithConcierge: 'Chat with Concierge',
+    },
+    unlockAccountPage: {
+        accountLocked: 'Account locked',
+        yourAccountIsLocked: 'Your account is locked',
+        chatToConciergeToUnlock: 'Chat with Concierge to resolve security concerns and unlock your account.',
+        chatWithConcierge: 'Chat with Concierge',
+    },
     passwordPage: {
         changePassword: 'Change password',
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
@@ -5557,7 +5577,7 @@ const translations = {
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
                     automaticActionThree: 'and successfully created a record for',
                     reimburseableLink: 'out-of-pocket expenses',
-                    nonReimbursableLink: 'company card expenses.',
+                    nonReimbursableLink: 'company card expenses',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
