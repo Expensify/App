@@ -234,6 +234,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     const handleIssueNewCard = useCallback(() => {
+        if (isAccountLocked) {
+            setIsLockedAccountModalOpen(true);
+            return;
+        }
+
         if (hasMultipleFeeds) {
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_NEW_CARD.getRoute(policyID, accountID));
             return;

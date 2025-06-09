@@ -251,6 +251,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Open the modal to invite a user
      */
     const inviteUser = useCallback(() => {
+        if (isAccountLocked) {
+            setIsLockedAccountModalOpen(true);
+            return;
+        }
         clearInviteDraft(route.params.policyID);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
     }, [route.params.policyID]);
@@ -665,7 +669,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         return menuItems;
     }, [policyID, translate, isOffline, isPolicyAdmin, isAccountLocked]);
 
-    const getHeaderButtons = useMemo(() => {
+    const getHeaderButtons = () => {
         if (!isPolicyAdmin) {
             return null;
         }
@@ -684,7 +688,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
                     success
-                    onPress={() => {isAccountLocked ? setIsLockedAccountModalOpen(true) : inviteUser()}}
+                    onPress={inviteUser}
                     text={translate('workspace.invite.member')}
                     icon={Plus}
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
@@ -701,7 +705,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 />
             </View>
         );
-    }, [isAccountLocked]);
+    };
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -734,7 +738,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             icon={!selectionModeHeader ? ReceiptWrangler : undefined}
-            headerContent={!shouldUseNarrowLayout && getHeaderButtons}
+            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldUseHeadlineHeader={!selectionModeHeader}
@@ -751,7 +755,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons}</View>}
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     <ConfirmModal
                         isVisible={isOfflineModalVisible}
                         onConfirm={() => setIsOfflineModalVisible(false)}

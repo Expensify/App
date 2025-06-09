@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import LockedAccountModal from '@components/LockedAccountModal';
 
 const expensifyCardFeatures: FeatureListItem[] = [
     {
@@ -57,6 +58,9 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList ?? {});
 
@@ -102,6 +106,10 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                             setIsNoDelegateAccessMenuVisible(true);
                             return;
                         }
+                        if (isAccountLocked) {
+                            setIsLockedAccountModalOpen(true);
+                            return;
+                        }
                         if (!(policy?.outputCurrency === CONST.CURRENCY.USD)) {
                             setIsCurrencyModalOpen(true);
                             return;
@@ -128,6 +136,10 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+            <LockedAccountModal
+                isLockedAccountModalOpen={isLockedAccountModalOpen}
+                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </WorkspacePageWithSections>
     );

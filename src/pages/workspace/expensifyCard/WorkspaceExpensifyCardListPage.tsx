@@ -43,6 +43,7 @@ import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListLabels from './WorkspaceCardListLabels';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
+import LockedAccountModal from '@components/LockedAccountModal';
 
 type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
@@ -72,6 +73,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -91,6 +95,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const handleIssueCardPress = () => {
+        if (isAccountLocked) {
+            setIsLockedAccountModalOpen(true);
+            return;
+        }
         if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
             return;
@@ -244,6 +252,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+            <LockedAccountModal
+                isLockedAccountModalOpen={isLockedAccountModalOpen}
+                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </ScreenWrapper>
     );
