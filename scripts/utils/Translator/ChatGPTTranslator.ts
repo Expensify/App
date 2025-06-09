@@ -1,4 +1,8 @@
 import OpenAI from 'openai';
+import getBasePrompt from '../../../prompts/translation/base';
+import getContextPrompt from '../../../prompts/translation/context';
+import StringUtils from '../../../src/libs/StringUtils';
+import type Locale from '../../../src/types/onyx/Locale';
 import Translator from './Translator';
 
 class ChatGPTTranslator extends Translator {
@@ -14,14 +18,17 @@ class ChatGPTTranslator extends Translator {
         });
     }
 
-    protected async performTranslation(targetLang: string, text: string): Promise<string> {
+    protected async performTranslation(targetLang: Locale, text: string, context?: string): Promise<string> {
         try {
             const response = await this.openai.chat.completions.create({
                 model: 'gpt-4',
                 messages: [
                     {
                         role: 'system',
-                        content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript template string. Preserve placeholders like \${username}, \${count}, \${123456} etc without modifying their contents or removing the brackets. In most cases, the contents of the placeholders are descriptive of what they represent in the phrase, but in some cases the placeholders may just contain a number. If it can't be translated, reply with the same text unchanged. Be cautious not to change any URLs.`,
+                        content: StringUtils.dedent(`
+                            ${getBasePrompt(targetLang)}
+                            ${getContextPrompt(context)}
+                        `),
                     },
                     {role: 'user', content: text},
                 ],

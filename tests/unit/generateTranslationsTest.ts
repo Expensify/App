@@ -234,7 +234,7 @@ describe('generateTranslations', () => {
                     foo: 'Foo',
 
                     // What about if the context comment isn't the last comment?
-                    @context bar
+                    // @context bar
                     bar: 'Bar',
 
                     some: {
@@ -280,7 +280,7 @@ describe('generateTranslations', () => {
                     foo: '[it][ctx: foo] Foo',
 
                     // What about if the context comment isn't the last comment?
-                    @context bar
+                    // @context bar
                     bar: '[it][ctx: bar] Bar',
 
                     some: {
