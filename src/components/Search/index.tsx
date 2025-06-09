@@ -11,7 +11,6 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -175,8 +174,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
-
-    const {isBetaEnabled} = usePermissions();
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -398,7 +395,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     );
 
     const openReport = useCallback(
-        (item: SearchListItem, isOpenedAsReport?: boolean) => {
+        (item: SearchListItem) => {
             if (selectionMode?.isEnabled) {
                 toggleTransaction(item);
                 return;
@@ -407,7 +404,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
-            let reportID =
+            const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
                     ? item.transactionThreadReportID
                     : item.reportID;
@@ -417,20 +414,19 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             }
 
             const backTo = Navigation.getActiveRoute();
-            const shouldHandleTransactionAsReport = isReportListItemType(item) || (isTransactionItem && isOpenedAsReport);
 
-            if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && shouldHandleTransactionAsReport) {
+            if (isReportListItemType(item)) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
                 return;
             }
 
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                reportID = generateReportID();
-                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, reportID);
+                const generatedReportID = generateReportID();
+                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, generatedReportID);
                 Navigation.navigate(
                     ROUTES.SEARCH_REPORT.getRoute({
-                        reportID,
+                        reportID: generatedReportID,
                         backTo,
                         moneyRequestReportActionID: item.moneyRequestReportActionID,
                         transactionID: item.transactionID,
@@ -447,7 +443,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [isBetaEnabled, hash, selectionMode?.isEnabled, toggleTransaction],
+        [hash, selectionMode?.isEnabled, toggleTransaction],
     );
 
     const onViewableItemsChanged = useCallback(
@@ -515,7 +511,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 <FullPageErrorView
                     shouldShow
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {isBreakLine: !!shouldUseNarrowLayout})}
+                    title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
                     subtitle={translate('errorPage.subtitle')}
                 />
             </View>
