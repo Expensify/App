@@ -13,8 +13,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {isFormattedAmountTooLong, isTaxAmountTooLong} from '@libs/SearchUIUtils';
-import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,16 +42,8 @@ function ReportListItem<TItem extends ListItem>({
     const isDisabledOrEmpty = isEmptyReport || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-        const isAmountColumnWide = reportItem.transactions.some((transaction) => isFormattedAmountTooLong(transaction));
-        const isTaxAmountColumnWide = reportItem.transactions.some((transaction) => isTaxAmountTooLong(transaction));
-        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
-
-        return {
-            amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-            taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-            dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        };
+    const dateColumnSize = useMemo(() => {
+        return reportItem.transactions.some((transaction) => transaction.shouldShowYear) ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [reportItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -110,7 +100,7 @@ function ReportListItem<TItem extends ListItem>({
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
         COLUMNS.TOTAL_AMOUNT,
         COLUMNS.ACTION,
-    ] as Array<ValueOf<typeof COLUMNS>>;
+    ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
     return (
         <BaseListItem
@@ -137,7 +127,6 @@ function ReportListItem<TItem extends ListItem>({
                     <ReportListItemHeader
                         report={reportItem}
                         policy={policy}
-                        item={item}
                         onSelectRow={onSelectRow}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
@@ -161,8 +150,6 @@ function ReportListItem<TItem extends ListItem>({
                                     transactionItem={transaction}
                                     isSelected={!!transaction.isSelected}
                                     dateColumnSize={dateColumnSize}
-                                    amountColumnSize={amountColumnSize}
-                                    taxAmountColumnSize={taxAmountColumnSize}
                                     shouldShowTooltip={showTooltip}
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
@@ -173,7 +160,7 @@ function ReportListItem<TItem extends ListItem>({
                                     }}
                                     isParentHovered={hovered}
                                     columnWrapperStyles={[styles.ph3, styles.pv1half]}
-                                    isInReportRow
+                                    isReportItemChild
                                 />
                             </View>
                         ))
