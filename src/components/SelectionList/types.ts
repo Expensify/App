@@ -416,7 +416,7 @@ type SplitListItemType = ListItem &
         /** Indicates whether a split was opened through this transaction */
         isTransactionLinked: boolean;
 
-        /** Indicates whether a split was aproved, paid etc. */
+        /** Indicates whether a split was approved, paid etc. */
         isCannotEdit: boolean;
 
         /** Function for updating amount */

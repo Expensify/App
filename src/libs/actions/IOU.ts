@@ -11592,6 +11592,13 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const originalTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
+    let undeletedTransactions = Object.values(allTransactions).filter((currentTransaction) => {
+        const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
+        return currentTransaction?.comment?.originalTransactionID === originalTransactionID && !!currentReport && currentReport?.stateNum !== CONST.REPORT.STATUS_NUM.CLOSED;
+    });
+
+    let canBeClosedWithoutUpdates = true;
+
     const policy = getPolicy(expenseReport?.policyID);
     const policyCategories = getPolicyCategoriesData(expenseReport?.policyID);
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
@@ -11620,7 +11627,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const failureData = [] as OnyxUpdate[];
     const optimisticData = [] as OnyxUpdate[];
 
-    let canBeClosed = true;
     splitExpenses.forEach((splitExpense, index) => {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense.transactionID}`];
         const splitReportActions = getAllReportActions(splitTransaction?.reportID);
@@ -11675,6 +11681,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
         if (splitTransaction) {
+            undeletedTransactions = undeletedTransactions.filter((undeletedTransaction) => undeletedTransaction?.transactionID !== splitTransaction.transactionID);
             const currentSplit = splits.at(index);
             const existing = getTransactionDetails(splitTransaction);
 
@@ -11704,10 +11711,10 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                     policyCategories ?? null,
                 );
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
-                canBeClosed = false;
+                canBeClosedWithoutUpdates = false;
             }
         } else {
-            canBeClosed = false;
+            canBeClosedWithoutUpdates = false;
         }
 
         const split = splits.at(index);
@@ -11723,7 +11730,27 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         failureData.push(...(onyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
     });
 
-    if (canBeClosed) {
+    undeletedTransactions.forEach((undeletedTransaction) => {
+        canBeClosedWithoutUpdates = false;
+        const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
+        const splitReportActions = getAllReportActions(splitTransaction?.reportID);
+        const currentReportAction = Object.values(splitReportActions).find((action) => {
+            const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+            return transactionID === undeletedTransaction?.transactionID;
+        }) as ReportAction;
+
+        const {
+            optimisticData: deleteExpenseOptimisticData,
+            failureData: deleteExpenseFailureData,
+            successData: deleteExpenseSuccessData,
+        } = getDeleteTrackExpenseInformation(splitTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), undeletedTransaction?.transactionID, currentReportAction);
+
+        optimisticData.push(...(deleteExpenseOptimisticData ?? []));
+        successData.push(...(deleteExpenseSuccessData ?? []));
+        failureData.push(...(deleteExpenseFailureData ?? []));
+    });
+
+    if (canBeClosedWithoutUpdates) {
         InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
         Navigation.dismissModal();
         return;
