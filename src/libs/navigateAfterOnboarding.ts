@@ -8,7 +8,6 @@ const navigateAfterOnboarding = (
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
     onboardingPolicyID?: string,
-    activeWorkspaceID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
 ) => {
@@ -25,7 +24,7 @@ const navigateAfterOnboarding = (
             reportID = onboardingAdminsChatReportID;
         }
     } else {
-        const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, activeWorkspaceID);
+        const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
         const lastAccessedReportID = lastAccessedReport?.reportID;
         // we don't want to navigate to newly created workspaces after onboarding is completed.
         if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport)) {
@@ -35,6 +34,12 @@ const navigateAfterOnboarding = (
 
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    }
+
+    // In this case, we have joined an accessible policy. We would have an onboarding policy, but not an admins chat report.
+    // We should skip the Test Drive modal in this case since we already have a policy to join.
+    if (onboardingPolicyID && !onboardingAdminsChatReportID) {
+        return;
     }
 
     // We're using Navigation.isNavigationReady here because without it, on iOS,
