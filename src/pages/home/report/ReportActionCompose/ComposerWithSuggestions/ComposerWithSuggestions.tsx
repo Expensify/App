@@ -258,9 +258,9 @@ function ComposerWithSuggestions(
 
     const commentRef = useRef(value);
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex});
-    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex, canBeMissing: true});
+    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const lastTextRef = useRef(value);
     useEffect(() => {
@@ -464,7 +464,7 @@ function ComposerWithSuggestions(
             if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && selection.start <= 0 && isEmptyComment && !includeChronos) {
                 webEvent.preventDefault();
                 if (lastReportAction) {
-                    const message = Array.isArray(lastReportAction?.message) ? lastReportAction?.message?.at(-1) ?? null : lastReportAction?.message ?? null;
+                    const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
                     saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
@@ -604,7 +604,7 @@ function ComposerWithSuggestions(
             }
 
             // if we're typing on another input/text area, do not focus
-            if (['INPUT', 'TEXTAREA'].includes((e.target as Element | null)?.nodeName ?? '')) {
+            if (([CONST.ELEMENT_NAME.INPUT, CONST.ELEMENT_NAME.TEXTAREA] as string[]).includes((e.target as Element | null)?.nodeName ?? '')) {
                 return;
             }
 

@@ -140,7 +140,7 @@ function completeHybridAppOnboarding() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_TRYNEWDOT,
+            key: ONYXKEYS.NVP_TRY_NEW_DOT,
             value: {
                 classicRedirect: {
                     completedHybridAppOnboarding: true,
@@ -179,7 +179,7 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_TRYNEWDOT,
+    key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         tryNewDotData = value;
         checkTryNewDotDataReady();

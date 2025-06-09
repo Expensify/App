@@ -80,7 +80,7 @@ If unresolved, contact Concierge with details and QuickBooks screenshots.
 
 # Export or "can't find category/class/location/account" issues
 
-These errors usually generate a system message in Workspace Chat indicating the issue.
+These errors usually generate a system message in Expense Chat indicating the issue.
 
 ## How to resolve
 
@@ -120,6 +120,6 @@ Usually caused by the Web Connector or QuickBooks company file being closed duri
 
 ![Web Connector Status](https://help.expensify.com/assets/images/quickbooks-desktop-web-connector.png){:width="100%"}
 
-3. Check Workspace Chat in Expensify to confirm successful export.
+3. Check Expense Chat in Expensify to confirm successful export.
 
 If unresolved, contact Concierge with Expensify Report ID and Web Connector screenshot.

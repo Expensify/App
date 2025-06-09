@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
@@ -60,16 +61,16 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: true});
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT, {canBeMissing: true});
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
-    const {canUseGlobalReimbursementsOnND} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
+    const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -77,9 +78,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, canUseGlobalReimbursementsOnND ?? false);
+    const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
+    // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     /**
      The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -92,7 +96,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const isPreviousPolicy = policyIDParam === achData?.policyID;
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
 
-    const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : (achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
@@ -111,8 +115,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     /** Returns true if user passed first step of flow for non USD VBBA */
     const hasInProgressNonUSDVBBA = useCallback((): boolean => {
-        return (!!achData?.bankAccountID && !!achData?.created) || (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '');
-    }, [achData?.bankAccountID, achData?.created, nonUSDCountryDraftValue, policyCurrency]);
+        return (!!achData?.bankAccountID && !!achData?.created) || nonUSDCountryDraftValue !== '';
+    }, [achData?.bankAccountID, achData?.created, nonUSDCountryDraftValue]);
 
     /** Returns true if VBBA flow is in progress */
     const shouldShowContinueSetupButtonValue = useMemo(() => {
@@ -141,8 +145,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = getStepToOpenFromRouteParams(route);
-        const subStep = isPreviousPolicy ? achData?.subStep ?? '' : '';
-        const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
+        const subStep = isPreviousPolicy ? (achData?.subStep ?? '') : '';
+        const localCurrentStep = isPreviousPolicy ? (achData?.currentStep ?? '') : '';
 
         if (policyIDParam) {
             openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
@@ -245,8 +249,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     const continueNonUSDVBBASetup = () => {
         setShouldShowContinueSetupButton(false);
-        if (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
-            setNonUSDBankAccountStep(corpayFields !== undefined ? CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO : CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+        if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
             return;
         }
 
@@ -384,7 +388,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 <Text>{translate('bankAccount.hasPhoneLoginError.phrase1')}</Text>{' '}
                 <TextLink
                     style={styles.link}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(route.params.backTo))}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                 >
                     {translate('bankAccount.hasPhoneLoginError.link')}
                 </TextLink>
@@ -394,7 +398,23 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
-        errorText = translate('bankAccount.hasCurrencyError');
+        errorText = (
+            <Text style={styles.flexRow}>
+                {translate('bankAccount.hasCurrencyError.phrase1')}
+                <TextLink
+                    style={styles.link}
+                    onPress={() => {
+                        const routeToNavigate = isSmallScreenWidth
+                            ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
+                            : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
+                        Navigation.goBack(routeToNavigate);
+                    }}
+                >
+                    {translate('bankAccount.hasCurrencyError.link')}
+                </TextLink>
+                {translate('bankAccount.hasCurrencyError.phrase2')}
+            </Text>
+        );
     }
 
     if (errorText) {
@@ -403,7 +423,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 <HeaderWithBackButton
                     title={translate('workspace.common.connectBankAccount')}
                     subtitle={policyName}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <View style={[styles.m5, styles.mv3, styles.flex1]}>
                     <Text>{errorText}</Text>
@@ -463,6 +483,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             isNonUSDWorkspace={isNonUSDWorkspace}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}
             setUSDBankAccountStep={setUSDBankAccountStep}
+            policyID={policyIDParam}
         />
     );
 }

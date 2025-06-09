@@ -25,12 +25,11 @@ Note: These should be the same as the benchmarks collected before any changes.
 
 ## Platforms:
 Select the officially supported platforms where the issue was reproduced:
-- [ ] Android: Standalone
-- [ ] Android: HybridApp
+- [ ] Android: App
 - [ ] Android: mWeb Chrome
-- [ ] iOS: Standalone
-- [ ] iOS: HybridApp
+- [ ] iOS: App
 - [ ] iOS: mWeb Safari
+- [ ] iOS: mWeb Chrome
 - [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop
@@ -39,12 +38,11 @@ Select the officially supported platforms where the issue was reproduced:
   <summary>Platforms Tested:</summary>
 On which of our officially supported platforms was this issue tested:
 
-- [ ] Android: Standalone
-- [ ] Android: HybridApp
+- [ ] Android: App
 - [ ] Android: mWeb Chrome
-- [ ] iOS: Standalone
-- [ ] iOS: HybridApp
+- [ ] iOS: App
 - [ ] iOS: mWeb Safari
+- [ ] iOS: mWeb Chrome
 - [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop

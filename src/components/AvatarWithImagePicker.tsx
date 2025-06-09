@@ -75,7 +75,7 @@ type AvatarWithImagePickerProps = {
     isUsingDefaultAvatar?: boolean;
 
     /** Size of Indicator */
-    size?: typeof CONST.AVATAR_SIZE.XLARGE | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
+    size?: typeof CONST.AVATAR_SIZE.X_LARGE | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;

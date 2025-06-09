@@ -21,6 +21,7 @@ type ShareTrackedExpenseParams = {
     taxAmount: number;
     billable?: boolean;
     waypoints?: string;
+    customUnitID?: string;
     customUnitRateID?: string;
     policyExpenseChatReportID?: string;
     policyExpenseCreatedReportActionID?: string;
@@ -29,7 +30,9 @@ type ShareTrackedExpenseParams = {
     engagementChoice?: string;
     guidedSetupData?: string;
     description?: string;
+    accountantEmail: string;
     policyName?: string;
+    attendees?: string;
 };
 
 export default ShareTrackedExpenseParams;

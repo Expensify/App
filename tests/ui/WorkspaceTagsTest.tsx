@@ -21,7 +21,8 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 TestHelper.setupGlobalFetchMock();
-jest.mock('@components/ConfirmedRoute.tsx');
+
+jest.unmock('react-native-reanimated');
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
@@ -43,10 +44,28 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialPara
     );
 };
 
-describe('WorkspaceTags', () => {
-    const FIRST_TAG = 'Tag One';
-    const SECOND_TAG = 'Tag Two';
+const FIRST_TAG = 'Tag One';
+const SECOND_TAG = 'Tag Two';
 
+const tags = {
+    TagListOne: {
+        name: 'TagListOne',
+        required: true,
+        orderWeight: 1,
+        tags: {
+            [FIRST_TAG]: {
+                name: FIRST_TAG,
+                enabled: true,
+            },
+            [SECOND_TAG]: {
+                name: SECOND_TAG,
+                enabled: true,
+            },
+        },
+    },
+};
+
+describe('WorkspaceTags', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -77,24 +96,6 @@ describe('WorkspaceTags', () => {
             requiresTag: true,
         };
 
-        const tags = {
-            TagListOne: {
-                name: 'TagListOne',
-                required: true,
-                orderWeight: 1,
-                tags: {
-                    [FIRST_TAG]: {
-                        name: FIRST_TAG,
-                        enabled: true,
-                    },
-                    [SECOND_TAG]: {
-                        name: SECOND_TAG,
-                        enabled: true,
-                    },
-                },
-            },
-        };
-
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, tags);
@@ -122,28 +123,57 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
         });
 
-        // Find and click the "Select" menu item. Using getByText, since testID is not reliable here
-        const selectMenuItem = screen.getByText(translateLocal('common.select'));
-        expect(selectMenuItem).toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 
-        // Create a mock event object that matches GestureResponderEvent. Needed for onPress in MenuItem to be called
-        const mockEvent = {
-            nativeEvent: {},
-            type: 'press',
-            target: selectMenuItem,
-            currentTarget: selectMenuItem,
+    it('should show a blocking modal when trying to disable the only enabled tag when policy has requiresTag set to true', async () => {
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+            isSmallScreenWidth: false,
+            shouldUseNarrowLayout: false,
+        } as ResponsiveLayoutResult);
+
+        await TestHelper.signInWithTestUser();
+
+        const policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areTagsEnabled: true,
+            requiresTag: true,
         };
-        fireEvent.press(selectMenuItem, mockEvent);
 
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, tags);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
         await waitForBatchedUpdatesWithAct();
 
-        // Long press again on the second tag to trigger the deselect action
-        fireEvent(screen.getByTestId('base-list-item-Tag One'), 'onLongPress');
-        await waitForBatchedUpdatesWithAct();
-
-        // Wait for the "Deselect" option to appear
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('common.deselect'))).toBeOnTheScreen();
+            expect(screen.getByText(FIRST_TAG)).toBeOnTheScreen();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
+        });
+
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
+
+        const dropdownMenuButtonTestID = `${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`;
+
+        fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
+        await waitFor(() => {
+            expect(screen.getByText(translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
+        });
+
+        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable tags');
+        const mockEvent = {nativeEvent: {}, type: 'press', target: disableMenuItem, currentTarget: disableMenuItem};
+        fireEvent.press(disableMenuItem, mockEvent);
+
+        await waitFor(() => {
+            expect(screen.getByText(translateLocal('workspace.tags.cannotDeleteOrDisableAllTags.title'))).toBeOnTheScreen();
         });
 
         unmount();

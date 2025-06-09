@@ -30,7 +30,7 @@ const Context = React.createContext<SearchRouterContext>(defaultSearchContext);
 function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
-    const searchPageInputRef = useRef<AnimatedTextInputRef>();
+    const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
 
     const routerContext = useMemo(() => {
         const openSearchRouter = () => {

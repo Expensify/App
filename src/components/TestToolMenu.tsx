@@ -9,14 +9,14 @@ import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {User as UserOnyx} from '@src/types/onyx';
+import type {Account as AccountOnyx} from '@src/types/onyx';
 import Button from './Button';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-const USER_DEFAULT: UserOnyx = {
+const ACCOUNT_DEFAULT: AccountOnyx = {
     shouldUseStagingServer: undefined,
     isSubscribedToNewsletter: false,
     validated: false,
@@ -26,11 +26,11 @@ const USER_DEFAULT: UserOnyx = {
 };
 
 function TestToolMenu() {
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
-    const [user = USER_DEFAULT] = useOnyx(ONYXKEYS.USER);
-    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
-    const shouldUseStagingServer = user?.shouldUseStagingServer ?? isUsingStagingApi();
-    const isDebugModeEnabled = !!user?.isDebugModeEnabled;
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
+    const shouldUseStagingServer = account?.shouldUseStagingServer ?? isUsingStagingApi();
+    const isDebugModeEnabled = !!account?.isDebugModeEnabled;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -119,7 +119,7 @@ function TestToolMenu() {
             </TestToolRow>
 
             {/* When toggled all network requests will fail. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatFailingNetworkRequests')}>
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}>
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}

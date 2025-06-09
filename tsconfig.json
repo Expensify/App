@@ -19,6 +19,7 @@
             "@libs/*": ["./src/libs/*"],
             "@navigation/*": ["./src/libs/Navigation/*"],
             "@pages/*": ["./src/pages/*"],
+            "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"]

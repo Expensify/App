@@ -5,7 +5,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Locale, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -16,8 +17,8 @@ type CustomLHNOptionsListProps = {
     /** Extra styles for the section list container */
     contentContainerStyles?: StyleProp<ContentStyle>;
 
-    /** Sections for the section list */
-    data: string[];
+    /** List of reports */
+    data: Report[];
 
     /** Callback to fire when a row is selected */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
@@ -80,6 +81,17 @@ type OptionRowLHNDataProps = {
     /** Array of report actions for this report */
     reportActions: OnyxEntry<ReportActions>;
 
+    /** The active policy ID */
+    activePolicyID?: string;
+
+    /** The onboarding purpose */
+    onboardingPurpose?: OnboardingPurpose;
+
+    /** Whether the fullscreen is visible */
+    isFullscreenVisible?: boolean;
+
+    isReportsSplitNavigatorLast: boolean;
+
     /**
      * Array of report actions for the IOU report related to the last action of this report.
      * If the last action is a report action preview, the last message of the report depends on
@@ -102,11 +114,20 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** The report attributes for the report */
+    reportAttributes: OnyxEntry<ReportAttributes>;
+
+    /** Whether to show the educational tooltip for the GBR or RBR */
+    shouldShowRBRorGBRTooltip: boolean;
 };
 
 type OptionRowLHNProps = {
     /** The ID of the report that the option is for */
     reportID: string;
+
+    /** The report for this option */
+    report?: Report;
 
     /** Whether this option is currently in focus so we can modify its style */
     isFocused?: boolean;
@@ -123,12 +144,26 @@ type OptionRowLHNProps = {
     /** The item that should be rendered */
     optionItem?: OptionData;
 
+    /** The active policy ID */
+    activePolicyID?: string;
+
+    /** The onboarding purpose */
+    onboardingPurpose?: OnboardingPurpose;
+
+    /** Whether the fullscreen is visible */
+    isFullscreenVisible?: boolean;
+
+    isReportsSplitNavigatorLast: boolean;
+
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
 
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Whether to show the educational tooltip on the GBR or RBR */
+    shouldShowRBRorGBRTooltip: boolean;
 };
 
-type RenderItemProps = {item: string};
+type RenderItemProps = {item: Report};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

@@ -14,7 +14,7 @@ import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import {Close, Paperclip} from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
-import Text from './Text';
+import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';
 
 type UploadFileProps = {
     /** Text displayed on button when no file is uploaded */
@@ -67,7 +67,6 @@ function UploadFile({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-
     const handleFileUpload = (files: FileObject[]) => {
         const resultedFiles = [...uploadedFiles, ...files];
 
@@ -125,7 +124,7 @@ function UploadFile({
             </AttachmentPicker>
             {uploadedFiles.map((file) => (
                 <View
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3, styles.mw100]}
                     key={file.name}
                 >
                     <Icon
@@ -133,12 +132,11 @@ function UploadFile({
                         fill={theme.icon}
                         medium
                     />
-                    <Text
-                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.w100, styles.flexShrink1]}
-                        numberOfLines={2}
-                    >
-                        {file.name}
-                    </Text>
+                    <TextWithMiddleEllipsis
+                        text={file.name ?? ''}
+                        style={[styles.ml2, styles.mr2, styles.w100, styles.flexShrink1]}
+                        textStyle={styles.textBold}
+                    />
                     <PressableWithFeedback
                         onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}

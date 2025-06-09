@@ -1,5 +1,5 @@
 ---
-title: Assign billing owner and payment account
+title: Assign Billing Owner and Payment Account
 description: Determine who will cover the cost of the workspace and link a payment method
 keywords: [Expensify Classic, billing owner, transfer billing, change payment account]
 ---

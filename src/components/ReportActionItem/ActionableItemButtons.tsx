@@ -10,9 +10,7 @@ type ActionableItem = {
     key: string;
     onPress: () => void;
     text: string;
-    isMediumSized?: boolean;
     shouldUseLocalization?: boolean;
-    isDisabled?: boolean;
 };
 
 type ActionableItemButtonsProps = {
@@ -32,17 +30,15 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     key={item.key}
                     onPress={item.onPress}
                     text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
-                    small={!item.isMediumSized}
-                    medium={item.isMediumSized}
+                    medium
                     success={item.isPrimary}
-                    isDisabled={item.isDisabled}
                 />
             ))}
         </View>
     );
 }
 
-ActionableItemButtons.displayName = 'ActionableItemButtton';
+ActionableItemButtons.displayName = 'ActionableItemButtons';
 
 export default ActionableItemButtons;
 export type {ActionableItem};

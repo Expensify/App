@@ -106,7 +106,7 @@ Yes, use a client ID for efficient tracking and billing.
 
 All billing owners receive an emailed PDF, and a CSV version can be downloaded from the platform.
 
-## Why should I use Client IDs?**
+## Why should I use Client IDs?
 
 Using client IDs simplifies tracking and recognition of client workspaces. It also allows you to itemize billing by client.
 

@@ -114,12 +114,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'web/apple-touch-icon.png'},
+                {from: 'web/robots.txt'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
-                {from: 'web/thirdPartyScripts.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'assets/sounds', to: 'sounds'},
+                {from: 'assets/pdfs', to: 'pdfs'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
@@ -216,6 +217,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 ],
             },
             {
+                test: /\.pdf$/,
+                type: 'asset',
+            },
+            {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
             },
@@ -230,6 +235,15 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             {
                 test: /\.lottie$/,
                 type: 'asset/resource',
+            },
+            // This prevents import error coming from react-native-tab-view/lib/module/TabView.js
+            // where Pager is imported without extension due to having platform-specific implementations
+            {
+                test: /\.js$/,
+                resolve: {
+                    fullySpecified: false,
+                },
+                include: [path.resolve(__dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
             },
         ],
     },

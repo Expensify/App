@@ -5,13 +5,11 @@ import type {LayoutRectangle} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type TooltipProps from '@components/Tooltip/types';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
 type MouseEvents = {
     onMouseEnter: (e: MouseEvent) => void | undefined;
 };
-
-const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
 /**
  * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
@@ -50,7 +48,7 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps, ref: ForwardedRef<BoundsObserver>) {
+function Tooltip({children, shouldHandleScroll = false, isFocused = true, ...props}: TooltipProps, ref: ForwardedRef<BoundsObserver>) {
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
@@ -89,6 +87,11 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
 
     // Skip the tooltip and return the children if the device does not support hovering
     if (!hasHoverSupport) {
+        return children;
+    }
+
+    // Skip the tooltip and return the children if navigation does not focus.
+    if (!isFocused) {
         return children;
     }
 

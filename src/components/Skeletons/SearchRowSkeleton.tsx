@@ -1,8 +1,7 @@
 import React from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -19,8 +18,7 @@ type SearchRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
-// @TODO: When canUseLeftHandBar beta is no longer needed, uncomment this variable and remove the one defined inside the component
-// const leftPaneWidth = variables.sideBarWidth;
+const leftPaneWidth = variables.sideBarWithLHBWidth + variables.navigationTabBarSize;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;
@@ -38,8 +36,6 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {canUseLeftHandBar} = usePermissions();
-    const leftPaneWidth = canUseLeftHandBar ? variables.sideBarWithLHBWidth + variables.navigationTabBarSize : variables.sideBarWidth;
 
     if (shouldUseNarrowLayout) {
         return (

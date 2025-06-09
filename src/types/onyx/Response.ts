@@ -103,12 +103,15 @@ type Response = {
     /** The ID of the original user (returned when in delegate mode) */
     requesterID?: number;
 
-    /** If there are httponly OldDot authentication cookies stored */
+    /** If there are http only OldDot authentication cookies stored */
     hasOldDotAuthCookies?: boolean;
 
     /** Short-lived client secret for openai session */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     client_secret?: ClientSecret;
+
+    /** Whether the account already exists */
+    accountExists?: boolean;
 };
 
 export default Response;

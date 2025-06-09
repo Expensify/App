@@ -35,6 +35,9 @@ type ImageSVGProps = {
 
     /** TestID for test */
     testID?: string;
+
+    //* Called when the image load either succeeds or fails. */
+    onLoadEnd?: () => void;
 };
 
 export default ImageSVGProps;

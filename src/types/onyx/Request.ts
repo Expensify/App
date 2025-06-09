@@ -14,6 +14,9 @@ type OnyxData = {
 
     /** Onyx instructions that are executed before request is made to the server */
     optimisticData?: OnyxUpdate[];
+
+    /** Onyx instructions that are executed when Onyx queue is flushed */
+    queueFlushedData?: OnyxUpdate[];
 };
 
 /** HTTP request method names */
@@ -165,9 +168,9 @@ type RequestConflictResolver = {
     persistWhenOngoing?: boolean;
 
     /**
-     * A boolean flag to mark a request as rollbacked, if set to true it means the request failed and was added back into the queue.
+     * A boolean flag to mark a request as rollback, if set to true it means the request failed and was added back into the queue.
      */
-    isRollbacked?: boolean;
+    isRollback?: boolean;
 };
 
 /** Model of requests sent to the API */

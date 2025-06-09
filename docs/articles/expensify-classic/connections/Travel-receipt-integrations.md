@@ -1,14 +1,14 @@
 ---
 title: Travel Receipt Integrations
 description: Learn how to use pre-built or custom integrations to automatically track travel expenses in Expensify.
-keywords: [travel receipts, integrations, Expensify, Bolt Work, SpotHero, Grab, KAYAK, email receipts]
+keywords: [Expensify Classic, travel receipts, integrations, Bolt Work, SpotHero, Grab, KAYAK, email receipts]
 ---
 
 <div id="expensify-classic" markdown="1">
 
 Expensify’s receipt integrations allow merchants to automatically send receipts directly to a member’s Expensify account. When a merchant emails a receipt to a member and Cc's **receipts@expensify.com**, Expensify creates a transaction in the account of the email recipient.
 
-You can integrate receipts using Expensify’s **pre-built integrations** or by setting up a **custom receipt integration**.
+You can integrate receipts using Expensify’s pre-built integrations or by setting up a custom receipt integration.
 
 ---
 
@@ -31,6 +31,8 @@ Expensify offers pre-built integrations with **Bolt Work, SpotHero, Grab, and KA
 
 **Important:** When booking a trip with Bolt Work, select your **work trip profile** as the payment method. This ensures the receipt is automatically sent to Expensify.
 
+---
+
 ## SpotHero
 
 1. Open the **SpotHero** app and tap the **menu icon** in the top left.
@@ -41,6 +43,8 @@ Expensify offers pre-built integrations with **Bolt Work, SpotHero, Grab, and KA
 6. Select **Expensify**.
 
 **Tip:** When reserving parking, select your **business profile** in the **Payment Details** section. You can also schedule **weekly or monthly** batch expense submissions in **Business Profile settings**.
+
+---
 
 ## Grab
 
@@ -56,9 +60,11 @@ Expensify offers pre-built integrations with **Bolt Work, SpotHero, Grab, and KA
 
 **Note:** When booking a trip, select **business** instead of **personal** to ensure the receipt is sent to Expensify.
 
-## KAYAK for Business
+---
 
-### Admin Setup  
+# KAYAK for Business
+
+## Admin Setup  
 This must be completed by a **KAYAK for Business admin**:
 
 1. Go to the **KAYAK for Business homepage**.
@@ -67,7 +73,7 @@ This must be completed by a **KAYAK for Business admin**:
 
 Now, all bookings made by employees will automatically sync with Expensify.
 
-### Traveler Setup  
+## Traveler Setup  
 
 1. On the **KAYAK for Business homepage**, go to **Profile Account Settings**.
 2. Enable the **Expensify toggle** to automatically send expenses to Expensify. You can also opt for manual submission.
@@ -88,7 +94,7 @@ Now, all bookings made by employees will automatically sync with Expensify.
 
 ---
 
-## Using the Integration  
+# Using the Integration  
 
 When emailing a receipt:
 
@@ -116,7 +122,7 @@ No, Expensify does not currently offer API-based receipt integrations. All integ
 
 ## What is Expensify’s Open API used for?  
 
-Expensify’s Open API is designed for **exporting** data to external accounting systems. **Receipt imports must be done via email integration**.
+Expensify’s Open API is designed for exporting data to external accounting systems. Receipt imports must be done via email integration.
 
 ## Can Expensify split one email into multiple receipts?  
 
@@ -139,4 +145,3 @@ Yes! You can promote your integration on your **website** and **social media** (
 For support, contact **Concierge** by clicking the **green chat icon** in the mobile or web app, or email **concierge@expensify.com**. Our global team is ready to assist you.
 
 </div>
-

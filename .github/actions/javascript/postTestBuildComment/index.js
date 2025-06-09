@@ -11501,7 +11501,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
-function getTestBuildMessage() {
+function getTestBuildMessage(appPr, mobileExpensifyPr) {
     const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'];
     const names = {
         [inputs[0]]: 'Android',
@@ -11536,16 +11536,18 @@ function getTestBuildMessage() {
         };
         return acc;
     }, {});
-    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
+    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', Desktop, and Web' : ''}. Happy testing! :test_tube::test_tube:
+Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
-| Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
-| Desktop :computer: | Web :spider_web: |
+${appPr
+        ? `\n| Desktop :computer: | Web :spider_web: |
+| ------------- | ------------- |
 | ${result.DESKTOP.link}  | ${result.WEB.link}  |
-| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
-
+| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |\n`
+        : ''}
 ---
 
 :eyes: [View the workflow run that generated this build](https://github.com/${github_1.context.repo.owner}/${github_1.context.repo.repo}/actions/runs/${github_1.context.runId}) :eyes:
@@ -11567,17 +11569,23 @@ async function commentPR(REPO, PR, message) {
     }
 }
 async function run() {
-    const PR_NUMBER = Number(core.getInput('PR_NUMBER', { required: true }));
+    const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', { required: false }));
+    const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', { required: false }));
     const REPO = String(core.getInput('REPO', { required: true }));
     if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
         core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
         return;
     }
+    if ((REPO === CONST_1.default.APP_REPO && !APP_PR_NUMBER) || (REPO === CONST_1.default.MOBILE_EXPENSIFY_REPO && !MOBILE_EXPENSIFY_PR_NUMBER)) {
+        core.setFailed(`Please provide ${REPO} pull request number`);
+        return;
+    }
+    const destinationPRNumber = REPO === CONST_1.default.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
     const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
         owner: CONST_1.default.GITHUB_OWNER,
         repo: REPO,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        issue_number: PR_NUMBER,
+        issue_number: destinationPRNumber,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
     }, (response) => response.data);
@@ -11594,7 +11602,7 @@ async function run() {
             }
         `);
     }
-    await commentPR(REPO, PR_NUMBER, getTestBuildMessage());
+    await commentPR(REPO, destinationPRNumber, getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();
@@ -11812,7 +11820,6 @@ class GithubUtils {
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
                 version,
@@ -11882,7 +11889,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
+    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
             const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
@@ -11939,8 +11946,6 @@ class GithubUtils {
                     issueBody += '\r\n\r\n';
                 }
                 issueBody += '**Deployer verifications:**';
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                 // eslint-disable-next-line max-len

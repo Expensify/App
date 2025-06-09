@@ -15,7 +15,6 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -91,19 +90,18 @@ function VerifiedBankAccountFlowEntryPoint({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const optionPressed = useRef('');
-    const isAccountValidated = useAccountValidation();
+    const isAccountValidated = account?.validated ?? false;
 
     const contactMethod = account?.primaryLogin ?? '';
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
-    const hasMagicCodeBeenSent = !!loginData?.validateCodeSent;
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
@@ -193,7 +191,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 <Section
                     title={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.almostDone' : 'workspace.bankAccount.streamlinePayments')}
                     titleStyles={styles.textHeadline}
-                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youreAlmostDone' : 'bankAccount.toGetStarted')}
+                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youAreAlmostDone' : 'bankAccount.toGetStarted')}
                     subtitleStyles={styles.textSupporting}
                     subtitleMuted
                     illustration={LottieAnimations.FastMoney}
@@ -304,7 +302,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 descriptionPrimary={translate('contacts.featureRequiresValidate')}
                 descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
                 isVisible={!!isValidateCodeActionModalVisible}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}
                 handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}

@@ -60,6 +60,7 @@ describe('actions/ReportField', () => {
             const newReportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target: 'expense',
                 defaultValue: 'Default Value',
                 values: [],
                 disabledOptions: [],
@@ -110,6 +111,7 @@ describe('actions/ReportField', () => {
             const newReportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.DATE,
+                target: 'expense',
                 defaultValue: defaultDate,
                 values: [],
                 disabledOptions: [],
@@ -162,6 +164,7 @@ describe('actions/ReportField', () => {
             const newReportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.LIST,
+                target: 'expense',
                 defaultValue: '',
                 values: ['Value 1', 'Value 2'],
                 disabledOptions: [false, true],

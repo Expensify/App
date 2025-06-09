@@ -25,19 +25,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function PreferencesPage() {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
 
     const platform = getPlatform(true);
-    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const personalPolicy = usePolicy(getPersonalPolicy()?.id);
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
@@ -53,7 +54,7 @@ function PreferencesPage() {
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
+                onBackButtonPress={Navigation.popToSidebar}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -71,7 +72,7 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                                        isOn={user?.isSubscribedToNewsletter ?? true}
+                                        isOn={account?.isSubscribedToNewsletter ?? true}
                                         onToggle={updateNewsletterSubscription}
                                     />
                                 </View>
@@ -97,7 +98,7 @@ function PreferencesPage() {
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`)}
+                                title={preferredLocale ? translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`) : undefined}
                                 description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}

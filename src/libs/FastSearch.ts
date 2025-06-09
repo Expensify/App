@@ -123,9 +123,16 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
 
         return resultsByDataSet.map((set) => Array.from(set));
     }
+    function dispose(): void {
+        concatenatedNumericList.clear();
+        occurrenceToIndex.clear();
+        tree.disposeTree();
+        listOffsets.length = 0;
+    }
 
     return {
         search,
+        dispose,
     };
 }
 

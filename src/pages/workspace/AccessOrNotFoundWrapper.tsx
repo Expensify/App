@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
@@ -9,12 +9,14 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {canSendInvoice, isControlPolicy, isPaidGroupPolicy, isPolicyAccessible, isPolicyAdmin, isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -92,7 +94,14 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
             shouldShowOfflineIndicator={false}
             onBackButtonPress={() => {
                 if (isPolicyNotAccessible) {
-                    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
+                    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+                    const secondToLastRoute = rootState.routes.at(-2);
+
+                    if (secondToLastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                        Navigation.dismissModal();
+                    } else {
+                        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+                    }
                     return;
                 }
                 Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID) : undefined);
@@ -115,9 +124,13 @@ function AccessOrNotFoundWrapper({
     featureName,
     ...props
 }: AccessOrNotFoundWrapperProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        canBeMissing: true,
+    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        canBeMissing: true,
+    });
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
@@ -138,7 +151,6 @@ function AccessOrNotFoundWrapper({
 
     const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName) : true;
 
-    const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
     const {isOffline} = useNetwork();
 
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
@@ -147,15 +159,20 @@ function AccessOrNotFoundWrapper({
     }, true);
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy);
-    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !isPolicyFeatureEnabled || shouldBeBlocked;
+    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked;
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
-    // Without this, we can have unexpectedly have 'Not Found' be shown.
+    // Without this, we can be unexpectedly navigated to the More Features page.
     useEffect(() => {
-        if (pendingField && !isOffline && !isFeatureEnabled) {
+        if (isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled)) {
             return;
         }
-        setIsPolicyFeatureEnabled(isFeatureEnabled);
+
+        // When a workspace feature linked to the current page is disabled we will navigate to the More Features page.
+        Navigation.isNavigationReady().then(() => Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+        // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingField, isOffline, isFeatureEnabled]);
 
     useEffect(() => {

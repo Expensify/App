@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -25,6 +26,7 @@ import {
     isCurrencySupportedForDirectReimbursement,
     isCurrencySupportedForGlobalReimbursement,
     openPolicyWorkflowsPage,
+    setIsForcedToChangeCurrency,
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceReimbursement,
@@ -58,7 +60,7 @@ type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<Wo
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -66,8 +68,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const [cardFeeds] = useCardFeeds(policy?.id);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
-    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
+    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const policyApproverEmail = policy?.approver;
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
@@ -81,7 +84,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             }),
         [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
     );
-    const {canUseGlobalReimbursementsOnND} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
@@ -103,13 +106,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         setIsUpdateWorkspaceCurrencyModalOpen(false);
 
-        if (canUseGlobalReimbursementsOnND) {
+        if (isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND)) {
+            setIsForcedToChangeCurrency(true);
             Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
         } else {
             updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
             navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
         }
-    }, [canUseGlobalReimbursementsOnND, policy, route.params.policyID]);
+    }, [isBetaEnabled, policy, route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
@@ -151,7 +155,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
-        const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting ?? !!policy?.errorFields?.autoReportingFrequency;
+        const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
 
         return [
             {
@@ -164,7 +168,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subMenuItems: (
                     <MenuItemWithTopDescription
                         title={
-                            getAutoReportingFrequencyDisplayNames(preferredLocale)[
+                            getAutoReportingFrequencyDisplayNames(translate)[
                                 (getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
                             ]
                         }
@@ -258,7 +262,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 titleStyle={shouldShowBankAccount ? undefined : styles.textLabelSupportingEmptyValue}
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
-                                    if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, canUseGlobalReimbursementsOnND ?? false)) {
+                                    if (
+                                        !isCurrencySupportedForGlobalReimbursement(
+                                            (policy?.outputCurrency ?? '') as CurrencyType,
+                                            isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false,
+                                        )
+                                    ) {
                                         setIsUpdateWorkspaceCurrencyModalOpen(true);
                                         return;
                                     }
@@ -308,7 +317,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         policy,
         styles,
         translate,
-        preferredLocale,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
         approvalWorkflows,
@@ -319,7 +327,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
-        canUseGlobalReimbursementsOnND,
+        isBetaEnabled,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -373,7 +381,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}
-                    {canUseGlobalReimbursementsOnND ? (
+                    {isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ? (
                         <ConfirmModal
                             title={translate('workspace.bankAccount.workspaceCurrencyNotSupported')}
                             isVisible={isUpdateWorkspaceCurrencyModalOpen}

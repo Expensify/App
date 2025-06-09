@@ -86,7 +86,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         const {height, width} = event.nativeEvent.layout;
 
         // Even if the browser height is reduced too much, the relative height should not be negative
-        const relativeHeight = Math.max(height, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+        const relativeHeight = Math.max(height - CONST.AVATAR_CROP_MODAL.CONTAINER_VERTICAL_MARGIN, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setImageContainerSize(Math.floor(Math.min(relativeHeight, width)));
     }, []);
 
@@ -120,9 +120,9 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             return;
         }
         // We need to have image sizes in shared values to properly calculate position/size/animation
-        ImageSize.getSize(imageUri).then(({width, height, rotation: orginalRotation}) => {
+        ImageSize.getSize(imageUri).then(({width, height, rotation: originalRotation}) => {
             // On Android devices ImageSize library returns also rotation parameter.
-            if (orginalRotation === 90 || orginalRotation === 270) {
+            if (originalRotation === 90 || originalRotation === 270) {
                 originalImageHeight.set(width);
                 originalImageWidth.set(height);
             } else {
@@ -351,11 +351,12 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             onModalHide={resetState}
             shouldUseCustomBackdrop
             shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
                 testID={AvatarCropModal.displayName}
             >

@@ -4,13 +4,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {setDraftSplitTransaction, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, updateMoneyRequestTaxAmount} from '@libs/actions/IOU';
+import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
+import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTaxAmount as getTransactionTaxAmount} from '@libs/TransactionUtils';
 import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
-import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,15 +42,15 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Pol
     if (!transaction?.amount && !transaction?.modifiedAmount) {
         return;
     }
-    const transactionTaxAmount = TransactionUtils.getAmount(transaction);
+    const transactionTaxAmount = getAmount(transaction);
     const transactionTaxCode = transaction?.taxCode ?? '';
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
-    const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
-    const defaultTaxValue = getTaxValue(defaultTaxCode);
-    const moneyRequestTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : defaultTaxValue) ?? '';
-    const editingTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : moneyRequestTaxPercentage) ?? '';
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, currency) ?? '';
+    const getTaxValueByTaxCode = (taxCode: string) => getTaxValue(policy, transaction, taxCode);
+    const defaultTaxValue = getTaxValueByTaxCode(defaultTaxCode);
+    const moneyRequestTaxPercentage = (transactionTaxCode ? getTaxValueByTaxCode(transactionTaxCode) : defaultTaxValue) ?? '';
+    const editingTaxPercentage = (transactionTaxCode ? getTaxValueByTaxCode(transactionTaxCode) : moneyRequestTaxPercentage) ?? '';
     const taxPercentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
-    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transactionTaxAmount, currency ?? CONST.CURRENCY.USD));
+    return convertToBackendAmount(calculateTaxAmount(taxPercentage, transactionTaxAmount, currency ?? CONST.CURRENCY.USD));
 }
 
 function IOURequestStepTaxAmountPage({
@@ -65,15 +65,15 @@ function IOURequestStepTaxAmountPage({
     splitDraftTransaction,
 }: IOURequestStepTaxAmountPageProps) {
     const {translate} = useLocalize();
-    const textInput = useRef<BaseTextInputRef | null>();
+    const textInput = useRef<BaseTextInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
 
-    const focusTimeoutRef = useRef<NodeJS.Timeout>();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
-    const transactionDetails = ReportUtils.getTransactionDetails(currentTransaction);
-    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
+    const transactionDetails = getTransactionDetails(currentTransaction);
+    const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
 
     useFocusEffect(
         useCallback(() => {
@@ -109,28 +109,28 @@ function IOURequestStepTaxAmountPage({
     };
 
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
-        const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
+        const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transactionID, {taxAmount: taxAmountInSmallestCurrencyUnits});
+            setDraftSplitTransaction(transactionID, {taxAmount: taxAmountInSmallestCurrencyUnits});
             navigateBack();
             return;
         }
 
         if (isEditing) {
-            if (taxAmountInSmallestCurrencyUnits === TransactionUtils.getTaxAmount(currentTransaction, false)) {
+            if (taxAmountInSmallestCurrencyUnits === getTransactionTaxAmount(currentTransaction, false)) {
                 navigateBack();
                 return;
             }
-            IOU.updateMoneyRequestTaxAmount(transactionID, report?.reportID ?? '', taxAmountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
+            updateMoneyRequestTaxAmount(transactionID, report?.reportID, taxAmountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
             navigateBack();
             return;
         }
 
-        IOU.setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
+        setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
+        setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -142,7 +142,7 @@ function IOURequestStepTaxAmountPage({
         // to the confirm step.
         if (report?.reportID) {
             // TODO: Is this really needed at all?
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            setMoneyRequestParticipantsFromReport(transactionID, report);
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
         }

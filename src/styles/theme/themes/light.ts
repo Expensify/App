@@ -22,6 +22,8 @@ const lightTheme = {
     textSupporting: colors.productLight800,
     text: colors.productLight900,
     textColorfulBackground: colors.ivory,
+    textReceiptDropZone: colors.green700,
+    textAttachmentDropZone: colors.blue700,
     syntax: colors.productLight800,
     link: colors.blue600,
     linkHover: colors.blue500,
@@ -68,7 +70,12 @@ const lightTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productLight200,
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
+    dropWrapperBG: 'rgba(235, 230, 223, 0.72)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
+    attachmentDropUIBG: 'rgba(90, 176, 255, 0.9)',
+    attachmentDropBorderColor: colors.blue100,
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.9)',
+    receiptDropBorderColor: colors.green100,
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productLight700,
     fallbackIconColor: colors.green700,
@@ -95,6 +102,7 @@ const lightTheme = {
     transparentWhite: `${colors.white}51`,
     emptyFolderBG: colors.yellow600,
     travelBG: colors.blue600,
+    todoBG: colors.blue800,
     trialTimer: colors.green600,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
@@ -118,7 +126,7 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.SETTINGS.WORKSPACES]: {
+        [SCREENS.WORKSPACES_LIST]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
@@ -131,10 +139,6 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
-            backgroundColor: colors.productLight100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
-        },
-        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
@@ -154,7 +158,7 @@ const lightTheme = {
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
     navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.DARK,
-    navigationBarBackgroundColor: `${colors.productLight100}CD`, // CD is 80% opacity (80% of 0xFF)
+    translucentNavigationBarBackgroundColor: `${colors.productLight100}CD`, // CD is 80% opacity (80% of 0xFF)
     colorScheme: CONST.COLOR_SCHEME.LIGHT,
 } satisfies ThemeColors;
 

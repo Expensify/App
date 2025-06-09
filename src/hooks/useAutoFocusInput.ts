@@ -3,9 +3,13 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
+import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useSidePanel from './useSidePanel';
 
@@ -17,6 +21,8 @@ type UseAutoFocusInput = {
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
 
     const {splashScreenState} = useSplashScreenStateContext();
 
@@ -24,21 +30,21 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
             }
-            inputRef.current?.focus();
+            isWindowReadyToFocus().then(() => inputRef.current?.focus());
             setIsScreenTransitionEnded(false);
         });
 
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState]);
+    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
 
     useFocusEffect(
         useCallback(() => {
@@ -63,7 +69,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             return;
         }
 
-        setIsScreenTransitionEnded(isSidePanelTransitionEnded);
+        ComposerFocusManager.isReadyToFocus().then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
     }, [isSidePanelTransitionEnded, shouldHideSidePanel, prevShouldHideSidePanel]);
 
     const inputCallbackRef = (ref: TextInput | null) => {

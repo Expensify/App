@@ -1,5 +1,4 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 buildscript {
     ext {
         buildToolsVersion = "35.0.0"
@@ -16,6 +15,10 @@ buildscript {
         // This property configures the type of Mapbox SDK used by the @rnmapbox/maps library.
         // "mapbox" indicates the usage of the Mapbox SDK.
         RNMapboxMapsImpl = "mapbox"
+        reactNativeIncludedBuild = gradle.getIncludedBuilds().find { it.name == 'react-native' }
+        // This is our custom extension that we defined in gradleUtils/PatchedArtifactsSettings.gradle
+        // It enables us to use custom artifacts of patched react-native
+        patchedArtifactsConfig = project.gradle.settings.extensions.findByName('patchedArtifacts')
     }
     repositories {
         google()
@@ -52,6 +55,16 @@ allprojects {
         }
     }
     repositories {
+        if (!patchedArtifactsConfig.buildFromSource) {
+            maven {
+                url "https://maven.pkg.github.com/Expensify/App"
+                
+                credentials {
+                    username = patchedArtifactsConfig.githubUsername
+                    password = patchedArtifactsConfig.githubToken
+                }
+            } 
+        }
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url("$rootDir/../node_modules/react-native/android")
@@ -78,3 +91,15 @@ allprojects {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+task buildReactNativeArtifacts {
+    if (reactNativeIncludedBuild != null) {
+        dependsOn(reactNativeIncludedBuild.task(':packages:react-native:ReactAndroid:build'))
+    }
+}
+
+task publishReactNativeArtifacts {
+    if(reactNativeIncludedBuild != null) {
+        dependsOn(reactNativeIncludedBuild.task(':packages:react-native:ReactAndroid:publishReleasePublicationToMavenRepository'))
+    }
+}

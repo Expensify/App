@@ -677,4 +677,39 @@ describe('Unread Indicators', () => {
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
     });
+    it('Mark the chat as unread on clicking "Mark as unread" on an item in LHN when the last message of the chat was deleted by another user', async () => {
+        await signInAndGetAppWithUnreadChat();
+
+        await navigateToSidebar();
+
+        const reportAction11CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 110), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction11 = TestHelper.buildTestReportComment(reportAction11CreatedDate, USER_B_ACCOUNT_ID, '11');
+        const reportAction12CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 120), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction12 = TestHelper.buildTestReportComment(reportAction12CreatedDate, USER_B_ACCOUNT_ID, '12');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+            11: reportAction11,
+            12: reportAction12,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction12CreatedDate,
+        });
+
+        const message = reportAction12.message.at(0);
+        if (message) {
+            message.html = ''; // Simulate the server response for deleting the last message
+        }
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction11CreatedDate,
+        });
+
+        markCommentAsUnread(REPORT_ID, {reportActionID: -1} as unknown as ReportAction); // Marking the chat as unread from LHN passing a dummy reportActionID
+
+        await waitForBatchedUpdates();
+        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+        const displayNameTexts = screen.queryAllByLabelText(hintText);
+        expect(displayNameTexts).toHaveLength(1);
+        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+    });
 });

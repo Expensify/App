@@ -16,17 +16,17 @@ export default function useLocationBias(allWaypoints: WaypointCollection, userLo
         }
 
         // Gather the longitudes and latitudes from filled waypoints.
-        const longitudes: number[] = Object.values(allWaypoints).reduce((accum: number[], waypoint) => {
+        const longitudes: number[] = Object.values(allWaypoints).reduce((accumulator: number[], waypoint) => {
             if (waypoint?.lng) {
-                accum.push(waypoint.lng);
+                accumulator.push(waypoint.lng);
             }
-            return accum;
+            return accumulator;
         }, []);
-        const latitudes: number[] = Object.values(allWaypoints).reduce((accum: number[], waypoint) => {
+        const latitudes: number[] = Object.values(allWaypoints).reduce((accumulator: number[], waypoint) => {
             if (waypoint?.lat) {
-                accum.push(waypoint.lat);
+                accumulator.push(waypoint.lat);
             }
-            return accum;
+            return accumulator;
         }, []);
 
         // When no filled waypoints are available but the current location of the user is available,

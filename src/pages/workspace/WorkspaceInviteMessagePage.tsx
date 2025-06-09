@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
-import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
@@ -22,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
+import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,12 +38,9 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import KeyboardUtils from '@src/utils/keyboard';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
-import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberRoleSelectionModal';
-import type {ListItemType} from './WorkspaceMemberRoleSelectionModal';
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
@@ -54,7 +50,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
-    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
 
     const viewportOffsetTop = useViewportOffsetTop();
     const [welcomeNote, setWelcomeNote] = useState<string>();
@@ -67,21 +62,14 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`, {
         canBeMissing: true,
     });
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
-
-    const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
         [policy?.name, currentUserPersonalDetails?.displayName],
     );
-
-    const openRoleSelectionModal = useCallback(() => {
-        KeyboardUtils.dismiss().then(() => {
-            setIsRoleSelectionModalVisible(true);
-        });
-    }, []);
 
     const getDefaultWelcomeNote = useCallback(() => {
         return (
@@ -113,7 +101,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, role);
+        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, workspaceInviteRoleDraft);
         setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         if ((route.params?.backTo as string)?.endsWith('members')) {
@@ -150,37 +138,11 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
     const policyName = policy?.name;
 
-    const roleItems: ListItemType[] = useMemo(
-        () => [
-            {
-                value: CONST.POLICY.ROLE.ADMIN,
-                text: translate('common.admin'),
-                alternateText: translate('workspace.common.adminAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.ADMIN,
-                keyForList: CONST.POLICY.ROLE.ADMIN,
-            },
-            {
-                value: CONST.POLICY.ROLE.AUDITOR,
-                text: translate('common.auditor'),
-                alternateText: translate('workspace.common.auditorAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.AUDITOR,
-                keyForList: CONST.POLICY.ROLE.AUDITOR,
-            },
-            {
-                value: CONST.POLICY.ROLE.USER,
-                text: translate('common.member'),
-                alternateText: translate('workspace.common.memberAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.USER,
-                keyForList: CONST.POLICY.ROLE.USER,
-            },
-        ],
-        [role, translate],
-    );
-
-    const changeRole = useCallback(({value}: ListItemType) => {
-        setIsRoleSelectionModalVisible(false);
-        setRole(value);
-    }, []);
+    useEffect(() => {
+        return () => {
+            clearWorkspaceInviteRoleDraft(route.params.policyID);
+        };
+    }, [route.params.policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -239,16 +201,12 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
                             <MenuItemWithTopDescription
-                                title={translate(`workspace.common.roleName`, {role})}
+                                title={translate(`workspace.common.roleName`, {role: workspaceInviteRoleDraft})}
                                 description={translate('common.role')}
                                 shouldShowRightIcon
-                                onPress={openRoleSelectionModal}
-                            />
-                            <WorkspaceMemberDetailsRoleSelectionModal
-                                isVisible={isRoleSelectionModalVisible}
-                                items={roleItems}
-                                onRoleChange={changeRole}
-                                onClose={() => setIsRoleSelectionModalVisible(false)}
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
+                                }}
                             />
                         </View>
                         <InputWrapper

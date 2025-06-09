@@ -3,10 +3,11 @@ import type {SectionListData} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Badge from './Badge';
@@ -35,7 +36,7 @@ type WorkspaceMembersSelectionListProps = {
 
 function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}: WorkspaceMembersSelectionListProps) {
     const {translate} = useLocalize();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(policyID);
@@ -53,7 +54,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
                         return null;
                     }
 
-                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+                    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                     const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                     const {avatar, displayName = email} = personalDetails?.[accountID] ?? {};
 
@@ -72,19 +73,12 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             approvers.push(...availableApprovers);
         }
 
-        const filteredApprovers =
-            debouncedSearchTerm !== ''
-                ? approvers.filter((option) => {
-                      const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-                      const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                      return isPartOfSearchTerm;
-                  })
-                : approvers;
+        const filteredApprovers = tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (approver) => [approver.text ?? '', approver.login ?? '']);
 
         return [
             {
                 title: undefined,
-                data: OptionsListUtils.sortAlphabetically(filteredApprovers, 'text'),
+                data: sortAlphabetically(filteredApprovers, 'text'),
                 shouldShow: true,
             },
         ];
@@ -107,10 +101,12 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             onSelectRow={handleOnSelectRow}
             showScrollIndicator
             showLoadingPlaceholder={!didScreenTransitionEnd}
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             addBottomSafeAreaPadding
         />
     );
 }
+
+export type {SelectionListApprover};
 
 export default WorkspaceMembersSelectionList;

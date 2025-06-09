@@ -18,7 +18,7 @@ There are two steps to enable Expensify Card notifications. You’ll first enabl
 {% include option.html value="desktop" %}
 1. From your Expensify Chat inbox, click the dropdown on the logo or avatar that is in the top left corner. 
 2. Select the workspace you want to update the notification settings for.
-3. Click the workspace chat in your inbox (it will be the chat that has your workspace’s name as the chat title).
+3. Click the expense chat in your inbox (it will be the chat that has your workspace’s name as the chat title).
 4. Click the header at the top of the chat.
 5. Click **Settings**.
 6. Click **Notify me about new messages** and select **Immediately**.
@@ -27,7 +27,7 @@ There are two steps to enable Expensify Card notifications. You’ll first enabl
 {% include option.html value="mobile" %}
 1. From your Expensify Chat inbox, tap the dropdown on the logo or avatar that is in the top left corner. 
 2. Select the workspace you want to update the notification settings for.
-3. Tap the workspace chat in your inbox (it will be the chat that has your workspace’s name as the chat title).
+3. Tap the expense chat in your inbox (it will be the chat that has your workspace’s name as the chat title).
 4. Tap the header at the top of the chat.
 5. Tap **Settings**.
 6. Tap **Notify me about new messages** and select **Immediately**.

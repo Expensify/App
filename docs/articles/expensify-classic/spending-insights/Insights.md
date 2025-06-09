@@ -1,8 +1,11 @@
 ---
 title: Custom Reporting and Insights
 description: Learn how to use Custom Reporting and Insights in Expensify to analyze spending, export data, and create custom reports.
+keywords: [Expensify Classic, Insights, spending analysis]
 redirect_from: articles/other/Insights/
 ---
+
+<div id="expensify-classic" markdown="1">
 
 The Insights dashboard in Expensify provides a real-time overview of company spending across categories, employees, projects, and departments. It allows you to identify trends, forecast budgets, and create unlimited custom reports with the help of our support team.
 
@@ -47,13 +50,13 @@ If you need help creating a custom export report, click **Support** to contact t
 
 ## Can I share my custom export report?
 
-- Custom reports under **Settings > Workspaces > Group > [Workspace Name] > Export Formats** can be shared with other workspace admins.
+- Custom reports under **Settings > Workspaces > [Workspace Name] > Export Formats** can be shared with other workspace admins.
 - Reports created under **Settings > Account > Preferences** are only available to the member who created them.
 
 ## Can I include expenses from multiple workspaces in one report?
 
 - Yes, reports created under **Settings > Account > Preferences** can include expenses from multiple workspaces.
-- Reports created under **Settings > Workspaces > Group > [Workspace Name] > Export Formats** are limited to that workspace.
+- Reports created under **Settings > Workspaces > [Workspace Name] > Export Formats** are limited to that workspace.
 
 ## Are there default export reports available?
 
@@ -86,3 +89,5 @@ Yes! We offer [seven default reports](https://help.expensify.com/articles/expens
 - Vendor Spend Analysis
 
 Looking for a custom report? Reach out to your Account Manager for assistance! 
+
+</div>

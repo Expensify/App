@@ -16,16 +16,13 @@ Workspace Admins can add custom fields to reports or invoices to collect importa
 
 # Add Custom Fields to Reports or Invoices
 
-1. Hover over **Settings** and select **Workspaces**.
-2. Select the desired workspace.
-3. Click the **Reports** tab on the left.
-4. Scroll down to the **Report and Invoice Fields** section.
-5. Under **Add New Field**, enter a **Field Title**.
-6. Click the dropdown for the **Type** field and select the desired option:
+1. Head to **Settings > Workspace > [Workspace Name] > Reports Fields**.
+2. Under **Add New Field**, enter a **Field Title**.
+3. Click the dropdown for the **Type** field and select the desired option:
    - **Text**: Provides a text box to type in the requested information
    - **Dropdown**: Provides a dropdown of options to choose from
    - **Date**: Opens a calendar to select a date
-7. Select the report type: **Expense Report** or **Invoice**.
-8. Click **Add**.
+4. Select the report type: **Expense Report** or **Invoice**.
+5. Click **Add**.
 
 </div>
