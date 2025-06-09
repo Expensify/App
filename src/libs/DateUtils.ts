@@ -217,7 +217,7 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 }
 
 /**
- * Some platfroms does not support new timezone names, thus fallback to older names.
+ * We have to fall back to older timezone names for native platforms that do not ship with newer timezone names to avoid a crash.
  * Memoize to prevent unnecessary calculation as timezone support will not change on runtime on a platform.
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
