@@ -11,7 +11,7 @@ const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMAN
  */
 export default function useLoadingBarVisibility(): boolean {
     const [req] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: false});
 
     // Don't show loading bar if currently offline
     if (network?.isOffline) {
