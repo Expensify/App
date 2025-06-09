@@ -1815,11 +1815,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 20,
         },
 
-        sidebarListContainer: {
-            ...spacing.pt3,
-            paddingBottom: 4,
-        },
-
         sidebarListItem: {
             justifyContent: 'center',
             textDecorationLine: 'none',
@@ -3069,8 +3064,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sectionTitle: {
-            ...spacing.pt2,
-            ...spacing.pb4,
+            ...spacing.pv2,
             ...spacing.ph2,
             fontSize: 13,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -3857,12 +3851,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'flex-start',
         },
 
-        narrowSearchHeaderStyle: {
-            flex: 1,
-            paddingTop: 12,
-            backgroundColor: theme.appBG,
-        },
-
         narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,
@@ -4028,6 +4016,54 @@ const styles = (theme: ThemeColors) =>
 
         receiptDropInnerWrapper: {
             borderColor: theme.receiptDropBorderColor,
+        },
+
+        flashButtonContainer: {
+            position: 'absolute',
+            top: 20,
+            right: 20,
+        },
+
+        bgGreenSuccess: {
+            backgroundColor: colors.green400,
+        },
+
+        webButtonShadow: {
+            boxShadow: `0px 0px 24px 16px ${theme.appBG}`,
+        },
+
+        buttonShadow: {
+            boxShadow: [
+                {
+                    offsetX: 0,
+                    offsetY: 0,
+                    blurRadius: '24px',
+                    spreadDistance: '16px',
+                    color: theme.appBG,
+                },
+            ],
+        },
+
+        buttonShadowContainer: {
+            height: 52,
+            width: 52,
+            borderTopLeftRadius: 26,
+            borderBottomLeftRadius: 26,
+        },
+
+        receiptsSubmitButton: {
+            position: 'absolute',
+            right: 16,
+            top: 8,
+            backgroundColor: theme.appBG,
+        },
+
+        receiptPlaceholder: {
+            height: 52,
+            marginRight: 8,
+            width: variables.w44,
+            borderRadius: variables.componentBorderRadiusSmall,
+            backgroundColor: colors.productLight300,
         },
 
         isDraggingOver: {
@@ -4688,7 +4724,7 @@ const styles = (theme: ThemeColors) =>
         moneyRequestImage: {
             height: 200,
             borderRadius: 16,
-            margin: 20,
+            marginHorizontal: 20,
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
@@ -4866,7 +4902,6 @@ const styles = (theme: ThemeColors) =>
 
         moneyRequestViewImage: {
             ...spacing.mh5,
-            ...spacing.mv3,
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
@@ -4905,6 +4940,7 @@ const styles = (theme: ThemeColors) =>
         moneyRequestAttachReceiptThumbnail: {
             backgroundColor: theme.hoverComponentBG,
             borderWidth: 0,
+            width: '100%',
         },
 
         receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
@@ -5137,6 +5173,24 @@ const styles = (theme: ThemeColors) =>
             position: 'relative',
             alignSelf: 'center',
             overflow: 'hidden',
+        },
+
+        plaidIcon: {
+            height: variables.iconSizeMegaLarge,
+            width: variables.iconSizeMegaLarge,
+            position: 'absolute',
+            right: 24,
+            top: 20,
+            zIndex: 1,
+        },
+
+        plaidIconSmall: {
+            height: variables.iconSizeMedium,
+            width: variables.iconSizeMedium,
+            position: 'absolute',
+            right: 4,
+            zIndex: 1,
+            top: 4,
         },
 
         walletCardNumber: {
@@ -5792,8 +5846,9 @@ const styles = (theme: ThemeColors) =>
             // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
             // and never expand over the max height
             const height = Math.min(ESTIMATED_LIST_HEIGHT, CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * 0.9);
+            const width = shouldUseNarrowLayout ? sizing.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH};
 
-            return {height};
+            return {height, ...width};
         },
 
         earlyDiscountButton: {
