@@ -51,6 +51,8 @@ jobs:
         run: |
           op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
 
+          cp ./upload-key.keystore Mobile-Expensify/Android
+
       - name: Load Android upload keystore credentials from 1Password
         if: matrix.variant == 'Adhoc'
         id: load-credentials
@@ -63,6 +65,14 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
+      - name: Verify keystore
+        if: matrix.variant == 'Adhoc'
+        run: |
+          if [ ! -f "Mobile-Expensify/Android/upload-key.keystore" ]; then
+            echo "Keystore file not found"
+            exit 1
+          fi
+
       - name: RNEF Remote Build - Android
         uses: callstackincubator/android@2f67a7003e5ed1bb4e483619ab582fabff25677d
         env:
@@ -72,7 +82,6 @@ jobs:
         with:
           variant: ${{ matrix.variant }}
           github-token: ${{ github.token }}
-          rnef-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false
           sign: ${{ matrix.variant == 'Adhoc' && 'true' || 'false' }}
           keystore-base64: ${{ matrix.variant == 'Adhoc' && steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD || '' }}
