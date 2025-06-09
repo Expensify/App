@@ -587,7 +587,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
 
     if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
         Object.keys(policy?.employeeList ?? {}).forEach((employee) => {
-            updatedEmployeeList![employee] = {
+            updatedEmployeeList[employee] = {
                 ...policy?.employeeList?.[employee],
                 submitsTo: approver,
                 forwardsTo: '',
