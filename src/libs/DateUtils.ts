@@ -216,17 +216,18 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
     return isSameDay(date, yesterdayInTimeZone);
 }
 
-// There is no need to check same timezone support again and again as it will not change on runtime.
+/**
+ * Some platfroms does not support new timezone names, thus fallback to older names.
+ * Memoize to prevent unnecessary calculation as timezone support will not change on runtime on a platform.
+ */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string => {
     try {
-        // Check whether the timezone value work on the current system
         const date = new Date();
         const testDate = toZonedTime(date, timezoneInput);
-        format(testDate, CONST.DATE.FNS_FORMAT_STRING); // This will throw an error if the timezone is not supported
+        format(testDate, CONST.DATE.FNS_FORMAT_STRING);
         return timezoneInput;
     } catch (error) {
-        // If the timezone is not supported, fallback to the default timezone
         return timezoneNewToBackwardMap[timezoneInput];
     }
 });
