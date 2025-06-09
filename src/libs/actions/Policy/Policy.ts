@@ -77,6 +77,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {OptimisticChatReport} from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -112,6 +113,7 @@ type ReportCreationData = Record<
     {
         reportID: string;
         reportActionID?: string;
+        report: OptimisticChatReport;
     }
 >;
 
@@ -1071,6 +1073,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
             workspaceMembersChats.reportCreationData[login] = {
+                report: oldChat,
                 reportID: oldChat.reportID,
             };
             workspaceMembersChats.onyxOptimisticData.push({
@@ -1120,6 +1123,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
+            report: optimisticReport,
             reportID: optimisticReport.reportID,
             reportActionID: optimisticCreatedAction.reportActionID,
         };
@@ -3779,6 +3783,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 harvesting: {
                     enabled: false,
                 },
+                isAttendeeTrackingEnabled: false,
             },
         },
     ];
@@ -3805,6 +3810,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
                 glCodes: policy?.glCodes ?? null,
                 harvesting: policy?.harvesting ?? null,
+                isAttendeeTrackingEnabled: null,
             },
         },
     ];
@@ -3823,6 +3829,7 @@ function downgradeToTeam(policyID: string) {
             value: {
                 isPendingDowngrade: true,
                 type: CONST.POLICY.TYPE.TEAM,
+                isAttendeeTrackingEnabled: null,
             },
         },
     ];
@@ -3844,6 +3851,7 @@ function downgradeToTeam(policyID: string) {
             value: {
                 isPendingDowngrade: false,
                 type: policy?.type,
+                isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
             },
         },
     ];
