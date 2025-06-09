@@ -13,7 +13,7 @@ class Prettier {
     private static instance: Prettier;
 
     /**
-     * Config loaded from .pretteirrc.js
+     * Config loaded from .prettierrc.js
      */
     private config: Options | null = null;
 

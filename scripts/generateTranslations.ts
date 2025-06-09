@@ -195,13 +195,13 @@ class TranslationGenerator {
 
         // Otherwise, look for the nearest ancestor that may have a comment attached.
         // For now, we only support property assignments.
-        const nearestCommentableAncestor = TSCompilerUtils.findAncestor(node, (n) => ts.isPropertyAssignment(n));
-        if (!nearestCommentableAncestor) {
+        const nearestPropertyAssignmentAncestor = TSCompilerUtils.findAncestor(node, (n) => ts.isPropertyAssignment(n));
+        if (!nearestPropertyAssignmentAncestor) {
             return undefined;
         }
 
         // Search through comments looking for a context comment
-        const commentRanges = ts.getLeadingCommentRanges(this.sourceFile.getFullText(), nearestCommentableAncestor.getFullStart()) ?? [];
+        const commentRanges = ts.getLeadingCommentRanges(this.sourceFile.getFullText(), nearestPropertyAssignmentAncestor.getFullStart()) ?? [];
         for (const range of commentRanges.reverse()) {
             const commentText = this.sourceFile.getFullText().slice(range.pos, range.end);
             const match = commentText.match(TranslationGenerator.CONTEXT_REGEX);
