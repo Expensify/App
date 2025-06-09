@@ -79,6 +79,7 @@ describe('ReportPreview', () => {
                         policyID=""
                         checkIfContextMenuActive={emptyFunction}
                         onShowContextMenu={emptyFunction}
+                        transactionsAndViolationsByReport={{}}
                     />
                 </LocaleContextProvider>
             </OnyxProvider>,

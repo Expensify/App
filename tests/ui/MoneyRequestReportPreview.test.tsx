@@ -77,6 +77,7 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                             onPaymentOptionsHide={() => {}}
                             isHovered={isHovered}
                             isWhisper={isWhisper}
+                            transactionsAndViolationsByReport={{}}
                         />
                     </PortalProvider>
                 </ScreenWrapper>
