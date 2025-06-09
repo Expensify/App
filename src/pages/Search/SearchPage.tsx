@@ -10,7 +10,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PDFThumbnail from '@components/PDFThumbnail';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -19,7 +18,7 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useFileValidation from '@hooks/useFileValidation';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -74,16 +73,6 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
-    const {
-        validateAndResizeFile,
-        setIsAttachmentInvalid,
-        isAttachmentInvalid,
-        setUploadReceiptError,
-        pdfFile,
-        setPdfFile,
-        isLoadingReceipt,
-        fileError,
-    } = useFileValidation();
 
     const {q} = route.params;
 
@@ -390,10 +379,6 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
-    // TODO: to be refactored in step 3
-    const hideReceiptModal = () => {
-        setIsAttachmentInvalid(false);
-    };
 
     const saveFileAndInitMoneyRequest = (file: FileObject) => {
         const source = URL.createObjectURL(file as Blob);
@@ -408,12 +393,28 @@ function SearchPage({route}: SearchPageProps) {
         navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
     };
 
+    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, isLoadingReceipt, fileError, PDFValidationComponent, setPdfFiles} =
+        useFilesValidation(saveFileAndInitMoneyRequest);
+
+    const hideReceiptModal = () => {
+        setIsAttachmentInvalid(false);
+    };
+
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateAndResizeFile(originalFile, saveFileAndInitMoneyRequest, isPdfValidated);
+        validateAndResizeFile(originalFile, isPdfValidated);
     };
 
     const initScanRequest = (e: DragEvent) => {
         const file = e?.dataTransfer?.files[0];
+        if (e?.dataTransfer?.files && e?.dataTransfer?.files.length > 1) {
+            const files = Array.from(e?.dataTransfer?.files).map((f) => {
+                // eslint-disable-next-line no-param-reassign
+                f.uri = URL.createObjectURL(f);
+                return f;
+            });
+            setPdfFiles(files);
+            return;
+        }
         if (file) {
             file.uri = URL.createObjectURL(file);
             setReceiptAndNavigate(file);
@@ -440,20 +441,6 @@ function SearchPage({route}: SearchPageProps) {
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
     const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
-
-    // TODO: to be refactored in step 3
-    const PDFThumbnailView = pdfFile ? (
-        <PDFThumbnail
-            style={styles.invisiblePDF}
-            previewSourceURL={pdfFile.uri ?? ''}
-            onLoadSuccess={() => {
-                setPdfFile(null);
-                setReceiptAndNavigate(pdfFile, true);
-            }}
-            onPassword={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE)}
-            onLoadError={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)}
-        />
-    ) : null;
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -550,7 +537,7 @@ function SearchPage({route}: SearchPageProps) {
                         >
                             {isLoadingReceipt && <FullScreenLoadingIndicator />}
                             <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
-                                {PDFThumbnailView}
+                                {PDFValidationComponent}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
