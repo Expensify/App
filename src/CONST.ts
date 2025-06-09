@@ -821,6 +821,10 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
+        /**
+         * @deprecated
+         * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
+         * */
         TABLE_REPORT_VIEW: 'tableReportView',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
@@ -7186,6 +7190,10 @@ const CONST = {
     },
 
     ONBOARDING_HELP: {
+        SCHEDULE_CALL: 'scheduleCall',
+        EVENT_TIME: 'eventTime',
+        RESCHEDULE: 'reschedule',
+        CANCEL: 'cancel',
         TALK_TO_SALES: 'talkToSales',
         REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
