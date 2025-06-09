@@ -821,6 +821,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
+        /* eslint-disable deprecation/deprecation */
         /**
          * @deprecated
          * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
