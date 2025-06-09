@@ -39,9 +39,7 @@ function LegalNamePage() {
             const errors: Errors = {};
 
             if (typeof values.legalFirstName === 'string') {
-                if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalFirstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
-                } else if (!values.legalFirstName) {
+                if (!values.legalFirstName) {
                     errors.legalFirstName = translate('common.error.fieldRequired');
                 } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                     ErrorUtils.addErrorMessage(
@@ -56,9 +54,7 @@ function LegalNamePage() {
             }
 
             if (typeof values.legalLastName === 'string') {
-                if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
-                } else if (!values.legalLastName) {
+                if (!values.legalLastName) {
                     errors.legalLastName = translate('common.error.fieldRequired');
                 } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                     ErrorUtils.addErrorMessage(
