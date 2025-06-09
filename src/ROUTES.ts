@@ -615,29 +615,10 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID/:backToReport?',
-        getRoute: (
-            action: IOUAction,
-            iouType: IOUType,
-            transactionID: string,
-            reportID: string | undefined,
-            backToReport?: string,
-            participantsAutoAssigned?: boolean,
-            currentTransactionID?: string,
-        ) => {
-            const queryParams: string[] = [];
-
-            if (participantsAutoAssigned) {
-                queryParams.push(`participantsAutoAssigned=true`);
-            }
-            if (currentTransactionID) {
-                queryParams.push(`currentTransactionID=${currentTransactionID}`);
-            }
-
-            const baseRoute = `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${backToReport ?? ''}` as const;
-            const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
-
-            return `${baseRoute}${queryString}` as const;
-        },
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backToReport?: string, participantsAutoAssigned?: boolean) =>
+            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${backToReport ?? ''}${
+                participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''
+            }` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID/:pageIndex?/:backToReport?',

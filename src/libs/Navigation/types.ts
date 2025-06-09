@@ -1319,7 +1319,6 @@ type MoneyRequestNavigatorParamList = {
         pageIndex?: string;
         backTo?: string;
         participantsAutoAssigned?: string;
-        currentTransactionID?: string;
         backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
