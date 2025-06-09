@@ -104,7 +104,6 @@ import {
     getRejectedReportMessage,
     getReportLastMessage,
     getReportName,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportParticipantsTitle,
