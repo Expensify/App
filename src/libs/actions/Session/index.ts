@@ -241,7 +241,13 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldKillHybridApp = true, shouldForceUseStashedSession?: boolean, isTransitioning?: boolean) {
+function signOutAndRedirectToSignIn(
+    shouldResetToHome?: boolean,
+    shouldStashSession?: boolean,
+    shouldKillHybridApp = true,
+    shouldForceUseStashedSession?: boolean,
+    isTransitioning?: boolean,
+) {
     const accountID = session.accountID;
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
