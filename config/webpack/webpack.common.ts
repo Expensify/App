@@ -43,7 +43,6 @@ const includeModules = [
     'expo-av',
     'expo-image-manipulator',
     'expo-modules-core',
-    'react-native-webrtc-web-shim',
 ].join('|');
 
 const environmentToLogoSuffixMap: Record<string, string> = {
