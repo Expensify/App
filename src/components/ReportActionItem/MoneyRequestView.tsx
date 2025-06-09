@@ -619,7 +619,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 return;
                             }
 
-                            if (canEditAmount) {
+                            if (isExpenseSplit) {
                                 initSplitExpense(transaction);
                                 return;
                             }
