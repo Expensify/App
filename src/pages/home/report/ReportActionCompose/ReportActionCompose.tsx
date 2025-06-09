@@ -37,7 +37,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
-import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
+import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
 import {
@@ -149,8 +149,7 @@ function ReportActionCompose({
     // TODO: remove beta check after the feature is enabled
     const {isBetaEnabled} = usePermissions();
 
-    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, attachmentInvalidReason, attachmentInvalidReasonTitle, setUploadReceiptError, pdfFile, setPdfFile} =
-        useFileValidation();
+    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, setUploadReceiptError, pdfFile, setPdfFile, fileError} = useFileValidation();
 
     /**
      * Updates the Highlight state of the composer
@@ -500,12 +499,8 @@ function ReportActionCompose({
                 setPdfFile(null);
                 setReceiptAndNavigate(pdfFile, true);
             }}
-            onPassword={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
-            }}
-            onLoadError={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-            }}
+            onPassword={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE)}
+            onLoadError={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)}
         />
     ) : null;
 
@@ -693,11 +688,11 @@ function ReportActionCompose({
                         />
                     </View>
                     <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                        title={fileError ? translate(getFileValidationErrorText(fileError).title) : ''}
                         onConfirm={hideReceiptModal}
                         onCancel={hideReceiptModal}
                         isVisible={isAttachmentInvalid}
-                        prompt={getConfirmModalPrompt(attachmentInvalidReason)}
+                        prompt={fileError ? translate(getFileValidationErrorText(fileError).reason) : ''}
                         confirmText={translate('common.close')}
                         shouldShowCancelButton={false}
                     />

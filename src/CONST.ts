@@ -2073,6 +2073,7 @@ const CONST = {
         FILE_CORRUPTED: 'fileCorrupted',
         FOLDER_NOT_ALLOWED: 'folderNotAllowed',
         MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
+        PROTECTED_FILE: 'protectedFile',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',

@@ -378,16 +378,6 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
         });
 };
 
-const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undefined) => {
-    if (!attachmentInvalidReason) {
-        return '';
-    }
-    if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-        return translateLocal(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
-    }
-    return translateLocal(attachmentInvalidReason);
-};
-
 const isValidReceiptExtension = (file: FileObject) => {
     const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
     return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
@@ -436,6 +426,11 @@ const getFileValidationErrorText = (
                 title: 'attachmentPicker.attachmentError',
                 reason: 'attachmentPicker.errorWhileSelectingCorruptedAttachment',
             };
+        case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
+            return {
+                title: 'attachmentPicker.attachmentError',
+                reason: 'attachmentPicker.protectedPDFNotSupported',
+            };
         default:
             return {
                 title: 'attachmentPicker.attachmentError',
@@ -466,7 +461,6 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
-    getConfirmModalPrompt,
     validateAttachment,
     isValidReceiptExtension,
     getFileValidationErrorText,

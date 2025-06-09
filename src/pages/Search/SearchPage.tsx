@@ -39,7 +39,7 @@ import {
     search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
-import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
+import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -78,12 +78,11 @@ function SearchPage({route}: SearchPageProps) {
         validateAndResizeFile,
         setIsAttachmentInvalid,
         isAttachmentInvalid,
-        attachmentInvalidReason,
-        attachmentInvalidReasonTitle,
         setUploadReceiptError,
         pdfFile,
         setPdfFile,
         isLoadingReceipt,
+        fileError,
     } = useFileValidation();
 
     const {q} = route.params;
@@ -451,12 +450,8 @@ function SearchPage({route}: SearchPageProps) {
                 setPdfFile(null);
                 setReceiptAndNavigate(pdfFile, true);
             }}
-            onPassword={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
-            }}
-            onLoadError={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-            }}
+            onPassword={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE)}
+            onLoadError={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)}
         />
     ) : null;
 
@@ -584,11 +579,11 @@ function SearchPage({route}: SearchPageProps) {
                             </DragAndDropProvider>
                         </ScreenWrapper>
                         <ConfirmModal
-                            title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                            title={fileError ? translate(getFileValidationErrorText(fileError).title) : ''}
                             onConfirm={hideReceiptModal}
                             onCancel={hideReceiptModal}
                             isVisible={isAttachmentInvalid}
-                            prompt={getConfirmModalPrompt(attachmentInvalidReason)}
+                            prompt={fileError ? translate(getFileValidationErrorText(fileError).reason) : ''}
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
