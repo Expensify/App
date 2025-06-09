@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +32,7 @@ type ParentNavigationSubtitleProps = {
     parentReportActionID?: string;
 
     /** PressableWithoutFeedback additional styles */
-    pressableStyles?: StyleProp<ViewStyle>;
+    pressableStyles?: StyleProp<TextStyle>;
 
     /** Whether to open the parent report link in the current tab if possible */
     openParentReportInCurrentTab?: boolean;
@@ -110,17 +109,15 @@ function ParentNavigationSubtitle({
             {!!reportName && (
                 <>
                     <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
-                    <View style={pressableStyles}>
-                        <TextLink
-                            onMouseEnter={onMouseEnter}
-                            onMouseLeave={onMouseLeave}
-                            onPress={onPress}
-                            accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
-                            style={[styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link]}
-                        >
-                            {reportName}
-                        </TextLink>
-                    </View>
+                    <TextLink
+                        onMouseEnter={onMouseEnter}
+                        onMouseLeave={onMouseLeave}
+                        onPress={onPress}
+                        accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
+                        style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link]}
+                    >
+                        {reportName}
+                    </TextLink>
                 </>
             )}
             {!!workspaceName && workspaceName !== reportName && (
