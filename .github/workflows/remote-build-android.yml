@@ -84,7 +84,7 @@ jobs:
           github-token: ${{ github.token }}
           comment-bot: false
           sign: ${{ matrix.variant == 'Adhoc' && 'true' || 'false' }}
-          keystore-base64: ${{ matrix.variant == 'Adhoc' && steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD || '' }}
+          keystore-base64: ${{ matrix.variant == 'Adhoc' && 'Mobile-Expensify/Android/upload-key.keystore' || '' }}
           keystore-store-file: ${{ matrix.variant == 'Adhoc' && 'upload-key.keystore' || '' }}
           keystore-store-password: ${{ matrix.variant == 'Adhoc' && steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD || '' }}
           keystore-key-alias: ${{ matrix.variant == 'Adhoc' && steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS || '' }}
