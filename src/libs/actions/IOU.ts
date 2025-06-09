@@ -447,7 +447,7 @@ type MoneyRequestInformationParams = {
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
-    isSplitExpense?: boolean;
+    totalAmount?: number;
     testDriveCommentReportActionID?: string;
 };
 
@@ -3253,7 +3253,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         existingTransactionID,
         moneyRequestReportID = '',
         retryParams,
-        isSplitExpense,
+        totalAmount,
         testDriveCommentReportActionID,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
@@ -3317,17 +3317,21 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency)
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
-        // Splitting doesn’t affect the amount, so no adjustment is needed
-        // The amount remains constant after the split
-        if (!isSplitExpense) {
-            iouReport = {...iouReport};
-            // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-            if (iouReport?.currency === currency) {
-                if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+        iouReport = {...iouReport};
+        // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+        if (iouReport?.currency === currency) {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+                if (totalAmount) {
+                    iouReport.total = totalAmount;
+                } else {
                     iouReport.total -= amount;
                 }
+            }
 
-                if (typeof iouReport.unheldTotal === 'number') {
+            if (typeof iouReport.unheldTotal === 'number') {
+                if (totalAmount) {
+                    iouReport.unheldTotal = totalAmount;
+                } else {
                     iouReport.unheldTotal -= amount;
                 }
             }
@@ -11639,7 +11643,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
                         description: currentTransactionDetails?.comment,
                         category: currentTransactionDetails?.category,
                         tags: currentTransactionDetails?.tag ? [currentTransactionDetails?.tag] : [],
-                        created: currentTransaction?.created ?? '',
+                        created: currentTransactionDetails?.created ?? '',
                         statusNum: currentReport?.statusNum,
                         merchant: currentTransactionDetails?.merchant,
                     };
@@ -11838,6 +11842,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
+    const originalTransactionDetails = getTransactionDetails(originalTransaction);
     const originalTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
@@ -11846,10 +11851,12 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+    let totalAmount = 0;
 
     const splits: SplitTransactionSplitsParam =
         splitExpenses.map((split) => {
             const currentDescription = getParsedComment(Parser.htmlToMarkdown(split.description ?? ''));
+            totalAmount -= split.amount;
             return {
                 amount: split.amount,
                 category: split.category ?? '',
@@ -11867,6 +11874,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const failureData = [] as OnyxUpdate[];
     const optimisticData = [] as OnyxUpdate[];
 
+    let canBeClosed = true;
     splitExpenses.forEach((splitExpense, index) => {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense.transactionID}`];
         const splitReportActions = getAllReportActions(splitTransaction?.reportID);
@@ -11916,7 +11924,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             moneyRequestReportID: expenseReport?.reportID,
             existingTransaction: originalTransaction,
             existingTransactionID,
-            isSplitExpense: true,
+            totalAmount,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
@@ -11927,13 +11935,16 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             const transactionChanges = {
                 ...currentSplit,
                 comment: currentSplit?.comment?.comment,
-            };
+            } as TransactionChanges;
 
             Object.keys(transactionChanges).forEach((key) => {
                 const newValue = transactionChanges[key as keyof typeof transactionChanges];
                 const oldValue = existing?.[key as keyof typeof existing];
                 if (newValue === oldValue) {
                     delete transactionChanges[key as keyof typeof transactionChanges];
+                    // For updating the amount correctly we need to pass the currency for getUpdateMoneyRequestParams also
+                } else if (key === 'amount') {
+                    transactionChanges.currency = originalTransactionDetails?.currency;
                 }
             });
 
@@ -11947,7 +11958,10 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                     policyCategories ?? null,
                 );
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
+                canBeClosed = false;
             }
+        } else {
+            canBeClosed = false;
         }
 
         const split = splits.at(index);
@@ -11962,6 +11976,12 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         successData.push(...(onyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []));
         failureData.push(...(onyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
     });
+
+    if (canBeClosed) {
+        InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
+        Navigation.dismissModal();
+        return;
+    }
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -12050,8 +12070,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
     InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
-    const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
-    if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
+    if (isSearchTopmostFullScreenRoute() || !transactionReport?.parentReportID) {
         Navigation.dismissModal();
         return;
     }

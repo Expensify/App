@@ -668,6 +668,7 @@ type TransactionDetails = {
     originalAmount: number;
     originalCurrency: string;
     postedDate: string;
+    transactionID: string;
 };
 
 type OptimisticIOUReport = Pick<
@@ -3743,6 +3744,7 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         postedDate: getFormattedPostedDate(transaction),
+        transactionID: transaction.transactionID,
     };
 }
 
