@@ -28,7 +28,7 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getTagLists, hasDependentTags, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction, isPayAction, isConciergeCategoryOptions} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -527,6 +527,22 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
 
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+
+    // Check if there's a CONCIERGE_CATEGORY_OPTIONS action in the report actions
+    const hasConciergeCategoryOptionsAction = useMemo(() => {
+        if (!reportActions) {
+            return false;
+        }
+        return Object.values(reportActions).some((action) => isConciergeCategoryOptions(action));
+    }, [reportActions]);
+
+    // Show "Analyzing..." when transaction doesn't have a category or there's no CONCIERGE_CATEGORY_OPTIONS action
+    const shouldShowCategoryAnalyzing = useMemo(() => {
+        const hasCategory = !!(updatedTransaction?.category ?? transactionCategory);
+        return !hasCategory || !hasConciergeCategoryOptionsAction;
+    }, [updatedTransaction?.category, transactionCategory, hasConciergeCategoryOptionsAction]);
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -712,6 +728,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             }}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
+                            helperText={shouldShowCategoryAnalyzing ? 'Analyzing...' : undefined}
                         />
                     </OfflineWithFeedback>
                 )}
