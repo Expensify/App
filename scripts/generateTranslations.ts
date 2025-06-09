@@ -9,6 +9,7 @@ import ts from 'typescript';
 import StringUtils from '../src/libs/StringUtils';
 import type Locale from '../src/types/onyx/Locale';
 import Prettier from './utils/Prettier';
+import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
@@ -55,6 +56,7 @@ class TranslationGenerator {
     public async generateTranslations(): Promise<void> {
         const sourceCode = fs.readFileSync(this.sourceFile, 'utf8');
         const sourceFile = ts.createSourceFile(this.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
+        const promisePool = new PromisePool();
 
         for (const targetLanguage of this.targetLanguages) {
             // Extract strings to translate
@@ -62,9 +64,12 @@ class TranslationGenerator {
             this.extractStringsToTranslate(sourceFile, stringsToTranslate);
 
             const translations = new Map<number, string>();
+            const translationPromises = [];
             for (const [key, value] of stringsToTranslate) {
-                translations.set(key, await this.translator.translate(value, targetLanguage));
+                const translationPromise = promisePool.add(() => this.translator.translate(value, targetLanguage).then((result) => translations.set(key, result)));
+                translationPromises.push(translationPromise);
             }
+            await Promise.allSettled(translationPromises);
 
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translations);
