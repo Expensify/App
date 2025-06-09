@@ -9,6 +9,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -382,18 +383,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const userHasPhonePrimaryEmail = Str.endsWith(session?.email ?? '', CONST.SMS.DOMAIN);
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
+    const route1 = backTo ? ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo) : ROUTES.HOME;
+    console.log(route1);
+
     if (userHasPhonePrimaryEmail) {
         errorText = (
-            <Text style={styles.flexRow}>
-                <Text>{translate('bankAccount.hasPhoneLoginError.phrase1')}</Text>{' '}
-                <TextLink
-                    style={styles.link}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
-                >
-                    {translate('bankAccount.hasPhoneLoginError.link')}
-                </TextLink>
-                {translate('bankAccount.hasPhoneLoginError.phrase2')}
-            </Text>
+            <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}>
+                <RenderHTML html={translate('bankAccount.hasPhoneLoginError')} />
+            </TextLink>
         );
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
