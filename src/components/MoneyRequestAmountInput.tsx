@@ -92,6 +92,9 @@ type MoneyRequestAmountInputProps = {
     /** The width of inner content */
     contentWidth?: number;
 
+    /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
+    shouldApplyPaddingToContainer?: boolean;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace' | 'submitBehavior'>;
@@ -133,6 +136,7 @@ function MoneyRequestAmountInput(
         contentWidth,
         testID,
         submitBehavior,
+        shouldApplyPaddingToContainer = false,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -345,6 +349,7 @@ function MoneyRequestAmountInput(
             contentWidth={contentWidth}
             testID={testID}
             submitBehavior={submitBehavior}
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
         />
     );
 }

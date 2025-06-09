@@ -66,7 +66,6 @@ function AmountTextInput(
             disableKeyboard={disableKeyboard}
             inputStyle={style}
             textInputContainerStyles={containerStyle}
-            shouldApplyPaddingToContainer={false}
             onChangeText={onChangeAmount}
             ref={ref}
             value={formattedAmount}

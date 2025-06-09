@@ -141,6 +141,7 @@ function SplitListItem<TItem extends ListItem>({
                             touchableInputWrapperStyle={[styles.ml3]}
                             maxLength={formattedOriginalAmount.length}
                             contentWidth={formattedOriginalAmount.length * 8}
+                            shouldApplyPaddingToContainer
                         />
                     </View>
                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
