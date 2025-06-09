@@ -13,22 +13,39 @@ import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMerchant, getCreated as getTransactionCreated, getTransactionPendingAction, isPartialMerchant} from '@libs/TransactionUtils';
+import Parser from '@libs/Parser';
+import StringUtils from '@libs/StringUtils';
+import {
+    getDescription,
+    getMerchant,
+    getCreated as getTransactionCreated,
+    getTransactionPendingAction,
+    hasMissingSmartscanFields,
+    hasReceipt,
+    isAmountMissing,
+    isMerchantMissing,
+    isReceiptBeingScanned,
+    isTransactionPendingDelete,
+} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type {TransactionViolation} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
-import MerchantCell from './DataCells/MerchantCell';
+import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import TransactionItemRowRBR from './TransactionItemRowRBR';
+import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
 
 type ColumnComponents = {
     [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
@@ -47,9 +64,60 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The personal details of the user paying the request */
     to?: SearchPersonalDetails;
 
+    /** formatted "to" value used for displaying and sorting on Reports page */
+    formattedTo?: string;
+
+    /** formatted "from" value used for displaying and sorting on Reports page */
+    formattedFrom?: string;
+
+    /** formatted "merchant" value used for displaying and sorting on Reports page */
+    formattedMerchant?: string;
+
+    /** information about whether to show merchant, that is provided on Reports page */
+    shouldShowMerchant?: boolean;
+
     /** Type of transaction */
     transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
+
+    /** Precomputed violations */
+    violations?: TransactionViolation[];
 };
+
+type TransactionItemRowProps = {
+    transactionItem: TransactionWithOptionalSearchFields;
+    shouldUseNarrowLayout: boolean;
+    isSelected: boolean;
+    shouldShowTooltip: boolean;
+    dateColumnSize: TableColumnSize;
+    onCheckboxPress: (transactionID: string) => void;
+    shouldShowCheckbox: boolean;
+    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
+    onButtonPress?: () => void;
+    isParentHovered?: boolean;
+    columnWrapperStyles?: ViewStyle[];
+    scrollToNewTransaction?: ((offset: number) => void) | undefined;
+    isReportItemChild?: boolean;
+    isActionLoading?: boolean;
+    isInReportTableView?: boolean;
+};
+
+/** If merchant name is empty or (none), then it falls back to description if screen is narrow */
+function getMerchantNameWithFallback(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, shouldUseNarrowLayout?: boolean | undefined) {
+    const shouldShowMerchant = transactionItem.shouldShowMerchant ?? true;
+    const description = getDescription(transactionItem);
+    let merchantOrDescriptionToDisplay = transactionItem?.formattedMerchant ?? getMerchant(transactionItem);
+    const merchantNameEmpty = !merchantOrDescriptionToDisplay || merchantOrDescriptionToDisplay === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    if (merchantNameEmpty && shouldUseNarrowLayout) {
+        merchantOrDescriptionToDisplay = Parser.htmlToText(description);
+    }
+    let merchant = shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
+
+    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && shouldShowMerchant) {
+        merchant = translate('iou.receiptStatusTitle');
+    }
+    const merchantName = StringUtils.getFirstLine(merchant);
+    return merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
+}
 
 function TransactionItemRow({
     transactionItem,
@@ -64,26 +132,16 @@ function TransactionItemRow({
     isParentHovered,
     columnWrapperStyles,
     scrollToNewTransaction,
-    isInReportRow = false,
-}: {
-    transactionItem: TransactionWithOptionalSearchFields;
-    shouldUseNarrowLayout: boolean;
-    isSelected: boolean;
-    shouldShowTooltip: boolean;
-    dateColumnSize: TableColumnSize;
-    onCheckboxPress: (transactionID: string) => void;
-    shouldShowCheckbox: boolean;
-    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
-    onButtonPress?: () => void;
-    isParentHovered?: boolean;
-    columnWrapperStyles?: ViewStyle[];
-    scrollToNewTransaction?: ((offset: number) => void) | undefined;
-    isInReportRow?: boolean;
-}) {
+    isReportItemChild = false,
+    isActionLoading,
+    isInReportTableView = false,
+}: TransactionItemRowProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const pendingAction = getTransactionPendingAction(transactionItem);
+    const isPendingDelete = isTransactionPendingDelete(transactionItem);
     const viewRef = useRef<View>(null);
 
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
@@ -109,8 +167,24 @@ function TransactionItemRow({
         }
     }, [hovered, isParentHovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
 
-    const merchantName = getMerchant(transactionItem);
-    const isMerchantEmpty = isPartialMerchant(merchantName);
+    const merchantOrDescriptionName = useMemo(() => getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout), [shouldUseNarrowLayout, transactionItem, translate]);
+    const missingFieldError = useMemo(() => {
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem);
+        if (hasFieldErrors) {
+            const amountMissing = isAmountMissing(transactionItem);
+            const merchantMissing = isMerchantMissing(transactionItem);
+            let error = '';
+
+            if (amountMissing && merchantMissing) {
+                error = translate('violations.reviewRequired');
+            } else if (amountMissing) {
+                error = translate('iou.missingAmount');
+            } else if (merchantMissing) {
+                error = translate('iou.missingMerchant');
+            }
+            return error;
+        }
+    }, [transactionItem, translate]);
 
     useEffect(() => {
         if (!transactionItem.shouldBeHighlighted || !scrollToNewTransaction) {
@@ -173,22 +247,24 @@ function TransactionItemRow({
                     {!!transactionItem.action && (
                         <ActionCell
                             action={transactionItem.action}
-                            isSelected={false}
-                            isChildListItem
+                            isSelected={isSelected}
+                            isChildListItem={isReportItemChild}
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
-                            isLoading={false}
+                            isLoading={isActionLoading}
                         />
                     )}
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
-                    <MerchantCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                        shouldUseNarrowLayout={false}
-                    />
+                    {!!merchantOrDescriptionName && (
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={merchantOrDescriptionName}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                        />
+                    )}
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
@@ -197,7 +273,7 @@ function TransactionItemRow({
                         <UserInfoCell
                             accountID={transactionItem.to.accountID}
                             avatar={transactionItem.to.avatar}
-                            displayName={transactionItem.to.displayName ?? ''}
+                            displayName={transactionItem.formattedTo ?? transactionItem.to.displayName ?? ''}
                         />
                     )}
                 </View>
@@ -208,7 +284,7 @@ function TransactionItemRow({
                         <UserInfoCell
                             accountID={transactionItem.from.accountID}
                             avatar={transactionItem.from.avatar}
-                            displayName={transactionItem.from.displayName ?? ''}
+                            displayName={transactionItem.formattedFrom ?? transactionItem.from.displayName ?? ''}
                         />
                     )}
                 </View>
@@ -236,7 +312,19 @@ function TransactionItemRow({
                 </View>
             ),
         }),
-        [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
+        [
+            StyleUtils,
+            createdAt,
+            isActionLoading,
+            isReportItemChild,
+            isDateColumnWide,
+            isSelected,
+            merchantOrDescriptionName,
+            onButtonPress,
+            shouldShowTooltip,
+            shouldUseNarrowLayout,
+            transactionItem,
+        ],
     );
     const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     return (
@@ -246,17 +334,15 @@ function TransactionItemRow({
             onMouseEnter={bindHover.onMouseEnter}
             ref={viewRef}
         >
-            <OfflineWithFeedback
-                pendingAction={pendingAction}
-                shouldForceOpacity={!!pendingAction}
-            >
+            <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldUseNarrowLayout ? (
-                    <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
-                        <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
+                    <Animated.View style={[isInReportTableView ? animatedHighlightStyle : {}]}>
+                        <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, styles.pt2, bgActiveStyles]}>
                             <View style={[styles.flexRow]}>
                                 {shouldShowCheckbox && (
                                     <View style={[styles.mr3, styles.justifyContentCenter]}>
                                         <Checkbox
+                                            disabled={isPendingDelete}
                                             onPress={() => {
                                                 onCheckboxPress(transactionItem.transactionID);
                                             }}
@@ -284,7 +370,7 @@ function TransactionItemRow({
                                             shouldShowTooltip={shouldShowTooltip}
                                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                                         />
-                                        {isMerchantEmpty && (
+                                        {!merchantOrDescriptionName && (
                                             <View style={[styles.mlAuto]}>
                                                 <TotalCell
                                                     transactionItem={transactionItem}
@@ -294,10 +380,10 @@ function TransactionItemRow({
                                             </View>
                                         )}
                                     </View>
-                                    {!isMerchantEmpty && (
+                                    {!!merchantOrDescriptionName && (
                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                            <MerchantCell
-                                                transactionItem={transactionItem}
+                                            <MerchantOrDescriptionCell
+                                                merchantOrDescription={merchantOrDescriptionName}
                                                 shouldShowTooltip={shouldShowTooltip}
                                                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                                             />
@@ -310,10 +396,10 @@ function TransactionItemRow({
                                     )}
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                                <View style={[styles.flexColumn, styles.mw100]}>
+                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
+                                <View style={[styles.flexColumn, styles.flex1]}>
                                     {hasCategoryOrTag && (
-                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
                                             <CategoryCell
                                                 transactionItem={transactionItem}
                                                 shouldShowTooltip={shouldShowTooltip}
@@ -326,24 +412,26 @@ function TransactionItemRow({
                                             />
                                         </View>
                                     )}
-                                    <TransactionItemRowRBR
+                                    <TransactionItemRowRBRWithOnyx
                                         transaction={transactionItem}
-                                        containerStyles={[styles.mt3]}
+                                        containerStyles={[styles.mt2, styles.minHeight4]}
+                                        missingFieldError={missingFieldError}
                                     />
                                 </View>
                                 <ChatBubbleCell
                                     transaction={transactionItem}
-                                    containerStyles={[styles.mt3]}
+                                    containerStyles={[styles.mt2]}
                                 />
                             </View>
                         </View>
                     </Animated.View>
                 ) : (
-                    <Animated.View style={[isInReportRow ? {} : animatedHighlightStyle]}>
+                    <Animated.View style={[isInReportTableView ? animatedHighlightStyle : {}]}>
                         <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles, styles.mw100]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                                 <View style={[styles.mr1]}>
                                     <Checkbox
+                                        disabled={isPendingDelete}
                                         onPress={() => {
                                             onCheckboxPress(transactionItem.transactionID);
                                         }}
@@ -353,7 +441,18 @@ function TransactionItemRow({
                                 </View>
                                 {columns?.map((column) => columnComponent[column])}
                             </View>
-                            <TransactionItemRowRBR transaction={transactionItem} />
+                            {}
+                            {isInReportTableView ? (
+                                <TransactionItemRowRBRWithOnyx
+                                    transaction={transactionItem}
+                                    missingFieldError={missingFieldError}
+                                />
+                            ) : (
+                                <TransactionItemRowRBR
+                                    transactionViolations={transactionItem.violations}
+                                    missingFieldError={missingFieldError}
+                                /> // We are rendering this component only if we are not in the report table view for performance reasons
+                            )}
                         </View>
                     </Animated.View>
                 )}
