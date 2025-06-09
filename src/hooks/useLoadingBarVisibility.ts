@@ -1,6 +1,6 @@
-import {useCallback, useEffect, useState} from 'react';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getOngoingRequest, subscribeToQueueState} from '@libs/Network/SequentialQueue';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 // Commands that should trigger the LoadingBar to show
 const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT]);
@@ -10,24 +10,13 @@ const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMAN
  * Shows LoadingBar when OpenReport/OpenApp/ReconnectApp requests are being processed
  */
 export default function useLoadingBarVisibility(): boolean {
-    const [isRelevantQueueActive, setIsRelevantQueueActive] = useState(false);
+    const [req] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
+    const [network] = useOnyx(ONYXKEYS.NETWORK);
 
-    const checkRelevantQueue = useCallback(() => {
-        const ongoingRequest = getOngoingRequest();
-        const hasRelevantCommand = ongoingRequest && RELEVANT_COMMANDS.has(ongoingRequest.command);
+    // Don't show loading bar if currently offline
+    if (network?.isOffline) {
+        return false;
+    }
 
-        const shouldShowLoadingBar = !!hasRelevantCommand;
-
-        setIsRelevantQueueActive(shouldShowLoadingBar);
-    }, []);
-
-    useEffect(() => {
-        // Initial check
-        checkRelevantQueue();
-
-        // Subscribe to queue state changes for real-time updates
-        return subscribeToQueueState(checkRelevantQueue);
-    }, [checkRelevantQueue]);
-
-    return isRelevantQueueActive;
+    return req?.some((request) => RELEVANT_COMMANDS.has(request.command) && !request.initiatedOffline) ?? false;
 }

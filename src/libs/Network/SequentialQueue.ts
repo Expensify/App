@@ -4,7 +4,6 @@ import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
-    getOngoingRequest,
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
     save as savePersistedRequest,
@@ -50,9 +49,6 @@ let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
 const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
-
-// Queue state change listeners
-const queueStateListeners = new Set<() => void>();
 
 /**
  * Puts the queue into a paused state so that no requests will be processed
@@ -136,16 +132,11 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
-    // Track the current request command
     const requestToProcess = processNextPersistedRequest();
     if (!requestToProcess) {
         Log.info('[SequentialQueue] Unable to process. No next request to handle.');
-        notifyQueueStateChange();
         return Promise.resolve();
     }
-
-    // Notify queue state change when processing starts
-    notifyQueueStateChange();
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
@@ -166,7 +157,6 @@ function process(): Promise<void> {
             }
 
             sequentialQueueRequestThrottle.clear();
-            notifyQueueStateChange();
             return process();
         })
         .catch((error: RequestError) => {
@@ -179,7 +169,6 @@ function process(): Promise<void> {
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
-                notifyQueueStateChange();
                 return process();
             }
             rollbackOngoingPersistedRequest();
@@ -191,7 +180,6 @@ function process(): Promise<void> {
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
-                    notifyQueueStateChange();
                     return process();
                 });
         });
@@ -361,29 +349,6 @@ function getCurrentRequest(): Promise<void> {
 }
 
 /**
- * Notify all listeners that queue state has changed
- */
-function notifyQueueStateChange() {
-    queueStateListeners.forEach((callback) => {
-        try {
-            callback();
-        } catch (error) {
-            Log.warn('[SequentialQueue] Error in queue state listener', {error});
-        }
-    });
-}
-
-/**
- * Subscribe to queue state changes
- * @param callback Function to call when queue state changes
- * @returns Unsubscribe function
- */
-function subscribeToQueueState(callback: () => void): () => void {
-    queueStateListeners.add(callback);
-    return () => queueStateListeners.delete(callback);
-}
-
-/**
  * Returns a promise that resolves when the sequential queue is done processing all persisted write requests.
  */
 function waitForIdle(): Promise<unknown> {
@@ -402,15 +367,11 @@ function resetQueue(): void {
         resolveIsReadyPromise = resolve;
     });
     resolveIsReadyPromise?.();
-
-    // Clear all listeners
-    queueStateListeners.clear();
 }
 
 export {
     flush,
     getCurrentRequest,
-    getOngoingRequest,
     isPaused,
     isRunning,
     pause,
@@ -418,7 +379,6 @@ export {
     push,
     resetQueue,
     sequentialQueueRequestThrottle,
-    subscribeToQueueState,
     unpause,
     waitForIdle,
     getQueueFlushedData,
