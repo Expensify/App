@@ -83,7 +83,7 @@ To manage automation and other connection preferences:
 
 # How do I know if a report is exported successfully?
 
-A message confirming the export is posted in the report chat. 
+A message confirming the export will be posted in the chat for the corresponding report. 
 
 # What if I manually export a report that was already exported?
 
