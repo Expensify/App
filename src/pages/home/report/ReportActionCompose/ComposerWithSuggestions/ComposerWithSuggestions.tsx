@@ -830,7 +830,8 @@ function ComposerWithSuggestions(
                 />
             </View>
 
-            <Suggestions
+            {textInputRef.current?.isFocused() ? (
+              <Suggestions
                 ref={suggestionsRef}
                 isComposerFocused={textInputRef.current?.isFocused()}
                 updateComment={updateComment}
@@ -842,7 +843,8 @@ function ComposerWithSuggestions(
                 selection={selection}
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
-            />
+              />
+            ) : null}
 
             {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
