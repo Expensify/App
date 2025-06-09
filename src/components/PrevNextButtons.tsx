@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -15,10 +16,10 @@ type PrevNextButtonsProps = {
     isNextButtonDisabled?: boolean;
 
     /** Moves a user to the next item */
-    onNext: () => void;
+    onNext: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Moves a user to the previous item */
-    onPrevious: () => void;
+    onPrevious: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
 function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, onPrevious}: PrevNextButtonsProps) {
