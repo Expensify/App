@@ -17,11 +17,6 @@ function RecordTroubleshootDataToolMenu() {
 
     const onDisableLogging = (logs: Log[]) => {
         const data = JSON.stringify(logs, null, 2);
-        // setFile({
-        //     path: './logs',
-        //     newFileName: 'logs',
-        //     size: data.length,
-        // });
         const newFileName = appendTimeToFileName('logs.txt');
         zipRef.current.file(newFileName, data);
 
@@ -65,7 +60,7 @@ function RecordTroubleshootDataToolMenu() {
             onDisableLogging={onDisableLogging}
             onEnableLogging={hideShareButton}
             pathToBeUsed=""
-            displayPath2=""
+            displayPath=""
             onDownloadZip={onDownloadZip}
         />
     );

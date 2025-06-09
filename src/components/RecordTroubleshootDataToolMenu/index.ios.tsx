@@ -3,7 +3,6 @@ import React, {useRef, useState} from 'react';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import {useOnyx} from 'react-native-onyx';
-import Share from 'react-native-share';
 import useEnvironment from '@hooks/useEnvironment';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
@@ -55,24 +54,14 @@ function RecordTroubleshootDataToolMenu() {
             });
     };
 
-    const onDownloadZip = () => {
-        if (!file) {
-            return;
-        }
-        Share.open({
-            url: `file://${file.path}`,
-        });
-    };
-
     return (
         <BaseRecordTroubleshootDataToolMenu
             file={file}
             onEnableLogging={() => setFile(undefined)}
             onDisableLogging={createFile}
             pathToBeUsed={RNFS.DocumentDirectoryPath}
-            displayPath2={`${CONST.NEW_EXPENSIFY_PATH}${getDownloadFolderPathSuffixForIOS(environment)}`}
+            displayPath={`${CONST.NEW_EXPENSIFY_PATH}${getDownloadFolderPathSuffixForIOS(environment)}`}
             showShareButton
-            onDownloadZip={onDownloadZip}
             zipRef={zipRef}
         />
     );

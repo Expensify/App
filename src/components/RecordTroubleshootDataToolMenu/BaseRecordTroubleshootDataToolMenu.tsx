@@ -37,20 +37,19 @@ type BaseRecordTroubleshootDataToolMenuProps = {
     /** Locally created file */
     file?: File;
     /** Action to run when disabling the switch */
-    // onDisableLogging: (logs: OnyxLog[]) => void;
     onDisableLogging: (logs: OnyxLog[]) => Promise<void>;
     /** Action to run when enabling logging */
     onEnableLogging?: () => void;
     /** Path used to save the file */
     pathToBeUsed: string;
     /** Path used to display location of saved file */
-    displayPath2: string;
+    displayPath: string;
     /** Whether to show the share button */
     showShareButton?: boolean;
     /** Zip ref */
     zipRef: MutableRefObject<InstanceType<typeof JSZip>>;
     /** A method to download the zip archive */
-    onDownloadZip: () => void;
+    onDownloadZip?: () => void;
 };
 
 function formatBytes(bytes: number, decimals = 2) {
@@ -76,7 +75,7 @@ function BaseRecordTroubleshootDataToolMenu({
     onEnableLogging,
     showShareButton = false,
     pathToBeUsed,
-    displayPath2,
+    displayPath,
     zipRef,
     onDownloadZip,
 }: BaseRecordTroubleshootDataToolMenuProps) {
@@ -155,7 +154,7 @@ function BaseRecordTroubleshootDataToolMenu({
     const onDisableSwitch = useCallback(() => {
         if (getPlatform() === CONST.PLATFORM.WEB) {
             stopProfiling(true, newFileName).then(() => {
-                onDownloadZip();
+                onDownloadZip?.();
             });
         } else {
             stopProfiling(true, newFileName).then((path) => {
@@ -214,7 +213,7 @@ function BaseRecordTroubleshootDataToolMenu({
             </TestToolRow>
             {(shareUrls?.length ?? 0) > 0 && showShareButton && (
                 <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath2}/${newFileName}`}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}/${newFileName}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
                         <Button
                             small

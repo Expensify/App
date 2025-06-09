@@ -3,7 +3,6 @@ import React, {useRef, useState} from 'react';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import {useOnyx} from 'react-native-onyx';
-import Share from 'react-native-share';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
@@ -32,7 +31,7 @@ function RecordTroubleshootDataToolMenu() {
             })
             .then(() => {
                 return zipRef.current
-                    .generateAsync({type: 'base64'}) // Generate ZIP as base64
+                    .generateAsync({type: 'base64'})
                     .then((base64zip) => {
                         // Save zip archive to a temporary path (this is reaquired because of Android 10+ limitations)
                         return RNFetchBlob.fs.writeFile(tempZipPath, base64zip, 'base64');
@@ -56,21 +55,12 @@ function RecordTroubleshootDataToolMenu() {
                         });
                     })
                     .then((localZipFile) => {
-                        return setFile(localZipFile); // Update state or use the file path
+                        return setFile(localZipFile);
                     })
                     .catch((err) => {
                         console.error('Failed to write ZIP file:', err);
                     });
             });
-    };
-
-    const onDownloadZip = () => {
-        if (!file) {
-            return;
-        }
-        Share.open({
-            url: `file://${file.path}`,
-        });
     };
 
     return (
@@ -79,9 +69,8 @@ function RecordTroubleshootDataToolMenu() {
             onEnableLogging={() => setFile(undefined)}
             onDisableLogging={createAndSaveFile}
             pathToBeUsed={RNFS.DownloadDirectoryPath}
-            displayPath2={`${CONST.DOWNLOADS_PATH}`}
+            displayPath={`${CONST.DOWNLOADS_PATH}`}
             showShareButton
-            onDownloadZip={onDownloadZip}
             zipRef={zipRef}
         />
     );
