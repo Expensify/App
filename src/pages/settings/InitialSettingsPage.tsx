@@ -448,9 +448,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     }}
                     onCancel={() => toggleSignoutConfirmModal(false)}
                     onModalHide={() => {
-                        if (shouldLogout.current) {
-                            signOut(true);
+                        if (!shouldLogout.current) {
+                            return;
                         }
+                        signOut(true);
                     }}
                 />
             </ScrollView>
