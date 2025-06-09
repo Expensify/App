@@ -12,6 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import variables from '@styles/variables';
@@ -204,7 +205,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                         numberOfLines={1}
                                         style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
                                     >
-                                        {displayName}
+                                        {formatPhoneNumber(displayName)}
                                     </Text>
                                 )}
                                 {!!canSwitchAccounts && (
@@ -222,7 +223,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                 numberOfLines={1}
                                 style={[styles.colorMuted, styles.fontSizeLabel]}
                             >
-                                {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                                {formatPhoneNumber(currentUserPersonalDetails?.displayName ?? '')}
                             </Text>
                             {!!account?.isDebugModeEnabled && (
                                 <Text
