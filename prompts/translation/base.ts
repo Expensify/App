@@ -1,5 +1,5 @@
-import StringUtils from '../../src/libs/StringUtils';
-import type Locale from '../../src/types/onyx/Locale';
+import StringUtils from '@libs/StringUtils';
+import type Locale from '@src/types/onyx/Locale';
 
 /**
  * This file contains the base translation prompt used to translate static strings in en.ts to other languages.

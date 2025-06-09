@@ -1,4 +1,4 @@
-import StringUtils from '../../src/libs/StringUtils';
+import StringUtils from '@libs/StringUtils';
 
 export default function (context?: string) {
     if (!context) {

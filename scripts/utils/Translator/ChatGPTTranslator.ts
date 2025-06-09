@@ -1,8 +1,8 @@
 import OpenAI from 'openai';
-import getBasePrompt from '../../../prompts/translation/base';
-import getContextPrompt from '../../../prompts/translation/context';
-import StringUtils from '../../../src/libs/StringUtils';
-import type Locale from '../../../src/types/onyx/Locale';
+import StringUtils from '@libs/StringUtils';
+import getBasePrompt from '@prompts/translation/base';
+import getContextPrompt from '@prompts/translation/context';
+import type Locale from '@src/types/onyx/Locale';
 import Translator from './Translator';
 
 class ChatGPTTranslator extends Translator {
