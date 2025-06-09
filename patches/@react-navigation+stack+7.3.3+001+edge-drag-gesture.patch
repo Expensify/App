@@ -66,3 +66,34 @@ index 0000000..9c7b703
 +export const maybeInitializeEdgeDragGestureMonitor = () => {};
 +//# sourceMappingURL=edgeDragGestureMonitor.native.js.map
 \ No newline at end of file
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
+index e8e6e90..7cbffe2 100644
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
+@@ -4,6 +4,7 @@ import Color from 'color';
+ import * as React from 'react';
+ import { Animated, InteractionManager, Platform, StyleSheet, View } from 'react-native';
+ import { CardAnimationContext } from "../../utils/CardAnimationContext.js";
++import { getIsEdgeDragGesture, resetExpectingTouchendWithDelay } from '../../utils/edgeDragGestureMonitor';
+ import { getDistanceForDirection } from "../../utils/getDistanceForDirection.js";
+ import { getInvertedMultiplier } from "../../utils/getInvertedMultiplier.js";
+ import { getShadowStyle } from "../../utils/getShadowStyle.js";
+@@ -130,6 +131,8 @@ export class Card extends React.Component {
+     });
+     animation(gesture, {
+       ...spec.config,
++      // Detecting if the user used swipe gesture on iOS safari to trigger navigation in the browser history.
++      duration: getIsEdgeDragGesture() ? 0 : spec.config && 'duration' in spec.config ? spec.config.duration : undefined,
+       velocity,
+       toValue,
+       useNativeDriver,
+@@ -139,6 +142,9 @@ export class Card extends React.Component {
+     }) => {
+       this.handleEndInteraction();
+       clearTimeout(this.pendingGestureCallback);
++
++      // We need to reset edgeDragGestureMonitor manually because of broken events on iOS safari.
++      resetExpectingTouchendWithDelay();
+       if (finished) {
+         if (closing) {
+           onClose();
