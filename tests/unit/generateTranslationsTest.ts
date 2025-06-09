@@ -24,27 +24,22 @@ describe('generateTranslations', () => {
 
         // Patch env to redirect script to temp path
         process.env.LANGUAGES_DIR = LANGUAGES_DIR;
+
+        // Set --dry-run flag
+        process.argv.push('--dry-run');
     });
 
     afterEach(() => {
         fs.rmSync(LANGUAGES_DIR, {recursive: true, force: true});
         delete process.env.LANGUAGES_DIR;
+        process.argv = process.argv.filter((arg) => arg !== '--dry-run');
         jest.clearAllMocks();
     });
 
-    describe('--dry-run', () => {
-        beforeEach(() => {
-            process.argv.push('--dry-run');
-        });
-
-        afterEach(() => {
-            process.argv = process.argv.filter((arg) => arg !== '--dry-run');
-        });
-
-        it('translates nested structures', async () => {
-            fs.writeFileSync(
-                EN_PATH,
-                StringUtils.dedent(`
+    it('translates nested structures', async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            StringUtils.dedent(`
                     const strings = {
                         greeting: 'Hello',
                         farewell: 'Goodbye',
@@ -59,12 +54,12 @@ describe('generateTranslations', () => {
                     };
                     export default strings;
             `),
-                'utf8',
-            );
-            await generateTranslations();
-            const itContent = fs.readFileSync(IT_PATH, 'utf8');
-            expect(itContent).toStrictEqual(
-                StringUtils.dedent(`
+            'utf8',
+        );
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        expect(itContent).toStrictEqual(
+            StringUtils.dedent(`
                     const strings = {
                         greeting: '[it] Hello',
                         farewell: '[it] Goodbye',
@@ -79,13 +74,13 @@ describe('generateTranslations', () => {
                     };
                     export default strings;
             `),
-            );
-        });
+        );
+    });
 
-        it("doesn't translate strings or templates used in control flows", async () => {
-            fs.writeFileSync(
-                EN_PATH,
-                StringUtils.dedent(`
+    it("doesn't translate strings or templates used in control flows", async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            StringUtils.dedent(`
                     import Log from '@libs/Log';
                     import CONST from '@src/CONST';
 
@@ -108,12 +103,12 @@ describe('generateTranslations', () => {
                         }
                     }
             `),
-                'utf8',
-            );
-            await generateTranslations();
-            const itContent = fs.readFileSync(IT_PATH, 'utf8');
-            expect(itContent).toStrictEqual(
-                StringUtils.dedent(`
+            'utf8',
+        );
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        expect(itContent).toStrictEqual(
+            StringUtils.dedent(`
                     import Log from '@libs/Log';
                     import CONST from '@src/CONST';
 
@@ -136,13 +131,13 @@ describe('generateTranslations', () => {
                         }
                     }
             `),
-            );
-        });
+        );
+    });
 
-        it('handles nested template expressions', async () => {
-            fs.writeFileSync(
-                EN_PATH,
-                StringUtils.dedent(`
+    it('handles nested template expressions', async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            StringUtils.dedent(`
                     const strings = {
                         simple: (name: string, greeting: string) => \`\${greeting} good sir \${name}!\`,
                         simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`\${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -177,12 +172,12 @@ describe('generateTranslations', () => {
                     };
                     export default strings;
             `),
-                'utf8',
-            );
-            await generateTranslations();
-            const itContent = fs.readFileSync(IT_PATH, 'utf8');
-            expect(itContent).toStrictEqual(
-                StringUtils.dedent(`
+            'utf8',
+        );
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        expect(itContent).toStrictEqual(
+            StringUtils.dedent(`
                     const strings = {
                         simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
                         simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -217,7 +212,6 @@ describe('generateTranslations', () => {
                     };
                     export default strings;
             `),
-            );
-        });
+        );
     });
 });
