@@ -895,8 +895,7 @@ function MoneyRequestConfirmationListFooter({
                     }
                 </View>
             )}
-            {fields.filter((field) => field.shouldShow).map((field) => field.item)}
-            <View style={[styles.mb5]} />
+            <View style={[styles.mb5]}>{fields.filter((field) => field.shouldShow).map((field) => field.item)}</View>
         </>
     );
 }
