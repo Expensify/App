@@ -223,7 +223,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                 numberOfLines={1}
                                 style={[styles.colorMuted, styles.fontSizeLabel]}
                             >
-                                {formatPhoneNumber(currentUserPersonalDetails?.displayName ?? '')}
+                                {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                             </Text>
                             {!!account?.isDebugModeEnabled && (
                                 <Text
