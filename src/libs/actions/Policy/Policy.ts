@@ -3771,6 +3771,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 harvesting: {
                     enabled: false,
                 },
+                isAttendeeTrackingEnabled: false,
             },
         },
     ];
@@ -3797,6 +3798,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
                 glCodes: policy?.glCodes ?? null,
                 harvesting: policy?.harvesting ?? null,
+                isAttendeeTrackingEnabled: null,
             },
         },
     ];
@@ -3815,6 +3817,7 @@ function downgradeToTeam(policyID: string) {
             value: {
                 isPendingDowngrade: true,
                 type: CONST.POLICY.TYPE.TEAM,
+                isAttendeeTrackingEnabled: null,
             },
         },
     ];
@@ -3836,6 +3839,7 @@ function downgradeToTeam(policyID: string) {
             value: {
                 isPendingDowngrade: false,
                 type: policy?.type,
+                isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
             },
         },
     ];
