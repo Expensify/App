@@ -541,8 +541,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowCategoryAnalyzing = useMemo(() => {
         const categoryValue = updatedTransaction?.category ?? transactionCategory;
         const isUncategorized = !categoryValue || categoryValue === 'uncategorized' || categoryValue === 'Uncategorized';
+        
+        // Don't show analyzing text for partial transactions (merchant is empty and amount is zero)
+        const isPartialTransaction = isEmptyMerchant && transactionAmount === 0;
+        if (isPartialTransaction) {
+            return false;
+        }
+        
         return isUncategorized || !hasConciergeCategoryOptionsAction;
-    }, [updatedTransaction?.category, transactionCategory, hasConciergeCategoryOptionsAction]);
+    }, [updatedTransaction?.category, transactionCategory, hasConciergeCategoryOptionsAction, isEmptyMerchant, transactionAmount]);
 
     return (
         <View style={styles.pRelative}>
