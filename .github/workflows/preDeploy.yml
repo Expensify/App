@@ -90,11 +90,3 @@ jobs:
     secrets: inherit
     with:
       TARGET_BRANCH: staging
-
-  e2ePerformanceTests:
-    needs: [chooseDeployActions]
-    if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY }}
-    uses: ./.github/workflows/e2ePerformanceTests.yml
-    secrets: inherit
-    with:
-      PR_NUMBER: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}

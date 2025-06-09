@@ -255,7 +255,7 @@ const runTests = async (): Promise<void> => {
             }
         }
 
-        // Having the cooldown right at the beginning lowers the chances of heat
+        // Having the cool-down right at the beginning lowers the chances of heat
         // throttling from the previous run (which we have no control over and will be a
         // completely different AWS DF customer/app). It also gives the time to cool down between tests.
         Logger.info(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
