@@ -14,7 +14,7 @@ import {useCameraDevice} from 'react-native-vision-camera';
 import type {TupleToUnion} from 'type-fest';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
-import MultiScanHand from '@assets/images/multi-scan-hand.svg';
+import MultiScan from '@assets/images/multi-scan.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -866,13 +866,11 @@ function IOURequestStepScan({
                 {shouldShowMultiScanEducationalPopup && (
                     <FeatureTrainingModal
                         title={translate('iou.scanMultipleReceipts')}
-                        image={MultiScanHand}
+                        image={MultiScan}
                         shouldRenderSVG
                         contentFitImage="contain"
                         modalInnerContainerStyle={styles.pt0}
                         illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
-                        imageHeight={232}
-                        illustrationInnerContainerStyle={{transform: [{translateY: 15}]}}
                         onConfirm={dismissMultiScanEducationalPopup}
                         titleStyles={styles.mb2}
                         confirmText={translate('common.buttonConfirm')}
