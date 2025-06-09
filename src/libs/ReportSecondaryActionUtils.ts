@@ -502,7 +502,6 @@ function getSecondaryReportActions(
     reportActions?: ReportAction[],
     policies?: OnyxCollection<Policy>,
     canUseRetractNewDot?: boolean,
-    canUseTableReportView?: boolean,
     canUseNewDotSplits?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
@@ -511,7 +510,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
-    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs))) {
+    if (isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs))) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 

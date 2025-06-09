@@ -72,7 +72,7 @@ describe('getSecondaryAction', () => {
             transactionID: TRANSACTION_ID,
         } as unknown as Transaction;
 
-        const result = getSecondaryReportActions(report, chatReportR14932, [transaction], {}, policy, undefined, undefined, undefined, true, true, true);
+        const result = getSecondaryReportActions(report, chatReportR14932, [transaction], {}, policy, undefined, undefined, undefined, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
 
@@ -457,7 +457,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -488,7 +488,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -521,7 +521,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -567,7 +567,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, oldPolicy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, oldPolicy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -613,7 +613,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: APPROVER_EMAIL, accountID: APPROVER_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -661,7 +661,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
