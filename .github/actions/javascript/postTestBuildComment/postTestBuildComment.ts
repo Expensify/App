@@ -53,14 +53,12 @@ Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? 
 | ------------- | ------------- |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
-${
-    appPr
-        ? `\n| Desktop :computer: | Web :spider_web: |
+
+| Desktop :computer: | Web :spider_web: |
 | ------------- | ------------- |
 | ${result.DESKTOP.link}  | ${result.WEB.link}  |
-| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |\n`
-        : ''
-}
+| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
+
 ---
 
 :eyes: [View the workflow run that generated this build](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) :eyes:
