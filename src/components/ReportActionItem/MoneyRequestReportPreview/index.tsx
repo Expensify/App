@@ -121,7 +121,7 @@ function MoneyRequestReportPreview({
             checkIfContextMenuActive={checkIfContextMenuActive}
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
-            transactionsAndViolationsByReport={transactionsAndViolationsByReport}
+            transactions={transactions}
             violations={violations}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}

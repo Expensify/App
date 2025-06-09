@@ -100,7 +100,7 @@ function MoneyRequestReportPreviewContent({
     chatReport,
     invoiceReceiverPolicy,
     iouReport,
-    transactionsAndViolationsByReport,
+    transactions,
     violations,
     policy,
     invoiceReceiverPersonalDetail,
@@ -116,8 +116,6 @@ function MoneyRequestReportPreviewContent({
     shouldShowBorder = false,
     onPress,
 }: MoneyRequestReportPreviewContentProps) {
-    const {transactions: reportTransactions} = transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
-    const transactions = useMemo(() => Object.values(reportTransactions ?? {}) ?? [], [reportTransactions]);
     const lastTransaction = transactions?.at(0);
     const shouldShowEmptyPlaceholder = transactions.length === 0;
     const theme = useTheme();
