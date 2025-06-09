@@ -558,7 +558,7 @@ function MoneyReportHeader({
             },
             [CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED]: {
                 text: translate('workspace.common.markAsExported'),
-                icon: Expensicons.CheckCircle,
+                icon: getIntegrationIcon(connectedIntegration) ?? Expensicons.CheckCircle,
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
                 onSelected: () => {
                     if (!connectedIntegration || !moneyRequestReport) {
