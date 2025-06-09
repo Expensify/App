@@ -50,7 +50,7 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     SearchTableHeader?: React.JSX.Element;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: SearchListItem, isOpenedAsReport?: boolean) => void;
+    onSelectRow: (item: SearchListItem) => void;
 
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;

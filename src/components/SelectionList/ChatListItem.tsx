@@ -83,6 +83,7 @@ function ChatListItem<TItem extends ListItem>({
                 index={item.index ?? 0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
+                shouldShowDraftMessage={false}
                 shouldShowSubscriptAvatar={
                     (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&
                     [

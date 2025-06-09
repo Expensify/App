@@ -35,9 +35,12 @@ import PureReportActionItem from './PureReportActionItem';
 type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport'> & {
     /** All the data of the report collection */
     allReports: OnyxCollection<Report>;
+
+    /** Whether to show the draft message or not */
+    shouldShowDraftMessage?: boolean;
 };
 
-function ReportActionItem({allReports, action, report, ...props}: ReportActionItemProps) {
+function ReportActionItem({allReports, action, report, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -47,6 +50,9 @@ function ReportActionItem({allReports, action, report, ...props}: ReportActionIt
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         canBeMissing: true,
         selector: (draftMessagesForReport) => {
+            if (!shouldShowDraftMessage) {
+                return undefined;
+            }
             const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
             return typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
         },
