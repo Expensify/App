@@ -13,10 +13,19 @@ import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
+import TSCompilerUtils from './utils/TSCompilerUtils';
+
+/**
+ * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
+ */
+type StringWithContext = {
+    text: string;
+    context?: string;
+};
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
- * The primary reason it exists as a class is so we can import this file with no side-effects at the top level of the script.
+ * The primary reason it exists as a class is so we can import this file with no side effects at the top level of the script.
  * This is useful for unit testing.
  *
  * At a high level, this is how it works:
@@ -26,6 +35,8 @@ import type Translator from './utils/Translator/Translator';
  *  - It also formats the files using prettier.
  */
 class TranslationGenerator {
+    private static readonly CONTEXT_REGEX = /@context\s+([^*/\n]+)/;
+
     /**
      * The languages to generate translations for.
      */
@@ -59,13 +70,13 @@ class TranslationGenerator {
 
         for (const targetLanguage of this.targetLanguages) {
             // Extract strings to translate
-            const stringsToTranslate = new Map<number, string>();
+            const stringsToTranslate = new Map<number, StringWithContext>();
             this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
             const translations = new Map<number, string>();
             const translationPromises = [];
-            for (const [key, value] of stringsToTranslate) {
-                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, value).then((result) => translations.set(key, result)));
+            for (const [key, {text, context}] of stringsToTranslate) {
+                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translations.set(key, result)));
                 translationPromises.push(translationPromise);
             }
             await Promise.allSettled(translationPromises);
@@ -146,7 +157,7 @@ class TranslationGenerator {
 
     /**
      * Is a given template span (aka placeholder) "simple"?
-     * We define a span as "simple" if it is and identifier or property access expression. Anything else is complex.
+     * We define a span as "simple" if it is an identifier or property access expression. Anything else is complex.
      *
      * @example ${name} => true
      * @example ${user.firstName} => true
@@ -173,22 +184,72 @@ class TranslationGenerator {
     }
 
     /**
+     * Extract any leading context annotation for a given node.
+     */
+    private getContextForNode(node: ts.Node): string | undefined {
+        // First, check for an inline context comment.
+        const inlineContext = node.getFullText().match(TranslationGenerator.CONTEXT_REGEX)?.[1].trim();
+        if (inlineContext) {
+            return inlineContext;
+        }
+
+        // Otherwise, look for the nearest ancestor that may have a comment attached.
+        // For now, we only support property assignments.
+        const nearestCommentableAncestor = TSCompilerUtils.findAncestor(node, (n) => ts.isPropertyAssignment(n));
+        if (!nearestCommentableAncestor) {
+            return undefined;
+        }
+
+        // Search through comments looking for a context comment
+        const commentRanges = ts.getLeadingCommentRanges(this.sourceFile.getFullText(), nearestCommentableAncestor.getFullStart()) ?? [];
+        for (const range of commentRanges.reverse()) {
+            const commentText = this.sourceFile.getFullText().slice(range.pos, range.end);
+            const match = commentText.match(TranslationGenerator.CONTEXT_REGEX);
+            if (match) {
+                return match[1].trim();
+            }
+        }
+
+        // No context comments were found
+        return undefined;
+    }
+
+    /**
+     * Generate a hash of the string representation of a node along with any context comments.
+     */
+    private getTranslationKey(node: ts.Node): number {
+        if (!ts.isStringLiteral(node) && !ts.isNoSubstitutionTemplateLiteral(node) && !ts.isTemplateExpression(node)) {
+            throw new Error(`Cannot generate translation key for node: ${node.getText()}`);
+        }
+        let keyBase = node.getText();
+        const context = this.getContextForNode(node);
+        if (context) {
+            keyBase += context;
+        }
+        return StringUtils.hash(keyBase);
+    }
+
+    /**
      * Recursively extract all string literals and templates to translate from the subtree rooted at the given node.
      * Simple templates (as defined by this.isSimpleTemplateExpression) can be translated directly.
      * Complex templates must have each of their spans recursively translated first, so we'll extract all the lowest-level strings to translate,
      * and then complex templates will be serialized with a hash of complex spans in place of the span text, and we'll translate that.
      */
-    private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, string>) {
+    private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>) {
         if (this.shouldNodeBeTranslated(node)) {
+            const context = this.getContextForNode(node);
+            if (context) {
+                console.log('RORY_DEBUG found context!', context);
+            }
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-                stringsToTranslate.set(StringUtils.hash(node.text), node.text);
+                stringsToTranslate.set(this.getTranslationKey(node), {text: node.text, context});
             } else if (ts.isTemplateExpression(node)) {
                 if (this.isSimpleTemplateExpression(node)) {
-                    stringsToTranslate.set(StringUtils.hash(node.getText()), this.templateExpressionToString(node));
+                    stringsToTranslate.set(this.getTranslationKey(node), {text: this.templateExpressionToString(node), context});
                 } else {
                     console.log('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
                     node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
-                    stringsToTranslate.set(StringUtils.hash(node.getText()), this.templateExpressionToString(node));
+                    stringsToTranslate.set(this.getTranslationKey(node), {text: this.templateExpressionToString(node), context});
                 }
             }
         }
@@ -209,7 +270,7 @@ class TranslationGenerator {
             if (this.isSimpleTemplateSpan(span)) {
                 result += `\${${expressionText}}`;
             } else {
-                result += `\${${StringUtils.hash(expressionText)}}`;
+                result += `\${${StringUtils.hash(span.expression.getText())}}`;
             }
             result += span.literal.text;
         }
@@ -274,17 +335,17 @@ class TranslationGenerator {
             const visit: ts.Visitor = (node) => {
                 if (this.shouldNodeBeTranslated(node)) {
                     if (ts.isStringLiteral(node)) {
-                        const translatedText = translations.get(StringUtils.hash(node.text));
+                        const translatedText = translations.get(this.getTranslationKey(node));
                         return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
                     }
 
                     if (ts.isNoSubstitutionTemplateLiteral(node)) {
-                        const translatedText = translations.get(StringUtils.hash(node.text));
+                        const translatedText = translations.get(this.getTranslationKey(node));
                         return translatedText ? ts.factory.createNoSubstitutionTemplateLiteral(translatedText) : node;
                     }
 
                     if (ts.isTemplateExpression(node)) {
-                        const translatedTemplate = translations.get(StringUtils.hash(node.getText()));
+                        const translatedTemplate = translations.get(this.getTranslationKey(node));
                         if (!translatedTemplate) {
                             console.warn('⚠️ No translation found for template expression', node.getText());
                             return node;

@@ -224,38 +224,28 @@ describe('generateTranslations', () => {
                     bank: 'Bank',
                     // @context As in a financial institution
                     bankTemplate: \`Bank\`,
-
                     // @context As in an aviation maneuver
                     aviationBank: 'Bank',
-
                     // This key has regular comments mixed with context-comments
                     // eslint-disable-next-line max-len
                     // @context foo
                     foo: 'Foo',
-
-                    // What about if the context comment isn't the last comment?
                     // @context bar
+                    // What about if the context comment isn't the last comment?
                     bar: 'Bar',
-
                     some: {
                         nested: {
-                            // @context Context for a nested string
+                            // @context nested
                             str: 'nested string',
                             // @context for my template function
                             func: ({destructuredArg}) => \`My template string contains a single \${destructuredArg} argument\`,
-                        }
-                    }
-
+                        },
+                    },
                     // @context will be applied to both translations
                     boolFunc: (flag: boolean) => flag ? 'ValueIfTrue' : 'ValueIfFalse',
-
-                    separateContextTernaries: (flag: boolean) => flag
-                        // @context only for value if true
-                        ? 'True with context'
-                        : 'False without context,
-
+                    separateContextTernaries: ((flag: boolean) => flag ? /* @context only for true */ 'True with context' : 'False without context'),
                     // @context formal greeting, only provided to outermost template translation
-                    onlyInTopLevelOfTemplates: (name: string) => \`Salutations, \${name ?? 'my very good friend'}\`
+                    onlyInTopLevelOfTemplates: (name: string) => \`Salutations, \${name ?? /* @context inline context */ 'my very good friend'}\`,
                 };
                 export default strings;
             `),
@@ -270,38 +260,28 @@ describe('generateTranslations', () => {
                     bank: '[it][ctx: As in a financial institution] Bank',
                     // @context As in a financial institution
                     bankTemplate: \`[it][ctx: As in a financial institution] Bank\`,
-
                     // @context As in an aviation maneuver
                     aviationBank: '[it][ctx: As in an aviation maneuver] Bank',
-
                     // This key has regular comments mixed with context-comments
                     // eslint-disable-next-line max-len
                     // @context foo
                     foo: '[it][ctx: foo] Foo',
-
-                    // What about if the context comment isn't the last comment?
                     // @context bar
+                    // What about if the context comment isn't the last comment?
                     bar: '[it][ctx: bar] Bar',
-
                     some: {
                         nested: {
                             // @context nested
                             str: '[it][ctx: nested] nested string',
                             // @context for my template function
                             func: ({destructuredArg}) => \`[it][ctx: for my template function] My template string contains a single \${destructuredArg} argument\`,
-                        }
-                    }
-
+                        },
+                    },
                     // @context will be applied to both translations
-                    boolFunc: (flag: boolean) => flag ? '[it][ctx: will be applied to both translations] ValueIfTrue' : '[it][ctx: will be applied to both translations] ValueIfFalse',
-
-                    separateContextTernaries: (flag: boolean) => flag
-                        // @context only for value if true
-                        ? '[it][ctx: only for value if true] True with context'
-                        : 'False without context,
-
+                    boolFunc: (flag: boolean) => (flag ? '[it][ctx: will be applied to both translations] ValueIfTrue' : '[it][ctx: will be applied to both translations] ValueIfFalse'),
+                    separateContextTernaries: (flag: boolean) => (flag ? /* @context only for true */ '[it][ctx: only for true] True with context' : '[it] False without context'),
                     // @context formal greeting, only provided to outermost template translation
-                    onlyInTopLevelOfTemplates: (name: string) => \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? 'my very good friend'}\`
+                    onlyInTopLevelOfTemplates: (name: string) => \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? /* @context inline context */ '[it][ctx: inline context] my very good friend'}\`,
                 };
                 export default strings;
             `),
