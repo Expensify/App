@@ -606,6 +606,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
 
+    // Store current violations for each transaction to restore on failure
+    const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
+    transactionIDs.forEach((id) => {
+        currentTransactionViolations[id] = allTransactionViolation?.[id] ?? [];
+    });
+
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -728,6 +734,25 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             value: {
                 reportID: transaction.reportID,
             },
+        });
+
+        // Optimistically clear all violations for the transaction
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: [],
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: [],
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: currentTransactionViolations[transaction.transactionID],
         });
 
         // 2. Keep track of the new report totals
