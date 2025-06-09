@@ -5126,6 +5126,10 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+            const transactionsAndViolations = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+            const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`);
+            const reportTransactionsAndViolations = transactionsAndViolations?.[fakeReport.reportID];
+            expect(canApproveIOU(report, fakePolicy, Object.values(reportTransactionsAndViolations?.transactions ?? {}))).toBeFalsy();
         });
         it('should return false if we have only scan failure transactions', async () => {
             const policyID = '2';
@@ -5178,6 +5182,10 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+            const transactionsAndViolations = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+            const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`);
+            const reportTransactionsAndViolations = transactionsAndViolations?.[fakeReport.reportID];
+            expect(canApproveIOU(report, fakePolicy, Object.values(reportTransactionsAndViolations?.transactions ?? {}))).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scan failure transaction', async () => {
             const policyID = '2';
@@ -5273,6 +5281,10 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
+            const transactionsAndViolations = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+            const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`);
+            const reportTransactionsAndViolations = transactionsAndViolations?.[fakeReport.reportID];
+            expect(canApproveIOU(report, fakePolicy, Object.values(reportTransactionsAndViolations?.transactions ?? {}))).toBeTruthy();
         });
 
         it('should return false if the report is closed', async () => {
