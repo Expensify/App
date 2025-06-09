@@ -8,7 +8,6 @@ import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavi
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
-    PlatformNavigationBuilderOptions,
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
     PlatformStackNavigatorProps,
@@ -60,7 +59,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 sidebarScreen,
                 defaultCentralScreen,
                 parentRoute,
-            } as PlatformNavigationBuilderOptions<PlatformStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, RouterOptions>,
+            },
             convertToNativeNavigationOptions,
         );
 
@@ -98,7 +97,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         descriptors={descriptors}
                         navigation={navigation}
                     />
-
                     {!!ExtraContent && (
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         <ExtraContent {...customCodePropsWithCustomState} />
