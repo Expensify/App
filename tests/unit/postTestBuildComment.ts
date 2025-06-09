@@ -79,8 +79,8 @@ Built from App PR Expensify/App#12.
 
 | Desktop :computer: | Web :spider_web: |
 | ------------- | ------------- |
-| ⏩ SKIPPED ⏩  | ⏩ SKIPPED ⏩  |
-| The build for Desktop was skipped  | The build for Web was skipped  |
+| ❌ FAILED ❌  | ⏩ SKIPPED ⏩  |
+| The QR code can't be generated, because the Desktop build failed  | The build for Web was skipped  |
 
 ---
 
@@ -154,9 +154,9 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('APP_PR_NUMBER', {required: false}).mockReturnValue('12');
         when(core.getInput).calledWith('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('');
-        when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('');
-        when(core.getInput).calledWith('DESKTOP', {required: false}).mockReturnValue('');
+        when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('skipped');
+        when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('skipped');
+        when(core.getInput).calledWith('DESKTOP', {required: false}).mockReturnValue('failure');
         when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue('https://expensify.app/ANDROID_LINK');
         createCommentMock.mockResolvedValue({} as CreateCommentResponse);
         mockListComments.mockResolvedValue({
@@ -191,6 +191,8 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue(androidLink);
         when(core.getInput).calledWith('IOS_LINK').mockReturnValue(iOSLink);
+        when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('skipped');
+        when(core.getInput).calledWith('DESKTOP', {required: false}).mockReturnValue('skipped');
         createCommentMock.mockResolvedValue({} as CreateCommentResponse);
         mockListComments.mockResolvedValue({
             data: [
