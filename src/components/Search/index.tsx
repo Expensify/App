@@ -27,9 +27,9 @@ import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
-    getSearchTableYearAndAmountWidth,
     getSections,
     getSortedSections,
+    getWideAmountIndicators,
     isReportActionListItemType,
     isReportListItemType,
     isSearchDataLoaded,
@@ -37,6 +37,7 @@ import {
     isTaskListItemType,
     isTransactionListItemType,
     shouldShowEmptyState,
+    shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -579,7 +580,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         navigation.setParams({q: newQuery});
     };
 
-    const {isAmountLengthLong, isTaxAmountLengthLong, shouldShowYear} = getSearchTableYearAndAmountWidth(searchResults?.data);
+    const shouldShowYear = shouldShowYearUtil(searchResults?.data);
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmuountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
@@ -604,8 +606,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                             sortOrder={sortOrder}
                             sortBy={sortBy}
                             shouldShowYear={shouldShowYear}
-                            isAmountColumnWide={isAmountLengthLong}
-                            isTaxAmountColumnWide={isTaxAmountLengthLong}
+                            isAmountColumnWide={shouldShowAmountInWideColumn}
+                            isTaxAmountColumnWide={shouldShowTaxAmuountInWideColumn}
                             shouldShowSorting={shouldShowSorting}
                         />
                     )

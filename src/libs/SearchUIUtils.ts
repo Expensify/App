@@ -63,6 +63,7 @@ import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './Se
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
+    getTaxAmount,
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
@@ -269,6 +270,70 @@ function isReportActionListItemType(item: SearchListItem): item is ReportActionL
     return reportActionListItem.reportActionID !== undefined;
 }
 
+function isAmountTooLong(amount: number, maxLength = 8): boolean {
+    return Math.abs(amount).toString().length >= maxLength;
+}
+
+function isTransactionAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const amount = Math.abs(transactionItem.modifiedAmount || transactionItem.amount);
+    return isAmountTooLong(amount);
+}
+
+function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
+    const reportType = (transactionItem as TransactionListItemType)?.reportType;
+    const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
+    const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
+    return isAmountTooLong(taxAmount);
+}
+
+function getWideAmountIndicators(data: TransactionListItemType[] | ReportListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
+    shouldShowAmountInWideColumn: boolean;
+    shouldShowTaxAmuountInWideColumn: boolean;
+} {
+    let isAmountWide = false;
+    let isTaxAmountWide = false;
+
+    const processTransaction = (transaction: TransactionListItemType | SearchTransaction) => {
+        isAmountWide = isAmountWide || isTransactionAmountTooLong(transaction);
+        isTaxAmountWide = isTaxAmountWide || isTransactionTaxAmountTooLong(transaction);
+    };
+
+    const processItem = (item: TransactionListItemType | ReportListItemType) => {
+        if (isReportListItemType(item)) {
+            item.transactions?.forEach(processTransaction);
+        } else if (isTransactionListItemType(item)) {
+            processTransaction(item);
+        }
+    };
+
+    if (Array.isArray(data)) {
+        data.some((item) => {
+            if (isTaskListItemType(item)) {
+                return isAmountWide && isTaxAmountWide;
+            }
+            processItem(item);
+            return isAmountWide && isTaxAmountWide;
+        });
+    } else {
+        Object.entries(data).some(([key, value]) => {
+            if (isTransactionEntry(key)) {
+                processTransaction(value as TransactionListItemType);
+            } else if (isReportEntry(key)) {
+                processItem(value as ReportListItemType);
+            }
+
+            // This breaks the loop early if both flags are set
+            return isAmountWide && isTaxAmountWide;
+        });
+    }
+
+    return {
+        shouldShowAmountInWideColumn: isAmountWide,
+        shouldShowTaxAmuountInWideColumn: isTaxAmountWide,
+    };
+}
+
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  */
@@ -370,6 +435,8 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
 function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmuountInWideColumn} = getWideAmountIndicators(data);
+
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
     const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
@@ -412,6 +479,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowTax,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
+            isAmountColumnWide: shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: shouldShowTaxAmuountInWideColumn,
             violations: transactionViolations,
 
             // Manually copying all the properties from transactionItem
@@ -752,6 +821,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmuountInWideColumn} = getWideAmountIndicators(data);
+
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
 
@@ -805,6 +876,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
                 violations: transactionViolations,
+                isAmountColumnWide: shouldShowAmountInWideColumn,
+                isTaxAmountColumnWide: shouldShowTaxAmuountInWideColumn,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
@@ -1320,5 +1393,8 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    getWideAmountIndicators,
+    isTransactionAmountTooLong,
+    isTransactionTaxAmountTooLong,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower};
