@@ -141,7 +141,17 @@ function SecuritySettingsPage() {
             baseMenuItems.push({
                 translationKey: 'mergeAccountsPage.mergeAccount',
                 icon: Expensicons.ArrowCollapse,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route)),
+                action: () => {
+                    if (isActingAsDelegate) {
+                        showDelegateNoAccessMenu();
+                        return;
+                    }
+                    if (isAccountLocked) {
+                        setIsLockedAccountModalOpen(true);
+                        return;
+                    }
+                    waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route));
+                },
             });
         }
 
