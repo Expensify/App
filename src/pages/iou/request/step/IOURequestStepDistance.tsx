@@ -144,7 +144,7 @@ function IOURequestStepDistance({
         (participants: Participant[]) => {
             // Get policy report based on transaction participants
             const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
-            const selectedReportID = participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID;
+            const selectedReportID = participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID;
             const policyReport = participants.at(0) ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`] : report;
 
             const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
@@ -350,7 +350,6 @@ function IOURequestStepDistance({
                         currency: transaction?.currency ?? 'USD',
                         merchant: translate('iou.fieldPending'),
                         billable: !!policy?.defaultBillable,
-                        reimbursable: !!policy?.defaultReimbursable,
                         validWaypoints: getValidWaypoints(waypoints, true),
                         customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
                         splitShares: transaction?.splitShares,

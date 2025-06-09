@@ -49,12 +49,14 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {PolicyTag} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
-type WorkspaceViewTagsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>;
+type WorkspaceViewTagsProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW>;
 
 function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
@@ -73,7 +75,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const {selectionMode} = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW;
     const [isCannotMakeAllTagsOptionalModalVisible, setIsCannotMakeAllTagsOptionalModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const fetchTags = useCallback(() => {
@@ -161,8 +163,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [filteredTagList],
     );
 
-    const sections = useMemo(() => [{data: filteredTagList, isDisabled: false}], [filteredTagList]);
-
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
@@ -184,6 +184,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const getCustomListHeader = () => {
+        if (filteredTagList.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -211,6 +214,16 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
+
+    const listHeaderContent =
+        tagList.length > CONST.SEARCH_ITEM_LIMIT ? (
+            <SearchBar
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+                label={translate('workspace.tags.findTag')}
+                shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
+            />
+        ) : undefined;
 
     const getHeaderButtons = () => {
         if ((!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !selectionMode?.isEnabled)) {
@@ -284,7 +297,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 buttonRef={dropdownButtonRef}
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
-                pressOnEnter
                 isSplitButton={false}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTags.length})}
@@ -386,27 +398,22 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        label={translate('workspace.tags.findTag')}
-                        shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
-                    />
-                )}
-                {filteredTagList.length > 0 && !isLoading && (
+                {tagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={sections}
+                        sections={[{data: filteredTagList, isDisabled: false}]}
+                        selectedItems={selectedTags}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
-                        onSelectAll={toggleAllTags}
+                        onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                         showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
+                        listHeaderContent={listHeaderContent}
+                        shouldShowListEmptyContent={false}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         addBottomSafeAreaPadding

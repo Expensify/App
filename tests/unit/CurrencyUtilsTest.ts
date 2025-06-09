@@ -34,8 +34,8 @@ describe('CurrencyUtils', () => {
     afterEach(() => Onyx.clear());
 
     describe('getLocalizedCurrencySymbol', () => {
-        test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (prefrredLocale) =>
-            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, prefrredLocale).then(() => {
+        test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (preferredLocale) =>
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale).then(() => {
                 currencyCodeList.forEach((currencyCode: string) => {
                     const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
 

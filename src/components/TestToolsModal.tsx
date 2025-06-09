@@ -28,8 +28,8 @@ const modalContentMaxHeightPercentage = 0.75;
 
 function TestToolsModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isTestToolsModalOpen = false] = useOnyx(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN);
-    const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+    const [isTestToolsModalOpen = false] = useOnyx(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, {canBeMissing: true});
+    const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const {windowWidth, windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -37,10 +37,6 @@ function TestToolsModal() {
     const activeRoute = Navigation.getActiveRoute();
     const isAuthenticated = useIsAuthenticated();
     const route = getRouteBasedOnAuthStatus(isAuthenticated, activeRoute);
-
-    if (!isTestToolsModalOpen) {
-        return null;
-    }
 
     return (
         <Modal
