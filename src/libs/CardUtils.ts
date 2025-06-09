@@ -432,6 +432,13 @@ function getPlaidInstitutionId(feedName?: string) {
     return feed.at(1);
 }
 
+function isPlaidCountrySupported(selectedCountry?: string) {
+    if (!selectedCountry) {
+        return false;
+    }
+    return CONST.PLAID_SUPPORT_COUNTRIES.includes(selectedCountry);
+}
+
 function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData: CardFeedData | undefined): number {
     return cardFeedData?.domainID ?? workspaceAccountID;
 }
@@ -695,6 +702,7 @@ export {
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
     isCardClosed,
+    isPlaidCountrySupported,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
