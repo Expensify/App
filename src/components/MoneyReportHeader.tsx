@@ -540,6 +540,7 @@ function MoneyReportHeader({
         [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
             <AnimatedSettlementButton
                 isPaidAnimationRunning={isPaidAnimationRunning}
+                formattedAmount={totalAmount}
                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                 onAnimationFinish={stopAnimation}
                 canIOUBePaid
