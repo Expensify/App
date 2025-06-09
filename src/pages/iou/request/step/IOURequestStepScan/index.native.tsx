@@ -730,6 +730,7 @@ function IOURequestStepScan({
 
     const toggleMultiScan = () => {
         if (isMultiScanEnabled) {
+            setReceiptFiles([]);
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
         }
