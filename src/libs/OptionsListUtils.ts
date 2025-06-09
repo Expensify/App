@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
 /* eslint-disable no-continue */
-import {MaxHeap} from '@datastructures-js/heap';
 import {Str} from 'expensify-common';
 import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
@@ -42,6 +41,7 @@ import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {MinHeap} from './MinHeap';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -87,6 +87,7 @@ import {
     isWhisperAction,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
+import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
@@ -140,7 +141,6 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
-import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import {generateAccountID} from './UserUtils';
@@ -1259,23 +1259,26 @@ const recentReportComparator = (option: OptionData) => {
 
 function getMostRecentOptions(options: OptionData[], limit: number, comparator: (option: OptionData) => number | string, filter?: (option: OptionData) => boolean | undefined): OptionData[] {
     Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
-    const heap = new MaxHeap<OptionData>(comparator);
+    const heap = new MinHeap<OptionData>(comparator);
     options.forEach((option) => {
         if (filter && !filter(option)) {
             return;
         }
-        heap.push(option);
+        if (heap.size() < limit) {
+            heap.push(option);
+            return;
+        }
+        const peekedValue = heap.peek();
+        if (!peekedValue) {
+            throw new Error('Heap is empty, cannot peek value');
+        }
+        if (comparator(option) > comparator(peekedValue)) {
+            heap.pop();
+            heap.push(option);
+        }
     });
-    const result: OptionData[] = [];
-    while (!heap.isEmpty() && result.length < limit) {
-        /**
-         * Disable the no-non-null assertion rule here because we are checking if the heap is empty before popping an element.
-         */
-        /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-        result.push(heap.pop()!);
-    }
     Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
-    return result;
+    return [...heap].reverse();
 }
 
 /**
