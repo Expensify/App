@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {selectAllTransactionsForReport, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
+import {selectAllTransactionsForReport, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
@@ -133,17 +133,12 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     // Special case handling a report that is a transaction thread
     // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
-    const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const isStillLoadingData = !!isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
-    const shouldWaitForTransactions =
-        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
-        !isTransactionThreadView &&
-        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        !reportMetadata?.hasOnceLoadedReportActions;
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportMetadata);
+
     const isEmptyTransactionReport = transactions && transactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, transactions ?? []);
 

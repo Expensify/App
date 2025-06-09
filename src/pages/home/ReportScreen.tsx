@@ -31,7 +31,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {selectAllTransactionsForReport, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
+import {selectAllTransactionsForReport, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -294,7 +294,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
-    const [reportTransactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
         canBeMissing: false,
     });
@@ -310,19 +310,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const isStillLoadingData = !!reportMetadata.isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
-    const shouldWaitForTransactions =
-        isStillLoadingData &&
-        isMoneyRequestReport(report) &&
-        reportTransactions?.length === 0 &&
-        !isTransactionThreadView &&
-        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        !reportMetadata?.hasOnceLoadedReportActions;
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
     const prevTransactions = usePrevious(reportTransactions);
 
     const newTransactions = useMemo(() => {
-        if (!prevTransactions || reportTransactions.length <= prevTransactions.length) {
+        if (!reportTransactions || !prevTransactions || reportTransactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
         return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
@@ -776,7 +769,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
+    const shouldDisplayMoneyRequestActionsList =
+        isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions ?? []);
 
     return (
         <ActionListContext.Provider value={actionListValue}>
