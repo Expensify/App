@@ -6,8 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
-import StringUtils from '../src/libs/StringUtils';
-import type Locale from '../src/types/onyx/Locale';
+import StringUtils from '@libs/StringUtils';
+import type Locale from '@src/types/onyx/Locale';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
@@ -35,7 +35,7 @@ type StringWithContext = {
  *  - It also formats the files using prettier.
  */
 class TranslationGenerator {
-    private static readonly CONTEXT_REGEX = /^\s*(?:\/{2}|\*|\/\*)?\s*@context\s+([^\n*\/]+)/;
+    private static readonly CONTEXT_REGEX = /^\s*(?:\/{2}|\*|\/\*)?\s*@context\s+([^\n*/]+)/;
 
     /**
      * The languages to generate translations for.

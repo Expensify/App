@@ -1,10 +1,12 @@
-const mockCreate = jest.fn(({messages}) => {
+import type {ChatCompletionCreateParamsNonStreaming} from 'openai/src/resources/chat/completions';
+
+const mockCreate = jest.fn(({messages}: ChatCompletionCreateParamsNonStreaming) => {
     const text = messages?.find((m) => m.role === 'user')?.content ?? '';
     return Promise.resolve({
         choices: [
             {
                 message: {
-                    content: `[ChatGPT] ${text}`,
+                    content: `[ChatGPT] ${text as string}`,
                 },
             },
         ],

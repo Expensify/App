@@ -1,4 +1,4 @@
-import type Locale from '../../../src/types/onyx/Locale';
+import type Locale from '@src/types/onyx/Locale';
 import Translator from './Translator';
 
 class DummyTranslator extends Translator {
