@@ -94,7 +94,7 @@ type MoneyRequestReportListProps = {
     /** If the report has older actions to load */
     hasOlderActions: boolean;
 
-    /** Whether report actions are still loading and we load the report for the first time, since last relog */
+    /** Whether report actions are still loading and we load the report for the first time, since the last sign in */
     showReportActionsLoadingState?: boolean;
 };
 

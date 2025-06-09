@@ -1203,7 +1203,6 @@ function openReport(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                 value: {
-                    hasOnceLoadedReportActions: true,
                     isOptimisticReport: false,
                 },
             },
