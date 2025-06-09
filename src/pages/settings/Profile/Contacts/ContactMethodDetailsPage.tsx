@@ -248,7 +248,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
                         icon={Star}
-                        onPress={() => { isAccountLocked ? setIsLockedAccountModalOpen(true) : setAsDefault()}}
+                        onPress={() => {
+                            isAccountLocked ? setIsLockedAccountModalOpen(true) : setAsDefault();
+                        }}
                     />
                 </OfflineWithFeedback>
             ) : null}

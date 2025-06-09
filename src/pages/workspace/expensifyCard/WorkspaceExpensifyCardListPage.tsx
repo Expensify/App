@@ -11,6 +11,7 @@ import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Gear, Plus} from '@components/Icon/Expensicons';
 import {HandCard} from '@components/Icon/Illustrations';
+import LockedAccountModal from '@components/LockedAccountModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -43,7 +44,6 @@ import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListLabels from './WorkspaceCardListLabels';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
-import LockedAccountModal from '@components/LockedAccountModal';
 
 type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */

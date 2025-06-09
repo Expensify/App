@@ -331,7 +331,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             ) : (
                                 <Button
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
-                                    onPress={() => {isAccountLocked ? setIsLockedAccountModalOpen(true) : askForConfirmationToRemove()}}
+                                    onPress={() => {
+                                        isAccountLocked ? setIsLockedAccountModalOpen(true) : askForConfirmationToRemove();
+                                    }}
                                     isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                     icon={Expensicons.RemoveMembers}
                                     style={styles.mb5}

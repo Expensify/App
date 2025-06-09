@@ -9,6 +9,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import {FallbackWorkspaceAvatar, ImageCropSquareMask, QrCode, Trashcan, UserPlus} from '@components/Icon/Expensicons';
 import {Building} from '@components/Icon/Illustrations';
+import LockedAccountModal from '@components/LockedAccountModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -48,7 +49,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
-import LockedAccountModal from '@components/LockedAccountModal';
 
 type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
@@ -398,7 +398,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <Button
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
-                                    onPress={() => {isAccountLocked ? setIsLockedAccountModalOpen(true) : onPressShare()}}
+                                    onPress={() => {
+                                        isAccountLocked ? setIsLockedAccountModalOpen(true) : onPressShare();
+                                    }}
                                     icon={QrCode}
                                 />
                                 {isOwner && (
