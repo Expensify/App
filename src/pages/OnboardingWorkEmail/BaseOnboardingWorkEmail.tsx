@@ -27,11 +27,11 @@ import {AddWorkEmail} from '@userActions/Session';
 import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type IconAsset from '@src/types/utils/IconAsset';
-import Log from '@src/libs/Log';
 import type {BaseOnboardingWorkEmailProps} from './types';
 
 type Item = {
