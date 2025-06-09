@@ -953,22 +953,29 @@ Onyx.connect({
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
+let reportsTransactions: Record<string, Transaction[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
     callback: (value) => {
-        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => transaction));
-    },
-});
-
-let reportsTransactions: Record<string, Transaction[]> = {};
-Onyx.connect({
-    key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
-    callback: (value) => {
         if (!value) {
             return;
         }
-        reportsTransactions = Object.fromEntries(Object.entries(value).map(([reportID, {transactions}]) => [reportID, Object.values(transactions ?? {})]));
+        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => transaction));
+
+        reportsTransactions = Object.values(value).reduce<Record<string, Transaction[]>>((all, transaction) => {
+            const reportsMap = all;
+            if (!transaction?.reportID) {
+                return reportsMap;
+            }
+
+            if (!reportsMap[transaction.reportID]) {
+                reportsMap[transaction.reportID] = [];
+            }
+            reportsMap[transaction.reportID].push(transaction);
+
+            return all;
+        }, {});
     },
 });
 
