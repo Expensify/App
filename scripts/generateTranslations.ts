@@ -39,7 +39,7 @@ class TranslationGenerator {
     /**
      * The file to use as the source of truth for translations.
      */
-    private readonly sourceFile: string;
+    private readonly sourceFile: ts.SourceFile;
 
     /**
      * Translator module to perform translations.
@@ -49,19 +49,18 @@ class TranslationGenerator {
     constructor(config: {targetLanguages: Locale[]; languagesDir: string; sourceFile: string; translator: Translator}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
-        this.sourceFile = config.sourceFile;
+        const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
+        this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
     }
 
     public async generateTranslations(): Promise<void> {
-        const sourceCode = fs.readFileSync(this.sourceFile, 'utf8');
-        const sourceFile = ts.createSourceFile(this.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         const promisePool = new PromisePool();
 
         for (const targetLanguage of this.targetLanguages) {
             // Extract strings to translate
             const stringsToTranslate = new Map<number, string>();
-            this.extractStringsToTranslate(sourceFile, stringsToTranslate);
+            this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
             const translations = new Map<number, string>();
             const translationPromises = [];
@@ -73,8 +72,8 @@ class TranslationGenerator {
 
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translations);
-            const result = ts.transform(sourceFile, [transformer]);
-            const transformedNode = result.transformed.at(0) ?? sourceFile; // Ensure we always have a valid SourceFile
+            const result = ts.transform(this.sourceFile, [transformer]);
+            const transformedNode = result.transformed.at(0) ?? this.sourceFile; // Ensure we always have a valid SourceFile
             result.dispose();
 
             // Generate translated TypeScript code
