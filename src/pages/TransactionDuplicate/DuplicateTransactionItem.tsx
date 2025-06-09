@@ -1,29 +1,29 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
     index: number;
+    allReports: OnyxCollection<Report>;
 };
 
-function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
+function DuplicateTransactionItem({transaction, index, allReports}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`, {canBeMissing: false});
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: false});
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
-        return IOUTransactionID === props.transaction?.transactionID;
+        return IOUTransactionID === transaction?.transactionID;
     });
 
     if (!action || !report) {
@@ -37,7 +37,7 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
                 action={action}
                 report={report}
                 parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
-                index={props.index}
+                index={index}
                 reportActions={Object.values(reportActions ?? {})}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={false}
