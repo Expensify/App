@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
-import type {ImageObjectPosition, ImageProps} from './Image/types';
+import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
 
 type ImageWithSizeLoadingProps = {
     /** Any additional styles to apply */
@@ -31,6 +31,7 @@ function ImageWithSizeCalculation({
     waitForSession,
     loadingIndicatorStyles,
     resizeMode,
+    onLoad,
     ...rest
 }: ImageWithSizeLoadingProps) {
     const styles = useThemeStyles();
@@ -51,10 +52,11 @@ function ImageWithSizeCalculation({
         setIsLoading(false);
     };
 
-    const imageLoadedSuccessfully = () => {
+    const imageLoadedSuccessfully = (e: ImageOnLoadEvent) => {
         isLoadedRef.current = true;
         setIsLoading(false);
         setIsImageCached(true);
+        onLoad?.(e);
     };
 
     /** Delay the loader to detect whether the image is being loaded from the cache or the internet. */
@@ -84,7 +86,9 @@ function ImageWithSizeCalculation({
                     setIsLoading(true);
                 }}
                 onError={handleError}
-                onLoad={imageLoadedSuccessfully}
+                onLoad={(e) => {
+                    imageLoadedSuccessfully(e);
+                }}
                 waitForSession={() => {
                     // Called when the image should wait for a valid session to reload
                     // At the moment this function is called, the image is not in cache anymore
