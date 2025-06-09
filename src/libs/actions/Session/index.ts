@@ -242,7 +242,7 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldKillHybridApp = true, shouldForceUseStashedSession?: boolean) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldKillHybridApp = true, shouldForceUseStashedSession?: boolean, isTransitioning?: boolean) {
     const accountID = session.accountID;
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
@@ -328,7 +328,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     // Wait for signOut (if called), then redirect and update Onyx.
     signOutPromise
         .then(() => {
-            afterSignOutRedirect(onyxSetParams, hasSwitchedAccountInHybridMode, accountID);
+            afterSignOutRedirect(onyxSetParams, hasSwitchedAccountInHybridMode, accountID, isTransitioning);
         })
         .catch((error: string) => Log.warn('Error during sign out process:', error));
 }
