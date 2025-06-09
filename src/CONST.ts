@@ -821,6 +821,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
+        /* eslint-disable deprecation/deprecation */
         /**
          * @deprecated
          * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
@@ -6686,6 +6687,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
+            EXPORT_STATUS: 'exportStatus',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6728,6 +6730,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            EXPORT_STATUS: 'export-status',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
