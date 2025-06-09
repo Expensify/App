@@ -57,8 +57,8 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout}: Par
 
             if (params.policyID) {
                 const workspaceScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceTabScreen() : SCREENS.WORKSPACE.INITIAL;
+                // This action will put settings split under the workspace split to make sure that we can swipe back to settings split.
                 navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT, payload: {policyID: params.policyID, screenName: workspaceScreenName}});
-                return;
             }
             return;
         }
