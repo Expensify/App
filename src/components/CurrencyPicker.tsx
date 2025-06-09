@@ -63,6 +63,7 @@ function CurrencyPicker({
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
+        Navigation.setParams({currency: value});
     };
 
     const updateInput = (item: CurrencyListItem) => {
