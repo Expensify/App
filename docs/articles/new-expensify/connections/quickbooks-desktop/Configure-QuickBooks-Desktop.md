@@ -1,7 +1,7 @@
 ---
 title: Configure QuickBooks Desktop
 description: Learn how to connect and configure your QuickBooks Desktop integration with Expensify to manage imports, exports, and advanced accounting settings.
-keywords: \[QuickBooks Desktop, Expensify integration, accounting settings, import settings, export settings, QBD, configure QuickBooks Desktop]
+keywords: [New Expensify, QuickBooks Desktop, Expensify integration, accounting settings, import settings, export settings, QBD, configure QuickBooks Desktop]
 order: 2
 ---
 
