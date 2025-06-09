@@ -1,5 +1,4 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import {Platform} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -18,6 +17,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -721,6 +721,13 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    hasMultipleTagLists: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
@@ -728,6 +735,13 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
             },
         ],
         failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    hasMultipleTagLists: false,
+                },
+            },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
@@ -738,24 +752,16 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         ],
     };
 
-    fetch(spreadsheet?.fileURI ?? '').then((res) => {
-        if (!res.ok && Platform.OS !== 'android') {
-            throw Error(res.statusText);
-        }
+    readFileAsync(spreadsheet?.fileURI ?? '', 'testFile.csv', (file) => {
+        const parameters: ImportMultiLevelTagsParams = {
+            policyID,
+            isFirstLineHeader: spreadsheet?.containsHeader,
+            isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
+            isGLAdjacent: spreadsheet?.isGLAdjacent,
+            file,
+        };
 
-        res.blob().then((blob) => {
-            const file = new File([blob], 'testFile.csv', {type: blob.type || 'text/csv'});
-
-            const parameters: ImportMultiLevelTagsParams = {
-                policyID,
-                isFirstLineHeader: spreadsheet?.containsHeader,
-                isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
-                isGLAdjacent: spreadsheet?.isGLAdjacent,
-                file,
-            };
-
-            API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
-        });
+        API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
     });
 }
 
