@@ -33,7 +33,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const [isForcedToChangeCurrency] = useOnyx(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY, {canBeMissing: true});
-    const [hasVBA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: (value) => value?.achData?.state === BankAccount.STATE.OPEN, canBeMissing: true});
+    const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: (value) => value?.achData?.state === BankAccount.STATE.OPEN, canBeMissing: true});
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
             return;
