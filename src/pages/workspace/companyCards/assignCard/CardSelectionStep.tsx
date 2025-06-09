@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
@@ -18,7 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getFilteredCardList, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
@@ -45,6 +46,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [list] = useCardsList(policyID, feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
+    const plaidUrl = getPlaidInstitutionIconUrl(feed);
+    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
@@ -93,7 +96,12 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         text: maskCardNumber(cardNumber, feed),
         alternateText: lastFourNumbersFromCardName(cardNumber),
         isSelected: cardSelected === encryptedCardNumber,
-        leftElement: (
+        leftElement: plaidUrl ? (
+            <PlaidCardFeedIcon
+                plaidUrl={plaidUrl}
+                style={styles.mr3}
+            />
+        ) : (
             <Icon
                 src={getCardFeedIcon(feed, illustrations)}
                 height={variables.cardIconHeight}
@@ -159,7 +167,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                                 {translate('workspace.companyCards.chooseCardFor', {
                                     assignee: assigneeDisplayName,
-                                    feed: getBankName(feed),
+                                    feed: plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed),
                                 })}
                             </Text>
                         </View>

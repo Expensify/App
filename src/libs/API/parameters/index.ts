@@ -49,6 +49,7 @@ export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePa
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
 export type {default as OpenReportParams} from './OpenReportParams';
 export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPageParams';
+export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompanyCardLoginParams';
 export type {default as OpenSidePanelParams} from './OpenSidePanelParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
 export type {default as PusherPingParams} from './PusherPingParams';
@@ -401,6 +402,7 @@ export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenPara
 export type {default as RetractReportParams} from './RetractReportParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
+export type {default as LockAccountParams} from './LockAccountParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
