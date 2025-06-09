@@ -5525,7 +5525,7 @@ const CONST = {
                     title: ({integrationName, workspaceAccountingLink}) =>
                         `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'to'}[${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other && 'your'} ${integrationName}](${workspaceAccountingLink})`,
                     description: ({integrationName, workspaceAccountingLink}) =>
-                        `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'to'} ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other && 'your'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
