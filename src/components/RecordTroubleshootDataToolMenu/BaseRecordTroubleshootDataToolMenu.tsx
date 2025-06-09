@@ -1,6 +1,6 @@
 import type JSZip from 'jszip';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Alert} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import {useOnyx} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {Memoize} from '@libs/memoize';
 import Performance from '@libs/Performance';
+import {shouldShowProfileTool as shouldShowProfileToolUtil} from '@userActions/TestTool';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,6 +88,8 @@ function BaseRecordTroubleshootDataToolMenu({
     const [shareUrls, setShareUrls] = useState<string[]>();
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
 
+    const shouldShowProfileTool = useMemo(() => shouldShowProfileToolUtil(), []);
+
     const onToggleProfiling = useCallback(() => {
         const shouldProfiling = !isProfilingInProgress;
         if (shouldProfiling) {
@@ -112,13 +115,15 @@ function BaseRecordTroubleshootDataToolMenu({
                 totalMemory: formatBytes(totalMemory, 2),
                 usedMemory: formatBytes(usedMemory, 2),
                 memoizeStats: Memoize.stopMonitoring(),
-                performance: Performance.getPerformanceMeasures(),
+                performance: shouldShowProfileTool ? Performance.getPerformanceMeasures() : undefined,
             });
         });
-    }, []);
+    }, [shouldShowProfileTool]);
 
     const onToggle = () => {
-        onToggleProfiling();
+        if (shouldShowProfileTool) {
+            onToggleProfiling();
+        }
         if (!shouldRecordTroubleshootData) {
             Console.setShouldStoreLogs(true);
             Troubleshoot.setShouldRecordTroubleshootData(true);
@@ -149,19 +154,24 @@ function BaseRecordTroubleshootDataToolMenu({
             onDisableLogging(logsWithParsedMessages).then(() => {
                 Console.disableLoggingAndFlushLogs();
                 Troubleshoot.setShouldRecordTroubleshootData(false);
-                // onDisableSwitch();
                 setIsDisabled(false);
             });
         });
     };
 
+    const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
+
     const onDisableSwitch = useCallback(() => {
         if (getPlatform() === CONST.PLATFORM.WEB) {
-            stopProfiling(true, newFileName).then(() => {
+            onStopProfiling(true, newFileName).then(() => {
                 onDownloadZip?.();
             });
         } else {
-            stopProfiling(true, newFileName).then((path) => {
+            onStopProfiling(true, newFileName).then((path) => {
+                if (!path) {
+                    return;
+                }
+
                 const newFilePath = `${pathToBeUsed}/${newFileName}`;
 
                 RNFS.exists(newFilePath)
@@ -190,7 +200,7 @@ function BaseRecordTroubleshootDataToolMenu({
                     });
             });
         }
-    }, [file, onDownloadZip, pathToBeUsed]);
+    }, [file?.path, onDownloadZip, onStopProfiling, pathToBeUsed]);
 
     useEffect(() => {
         if (!file) {
