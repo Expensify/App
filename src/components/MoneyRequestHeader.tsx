@@ -48,6 +48,7 @@ import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
+import {useSearchContext} from './Search/SearchContext';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
@@ -91,6 +92,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
     const {isBetaEnabled} = usePermissions();
+    const {removeTransaction} = useSearchContext();
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
@@ -330,6 +332,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         deleteTrackExpense(report?.chatReportID, transaction.transactionID, parentReportAction, true);
                     } else {
                         deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
+                        removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();
                 }}

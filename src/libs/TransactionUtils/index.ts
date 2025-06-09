@@ -331,15 +331,17 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     return isMerchantEmpty;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/**
+ * Determine if we should show the attendee selector for a given expense on a give policy.
+ */
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
-    if (!policy?.isAttendeeTrackingEnabled) {
+    if ((iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.CREATE) || !policy?.id || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
         return false;
     }
 
-    return (
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM)
-    );
+    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
+    // Control policies if the policy does not contain the attribute
+    return policy?.isAttendeeTrackingEnabled ?? true;
 }
 
 /**
