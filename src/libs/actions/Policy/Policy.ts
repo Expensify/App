@@ -90,6 +90,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategory,
+    PolicyEmployee,
     ReimbursementAccount,
     Report,
     ReportAction,
@@ -582,6 +583,17 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
     const policy = getPolicy(policyID);
+    const updatedEmployeeList: Record<string, PolicyEmployee> = {};
+
+    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+        Object.keys(policy?.employeeList ?? {}).forEach((employee) => {
+            updatedEmployeeList![employee] = {
+                ...policy?.employeeList?.[employee],
+                submitsTo: approver,
+                forwardsTo: '',
+            };
+        });
+    }
 
     const value = {
         approver,
@@ -595,6 +607,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 ...value,
                 pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                employeeList: approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? updatedEmployeeList : policy?.employeeList,
             },
         },
     ];
@@ -608,6 +621,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
                 approvalMode: policy?.approvalMode,
                 pendingFields: {approvalMode: null},
                 errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApproverPage.genericErrorMessage')},
+                employeeList: policy?.employeeList,
             },
         },
     ];
