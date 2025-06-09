@@ -88,7 +88,9 @@ type AttachmentViewProps = Attachment & {
 };
 
 function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
-    const isSourceImage = typeof source === 'number' || typeof source === 'string';
+    const isLocalSource = typeof source === 'string' && /^file:|^blob:/.test(source);
+
+    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source)) || isLocalSource;
 
     const isFileNameImage = fileName && Str.isImage(fileName);
 
