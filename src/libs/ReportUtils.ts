@@ -243,6 +243,7 @@ import {
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
 } from './TransactionUtils';
+import type * as OnyxTypes from '@src/types/onyx';
 import {addTrailingForwardSlash} from './Url';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
@@ -5782,7 +5783,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getMovedTransactionMessage(action: ReportAction, parentReportAction: OnyxEntry<ReportAction>, report?: Report) {
+function getMovedTransactionMessage(action: ReportAction, parentReportAction: OnyxEntry<OnyxTypes.ReportAction>, report?: Report) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
     const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
     const reportName = getReportName(report, undefined, parentReportAction) ?? report?.reportName ?? '';
