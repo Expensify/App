@@ -201,7 +201,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, isBetaEnabled, isAccountLocked]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, isBetaEnabled, isAccountLocked, showLockedAccountModal]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>

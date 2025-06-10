@@ -97,7 +97,6 @@ function SettlementButton({
     };
 
     return (
-        <>
             <KYCWall
                 onSuccessfulKYC={(paymentType) => onPress(paymentType)}
                 enablePaymentsRoute={enablePaymentsRoute}
@@ -142,7 +141,6 @@ function SettlementButton({
                     />
                 )}
             </KYCWall>
-        </>
     );
 }
 

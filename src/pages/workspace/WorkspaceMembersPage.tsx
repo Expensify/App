@@ -255,7 +255,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         clearInviteDraft(route.params.policyID);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
-    }, [route.params.policyID, isAccountLocked]);
+    }, [route.params.policyID, isAccountLocked, showLockedAccountModal]);
 
     /**
      * Remove selected users from the workspace
@@ -665,7 +665,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline, isPolicyAdmin, isAccountLocked]);
+    }, [policyID, translate, isOffline, isPolicyAdmin, isAccountLocked, showLockedAccountModal]);
 
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {

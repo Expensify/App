@@ -108,7 +108,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
         }
 
         Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
-    }, [navigateBackTo, isActingAsDelegate, isAccountLocked, isUserValidated]);
+    }, [navigateBackTo, isActingAsDelegate, isAccountLocked, isUserValidated, showLockedAccountModal]);
 
     return (
         <ScreenWrapper

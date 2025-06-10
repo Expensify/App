@@ -252,7 +252,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             policyID,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    }, [accountID, hasMultipleFeeds, memberLogin, policyID, isAccountLocked]);
+    }, [accountID, hasMultipleFeeds, memberLogin, policyID, isAccountLocked, showLockedAccountModal]);
 
     const openRoleSelectionModal = useCallback(() => {
         setIsRoleSelectionModalVisible(true);
