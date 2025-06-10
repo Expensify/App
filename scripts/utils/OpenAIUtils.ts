@@ -44,7 +44,7 @@ class OpenAIUtils {
                     messages,
                     temperature: 0.3,
                 }),
-            {isRetryable: (err) => OpenAIUtils.isRetryableOpenAIError(err)},
+            {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
 
         const result = response.choices.at(0)?.message?.content?.trim();
@@ -68,7 +68,7 @@ class OpenAIUtils {
                         messages: [{role: 'user', content: userMessage}],
                     },
                 }),
-            {isRetryable: (err) => OpenAIUtils.isRetryableOpenAIError(err)},
+            {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
 
         // poll for completion
@@ -106,14 +106,32 @@ class OpenAIUtils {
         return block.type === 'text';
     }
 
-    private static isRetryableOpenAIError(error: unknown): boolean {
-        if (!(error instanceof OpenAI.APIError)) {
-            return false;
+    private static isRetryableError(error: unknown): boolean {
+        // Handle known/predictable API errors
+        if (error instanceof OpenAI.APIError) {
+            // Only retry 429 (rate limit) or 5xx errors
+            const status = error.status;
+            return !!status && (status === 429 || status >= 500);
         }
 
-        // Only retry 429 (rate limit) or 5xx errors
-        const status = error.status;
-        return !!status && (status === 429 || status >= 500);
+        // Handle random/unpredictable network errors
+        if (error instanceof Error) {
+            const msg = error.message.toLowerCase();
+            return (
+                msg.includes('timeout') ||
+                msg.includes('socket hang up') ||
+                msg.includes('fetch failed') ||
+                msg.includes('network error') ||
+                msg.includes('connection reset') ||
+                msg.includes('connection aborted') ||
+                msg.includes('ecconnrefused') || // Node-fetch errors
+                msg.includes('dns') ||
+                msg.includes('econn') ||
+                msg.includes('request to') // node-fetch errors often include this
+            );
+        }
+
+        return false;
     }
 }
 
