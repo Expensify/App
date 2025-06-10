@@ -442,10 +442,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                         </View>
                     </View>
                 </ScrollView>
-                <LockedAccountModal
-                    isLockedAccountModalOpen={isLockedAccountModalOpen}
-                    onClose={() => setIsLockedAccountModalOpen(false)}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
