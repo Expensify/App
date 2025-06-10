@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.63-1",
+  "version": "9.1.63-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -254,7 +254,7 @@
     "@storybook/react-webpack5": "^8.6.9",
     "@storybook/theming": "^8.6.9",
     "@svgr/webpack": "^6.0.0",
-    "@testing-library/react-native": "12.8.1",
+    "@testing-library/react-native": "13.2.0",
     "@trivago/prettier-plugin-sort-imports": "^4.2.0",
     "@types/base-64": "^1.0.2",
     "@types/canvas-size": "^1.2.2",
