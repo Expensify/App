@@ -543,6 +543,7 @@ function WorkspacesListPage() {
                     data={filteredWorkspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
+                    keyboardShouldPersistTaps="always"
                 />
             </View>
             <ConfirmModal
