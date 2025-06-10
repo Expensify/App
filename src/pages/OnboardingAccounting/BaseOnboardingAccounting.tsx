@@ -101,6 +101,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const {onboardingMessages} = useOnboardingMessages();
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -217,7 +218,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             setOnboardingPolicyID(policyID);
         }
 
-        const {onboardingMessages} = useOnboardingMessages();
         completeOnboarding({
             engagementChoice: onboardingPurposeSelected,
             onboardingMessage: onboardingMessages[onboardingPurposeSelected],

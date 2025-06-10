@@ -51,6 +51,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const {onboardingMessages} = useOnboardingMessages();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
@@ -87,7 +88,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 }
 
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
-                    const {onboardingMessages} = useOnboardingMessages();
                     completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: onboardingMessages[choice],

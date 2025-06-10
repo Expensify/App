@@ -40,6 +40,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const {onboardingMessages} = useOnboardingMessages();
+
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
@@ -62,7 +64,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             if (!onboardingPurposeSelected) {
                 return;
             }
-            const {onboardingMessages} = useOnboardingMessages();
             completeOnboardingReport({
                 engagementChoice: onboardingPurposeSelected,
                 onboardingMessage: onboardingMessages[onboardingPurposeSelected],

@@ -34,6 +34,7 @@ function EmployeeTestDriveModal() {
     const [bossEmail, setBossEmail] = useState(route.params?.bossEmail ?? '');
     const [formError, setFormError] = useState<string | undefined>();
     const [isLoading, setIsLoading] = useState(false);
+    const {testDrive} = useOnboardingMessages();
 
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
@@ -73,7 +74,6 @@ function EmployeeTestDriveModal() {
                                 selected: true,
                             },
                         ]);
-                        const {testDrive} = useOnboardingMessages();
                         setMoneyRequestAmount(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.AMOUNT, testDrive.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
                         setMoneyRequestDescription(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
                         setMoneyRequestMerchant(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
