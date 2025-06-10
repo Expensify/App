@@ -1,14 +1,13 @@
-import { useContext, useState } from 'react';
-import { useOnyx } from 'react-native-onyx';
-import ONYXKEYS from './ONYXKEYS';
-import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
-import {parseHybridAppSettings} from './libs/actions/HybridApp';
-import type { AppProps } from './App';
+import {useContext, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
+import type {AppProps} from './App';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
-import { setupNewDotAfterTransitionFromOldDot } from './libs/actions/Session';
+import {parseHybridAppSettings} from './libs/actions/HybridApp';
+import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
+import ONYXKEYS from './ONYXKEYS';
 import SplashScreenStateContext from './SplashScreenStateContext';
-
+import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 function HybridAppHandler({hybridAppSettings}: AppProps) {
     const [signInHandled, setSignInHandled] = useState(false);
