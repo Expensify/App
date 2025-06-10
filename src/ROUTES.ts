@@ -1653,11 +1653,27 @@ const ROUTES = {
         getRoute: (policyID: string, feed: string, backTo?: string | undefined) =>
             getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card/assignee`, backTo),
     },
+    WORKSPACE_ASSIGN_COMPANY_CARD_SELECTION: {
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card/select-card',
+        getRoute: (policyID: string, feed: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card/select-card`, backTo),
+    },
     WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card/transaction-start-date',
         getRoute: (policyID: string, feed: string, backTo?: string) =>
             getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card/transaction-start-date`, backTo),
     },
+    WORKSPACE_COMPANY_CARDS_SELECT_CARD_NAME:{
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card/select-card-name',
+        getRoute: (policyID: string, feed: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card/select-card-name`, backTo),
+    },
+    WORKSPACE_COMPANY_CARDS_CONFIRMATION: {
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card/confirmation',
+        getRoute: (policyID: string, feed: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card/confirmation`, backTo),
+    },
+
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID',
         getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bank}/${cardID}`, backTo),

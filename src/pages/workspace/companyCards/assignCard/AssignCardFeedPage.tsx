@@ -22,7 +22,7 @@ import TransactionStartDateStep from './TransactionStartDateStep';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ROUTES, { Route } from '@src/ROUTES';
 
-type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
+type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList> & WithPolicyAndFullscreenLoadingProps;
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
@@ -77,13 +77,13 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_ASSIGNEE.getRoute(policyID, feed, backTo || '');
                 case CONST.COMPANY_CARD.STEP.CARD:
-                //     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_CARD_SELECTION.getRoute(policyID, feed, backTo || '');
-                // case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
-                //     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_TRANSACTION_START_DATE.getRoute(policyID, feed, backTo || '');
-                // case CONST.COMPANY_CARD.STEP.CARD_NAME:
-                //     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_CARD_NAME.getRoute(policyID, feed, backTo || '');
-                // case CONST.COMPANY_CARD.STEP.CONFIRMATION:
-                //     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_CONFIRMATION.getRoute(policyID, feed, backTo || '');
+                    return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_SELECTION.getRoute(policyID, feed, backTo || '');
+                case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
+                    return ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.getRoute(policyID, feed, backTo || '');
+                case CONST.COMPANY_CARD.STEP.CARD_NAME:
+                    return ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_CARD_NAME.getRoute(policyID, feed, backTo || '');
+                case CONST.COMPANY_CARD.STEP.CONFIRMATION:
+                    return ROUTES.WORKSPACE_COMPANY_CARDS_CONFIRMATION.getRoute(policyID, feed, backTo || '');
                 default:
                     return ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_ASSIGNEE.getRoute(policyID, feed, backTo || '');
             }

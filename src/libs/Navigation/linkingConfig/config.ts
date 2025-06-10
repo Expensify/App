@@ -659,9 +659,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         // [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
                         //     path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
                         // },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.route,
-                        },
+                        // [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
+                        //     path: ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.route,
+                        // },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
@@ -1611,10 +1611,22 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.ASSIGN_COMPANY_CARD.ROOT]: {
                             path: ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD.route,
                         },
-                        [SCREENS.ASSIGN_COMPANY_CARD.CARD_SELECTION]: {
+                        // [SCREENS.ASSIGN_COMPANY_CARD.BANK_CONNECTION]: {
+                        //     path: ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_BANK_CONNECTION.route,
+                        // },
+                        [SCREENS.ASSIGN_COMPANY_CARD.ASSIGNEE]: {
                             path: ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_ASSIGNEE.route,
                         },
-                        // [SCREENS.ASSIGN_COMPANY_CARD.]
+                        [SCREENS.ASSIGN_COMPANY_CARD.CARD_SELECTION]: {
+                            path: ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_SELECTION.route,
+                        },
+                        [SCREENS.ASSIGN_COMPANY_CARD.TRANSACTION_START_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.route,
+                        },
+                        [SCREENS.ASSIGN_COMPANY_CARD.CARD_NAME]: {
+                            path:ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_CARD_NAME.route,
+                        }
+                        
                     }
                 }
             },
