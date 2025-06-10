@@ -14,6 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -169,6 +170,11 @@ function ReportActionsList({
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportActionsCollection] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: false});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (attributes) => attributes?.reports?.[report.reportID],
+        canBeMissing: true,
+    });
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
@@ -318,8 +324,16 @@ function ReportActionsList({
     // eslint-disable-next-line react-compiler/react-compiler
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
+    const isReportArchived = useReportIsArchived(report.reportID);
 
-    const redBrickRoad = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActionsCollection, transactionViolations);
+    const redBrickRoad = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+        report,
+        reportActionsCollection,
+        reportAttributes?.reportErrors ?? {},
+        transactions,
+        transactionViolations,
+        isReportArchived,
+    );
     const greenBrickRoad = getReasonAndReportActionThatRequiresAttention(report, parentReportAction);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const brickRoadReportActionID = redBrickRoad?.reportAction?.reportActionID || greenBrickRoad?.reportAction?.reportActionID;
