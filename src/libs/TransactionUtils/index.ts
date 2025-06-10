@@ -14,8 +14,9 @@ import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-import * as Localize from '@libs/Localize';
-import * as NumberUtils from '@libs/NumberUtils';
+import {translateLocal} from '@libs/Localize';
+import BaseLocaleListener from '@libs/Localize/LocaleListener/BaseLocaleListener';
+import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {
     getCleanedTagName,
     getDistanceRateCustomUnitRate,
@@ -47,7 +48,6 @@ import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
 
@@ -118,17 +118,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => (allTransactionViolations = value),
-});
-
-let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        preferredLocale = value;
-    },
 });
 
 let currentUserEmail = '';
@@ -232,7 +221,7 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isReceiptBeingScanned(transaction));
+    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isScanning(transaction));
 }
 
 /**
@@ -268,7 +257,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
-    const transactionID = existingTransactionID ?? NumberUtils.rand64();
+    const transactionID = existingTransactionID ?? rand64();
 
     const commentJSON: Comment = {comment, attendees};
     if (source) {
@@ -342,15 +331,17 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     return isMerchantEmpty;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/**
+ * Determine if we should show the attendee selector for a given expense on a give policy.
+ */
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
-    if (!policy?.isAttendeeTrackingEnabled) {
+    if ((iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.CREATE) || !policy?.id || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
         return false;
     }
 
-    return (
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM)
-    );
+    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
+    // Control policies if the policy does not contain the attribute
+    return policy?.isAttendeeTrackingEnabled ?? true;
 }
 
 /**
@@ -362,6 +353,10 @@ function isPartialMerchant(merchant: string): boolean {
 
 function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+}
+
+function isPartial(transaction: OnyxEntry<Transaction>): boolean {
+    return isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction);
 }
 
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
@@ -433,7 +428,7 @@ function getUpdatedTransaction({
             // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
             updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
-            updatedTransaction.modifiedMerchant = Localize.translateLocal('iou.fieldPending');
+            updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
         } else {
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
             const {unit, rate} = mileageRate;
@@ -441,8 +436,8 @@ function getUpdatedTransaction({
             const distanceInMeters = getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport ? -amount : amount;
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, Localize.translateLocal, (digit) =>
-                toLocaleDigit(preferredLocale, digit),
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
+                toLocaleDigit(BaseLocaleListener.getPreferredLocale(), digit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -465,7 +460,7 @@ function getUpdatedTransaction({
         // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            const distance = NumberUtils.roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+            const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
@@ -481,8 +476,8 @@ function getUpdatedTransaction({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, Localize.translateLocal, (digit) =>
-                toLocaleDigit(preferredLocale, digit),
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
+                toLocaleDigit(BaseLocaleListener.getPreferredLocale(), digit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -666,11 +661,15 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
     if (transaction && isDistanceRequest(transaction)) {
         const report = getReportOrDraftReport(transaction.reportID);
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const policy = policyParam ?? getPolicy(report?.policyID);
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
-        return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, Localize.translateLocal, (digit) => toLocaleDigit(preferredLocale, digit));
+        return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
+            toLocaleDigit(BaseLocaleListener.getPreferredLocale(), digit),
+        );
     }
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
@@ -832,6 +831,14 @@ function isPosted(transaction: Transaction): boolean {
     return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
 }
 
+/**
+ * The transaction is considered scanning if it is a partial transaction, has a receipt, and the receipt is being scanned.
+ * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
+ */
+function isScanning(transaction: OnyxEntry<Transaction>): boolean {
+    return isPartialTransaction(transaction) && hasReceipt(transaction) && isReceiptBeingScanned(transaction);
+}
+
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
@@ -963,7 +970,7 @@ function hasAnyTransactionWithoutRTERViolation(transactionIds: string[], transac
  * Check if the transaction is pending or has a pending rter violation.
  */
 function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null): boolean {
-    return isReceiptBeingScanned(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations));
+    return isScanning(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations));
 }
 
 /**
@@ -1248,8 +1255,7 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
         return policy && getDefaultTaxCode(policy, transaction);
     };
 
-    const getModifiedName = (data: TaxRate, code: string) =>
-        `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
@@ -1407,6 +1413,8 @@ function compareDuplicateTransactionFields(
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
             const policy = getPolicy(report?.policyID);
 
             const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'));
@@ -1649,6 +1657,7 @@ export {
     isAmountMissing,
     isMerchantMissing,
     isPartialMerchant,
+    isPartial,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
@@ -1690,6 +1699,7 @@ export {
     shouldShowRTERViolationMessage,
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
+    isScanning,
     getTransactionOrDraftTransaction,
     checkIfShouldShowMarkAsCashButton,
     getOriginalTransactionWithSplitInfo,

@@ -10,8 +10,20 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-        /* If the tooltip is allowed to be shown */
-        isTooltipAllowed?: boolean;
+        /**
+         * Callback function that is triggered on the `onLayout` event.
+         * Receives a function (`setTestReceiptAndNavigate`) as an argument,
+         */
+        onLayout?: (setTestReceiptAndNavigate: () => void) => void;
+
+        /** Disable tab swipe */
+        setTabSwipeDisabled?: (isDisabled: boolean) => void;
+
+        /** If the receipts preview should be shown */
+        isMultiScanEnabled?: boolean;
+
+        /** Updates isMultiScanEnabled flag */
+        setIsMultiScanEnabled?: (value: boolean) => void;
     };
 
 type ReceiptFile = {
