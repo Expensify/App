@@ -1,5 +1,8 @@
 import type Locale from '@src/types/onyx/Locale';
 
+/**
+ * Base Translator class standardizes interface for translators and implements common logging.
+ */
 abstract class Translator {
     /**
      * Translate a string to the given locale.
