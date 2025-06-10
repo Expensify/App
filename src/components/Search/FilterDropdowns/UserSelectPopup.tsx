@@ -163,12 +163,11 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
                 canSelectMultiple
-                textInputAutoFocus={false}
+                textInputAutoFocus
                 shouldClearInputOnSelect={false}
                 headerMessage={headerMessage}
                 sections={sections}
                 ListItem={UserSelectionListItem}
-                showScrollIndicator={false}
                 containerStyle={[!shouldUseNarrowLayout && styles.pt4]}
                 contentContainerStyle={[styles.pb2]}
                 textInputLabel={translate('selectionList.searchForSomeone')}

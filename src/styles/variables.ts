@@ -84,6 +84,7 @@ export default {
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 80,
+    iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
     sidebarAvatarSize: 28,
@@ -318,30 +319,4 @@ export default {
     w96: 96,
     w184: 184,
     w191: 191,
-
-    // Transaction item row heights based on layout types
-    // Wide screen (desktop) layout
-    optionRowWideItemHeight: 64,
-
-    // Narrow screen with drawer layout
-    optionRowNarrowWithDrawerItemHeight: 96,
-    optionRowNarrowWithDrawerItemHeightWithButton: 104,
-
-    // Narrow screen without drawer (mobile-like) layout
-    optionRowNarrowWithoutDrawerItemHeight: 92,
-    optionRowNarrowWithoutDrawerItemHeightWithButton: 104,
-
-    optionRowListItemPadding: 8,
-    optionRowSearchHeaderHeight: 54,
-
-    // SearchList item heights
-    searchListItemHeightLargeScreen: 72,
-    searchListItemHeightSmallScreen: 96,
-    searchListItemHeightChat: 351,
-    searchListItemHeightChatCompact: 105,
-    searchOptionRowTransactionHeight: 52,
-    searchOptionRowBaseHeight: 52,
-    searchOptionRowSmallFooterHeight: 28,
-    searchOptionRowLargeFooterHeight: 17,
-    searchOptionRowMargin: 6,
 } as const;

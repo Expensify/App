@@ -7,7 +7,7 @@ title 'Validating the Github Actions and workflows using the json schemas provid
 function downloadSchema {
   [[ $1 = 'github-action.json' ]] && SCHEMA_NAME='GitHub Action' || SCHEMA_NAME='GitHub Workflow'
   info "Downloading $SCHEMA_NAME schema..."
-  if curl "https://json.schemastore.org/$1" --output "./tempSchemas/$1" --silent; then
+  if curl "https://raw.githubusercontent.com/SchemaStore/schemastore/refs/heads/master/src/schemas/json/$1" --output "./tempSchemas/$1" --silent; then
     success "Successfully downloaded $SCHEMA_NAME schema!"
   else
     error "Failed downloading $SCHEMA_NAME schema"

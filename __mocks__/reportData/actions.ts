@@ -19,7 +19,7 @@ const REPORT_R14932 = {
     childReportID: 'CHILD_REPORT_ID_R14932',
 };
 
-const originalMessageR14932: OriginalMessageIOU = {
+const originalMessageR14932 = {
     currency,
     amount,
     IOUReportID: REPORT_R14932.IOUReportID,
@@ -28,7 +28,7 @@ const originalMessageR14932: OriginalMessageIOU = {
     type: CONST.IOU.TYPE.CREATE,
     lastModified: '2025-02-14 08:12:05.165',
     comment: '',
-};
+} satisfies OriginalMessageIOU;
 
 const message = [
     {
@@ -50,7 +50,7 @@ const person = [
     },
 ];
 
-const actionR14932: ReportAction = {
+const actionR14932: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
     person,
     message,
     reportActionID: REPORT_R14932.reportActionID,
@@ -86,4 +86,4 @@ const actionR98765: ReportAction = {
     created: '2025-02-14 08:12:05.165',
 };
 
-export {actionR14932, actionR98765};
+export {actionR14932, actionR98765, originalMessageR14932};

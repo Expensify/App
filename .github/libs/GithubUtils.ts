@@ -53,7 +53,6 @@ type StagingDeployCashData = {
     PRList: StagingDeployCashPR[];
     deployBlockers: StagingDeployCashBlocker[];
     internalQAPRList: StagingDeployCashBlocker[];
-    isTimingDashboardChecked: boolean;
     isFirebaseChecked: boolean;
     isGHStatusChecked: boolean;
     version: string;
@@ -195,7 +194,6 @@ class GithubUtils {
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
                 version,
@@ -280,7 +278,6 @@ class GithubUtils {
         deployBlockers: string[] = [],
         resolvedDeployBlockers: string[] = [],
         resolvedInternalQAPRs: string[] = [],
-        isTimingDashboardChecked = false,
         isFirebaseChecked = false,
         isGHStatusChecked = false,
     ): Promise<void | StagingDeployCashBody> {
@@ -351,10 +348,6 @@ class GithubUtils {
                     }
 
                     issueBody += '**Deployer verifications:**';
-                    // eslint-disable-next-line max-len
-                    issueBody += `\r\n- [${
-                        isTimingDashboardChecked ? 'x' : ' '
-                    }] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${
                         isFirebaseChecked ? 'x' : ' '

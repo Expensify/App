@@ -308,6 +308,19 @@ function WorkspaceTaxesPage({
     }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate, enabledRatesCount, disabledRatesCount]);
 
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? selectionMode?.isEnabled : selectedTaxesIDs.length > 0;
+
+    const secondaryActions = useMemo(
+        () => [
+            {
+                icon: Expensicons.Gear,
+                text: translate('common.settings'),
+                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID)),
+                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            },
+        ],
+        [policyID, translate],
+    );
+
     const headerButtons = !shouldShowBulkActionsButton ? (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
             {!hasAccountingConnections && (
@@ -319,11 +332,14 @@ function WorkspaceTaxesPage({
                     style={[shouldUseNarrowLayout && styles.flex1]}
                 />
             )}
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
-                icon={Expensicons.Gear}
-                text={translate('common.settings')}
-                style={[shouldUseNarrowLayout && styles.flex1]}
+            <ButtonWithDropdownMenu
+                success={false}
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.more')}
+                options={secondaryActions}
+                isSplitButton={false}
+                wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
             />
         </View>
     ) : (

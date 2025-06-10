@@ -144,7 +144,7 @@ function IOURequestStepDestination({
                                 style={[styles.w100]}
                                 onPress={() => {
                                     InteractionManager.runAfterInteractions(() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id));
+                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
                                     });
                                 }}
                                 text={translate('workspace.perDiem.editPerDiemRates')}

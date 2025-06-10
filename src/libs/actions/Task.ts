@@ -1318,11 +1318,9 @@ function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData 
 
     return {};
 }
-function completeTestDriveTask(shouldUpdateSelfTourViewedOnlyLocally = false) {
-    const taskReportID = introSelected?.viewTour;
-    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+function completeTestDriveTask(viewTourReport: OnyxEntry<OnyxTypes.Report>, viewTourReportID: string | undefined, shouldUpdateSelfTourViewedOnlyLocally = false) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    completeTask(taskReport, taskReportID);
+    completeTask(viewTourReport, viewTourReportID);
 }
 
 export {

@@ -45,7 +45,7 @@ describe('DateUtils', () => {
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
-        expect(zoneAbbreviation).toBe('PST');
+        expect(zoneAbbreviation).toBe('GMT-8');
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {

@@ -1,16 +1,14 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {WalletStatementMessage, WalletStatementOnyxProps, WalletStatementProps} from './types';
+import type {WalletStatementMessage, WalletStatementProps} from './types';
+import handleWalletStatementNavigation from './walletNavigationUtils';
 
-function WalletStatementModal({statementPageURL, session}: WalletStatementProps) {
+function WalletStatementModal({statementPageURL}: WalletStatementProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const styles = useThemeStyles();
     const [isLoading, setIsLoading] = useState(true);
     const authToken = session?.authToken ?? null;
@@ -19,21 +17,9 @@ function WalletStatementModal({statementPageURL, session}: WalletStatementProps)
      * Handles in-app navigation for iframe links
      */
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
-        if (!event.data?.type || (event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
-            return;
-        }
-
-        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-            Report.navigateToConciergeChat(true);
-        }
-
-        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.url) {
-            const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
-            const navigateToIOURoute = iouRoutes.find((iouRoute) => event.data.url.includes(iouRoute));
-            if (navigateToIOURoute) {
-                Navigation.navigate(navigateToIOURoute);
-            }
-        }
+        const {data} = event;
+        const {type, url} = data || {};
+        handleWalletStatementNavigation(type, url);
     };
 
     return (
@@ -62,8 +48,4 @@ function WalletStatementModal({statementPageURL, session}: WalletStatementProps)
 
 WalletStatementModal.displayName = 'WalletStatementModal';
 
-export default withOnyx<WalletStatementProps, WalletStatementOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WalletStatementModal);
+export default WalletStatementModal;

@@ -58,6 +58,7 @@ describe('SidebarUtils', () => {
 
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+            [ONYXKEYS.NVP_PREFERRED_LOCALE]: 'en',
         });
     });
 
@@ -67,7 +68,6 @@ describe('SidebarUtils', () => {
 
     test('[SidebarUtils] getOptionData', async () => {
         const report = createRandomReport(1);
-        const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
         const reportNameValuePairs = {};
@@ -80,7 +80,6 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs,
                 personalDetails,
-                preferredLocale,
                 policy,
                 parentReportAction,
                 oneTransactionThreadReport: undefined,

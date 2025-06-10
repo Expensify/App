@@ -1,6 +1,5 @@
 import type {MutableRefObject} from 'react';
 import {useEffect, useRef} from 'react';
-import DateUtils from '@libs/DateUtils';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
@@ -10,24 +9,24 @@ type UseNetworkWithOfflineStatus = {isOffline: boolean; lastOfflineAt: MutableRe
 export default function useNetworkWithOfflineStatus(): UseNetworkWithOfflineStatus {
     const {isOffline, lastOfflineAt: lastOfflineAtFromOnyx} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const {preferredLocale} = useLocalize();
+    const {getLocalDateFromDatetime} = useLocalize();
 
     // The last time/date the user went/was offline. If the user was never offline, it is set to undefined.
     const lastOfflineAt = useRef(isOffline ? lastOfflineAtFromOnyx : undefined);
 
     // The last time/date the user went/was online. If the user was never online, it is set to undefined.
-    const lastOnlineAt = useRef(isOffline ? undefined : DateUtils.getLocalDateFromDatetime(preferredLocale));
+    const lastOnlineAt = useRef(isOffline ? undefined : getLocalDateFromDatetime());
 
     useEffect(() => {
         // If the user has just gone offline (was online before but is now offline), update `lastOfflineAt` with the current local date/time.
         if (isOffline && !prevIsOffline) {
-            lastOfflineAt.current = DateUtils.getLocalDateFromDatetime(preferredLocale);
+            lastOfflineAt.current = getLocalDateFromDatetime();
         }
         // If the user has just come back online (was offline before but is now online), update `lastOnlineAt` with the current local date/time.
         if (!isOffline && prevIsOffline) {
-            lastOnlineAt.current = DateUtils.getLocalDateFromDatetime(preferredLocale);
+            lastOnlineAt.current = getLocalDateFromDatetime();
         }
-    }, [isOffline, preferredLocale, prevIsOffline]);
+    }, [isOffline, getLocalDateFromDatetime, prevIsOffline]);
 
     return {isOffline, lastOfflineAt, lastOnlineAt};
 }

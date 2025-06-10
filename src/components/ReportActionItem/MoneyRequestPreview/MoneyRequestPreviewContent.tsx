@@ -57,7 +57,6 @@ import {
     hasMissingSmartscanFields,
     hasNoticeTypeViolation as hasNoticeTypeViolationTransactionUtils,
     hasPendingRTERViolation,
-    hasReceipt as hasReceiptTransactionUtils,
     hasViolation as hasViolationTransactionUtils,
     hasWarningTypeViolation as hasWarningTypeViolationTransactionUtils,
     isAmountMissing as isAmountMissingTransactionUtils,
@@ -68,7 +67,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
-    isReceiptBeingScanned,
+    isScanning,
     removeSettledAndApprovedTransactions,
     shouldShowBrokenConnectionViolation,
 } from '@libs/TransactionUtils';
@@ -147,8 +146,7 @@ function MoneyRequestPreviewContent({
 
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const isScanning = hasReceipt && isReceiptBeingScanned(transaction);
+    const isTransactionScanning = isScanning(transaction);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
@@ -202,7 +200,7 @@ function MoneyRequestPreviewContent({
         requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
         requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
         !(isFetchingWaypointsFromServer && !requestAmount);
-    const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
+    const shouldShowDescription = !!description && !shouldShowMerchant && !isTransactionScanning;
 
     let merchantOrDescription = requestMerchant;
     if (!shouldShowMerchant) {
@@ -234,7 +232,7 @@ function MoneyRequestPreviewContent({
             message = translate('common.distance');
         } else if (isPerDiemRequest) {
             message = translate('common.perDiem');
-        } else if (isScanning) {
+        } else if (isTransactionScanning) {
             message = translate('common.receipt');
         } else if (isBillSplit) {
             message = translate('iou.split');
@@ -299,7 +297,7 @@ function MoneyRequestPreviewContent({
     const pendingMessageProps = getPendingMessageProps();
 
     const getDisplayAmountText = (): string => {
-        if (isScanning) {
+        if (isTransactionScanning) {
             return translate('iou.receiptStatusTitle');
         }
 
@@ -375,7 +373,7 @@ function MoneyRequestPreviewContent({
             >
                 <View
                     style={[
-                        isScanning || isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
+                        isTransactionScanning || isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                         isOnSearch ? styles.borderedContentCardLarge : {},
                     ]}
@@ -383,7 +381,7 @@ function MoneyRequestPreviewContent({
                     {!isDeleted && (
                         <ReportActionItemImages
                             images={receiptImages}
-                            isHovered={isHovered || isScanning}
+                            isHovered={isHovered || isTransactionScanning}
                             size={1}
                         />
                     )}
