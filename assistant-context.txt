@@ -1,0 +1,119 @@
+# Expensify App Assistant Context
+
+## Project Overview
+New Expensify is a cross-platform expense management application built with React Native. It supports both standalone and hybrid app modes.
+
+## Key Technologies
+- React Native (with TypeScript)
+- React (Web/Desktop version)
+- Onyx (State management)
+- Hermes (JS engine for Android)
+- Electron (Desktop version)
+- react-freeze (Performance optimization)
+
+## Code Structure
+```
+├── src/                 # Main source code
+│   ├── pages/          # React components for pages
+│   ├── styles/         # Shared styles
+├── android/            # Android-specific code
+├── ios/                # iOS-specific code
+├── web/                # Web-specific code
+├── desktop/            # Desktop-specific code
+├── contributingGuides/ # Documentation and guidelines
+├── types/              # TypeScript type definitions
+└── features/           # Feature-specific code
+```
+
+## Development Environment
+- Node.js version specified in .nvmrc
+- Watchman required for file watching
+- HTTPS setup needed for development
+- Mapbox token required for iOS/Android builds
+- Accessibility guidelines must be followed
+- Performance metrics must be considered
+
+## TypeScript Guidelines
+- Use type aliases instead of interfaces
+- Avoid `any`, prefer `unknown`
+- Use `type` for type imports/exports
+- Use PascalCase for type names
+- No inline prop types
+- Use `satisfies` operator for type assertions
+- Follow strict type checking rules
+
+## Testing and Debugging
+- Uses Jest for testing
+- Supports remote debugging with Chrome (Hermes)
+- Has strict linting rules
+- Uses Why Did You Render for performance debugging
+
+## Navigation System
+- Uses RootStack Navigator
+- Supports wide/narrow layouts
+- Implements RHP (Right Hand Panel)
+- Uses custom `goBack` function
+- Follows specific navigation actions:
+  - Back (history stack)
+  - Up (stack navigation)
+  - Dismiss (modals)
+  - Forward (history)
+  - Push (new screens)
+
+## State Management
+- Uses Onyx for state management
+- Data is stored locally (IndexedDB for web)
+- Components subscribe to Onyx using withOnyx()
+- Libraries use Onyx.connect()
+
+## Internationalization
+- Uses localization system
+- Supports multiple languages
+- Has specific utilities for number/phone formatting
+
+## Development Workflow
+1. Create test accounts with + suffix (e.g., email+1@gmail.com)
+2. Use high-traffic accounts for testing
+3. Do not test with real customer accounts
+4. Follow strict PR review process
+5. Payment issued after 7 days in production
+
+## Important Guidelines
+- All changes must pass tests and lint checks
+- Must sign CLA before PR merge
+- Follow strict code review process
+- Handle regressions within 7 days
+- Maintain offline-first functionality
+- Follow Onyx data structure conventions
+
+## Security
+- Follow security guidelines
+- Report vulnerabilities to security@expensify.com
+- Use HTTPS for development
+- Follow strict access control
+
+## Documentation
+- README.md contains setup instructions
+- CONTRIBUTING.md has detailed contribution guidelines
+- API documentation in contributingGuides/API.md
+- Offline UX guidelines in contributingGuides/OFFLINE_UX.md
+
+## Testing
+- Must pass all tests before merge
+- Lint checks required
+- Follow testing guidelines
+- Use proper test accounts
+- Test across all platforms
+
+## Payment System
+- Uses Upwork for payments
+- Payment after 7 days in production
+- Regressions result in 50% penalty
+- Must have verified Upwork profile
+
+## Important Notes
+- Follow offline-first philosophy
+- Maintain consistent state management
+- Follow strict code review process
+- Handle regressions promptly
+- Follow security protocols

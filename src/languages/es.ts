@@ -7130,6 +7130,14 @@ const translations = {
         },
         callScheduled: 'Llamada programada',
     },
+    autoSubmitModal: {
+        title: 'Envío Automático de Gastos',
+        description: 'Envío Automático de Gastos ayuda a ahorrar tiempo enviando tus gastos por ti.',
+        submittedExpensesTitle: 'Gastos Enviados',
+        submittedExpensesDescription: 'Gastos que han sido enviados automáticamente por ti.',
+        pendingExpensesTitle: 'Gastos Pendientes',
+        pendingExpensesDescription: 'Gastos en espera de ser enviados automáticamente.',
+    },
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Haz una proba de 2 minutos',

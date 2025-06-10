@@ -11,6 +11,7 @@ export default {
     EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     MIGRATED_USER_MODAL_NAVIGATOR: 'MigratedUserModalNavigator',
     TEST_DRIVE_MODAL_NAVIGATOR: 'TestDriveModalNavigator',
+    AUTO_SUBMIT_MODAL_NAVIGATOR: 'AutoSubmitModalNavigator',
     TEST_DRIVE_DEMO_NAVIGATOR: 'TestDriveDemoNavigator',
     REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',
     SETTINGS_SPLIT_NAVIGATOR: 'SettingsSplitNavigator',

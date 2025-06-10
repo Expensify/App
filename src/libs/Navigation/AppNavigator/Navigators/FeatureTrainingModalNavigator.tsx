@@ -7,6 +7,7 @@ import type {FeatureTrainingNavigatorParamList} from '@libs/Navigation/types';
 import ChangePolicyEducationalModal from '@pages/ChangePolicyEducationalModal';
 import ProcessMoneyRequestHoldPage from '@pages/ProcessMoneyRequestHoldPage';
 import TrackTrainingPage from '@pages/TrackTrainingPage';
+import AutoSubmitModal from '@components/AutoSubmitModal';
 import SCREENS from '@src/SCREENS';
 
 const Stack = createPlatformStackNavigator<FeatureTrainingNavigatorParamList>();
@@ -27,6 +28,10 @@ function FeatureTrainingModalNavigator() {
                     <Stack.Screen
                         name={SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT}
                         component={ChangePolicyEducationalModal}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.AUTO_SUBMIT_ROOT}
+                        component={AutoSubmitModal}
                     />
                 </Stack.Navigator>
             </View>
