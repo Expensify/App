@@ -477,6 +477,10 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            const optimisticChatReportID = generateReportID();
+            const optimisticIOUReportID = generateReportID();
+            const optimisticReportPreviewActionID = generateReportID();
+
             transactions.forEach((item, index) => {
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
@@ -488,6 +492,9 @@ function IOURequestStepConfirmation({
 
                 requestMoneyIOUActions({
                     report,
+                    optimisticChatReportID,
+                    optimisticIOUReportID,
+                    optimisticReportPreviewActionID,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
                         payeeAccountID: currentUserPersonalDetails.accountID,
