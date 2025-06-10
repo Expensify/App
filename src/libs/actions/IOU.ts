@@ -3956,7 +3956,7 @@ function getUpdateMoneyRequestParams(
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
     hash?: number,
-    transactionReportID?: string,
+    optimisticTransactionReportID?: string,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -3969,10 +3969,11 @@ function getUpdateMoneyRequestParams(
 
     // Step 2: Get all the collections being updated
     const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transaction = {...currentTransaction} as OnyxTypes.Transaction;
 
-    if(transaction){
-        transaction.reportID = transactionReportID;
+    if (transaction) {
+        transaction.reportID = optimisticTransactionReportID;
     }
     const isTransactionOnHold = isOnHold(transaction);
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
@@ -4264,7 +4265,7 @@ function getUpdateMoneyRequestParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...transaction,
+            ...currentTransaction,
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
@@ -11746,7 +11747,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                     policyCategories ?? null,
                     undefined,
                     undefined,
-                    expenseReport?.reportID
+                    expenseReport?.reportID,
                 );
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
                 canBeClosedWithoutUpdates = false;
