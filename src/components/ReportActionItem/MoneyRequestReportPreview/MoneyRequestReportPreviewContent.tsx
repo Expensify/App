@@ -452,7 +452,7 @@ function MoneyRequestReportPreviewContent({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived || isChatReportArchived, reportActions, invoiceReceiverPolicy, isChatReportArchived);
+        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived || isChatReportArchived, reportActions, invoiceReceiverPolicy);
     }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy, isChatReportArchived]);
 
     const addExpenseDropdownOptions = useMemo(

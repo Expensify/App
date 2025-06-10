@@ -56,11 +56,7 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false, isChatReportArchived = false) {
-    if (isChatReportArchived) {
-        return false;
-    }
-
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
     if (!isReportSubmitter || reportTransactions.length === 0) {
