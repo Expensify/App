@@ -83,7 +83,7 @@ Connect your Expensify Workspace to NetSuite to streamline expense syncing, repo
    - Under **Main** tab, make sure:
      - **Created From** is shown
      - Display type is **Normal**
-   - Under **Lines** subtab, ensure **Receipt URL** is shown
+   - Under **Lines**, ensure **Receipt URL** is shown
 3. Repeat for all journal-type forms
 
 ---
