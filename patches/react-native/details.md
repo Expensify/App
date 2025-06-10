@@ -2,17 +2,19 @@
 
 ### [react-native+0.79.2+001+initial.patch](react-native+0.79.2+001+initial.patch)
 
-- Reason: Explanation/details
-- Upstream PR/issue:
+- Reason: Fixes keyboard flickering issue when opening/closing modals. When an input is blurred and a modal is opened, the `rootView` becomes the `firstResponder`, causing the system to retain an incorrect keyboard state. This leads to keyboard flickering when the modal is closed. The patch adds code to resign the `rootView`'s `firstResponder` status before presenting the modal to prevent this issue.
+- Upstream PR/issue: 🛑
 - E/App issue: 🛑
-- PR Introducing Patch:
+- PR Introducing Patch: https://github.com/Expensify/App/pull/23994
 
 ### [react-native+0.79.2+002+fixMVCPAndroid.patch](react-native+0.79.2+002+fixMVCPAndroid.patch)
 
-- Reason: Fixes MultiViewportContentProvider issues on Android
-- Upstream PR/issue:
+- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes several key improvements:
+  1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
+  2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/46247
 - E/App issue: 🛑
-- PR Introducing Patch:
+- PR Introducing Patch: https://github.com/Expensify/App/pull/46315, https://github.com/Expensify/App/pull/45289 
 
 ### [react-native+0.79.2+003+disableTextInputRecycling.patch](react-native+0.79.2+003+disableTextInputRecycling.patch)
 
