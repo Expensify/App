@@ -246,6 +246,9 @@ type PureReportActionItemProps = {
     /** The linked report associated with this action, if any */
     linkedReport: OnyxEntry<OnyxTypes.Report>;
 
+    /** The iou report associated with the linked report, if any */
+    iouReportOfLinkedReport: OnyxEntry<OnyxTypes.Report>;
+
     /** All the emoji reactions for the report action. */
     emojiReactions?: OnyxTypes.ReportActionReactions;
 
@@ -376,6 +379,7 @@ function PureReportActionItem({
     iouReport,
     taskReport,
     linkedReport,
+    iouReportOfLinkedReport,
     emojiReactions,
     linkedTransactionRouteError,
     reportNameValuePairs,
@@ -877,6 +881,7 @@ function PureReportActionItem({
                 <TripRoomPreview
                     action={action}
                     chatReport={linkedReport}
+                    iouReport={iouReportOfLinkedReport}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}

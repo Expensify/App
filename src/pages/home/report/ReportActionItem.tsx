@@ -79,6 +79,7 @@ function ReportActionItem({allReports, action, report, shouldShowDraftMessage = 
 
     const taskReport = originalMessage && 'taskReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.taskReportID}`] : undefined;
     const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
+    const iouReportOfLinkedReport = linkedReport && 'iouReportID' in linkedReport ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReport.iouReportID}`] : undefined;
 
     return (
         <PureReportActionItem
@@ -90,6 +91,7 @@ function ReportActionItem({allReports, action, report, shouldShowDraftMessage = 
             iouReport={iouReport}
             taskReport={taskReport}
             linkedReport={linkedReport}
+            iouReportOfLinkedReport={iouReportOfLinkedReport}
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             reportNameValuePairs={reportNameValuePairs}

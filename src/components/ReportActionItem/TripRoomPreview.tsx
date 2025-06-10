@@ -11,7 +11,6 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,7 +27,6 @@ import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActio
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -39,6 +37,9 @@ type TripRoomPreviewProps = {
 
     /** The associated chatReport */
     chatReport: OnyxEntry<Report>;
+
+    /** The associated iouReport */
+    iouReport: OnyxEntry<Report>;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
@@ -121,6 +122,7 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
 function TripRoomPreview({
     action,
     chatReport,
+    iouReport,
     containerStyles,
     contextMenuAnchor,
     isHovered = false,
@@ -130,7 +132,6 @@ function TripRoomPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const chatReportID = chatReport?.reportID;
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {canBeMissing: true});
     const tripTransactions = useTripTransactions(chatReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
