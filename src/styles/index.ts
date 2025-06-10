@@ -5144,7 +5144,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.red,
             borderRadius: variables.componentBorderRadiusMedium,
             overflow: 'hidden',
-            
+
             paddingHorizontal: 8,
             paddingVertical: 4,
         },
