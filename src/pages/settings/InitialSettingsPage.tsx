@@ -292,7 +292,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const getMenuItemsSection = useCallback(
         (menuItemsData: Menu) => {
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
-                if (!Navigation.getActiveRoute().includes(ROUTES.SETTINGS)) {
+                if (!Navigation.isActiveRoute(ROUTES.SETTINGS)) {
                     return;
                 }
 
