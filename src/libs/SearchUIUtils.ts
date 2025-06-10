@@ -1104,7 +1104,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 return false;
             }
 
-            const reimburser = policy.achAccount?.reimburser;
+            const reimburser = policy.reimburser;
             const isReimburser = reimburser === email;
             const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
 

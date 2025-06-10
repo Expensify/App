@@ -246,6 +246,10 @@ function openSearchFiltersCardPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_FILTERS_CARD_PAGE, null, {optimisticData, successData, failureData});
 }
 
+function openSearch() {
+    API.read(READ_COMMANDS.OPEN_SEARCH, null);
+}
+
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -444,5 +448,6 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchFiltersCardPage,
+    openSearch,
     getLastPolicyPaymentMethod,
 };

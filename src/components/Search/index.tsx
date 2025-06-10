@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
+import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -225,6 +225,14 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
         handleSearch({queryJSON, offset});
     }, [handleSearch, isOffline, offset, queryJSON]);
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
+        openSearch();
+    }, [isOffline]);
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
