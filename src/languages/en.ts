@@ -2328,7 +2328,7 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             onboardingPersonalSpendMessage: 'Here’s how to track your spend in a few clicks.',
-            onboardingMangeTeamMesssage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
+            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
                 `Here’s a task list I’d recommend for a company of your size with ${onboardingCompanySize} submitters:`,
             onboardingTrackWorkspaceMessage: 'Here are some important tasks to help get your workspace set up.',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',

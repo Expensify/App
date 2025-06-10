@@ -180,8 +180,8 @@ const getOnboardingMessages = () => {
         tasks: [testDriveEmployeeTask, trackExpenseTask],
     };
 
-    const onboardingMangeTeamMesssage: OnboardingMessage = {
-        message: ({onboardingCompanySize}) => translateLocal('onboarding.messages.onboardingMangeTeamMesssage', {onboardingCompanySize}),
+    const onboardingMangeTeamMessage: OnboardingMessage = {
+        message: ({onboardingCompanySize}) => translateLocal('onboarding.messages.onboardingMangeTeamMessage', {onboardingCompanySize}),
         tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
     };
 
@@ -220,7 +220,7 @@ const getOnboardingMessages = () => {
         onboardingMessages: {
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingMangeTeamMesssage,
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingMangeTeamMessage,
             [CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE]: onboardingTrackWorkspaceMessage,
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: onboardingChatSplitMessage,
