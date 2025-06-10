@@ -5,6 +5,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type TransactionDataCellProps from './TransactionDataCellProps';
@@ -48,8 +49,9 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const {translate} = useLocalize();
     const theme = useTheme();
     const type = transactionItem.transactionType ?? getType(transactionItem.cardName);
-    const typeIcon = getTypeIcon(type);
-    const typeText = getTypeText(type);
+    const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
+    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(type);
+    const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getTypeText(type);
     const styles = useThemeStyles();
 
     return shouldUseNarrowLayout ? (

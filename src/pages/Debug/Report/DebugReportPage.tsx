@@ -52,6 +52,11 @@ function DebugReportPage({
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (attributes) => attributes?.reports?.[reportID],
+        canBeMissing: true,
+    });
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -60,11 +65,12 @@ function DebugReportPage({
             return [];
         }
 
-        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
-        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, isReportArchived) ?? {};
+        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived) ?? {};
+        const {reason: reasonRBR, reportAction: reportActionRBR} =
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, transactions, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR, isReportArchived);
 
         return [
             {
@@ -109,7 +115,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, translate, isReportArchived]);
+    }, [report, reportActions, transactions, reportAttributes?.reportErrors, isReportArchived, translate]);
 
     const DebugDetailsTab = useCallback(
         () => (

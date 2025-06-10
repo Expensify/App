@@ -1,8 +1,10 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
@@ -23,8 +25,10 @@ function NewChatSelectorPage() {
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
-    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {canBeMissing: false});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const chatPageInputRef = useRef<AnimatedTextInputRef | null>(null);
+    const roomPageInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
     const containerElements = useMemo(() => {
@@ -34,6 +38,21 @@ function NewChatSelectorPage() {
     const onTabFocusTrapContainerElementChanged = useCallback((activeTabElement?: HTMLElement | null) => {
         setActiveTabContainerElement(activeTabElement ?? null);
     }, []);
+
+    // We're focusing the input using internal onPageSelected to fix input focus inconsistencies on native.
+    // More info: https://github.com/Expensify/App/issues/59388
+    const onTabSelectFocusHandler = ({index}: {index: number}) => {
+        // We runAfterInteractions since the function is called in the animate block on web-based
+        // implementation, this fixes an animation glitch and matches the native internal delay
+        InteractionManager.runAfterInteractions(() => {
+            // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
+            if (index === 0) {
+                chatPageInputRef.current?.focus();
+            } else if (index === 1) {
+                roomPageInputRef.current?.focus();
+            }
+        });
+    };
 
     useEffect(() => {
         setNewRoomFormLoading(false);
@@ -64,18 +83,19 @@ function NewChatSelectorPage() {
                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                 onActiveTabFocusTrapContainerElementChanged={onTabFocusTrapContainerElementChanged}
                 disableSwipe={!!formState?.isLoading && shouldUseNarrowLayout}
+                onTabSelect={onTabSelectFocusHandler}
             >
                 <TopTab.Screen name={CONST.TAB.NEW_CHAT}>
                     {() => (
                         <TabScreenWithFocusTrapWrapper>
-                            <NewChatPage />
+                            <NewChatPage ref={chatPageInputRef} />
                         </TabScreenWithFocusTrapWrapper>
                     )}
                 </TopTab.Screen>
                 <TopTab.Screen name={CONST.TAB.NEW_ROOM}>
                     {() => (
                         <TabScreenWithFocusTrapWrapper>
-                            <WorkspaceNewRoomPage />
+                            <WorkspaceNewRoomPage ref={roomPageInputRef} />
                         </TabScreenWithFocusTrapWrapper>
                     )}
                 </TopTab.Screen>

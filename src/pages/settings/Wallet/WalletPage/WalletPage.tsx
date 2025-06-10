@@ -3,7 +3,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {ActivityIndicator, Dimensions, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
@@ -72,7 +72,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const network = useNetwork();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -319,26 +319,19 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     }, [network.isOffline]);
 
     useLayoutEffect(() => {
-        if (!shouldListenForResize) {
+        if (!shouldListenForResize || (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu)) {
             return;
         }
-        const popoverPositionListener = Dimensions.addEventListener('change', () => {
-            if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu) {
-                return;
-            }
-            if (shouldShowAddPaymentMenu) {
-                debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
-                return;
-            }
-            setMenuPosition();
-        });
-        return () => {
-            if (!popoverPositionListener) {
-                return;
-            }
-            popoverPositionListener.remove();
-        };
-    }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, shouldShowCardMenu, setMenuPosition, shouldListenForResize]);
+
+        if (shouldShowAddPaymentMenu) {
+            debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+            return;
+        }
+        setMenuPosition();
+
+        // This effect is intended to update menu position only on window dimension change.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [windowWidth, windowHeight]);
 
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu) {
