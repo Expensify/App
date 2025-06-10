@@ -13,10 +13,22 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportListItemHeader from './ReportListItemHeader';
+
+/**
+ * Return correct reportID for navigation/displaying purposes.
+ */
+function getReportIDForTransaction(transactionItem: TransactionListItemType) {
+    const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+        ? transactionItem.transactionThreadReportID
+        : transactionItem.reportID;
+}
 
 function ReportListItem<TItem extends ListItem>({
     item,
@@ -65,13 +77,12 @@ function ReportListItem<TItem extends ListItem>({
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
 
-        const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const reportID = getReportIDForTransaction(transactionItem);
+        const siblingTransactionThreadIDs = reportItem.transactions.map(getReportIDForTransaction);
 
-        const reportID =
-            (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                ? transactionItem.transactionThreadReportID
-                : transactionItem.reportID;
-
+        // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
+        // to display prev/next arrows in RHP for navigation
+        setActiveTransactionThreadIDs(siblingTransactionThreadIDs);
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
     };
 
