@@ -39,6 +39,7 @@ import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
+import getSwipeDirection from '@libs/getSwipeDirection';
 import Performance from '@libs/Performance';
 import {
     canShowReportRecipientLocalTime,
@@ -544,7 +545,7 @@ function ReportActionCompose({
                     >
                         {PDFThumbnailView}
                         <AttachmentModal
-                            swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
+                            swipeDirection={getSwipeDirection()}
                             headerTitle={translate('reportActionCompose.sendAttachment')}
                             onConfirm={addAttachment}
                             onModalShow={() => setIsAttachmentPreviewActive(true)}

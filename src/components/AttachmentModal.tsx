@@ -16,7 +16,6 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
 import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
-import getSwipeDirection from '@libs/getSwipeDirection';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -146,7 +145,7 @@ type AttachmentModalProps = {
     iouType?: IOUType;
 
     /** In which direction modal will swipe */
-    swipeDirection?: Direction;
+    swipeDirection?: Direction | undefined;
 
     /** The id of the draft transaction linked to the receipt. */
     draftTransactionID?: string;
@@ -526,7 +525,7 @@ function AttachmentModal({
             <Modal
                 type={modalType}
                 onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
-                swipeDirection={getSwipeDirection(swipeDirection)}
+                swipeDirection={swipeDirection}
                 isVisible={isModalOpen}
                 onModalShow={() => {
                     onModalShow();
