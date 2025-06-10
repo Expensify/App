@@ -149,8 +149,7 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(0);
 
             // When the SidebarLinks are rendered again with the current active report ID.
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
-            await waitForBatchedUpdates();
+            await LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
             await waitForBatchedUpdatesWithAct();
             // Then the active report should be displayed as part of LHN,
