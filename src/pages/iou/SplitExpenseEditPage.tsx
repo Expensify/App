@@ -37,6 +37,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const report = getReportOrDraftReport(reportID);
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
     const policy = getPolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
@@ -57,6 +60,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const shouldShowTag = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
+    const childTransactions = Object.values(allTransactions ?? {}).filter((currentTransaction) => {
+        const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
+        return currentTransaction?.comment?.originalTransactionID === transactionID && !!currentReport && currentReport?.stateNum !== CONST.REPORT.STATUS_NUM.CLOSED;
+    });
+
+    const isCreationOfSplits = !childTransactions.length;
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
@@ -158,7 +167,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
-                        {Number(splitExpensesList?.length) > 1 && (
+                        {Number(splitExpensesList?.length) > (isCreationOfSplits ? 2 : 1) && (
                             <Button
                                 danger
                                 large
