@@ -723,7 +723,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     ];
     if (deprecatedOldDotReportActions.includes(reportAction.actionName)) {
-        Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
         return true;
     }
 
@@ -1185,6 +1184,33 @@ function isTagModificationAction(actionName: string): boolean {
     );
 }
 
+/**
+ * Used for Send Money flow, which is a special case where we have no IOU create action and only one IOU pay action.
+ * In other reports, pay actions do not count as a transactions, but this is an exception to this rule.
+ */
+function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions> | ReportAction[], chatReportID?: string) {
+    if (!chatReportID) {
+        return undefined;
+    }
+
+    const iouActions = Object.values(actions ?? {}).filter(isMoneyRequestAction);
+
+    // sendMoneyFlow has only one IOU action...
+    if (iouActions.length !== 1) {
+        return undefined;
+    }
+
+    // ...which is 'pay'...
+    const isFirstActionPay = getOriginalMessage(iouActions.at(0))?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+
+    const {type, chatType, parentReportID, parentReportActionID} = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? {};
+
+    // ...and can only be triggered on DM chats
+    const isDM = type === CONST.REPORT.TYPE.CHAT && !chatType && !(parentReportID && parentReportActionID);
+
+    return isFirstActionPay && isDM ? iouActions.at(0)?.childReportID : undefined;
+}
+
 /** Whether action has no linked report by design */
 const isIOUActionTypeExcludedFromFiltering = (type: OriginalMessageIOU['type'] | undefined) =>
     [CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.PAY].some((actionType) => actionType === type);
@@ -1237,9 +1263,17 @@ function getOneTransactionThreadReportID(
         return;
     }
 
+    const sendMoneyFlowID = getSendMoneyFlowOneTransactionThreadID(reportActions, report?.chatReportID);
+
+    if (sendMoneyFlowID) {
+        return sendMoneyFlowID;
+    }
+
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
-        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true)) {
+        // If the original message is a 'pay' IOU, it shouldn't be added to the transaction count.
+        // However, it is excluded from the matching function in order to display it properly, so we need to compare the type here.
+        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true) || getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             // eslint-disable-next-line no-continue
             continue;
         }
@@ -1249,6 +1283,7 @@ function getOneTransactionThreadReportID(
         if (
             actionType &&
             iouRequestTypesSet.has(actionType) &&
+            action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an associated IOU transaction ID or
             // - they have visible childActions (like comments) that we'd want to display
@@ -1276,8 +1311,8 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
-    return singleAction?.childReportID ?? CONST.FAKE_REPORT_ID;
+    // Ensure we have a childReportID associated with the IOU report action
+    return singleAction?.childReportID;
 }
 
 /**
@@ -2599,6 +2634,7 @@ export {
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceCustomUnitRateAddedMessage,
+    getSendMoneyFlowOneTransactionThreadID,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
