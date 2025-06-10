@@ -352,6 +352,13 @@ function deletePaymentBankAccount(bankAccountID: number) {
                 value: {[bankAccountID]: null},
             },
         ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.deletePaymentBankAccount')}},
+            },
+        ],
     };
 
     if (shouldClearIOULastUsedPaymentMethod) {
