@@ -22,7 +22,7 @@ type CardPreviewProps = CardPreviewOnyxProps;
 function CardPreview({privatePersonalDetails, session}: CardPreviewProps) {
     const styles = useThemeStyles();
     const {legalFirstName, legalLastName} = privatePersonalDetails ?? {};
-    const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : session?.email ?? '';
+    const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : (session?.email ?? '');
 
     return (
         <View style={styles.walletCard}>

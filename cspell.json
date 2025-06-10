@@ -26,6 +26,7 @@
         "appleid",
         "applesignin",
         "applinks",
+        "approvable",
         "approvalstatus",
         "appversion",
         "archivado",
@@ -43,6 +44,7 @@
         "assetlinks",
         "attributes.accountid",
         "attributes.reportid",
+        "authorised",
         "Authy",
         "AUTOAPPROVE",
         "autocompletions",
@@ -61,6 +63,7 @@
         "basehead",
         "Batchinator",
         "behaviour",
+        "bigdecimal",
         "BILLCOM",
         "billpay",
         "Billpay",
@@ -101,6 +104,7 @@
         "cleartext",
         "CLIENTID",
         "clippath",
+        "cloudflarestream",
         "cmaps",
         "cmjs",
         "cocoapods",
@@ -263,6 +267,7 @@
         "islarge",
         "ismedium",
         "isnonreimbursable",
+        "issmall",
         "ITSM",
         "Jakub",
         "janky",
@@ -285,6 +290,7 @@
         "Krasoń",
         "Lagertha",
         "laggy",
+        "lastiPhoneLogin",
         "lastname",
         "LDFLAGS",
         "LHNGBR",
@@ -515,11 +521,13 @@
         "shellcheck",
         "shellenv",
         "shipit",
+        "shouldshowellipsis",
         "signingkey",
         "signup",
         "Signup",
         "simctl",
         "skip_codesigning",
+        "Slurper",
         "SMARTREPORT",
         "Smartscan",
         "soloader",
@@ -625,6 +633,7 @@
         "workletization",
         "worklets",
         "workshopping",
+        "workspacename",
         "writeitdown",
         "xcconfig",
         "xcodeproj",
@@ -646,6 +655,7 @@
         "yourcompany",
         "yourname",
         "YYMM",
+        "zencdn",
         "Zenefit",
         "Zenefits",
         "zipalign",
@@ -656,8 +666,6 @@
         "مثال"
     ],
     "ignorePaths": [
-        ".github",
-        "node_modules",
         "src/languages/es.ts",
         "android/app/BUCK",
         "android/app/build_defs.bzl",
@@ -687,19 +695,11 @@
         "tests/unit/LocaleCompareTest.ts",
         "tests/unit/removeInvisibleCharacters.ts",
         "tests/unit/searchCountryOptionsTest.ts",
-        "tests/unit/splitLongWordTest.ts",
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST.ts",
-        "src/libs/SearchParser/*",
-        ".gitignore"
+        "src/libs/SearchParser/*"
     ],
     "ignoreRegExpList": ["@assets/.*"],
-    "useGitignore": true,
-    "overrides": [
-        {
-            "filename": "src/languages/es.ts",
-            "language": "es"
-        }
-    ]
+    "useGitignore": true
 }

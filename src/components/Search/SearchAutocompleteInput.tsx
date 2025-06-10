@@ -1,26 +1,30 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
-import type {ForwardedRef, ReactNode, RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {LinearTransition, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearAdvancedFilters} from '@libs/actions/Search';
 import {parseFSAttributes} from '@libs/Fullstory';
+import Navigation from '@libs/Navigation/Navigation';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import getSearchFiltersButtonTransition from './getSearchFiltersButtonTransition.ts/index';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
@@ -63,9 +67,6 @@ type SearchAutocompleteInputProps = {
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Component to be displayed on the right */
-    rightComponent?: ReactNode;
-
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
 
@@ -89,7 +90,6 @@ function SearchAutocompleteInput(
         wrapperStyle,
         wrapperFocusedStyle = {},
         outerWrapperStyle,
-        rightComponent,
         isSearchingForReports,
         selection,
         substitutionMap,
@@ -101,7 +101,6 @@ function SearchAutocompleteInput(
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
     const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
@@ -128,7 +127,7 @@ function SearchAutocompleteInput(
     // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
     const focusedSharedValue = useSharedValue(false);
     const wrapperAnimatedStyle = useAnimatedStyle(() => {
-        return focusedSharedValue.get() ? wrapperFocusedStyle : wrapperStyle ?? {};
+        return focusedSharedValue.get() ? wrapperFocusedStyle : (wrapperStyle ?? {});
     });
 
     useEffect(() => {
@@ -172,6 +171,24 @@ function SearchAutocompleteInput(
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
+    const clearFilters = useCallback(() => {
+        clearAdvancedFilters();
+        onSearchQueryChange('');
+
+        // Check if we are on the search page before clearing query. If we are using the popup search menu,
+        // then the clear button is ONLY available when the search is *not* saved, so we don't have to navigate
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+        const isSearchPage = currentRoute === `/${ROUTES.SEARCH_ROOT.route}`;
+
+        if (isSearchPage) {
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: buildCannedSearchQuery(),
+                }),
+            );
+        }
+    }, [onSearchQueryChange]);
+
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
     // Parse Fullstory attributes on initial render
@@ -179,10 +196,7 @@ function SearchAutocompleteInput(
 
     return (
         <View style={[outerWrapperStyle]}>
-            <Animated.View
-                style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}
-                layout={shouldUseNarrowLayout && rightComponent ? LinearTransition : undefined}
-            >
+            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}>
                 <View
                     style={styles.flex1}
                     fsClass={CONST.FULL_STORY.UNMASK}
@@ -227,12 +241,15 @@ function SearchAutocompleteInput(
                         selection={selection}
                     />
                 </View>
-                {!!rightComponent && (
+                {!!value && (
                     <Animated.View
                         style={styles.pr3}
                         layout={SearchFiltersButtonTransition}
                     >
-                        {rightComponent}
+                        <TextInputClearButton
+                            onPressButton={clearFilters}
+                            style={styles.mt0}
+                        />
                     </Animated.View>
                 )}
             </Animated.View>

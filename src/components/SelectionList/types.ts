@@ -22,7 +22,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -259,6 +259,9 @@ type TransactionListItemType = ListItem &
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
+
+        /** Precomputed violations */
+        violations?: TransactionViolation[];
     };
 
 type ReportActionListItemType = ListItem &
@@ -423,7 +426,13 @@ type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem>
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
+type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -437,10 +446,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem, isOpenedAsReport?: boolean) => void;
-};
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
@@ -653,6 +659,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
+    /** Whether we should clear the search input when an item is selected */
+    shouldClearInputOnSelect?: boolean;
+
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
 
@@ -830,6 +839,8 @@ export type {
     ListItemProps,
     ListItemFocusEventHandler,
     RadioListItemProps,
+    SingleSelectListItemProps,
+    MultiSelectListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
@@ -843,6 +854,7 @@ export type {
     TransactionListItemType,
     TransactionSelectionListItem,
     UserListItemProps,
+    UserSelectionListItemProps,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,

@@ -77,6 +77,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {OptimisticChatReport} from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -111,6 +112,7 @@ type ReportCreationData = Record<
     {
         reportID: string;
         reportActionID?: string;
+        report: OptimisticChatReport;
     }
 >;
 
@@ -1070,6 +1072,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
             workspaceMembersChats.reportCreationData[login] = {
+                report: oldChat,
                 reportID: oldChat.reportID,
             };
             workspaceMembersChats.onyxOptimisticData.push({
@@ -1119,6 +1122,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
+            report: optimisticReport,
             reportID: optimisticReport.reportID,
             reportActionID: optimisticCreatedAction.reportActionID,
         };
@@ -1631,7 +1635,7 @@ function generateDefaultWorkspaceName(email = ''): string {
     }
     const username = emailParts.at(0) ?? '';
     const domain = emailParts.at(1) ?? '';
-    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
+    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email || sessionEmail);
     const displayName = userDetails?.displayName?.trim();
     let displayNameForWorkspace = '';
 
@@ -1828,10 +1832,10 @@ function buildPolicyData(
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
     const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice ||
-        introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-        introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
-        introSelected.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+        !engagementChoice ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
@@ -3188,13 +3192,16 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     taxRates: {
                         ...defaultTaxRates,
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
-                                acc[taxKey] = {
-                                    ...defaultTaxRates.taxes[taxKey],
-                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                };
-                                return acc;
-                            }, {} as Record<string, TaxRate & {pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}>),
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (acc, taxKey) => {
+                                    acc[taxKey] = {
+                                        ...defaultTaxRates.taxes[taxKey],
+                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    };
+                                    return acc;
+                                },
+                                {} as Record<string, TaxRate & {pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}>,
+                            ),
                         },
                     },
                 },
@@ -3207,10 +3214,13 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
-                                acc[taxKey] = {pendingAction: null};
-                                return acc;
-                            }, {} as Record<string, {pendingAction: null}>),
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (acc, taxKey) => {
+                                    acc[taxKey] = {pendingAction: null};
+                                    return acc;
+                                },
+                                {} as Record<string, {pendingAction: null}>,
+                            ),
                         },
                     },
                 },
@@ -3243,7 +3253,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         },
     ];
-    optimisticData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []));
+    optimisticData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.optimisticData ?? []) : []));
 
     const successData: OnyxUpdate[] = [
         {
@@ -3256,7 +3266,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         },
     ];
-    successData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []));
+    successData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.successData ?? []) : []));
 
     const failureData: OnyxUpdate[] = [
         {
@@ -3272,7 +3282,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         },
     ];
-    failureData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []));
+    failureData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.failureData ?? []) : []));
 
     const onyxData: OnyxData = {
         optimisticData,
@@ -3765,6 +3775,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 harvesting: {
                     enabled: false,
                 },
+                isAttendeeTrackingEnabled: false,
             },
         },
     ];
@@ -3791,6 +3802,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
                 glCodes: policy?.glCodes ?? null,
                 harvesting: policy?.harvesting ?? null,
+                isAttendeeTrackingEnabled: null,
             },
         },
     ];
@@ -3809,6 +3821,7 @@ function downgradeToTeam(policyID: string) {
             value: {
                 isPendingDowngrade: true,
                 type: CONST.POLICY.TYPE.TEAM,
+                isAttendeeTrackingEnabled: null,
             },
         },
     ];
@@ -3830,6 +3843,7 @@ function downgradeToTeam(policyID: string) {
             value: {
                 isPendingDowngrade: false,
                 type: policy?.type,
+                isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
             },
         },
     ];
@@ -4293,7 +4307,7 @@ function disableWorkspaceBillableExpenses(policyID: string) {
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
-function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
+function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
 
     const originalEReceipts = policy?.eReceipts;
@@ -4304,7 +4318,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    eReceipts,
+                    eReceipts: enabled,
                     pendingFields: {
                         eReceipts: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -4338,7 +4352,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
 
     const parameters = {
         policyID,
-        eReceipts,
+        enabled,
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);
@@ -5310,6 +5324,7 @@ export {
     updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
+    getAdminPolicies,
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
