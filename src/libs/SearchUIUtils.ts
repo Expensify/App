@@ -299,7 +299,10 @@ function getWideAmountIndicators(data: TransactionListItemType[] | ReportListIte
         isTaxAmountWide = isTaxAmountWide || isTransactionTaxAmountTooLong(transaction);
     };
 
-    const processItem = (item: TransactionListItemType | ReportListItemType) => {
+    const processItem = (item: TransactionListItemType | ReportListItemType | TaskListItemType) => {
+        if ((isAmountWide && isTaxAmountWide) || isTaskListItemType(item)) {
+            return;
+        }
         if (isReportListItemType(item)) {
             item.transactions?.forEach(processTransaction);
         } else if (isTransactionListItemType(item)) {
@@ -309,9 +312,6 @@ function getWideAmountIndicators(data: TransactionListItemType[] | ReportListIte
 
     if (Array.isArray(data)) {
         data.some((item) => {
-            if (isTaskListItemType(item)) {
-                return isAmountWide && isTaxAmountWide;
-            }
             processItem(item);
             return isAmountWide && isTaxAmountWide;
         });
