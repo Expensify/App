@@ -1,7 +1,7 @@
 ---
-title: Locked Account Tool
+title: Lock Account Tool
 description: Understand how the locked account tool works in Expensify Classic, what features it restricts, and how to request an unlock.
-keywords: [locked account, Expensify Classic, domain admin, secondary login, reimbursements blocked, card locked, unlock account]
+keywords: [lock account, locked account, Expensify Classic, domain admin, secondary login, reimbursements blocked, card locked, unlock account]
 ---
 <div id="expensify-classic" markdown="1">
 
