@@ -241,6 +241,7 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
 function datetimeToCalendarTime(
     locale: Locale | undefined,
     datetime: string,
+    includeTimeZone = false,
     currentSelectedTimezone: SelectedTimezone = timezone.selected,
     isLowercase = false,
 ): string {
