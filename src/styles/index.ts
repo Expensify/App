@@ -4201,9 +4201,9 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
             color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
-            marginRight: variables.tooltipMargin,
+            flexShrink: 1,
         },
-
+        
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',
