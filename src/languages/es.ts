@@ -1251,7 +1251,7 @@ const translations = {
 
         decline: {
             educationalTitle: '¿Deberías retener o rechazar?',
-            educationalText: 'Si no está listo para aprobar o pagar un gasto, tiene dos opciones:',
+            educationalText: 'Si no está listo para aprobar o pagar un gasto, puede retenerlo o rechazarlo.',
             holdExpenseTitle: 'Retener un gasto para solicitar más detalles antes de la aprobación o el pago.',
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando se aprueba un informe completo.',
             declineExpenseTitle: 'Rechazar un gasto cuando no tienes intención de aprobarlo o pagarlo.',

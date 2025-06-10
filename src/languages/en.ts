@@ -1252,7 +1252,7 @@ const translations = {
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
         decline: {
             educationalTitle: 'Should you hold or decline?',
-            educationalText: "If you're not ready to approve or pay an expense, you have two options:",
+            educationalText: "If you're not ready to approve or pay an expense, you can hold or decline.",
             holdExpenseTitle: 'Hold an expense to ask for more details before approval or payment.',
             heldExpenseLeftBehindTitle: 'Held expenses are left behind when you approve an entire report.',
             declineExpenseTitle: "Decline an expense that you don't intend to approve or pay.",
