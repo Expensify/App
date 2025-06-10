@@ -63,12 +63,11 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
             submitButtonStyles={[styles.mb0]}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.selectYourCompanyIncorporationDate')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb4]}>{translate('businessInfoStep.selectYourCompanyIncorporationDate')}</Text>
             <InputWrapper
                 InputComponent={DatePicker}
                 inputID={COMPANY_INCORPORATION_DATE_KEY}
                 label={translate('businessInfoStep.incorporationDate')}
-                containerStyles={[styles.mt6]}
                 placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
                 defaultValue={defaultCompanyIncorporationDate}
                 shouldSaveDraft={!isEditing}
