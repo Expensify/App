@@ -277,7 +277,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         styles.textAlignCenter,
                         styles.gap3,
                         styles.pv2,
-                        styles.ph1,
+                        styles.ph2,
                     ]}
                 >
                     <Icon
@@ -331,7 +331,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     )}
                 </View>
                 {!!tooltip?.shouldRenderActionButtons && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pv2, styles.gap2]}>
+                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
                         <Button
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
@@ -356,12 +356,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
-        styles.ph1,
         styles.productTrainingTooltipText,
         styles.textWrap,
         styles.mw100,
         styles.flex1,
         styles.justifyContentBetween,
+        styles.ph2,
         styles.gap2,
         styles.textBold,
         theme.tooltipHighlightText,
