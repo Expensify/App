@@ -1,8 +1,7 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -12,7 +11,6 @@ import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
-import TextPill from './TextPill';
 
 type SectionMenuItem = {
     /** The icon supplied with the section */
@@ -36,7 +34,7 @@ const menuSections: SectionMenuItem[] = [
         titleTranslationKey: 'iou.decline.holdExpenseTitle',
     },
     {
-        icon: Illustrations.MoneyIntoWallet,
+        icon: Illustrations.RealtimeReport,
         titleTranslationKey: 'iou.decline.heldExpenseLeftBehindTitle',
     },
     {
@@ -48,38 +46,12 @@ const menuSections: SectionMenuItem[] = [
 function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     useBeforeRemove(onClose);
 
-    const title = useMemo(
-        () => (
-            <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
-                <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.decline.educationalTitle')}</Text>
-                <TextPill textStyles={[styles.inlinePill, styles.yellowPillInline, styles.mr2]}>{translate('iou.hold')}</TextPill>
-                <Text style={[styles.textHeadline, styles.mr2]}>{translate('common.or')}</Text>
-                <TextPill textStyles={[styles.inlinePill, styles.redPillInline, styles.mr2]}>{translate('common.decline')}</TextPill>
-                <Text style={styles.textHeadline}>{translate('iou.decline.questionMark')}</Text>
-            </View>
-        ),
-        [
-            styles.flexRow,
-            styles.alignItemsCenter,
-            styles.mb1,
-            styles.mb2,
-            styles.textHeadline,
-            styles.mr2,
-            styles.inlinePill,
-            styles.yellowPillInline,
-            styles.redPillInline,
-            onboardingIsMediumOrLargerScreenWidth,
-            translate,
-        ],
-    );
-
     return (
         <FeatureTrainingModal
-            title={title}
+            title={translate('iou.decline.educationalTitle')}
             description={translate('iou.decline.educationalText')}
             confirmText={translate('common.buttonConfirm')}
             image={Illustrations.ModalHoldOrDecline}

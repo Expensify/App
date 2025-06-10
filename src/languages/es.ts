@@ -1250,8 +1250,7 @@ const translations = {
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
 
         decline: {
-            educationalTitle: '¿Deberías',
-            questionMark: '?',
+            educationalTitle: '¿Deberías retener o rechazar?',
             educationalText: 'Si no está listo para aprobar o pagar un gasto, tiene dos opciones:',
             holdExpenseTitle: 'Retener un gasto para solicitar más detalles antes de la aprobación o el pago.',
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando se aprueba un informe completo.',

@@ -1251,8 +1251,7 @@ const translations = {
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
         decline: {
-            educationalTitle: 'Should you',
-            questionMark: '?',
+            educationalTitle: 'Should you hold or decline?',
             educationalText: "If you're not ready to approve or pay an expense, you have two options:",
             holdExpenseTitle: 'Hold an expense to ask for more details before approval or payment.',
             heldExpenseLeftBehindTitle: 'Held expenses are left behind when you approve an entire report.',
