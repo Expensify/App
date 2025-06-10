@@ -73,6 +73,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onConfirm,
         headerContent,
         footerContent,
+        listFooterContent,
         footerContentAbovePagination,
         listEmptyContent,
         showScrollIndicator = true,
@@ -944,7 +945,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         ListFooterComponent={
                             <>
                                 {footerContentAbovePagination}
-                                {ShowMoreButtonInstance}
+                                {listFooterContent ?? ShowMoreButtonInstance}
                             </>
                         }
                         onEndReached={onEndReached}
