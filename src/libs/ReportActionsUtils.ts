@@ -2537,7 +2537,7 @@ function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPO
     });
 }
 
-function getAddedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
+function getAddedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
     const {name, approverAccountID, approverEmail, field, approverName} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE>) ?? {};
 
@@ -2553,7 +2553,7 @@ function getAddedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
     return getReportActionText(reportAction);
 }
 
-function getDeletedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
+function getDeletedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
     const {name, approverAccountID, approverEmail, field, approverName} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE>) ?? {};
 
@@ -2789,8 +2789,8 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    getAddedApprovaRulelMessage,
-    getDeletedApprovaRulelMessage,
+    getAddedApprovalRuleMessage,
+    getDeletedApprovalRuleMessage,
     getUpdatedApprovalRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
