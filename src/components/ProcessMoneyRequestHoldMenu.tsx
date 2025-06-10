@@ -31,20 +31,10 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
         () => (
             <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
                 <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                <TextPill textStyles={[styles.holdRequestInline]}>{translate('iou.holdEducationalText')}</TextPill>
+                <TextPill textStyles={styles.holdRequestInline}>{translate('iou.holdEducationalText')}</TextPill>
             </View>
         ),
-        [
-            styles.flexRow,
-            styles.alignItemsCenter,
-            styles.mb1,
-            styles.mb2,
-            styles.textHeadline,
-            styles.mr2,
-            onboardingIsMediumOrLargerScreenWidth,
-            styles.holdRequestInline,
-            translate,
-        ],
+        [onboardingIsMediumOrLargerScreenWidth, styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, styles.holdRequestInline, translate],
     );
 
     return (
