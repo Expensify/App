@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import type {ChatCompletionMessageParam, ChatModel} from 'openai/resources';
 import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
+import retryWithBackoff from '@scripts/utils/retryWithBackoff';
 
 class OpenAIUtils {
     /**
@@ -36,11 +37,15 @@ class OpenAIUtils {
             messages.unshift({role: 'system', content: systemPrompt});
         }
 
-        const response = await this.client.chat.completions.create({
-            model,
-            messages,
-            temperature: 0.3,
-        });
+        const response = await retryWithBackoff(
+            () =>
+                this.client.chat.completions.create({
+                    model,
+                    messages,
+                    temperature: 0.3,
+                }),
+            {isRetryable: (err) => OpenAIUtils.isRetryableOpenAIError(err)},
+        );
 
         const result = response.choices.at(0)?.message?.content?.trim();
         if (!result) {
@@ -54,13 +59,17 @@ class OpenAIUtils {
      */
     public async promptAssistant(assistantID: string, userMessage: string): Promise<string> {
         // start a thread run
-        let threadRun = await this.client.beta.threads.createAndRun({
-            /* eslint-disable @typescript-eslint/naming-convention */
-            assistant_id: assistantID,
-            thread: {
-                messages: [{role: 'user', content: userMessage}],
-            },
-        });
+        let threadRun = await retryWithBackoff(
+            () =>
+                this.client.beta.threads.createAndRun({
+                    /* eslint-disable @typescript-eslint/naming-convention */
+                    assistant_id: assistantID,
+                    thread: {
+                        messages: [{role: 'user', content: userMessage}],
+                    },
+                }),
+            {isRetryable: (err) => OpenAIUtils.isRetryableOpenAIError(err)},
+        );
 
         // poll for completion
         let response = '';
@@ -95,6 +104,16 @@ class OpenAIUtils {
 
     private static isTextContentBlock(block: MessageContent): block is TextContentBlock {
         return block.type === 'text';
+    }
+
+    private static isRetryableOpenAIError(error: unknown): boolean {
+        if (!(error instanceof OpenAI.APIError)) {
+            return false;
+        }
+
+        // Only retry 429 (rate limit) or 5xx errors
+        const status = error.status;
+        return !!status && (status === 429 || status >= 500);
     }
 }
 
