@@ -135,7 +135,7 @@ function AttachmentPicker({
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
             new Promise((resolve, reject) => {
-                imagePickerFunc(getImagePickerOptions(type, fileLimit), async (response: ImagePickerResponse) => {
+                imagePickerFunc(getImagePickerOptions(type, fileLimit), (response: ImagePickerResponse) => {
                     if (response.didCancel) {
                         // When the user cancelled resolve with no attachment
                         return resolve();
@@ -153,31 +153,9 @@ function AttachmentPicker({
                         return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                     }
 
-                    if (!response.assets?.length) {
-                        return resolve();
-                    }
-
-                    const localCopies = await keepLocalCopy({
-                        files: response.assets.map((asset) => ({
-                            uri: asset.uri,
-                            fileName: asset.fileName ?? '',
-                        })) as [FileToCopy, ...FileToCopy[]],
-                        destination: 'documentDirectory',
-                    });
-
-                    const assets = localCopies.map((localCopy, index) => {
-                        if (localCopy.status !== 'success') {
-                            throw new Error('Failed to create local copy for file');
-                        }
-
-                        return {
-                            ...(response.assets?.at(index) ?? {}),
-                            uri: localCopy.localUri,
-                        };
-                    });
-
-                    const targetAsset = assets.at(0);
+                    const targetAsset = response.assets?.[0];
                     const targetAssetUri = targetAsset?.uri;
+
                     if (!targetAssetUri) {
                         return resolve();
                     }
@@ -207,12 +185,12 @@ function AttachmentPicker({
                                         })
                                         .catch((err) => reject(err));
                                 } else {
-                                    return resolve(assets);
+                                    return resolve(response.assets);
                                 }
                             })
                             .catch((err) => reject(err));
                     } else {
-                        return resolve(assets);
+                        return resolve(response.assets);
                     }
                 });
             }),
