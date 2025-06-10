@@ -471,6 +471,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 accountID: transactionItem.accountID,
                 managerID: transactionItem.managerID,
                 reportID: transactionItem.reportID,
+                ...(transactionItem.pendingAction ? {pendingAction: transactionItem.pendingAction} : {}),
                 transactionThreadReportID: transactionItem.transactionThreadReportID,
                 isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
                 tag: transactionItem.tag,
@@ -699,6 +700,8 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                 };
 
                 if (parentReport && personalDetails) {
+                    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+                    // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
                     const parentReportName = getReportName(parentReport, policy, undefined, undefined);
                     const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);

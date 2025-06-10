@@ -269,11 +269,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: Expensicons.ChatBubbleReply,
-        shouldShow: ({type, reportAction, reportID, isThreadReportParentAction}) => {
+        shouldShow: ({type, reportAction, reportID, isThreadReportParentAction, isArchivedRoom}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
             }
-            return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction);
+            return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
