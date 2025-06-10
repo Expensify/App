@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/core';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -242,6 +242,13 @@ function IOURequestStepScan({
             };
         }, [isLoaderVisible, setIsLoaderVisible]),
     );
+
+    useEffect(() => {
+        if (isMultiScanEnabled) {
+            return;
+        }
+        setReceiptFiles([]);
+    }, [isMultiScanEnabled]);
 
     const validateReceipt = (file: FileObject) => {
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
@@ -730,7 +737,6 @@ function IOURequestStepScan({
 
     const toggleMultiScan = () => {
         if (isMultiScanEnabled) {
-            setReceiptFiles([]);
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
         }
