@@ -2023,12 +2023,8 @@ const translations = {
         chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
     },
     termsOfUse: {
-        phrase1: 'Al iniciar sesión, estás accediendo a los',
-        phrase2: 'Términos de Servicio',
-        phrase3: 'y',
-        phrase4: 'Privacidad',
-        phrase5: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus`,
-        phrase6: 'licencias',
+        terms: `Al iniciar sesión, estás accediendo a los <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Términos de Servicio</a> y <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Privacidad</a>`,
+        licenses: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus <a href=${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}>licencias</a>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
