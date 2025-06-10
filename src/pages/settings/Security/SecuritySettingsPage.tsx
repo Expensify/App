@@ -139,7 +139,7 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
-                    waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute()));
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
                 },
             },
         ];
@@ -157,7 +157,7 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
-                    waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route));
+                    Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
                 },
             });
         }
@@ -189,7 +189,7 @@ function SecuritySettingsPage() {
                     showLockedAccountModal();
                     return;
                 }
-                waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE));
+                Navigation.navigate(ROUTES.SETTINGS_CLOSE);
             },
         });
         return baseMenuItems.map((item) => ({
