@@ -5,11 +5,11 @@ import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useEnvironment from '@hooks/useEnvironment';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
-import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAdminRoom} from '@libs/ReportUtils';
 import {getTestDriveURL} from '@libs/TourUtils';
@@ -28,7 +28,7 @@ function TestDriveDemo() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
     const viewTourReportID = introSelected?.viewTour;
     const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
-    const {testDrive} = getOnboardingMessages();
+    const {testDrive} = useOnboardingMessages();
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {

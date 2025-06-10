@@ -6,6 +6,7 @@ import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import {
     initMoneyRequest,
     setMoneyRequestAmount,
@@ -17,7 +18,6 @@ import {
 } from '@libs/actions/IOU';
 import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
@@ -73,7 +73,7 @@ function EmployeeTestDriveModal() {
                                 selected: true,
                             },
                         ]);
-                        const {testDrive} = getOnboardingMessages();
+                        const {testDrive} = useOnboardingMessages();
                         setMoneyRequestAmount(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.AMOUNT, testDrive.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
                         setMoneyRequestDescription(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
                         setMoneyRequestMerchant(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);

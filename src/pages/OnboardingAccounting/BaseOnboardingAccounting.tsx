@@ -18,6 +18,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,7 +29,6 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
-import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
@@ -217,7 +217,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             setOnboardingPolicyID(policyID);
         }
 
-        const {onboardingMessages} = getOnboardingMessages();
+        const {onboardingMessages} = useOnboardingMessages();
         completeOnboarding({
             engagementChoice: onboardingPurposeSelected,
             onboardingMessage: onboardingMessages[onboardingPurposeSelected],

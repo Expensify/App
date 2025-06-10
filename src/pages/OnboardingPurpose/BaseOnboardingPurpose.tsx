@@ -11,10 +11,10 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
@@ -87,7 +87,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 }
 
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
-                    const {onboardingMessages} = getOnboardingMessages();
+                    const {onboardingMessages} = useOnboardingMessages();
                     completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: onboardingMessages[choice],

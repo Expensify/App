@@ -11,10 +11,10 @@ import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -62,7 +62,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             if (!onboardingPurposeSelected) {
                 return;
             }
-            const {onboardingMessages} = getOnboardingMessages();
+            const {onboardingMessages} = useOnboardingMessages();
             completeOnboardingReport({
                 engagementChoice: onboardingPurposeSelected,
                 onboardingMessage: onboardingMessages[onboardingPurposeSelected],
