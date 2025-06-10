@@ -2210,7 +2210,7 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
  */
 function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? ([] as ReportAction[]);
-    const chatReport = getReportOrDraftReport(report?.chatReportID);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     return getOneTransactionThreadReportID(report, chatReport, reportActions) !== null;
 }
 
@@ -2234,11 +2234,11 @@ function isOneTransactionThread(reportOrID: string | OnyxEntry<Report>, parentRe
     }
 
     const parentReportID = typeof parentReportOrID === 'string' ? parentReportOrID : parentReportOrID.reportID;
-    const report = typeof parentReportOrID === 'string' ? getReportOrDraftReport(parentReportID) : parentReportOrID;
+    const report = typeof parentReportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] : parentReportOrID;
 
     const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? ([] as ReportAction[]);
 
-    const chatReport = getReportOrDraftReport(report?.chatReportID);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, parentReportActions);
     return reportOrID === transactionThreadReportID && !isSentMoneyReportAction(threadParentReportAction);
 }
@@ -8570,8 +8570,8 @@ function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
     }
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
     const currentReportAction = reportAction?.reportActionID ? reportActions?.[reportAction.reportActionID] : undefined;
-    const report = getReportOrDraftReport(reportID);
-    const chatReport = getReportOrDraftReport(report?.chatReportID);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]));
     const isThreadReportParentAction = reportAction?.childReportID?.toString() === reportID;
     if (Object.keys(currentReportAction ?? {}).length === 0) {

@@ -133,7 +133,6 @@ import {
     getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
-    getReportOrDraftReport,
     getReportPreviewMessage,
     getReportTransactions,
     getReportViolations,
@@ -1622,7 +1621,7 @@ function markAllMessagesAsRead() {
             return;
         }
 
-        const chatReport = getReportOrDraftReport(report.chatReportID);
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(
             report,
             chatReport,
@@ -1692,7 +1691,7 @@ function markCommentAsUnread(reportID: string | undefined, reportAction: ReportA
     }, null);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const chatReport = getReportOrDraftReport(report?.chatReportID);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
 

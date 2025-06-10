@@ -114,7 +114,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryReportActions(report, [], {}, policy);
+        const result = getSecondaryReportActions(report, chatReportR14932, [], {}, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
