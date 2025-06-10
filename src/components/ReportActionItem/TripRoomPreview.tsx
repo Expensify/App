@@ -85,7 +85,7 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
         titleComponent = (
             <View style={[styles.flexRow, styles.alignItemsStart]}>
                 <View style={styles.tripReservationRow}>
-                    <View style={styles.flexShrink}>
+                    <View style={styles.flexShrink1}>
                         <Text
                             numberOfLines={2}
                             style={[styles.labelStrong, styles.mr2]}

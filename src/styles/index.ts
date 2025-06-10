@@ -5631,10 +5631,6 @@ const styles = (theme: ThemeColors) =>
             flexShrink: 1,
         },
 
-        flexShrink: {
-            flexShrink: 1,
-        },
-
         iconWrapper: {
             justifyContent: 'center',
             alignItems: 'center',
