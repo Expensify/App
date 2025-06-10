@@ -82,7 +82,7 @@ import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPo
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
-import {completeTask} from '@userActions/Task';
+import {buildTaskData} from '@userActions/Task';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2143,6 +2143,20 @@ function buildPolicyData(
         failureData.push(...taskFailureData);
     }
 
+    // For test drive receivers, we want to complete the createWorkspace task in concierge, instead of #admin room
+    if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER && introSelected.createWorkspace) {
+        const createWorkspaceTaskReport = {reportID: introSelected.createWorkspace};
+        const {
+            optimisticData: optimisticCreateWorkspaceTaskData,
+            successData: successCreateWorkspaceTaskData,
+            failureData: failureCreateWorkspaceTaskData,
+        } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace);
+
+        optimisticData.push(...optimisticCreateWorkspaceTaskData);
+        successData.push(...successCreateWorkspaceTaskData);
+        failureData.push(...failureCreateWorkspaceTaskData);
+    }
+
     return {successData, optimisticData, failureData, params};
 }
 
@@ -2169,12 +2183,6 @@ function createWorkspace(
         shouldAddOnboardingTasks,
         companySize,
     );
-
-    // For test drive receivers, we want to complete the createWorkspace task in concierge, instead of #admin room
-    if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
-        const createWorkspaceTaskReport = introSelected.createWorkspace ? {reportID: introSelected.createWorkspace} : undefined;
-        completeTask(createWorkspaceTaskReport);
-    }
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
