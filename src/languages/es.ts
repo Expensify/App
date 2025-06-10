@@ -574,8 +574,8 @@ const translations = {
         description: 'No estás autorizado para realizar esta acción mientras estás conectado como soporte.',
     },
     lockedAccount: {
-        title: 'Locked Account',
-        description: "You're not allowed to complete this action as this account has been locked. Please reach out to concierge@expensify.com for next steps",
+        title: 'Cuenta Bloqueada',
+        description: 'No puedes completar esta acción porque esta cuenta ha sido bloqueada. Para obtener más información, escriba a concierge@expensify.com.',
     },
     connectionComplete: {
         title: 'Conexión completa',
