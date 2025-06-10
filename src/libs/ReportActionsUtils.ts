@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, Locale, OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -723,7 +723,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     ];
     if (deprecatedOldDotReportActions.includes(reportAction.actionName)) {
-        Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
         return true;
     }
 
@@ -1186,6 +1185,64 @@ function isTagModificationAction(actionName: string): boolean {
 }
 
 /**
+ * Used for Send Money flow, which is a special case where we have no IOU create action and only one IOU pay action.
+ * In other reports, pay actions do not count as a transactions, but this is an exception to this rule.
+ */
+function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions> | ReportAction[], chatReportID?: string) {
+    if (!chatReportID) {
+        return undefined;
+    }
+
+    const iouActions = Object.values(actions ?? {}).filter(isMoneyRequestAction);
+
+    // sendMoneyFlow has only one IOU action...
+    if (iouActions.length !== 1) {
+        return undefined;
+    }
+
+    // ...which is 'pay'...
+    const isFirstActionPay = getOriginalMessage(iouActions.at(0))?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+
+    const {type, chatType, parentReportID, parentReportActionID} = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? {};
+
+    // ...and can only be triggered on DM chats
+    const isDM = type === CONST.REPORT.TYPE.CHAT && !chatType && !(parentReportID && parentReportActionID);
+
+    return isFirstActionPay && isDM ? iouActions.at(0)?.childReportID : undefined;
+}
+
+/** Whether action has no linked report by design */
+const isIOUActionTypeExcludedFromFiltering = (type: OriginalMessageIOU['type'] | undefined) =>
+    [CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.PAY].some((actionType) => actionType === type);
+
+/**
+ * Determines whether the given action is an IOU and, if a list of report transaction IDs is provided,
+ * whether it corresponds to one of those transactions. This covers a rare case where IOU report actions was
+ * not deleted or moved after the expense was removed from the report.
+ *
+ * For compatibility and to avoid using isMoneyRequest next to this function as it is checked here already:
+ * - If the action is not a money request and `defaultToFalseForNonIOU` is false (default), the result is true.
+ * - If no `reportTransactionIDs` are provided, the function returns true if the action is an IOU.
+ * - If `reportTransactionIDs` are provided, the function checks if the IOU transaction ID from the action matches any of them.
+ */
+const isIOUActionMatchingTransactionList = (
+    action: ReportAction,
+    reportTransactionIDs?: string[],
+    defaultToFalseForNonIOU = false,
+): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+    if (!isMoneyRequestAction(action)) {
+        return !defaultToFalseForNonIOU;
+    }
+
+    if (isIOUActionTypeExcludedFromFiltering(getOriginalMessage(action)?.type) || reportTransactionIDs === undefined) {
+        return true;
+    }
+
+    const {IOUTransactionID} = getOriginalMessage(action) ?? {};
+    return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
+};
+
+/**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
@@ -1193,6 +1250,7 @@ function getOneTransactionThreadReportID(
     reportID: string | undefined,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
+    reportTransactionIDs?: string[],
 ): string | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1205,9 +1263,17 @@ function getOneTransactionThreadReportID(
         return;
     }
 
+    const sendMoneyFlowID = getSendMoneyFlowOneTransactionThreadID(reportActions, report?.chatReportID);
+
+    if (sendMoneyFlowID) {
+        return sendMoneyFlowID;
+    }
+
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
-        if (!isMoneyRequestAction(action)) {
+        // If the original message is a 'pay' IOU, it shouldn't be added to the transaction count.
+        // However, it is excluded from the matching function in order to display it properly, so we need to compare the type here.
+        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true) || getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             // eslint-disable-next-line no-continue
             continue;
         }
@@ -1217,6 +1283,7 @@ function getOneTransactionThreadReportID(
         if (
             actionType &&
             iouRequestTypesSet.has(actionType) &&
+            action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an associated IOU transaction ID or
             // - they have visible childActions (like comments) that we'd want to display
@@ -1244,8 +1311,8 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
-    return singleAction?.childReportID ?? CONST.FAKE_REPORT_ID;
+    // Ensure we have a childReportID associated with the IOU report action
+    return singleAction?.childReportID;
 }
 
 /**
@@ -2315,6 +2382,8 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card)
 }
 
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(getOriginalMessage(reportAction)?.policyID);
     const userDetail = getPersonalDetailByEmail(getOriginalMessage(reportAction)?.email ?? '');
     const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : (userDetail?.login ?? getOriginalMessage(reportAction)?.email);
@@ -2344,6 +2413,8 @@ function getCardIssuedMessage({
 
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
@@ -2529,6 +2600,7 @@ export {
     isForwardedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
+    isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
@@ -2566,6 +2638,7 @@ export {
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceCustomUnitRateAddedMessage,
+    getSendMoneyFlowOneTransactionThreadID,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
