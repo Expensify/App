@@ -41,6 +41,9 @@ type CurrencyPickerProps = {
 
     /** Should sync picker visibility with navigation params (for modal state restoration) */
     shouldSyncPickerVisibilityWithNavigation?: boolean;
+
+    /** Should save currency value in navigation params */
+    shouldSaveCurrencyInNavigation?: boolean;
 };
 
 function CurrencyPicker({
@@ -52,6 +55,7 @@ function CurrencyPicker({
     disabled = false,
     shouldShowFullPageOfflineView = false,
     shouldSyncPickerVisibilityWithNavigation = false,
+    shouldSaveCurrencyInNavigation = false,
     onInputChange = () => {},
 }: CurrencyPickerProps) {
     const {translate} = useLocalize();
@@ -63,7 +67,9 @@ function CurrencyPicker({
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
-        Navigation.setParams({currency: value});
+        if (shouldSaveCurrencyInNavigation) {
+            Navigation.setParams({currency: value});
+        }
     };
 
     const updateInput = (item: CurrencyListItem) => {
