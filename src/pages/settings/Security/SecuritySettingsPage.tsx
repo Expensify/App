@@ -139,7 +139,7 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+                    waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute()));
                 },
             },
         ];

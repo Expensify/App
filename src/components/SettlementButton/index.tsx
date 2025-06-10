@@ -97,50 +97,50 @@ function SettlementButton({
     };
 
     return (
-            <KYCWall
-                onSuccessfulKYC={(paymentType) => onPress(paymentType)}
-                enablePaymentsRoute={enablePaymentsRoute}
-                addBankAccountRoute={addBankAccountRoute}
-                addDebitCardRoute={addDebitCardRoute}
-                isDisabled={isOffline}
-                source={CONST.KYC_WALL_SOURCE.REPORT}
-                chatReportID={chatReportID}
-                iouReport={iouReport}
-                anchorAlignment={kycWallAnchorAlignment}
-                shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
-            >
-                {(triggerKYCFlow, buttonRef) => (
-                    <ButtonWithDropdownMenu<PaymentType>
-                        onOptionsMenuShow={onPaymentOptionsShow}
-                        onOptionsMenuHide={onPaymentOptionsHide}
-                        buttonRef={buttonRef}
-                        shouldAlwaysShowDropdownMenu={isInvoiceReport && !onlyShowPayElsewhere}
-                        customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}
-                        menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
-                        isSplitButton={!isInvoiceReport}
-                        isDisabled={isDisabled}
-                        isLoading={isLoading}
-                        onPress={(event, iouPaymentType) => {
-                            onPaymentSelect(event, iouPaymentType, triggerKYCFlow);
-                        }}
-                        pressOnEnter={pressOnEnter}
-                        options={filteredPaymentOptions}
-                        onOptionSelected={(option) => {
-                            if (policyID === '-1') {
-                                return;
-                            }
-                            savePreferredPaymentMethod(policyIDKey, option.value);
-                        }}
-                        style={style}
-                        wrapperStyle={wrapperStyle}
-                        disabledStyle={disabledStyle}
-                        buttonSize={buttonSize}
-                        anchorAlignment={paymentMethodDropdownAnchorAlignment}
-                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        useKeyboardShortcuts={useKeyboardShortcuts}
-                    />
-                )}
-            </KYCWall>
+        <KYCWall
+            onSuccessfulKYC={(paymentType) => onPress(paymentType)}
+            enablePaymentsRoute={enablePaymentsRoute}
+            addBankAccountRoute={addBankAccountRoute}
+            addDebitCardRoute={addDebitCardRoute}
+            isDisabled={isOffline}
+            source={CONST.KYC_WALL_SOURCE.REPORT}
+            chatReportID={chatReportID}
+            iouReport={iouReport}
+            anchorAlignment={kycWallAnchorAlignment}
+            shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
+        >
+            {(triggerKYCFlow, buttonRef) => (
+                <ButtonWithDropdownMenu<PaymentType>
+                    onOptionsMenuShow={onPaymentOptionsShow}
+                    onOptionsMenuHide={onPaymentOptionsHide}
+                    buttonRef={buttonRef}
+                    shouldAlwaysShowDropdownMenu={isInvoiceReport && !onlyShowPayElsewhere}
+                    customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}
+                    menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
+                    isSplitButton={!isInvoiceReport}
+                    isDisabled={isDisabled}
+                    isLoading={isLoading}
+                    onPress={(event, iouPaymentType) => {
+                        onPaymentSelect(event, iouPaymentType, triggerKYCFlow);
+                    }}
+                    pressOnEnter={pressOnEnter}
+                    options={filteredPaymentOptions}
+                    onOptionSelected={(option) => {
+                        if (policyID === '-1') {
+                            return;
+                        }
+                        savePreferredPaymentMethod(policyIDKey, option.value);
+                    }}
+                    style={style}
+                    wrapperStyle={wrapperStyle}
+                    disabledStyle={disabledStyle}
+                    buttonSize={buttonSize}
+                    anchorAlignment={paymentMethodDropdownAnchorAlignment}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    useKeyboardShortcuts={useKeyboardShortcuts}
+                />
+            )}
+        </KYCWall>
     );
 }
 
