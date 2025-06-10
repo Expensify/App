@@ -5,6 +5,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SearchGroupBy} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -12,18 +13,21 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getStatusOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 function SearchFiltersStatusPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const currentType = (searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE).toUpperCase() as keyof typeof CONST.SEARCH.DATA_TYPES;
+    const currentType = (searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
+    const currentGroupBy = searchAdvancedFiltersForm?.groupBy as SearchGroupBy | undefined;
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
-        if (!searchAdvancedFiltersForm?.status) {
-            return [CONST.SEARCH.STATUS.EXPENSE.ALL];
+        if (!searchAdvancedFiltersForm?.status || searchAdvancedFiltersForm.status === 'all') {
+            return [];
         }
 
         if (typeof searchAdvancedFiltersForm.status === 'string') {
@@ -33,13 +37,15 @@ function SearchFiltersStatusPage() {
         return searchAdvancedFiltersForm.status;
     });
 
+    const items = useMemo(() => getStatusOptions(currentType, currentGroupBy), [currentGroupBy, currentType]);
+
     const listData: ListItem[] = useMemo(() => {
-        return Object.values(CONST.SEARCH.STATUS[currentType]).map((status) => ({
-            text: translate(`search.filters.${status}`),
-            keyForList: status,
-            isSelected: selectedItems.includes(status),
+        return items.map((statusOption) => ({
+            text: translate(statusOption.translation),
+            keyForList: statusOption.value,
+            isSelected: selectedItems.includes(statusOption.value),
         }));
-    }, [currentType, selectedItems, translate]);
+    }, [items, selectedItems, translate]);
 
     const updateSelectedItems = useCallback(
         (item: ListItem) => {
@@ -48,19 +54,13 @@ function SearchFiltersStatusPage() {
                 return;
             }
 
-            if (item.keyForList === CONST.SEARCH.STATUS.EXPENSE.ALL) {
-                setSelectedItems([CONST.SEARCH.STATUS.EXPENSE.ALL]);
-                return;
-            }
-
-            const items = Object.values(CONST.SEARCH.STATUS[currentType]);
-            const newItem = items.find((i) => i === item.keyForList);
+            const newItem = items.find((i) => i.value === item.keyForList)?.value;
 
             if (newItem) {
-                setSelectedItems([...selectedItems.filter((i) => i !== CONST.SEARCH.STATUS.EXPENSE.ALL), newItem]);
+                setSelectedItems([...selectedItems, newItem]);
             }
         },
-        [currentType, selectedItems],
+        [items, selectedItems],
     );
 
     const resetChanges = useCallback(() => {
@@ -68,8 +68,9 @@ function SearchFiltersStatusPage() {
     }, []);
 
     const applyChanges = useCallback(() => {
+        const newStatus = selectedItems.length ? selectedItems : CONST.SEARCH.STATUS.EXPENSE.ALL;
         updateAdvancedFilters({
-            status: selectedItems,
+            status: newStatus,
         });
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [selectedItems]);

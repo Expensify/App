@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -21,18 +22,26 @@ function SearchFiltersTypePage() {
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const [selectedItem, setSelectedItem] = useState<string>(searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
+    const [status, setStatus] = useState(searchAdvancedFiltersForm?.status ?? CONST.SEARCH.STATUS.EXPENSE.ALL);
+    const [groupBy, setGroupBy] = useState(searchAdvancedFiltersForm?.groupBy);
 
     const listData: ListItem[] = useMemo(() => {
-        return [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.DATA_TYPES.TASK].map((type) => ({
-            text: translate(`common.${type}`),
-            keyForList: type,
-            isSelected: selectedItem === type,
+        return getTypeOptions().map((typeOption) => ({
+            text: translate(typeOption.translation),
+            keyForList: typeOption.value,
+            isSelected: selectedItem === typeOption.value,
         }));
     }, [selectedItem, translate]);
 
-    const updateSelectedItem = useCallback((type: ListItem) => {
-        setSelectedItem(type?.keyForList ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
-    }, []);
+    const updateSelectedItem = useCallback(
+        (type: ListItem) => {
+            const hasTypeChanged = selectedItem !== type;
+            setSelectedItem(type?.keyForList ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
+            setStatus(hasTypeChanged ? CONST.SEARCH.STATUS.EXPENSE.ALL : status);
+            setGroupBy(hasTypeChanged ? undefined : groupBy);
+        },
+        [groupBy, selectedItem, status],
+    );
 
     const resetChanges = useCallback(() => {
         setSelectedItem(CONST.SEARCH.DATA_TYPES.EXPENSE);
@@ -41,9 +50,11 @@ function SearchFiltersTypePage() {
     const applyChanges = useCallback(() => {
         updateAdvancedFilters({
             type: selectedItem,
+            status,
+            groupBy,
         });
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [selectedItem]);
+    }, [groupBy, selectedItem, status]);
 
     return (
         <ScreenWrapper
