@@ -2,18 +2,20 @@ export default function sanitizeJSONStringValues(inputString: string): string {
     function replacer(str: string): string {
         return (
             {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '\\': '\\\\',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '\t': '\\t',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '\n': '\\n',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '\r': '\\r',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '\f': '\\f',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '"': '\\"',
             }[str] ?? ''
         );
-    }
-
-    if (typeof inputString !== 'string') {
-        throw new TypeError('Input must be of type String.');
     }
 
     try {
