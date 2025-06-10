@@ -195,7 +195,7 @@ class TranslationGenerator {
 
         // Otherwise, look for the nearest ancestor that may have a comment attached.
         // For now, we only support property assignments.
-        const nearestPropertyAssignmentAncestor = TSCompilerUtils.findAncestor(node, (n) => ts.isPropertyAssignment(n));
+        const nearestPropertyAssignmentAncestor = TSCompilerUtils.findAncestor(node, (n): n is ts.PropertyAssignment => ts.isPropertyAssignment(n));
         if (!nearestPropertyAssignmentAncestor) {
             return undefined;
         }

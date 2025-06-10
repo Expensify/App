@@ -28,7 +28,7 @@ class OpenAIUtils {
     }
 
     /**
-     * Prompt the Chat Completions API (gpt-4o).
+     * Prompt the Chat Completions API.
      */
     public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4o'}: {userPrompt: string; systemPrompt?: string; model?: string}): Promise<string> {
         const messages: ChatCompletionMessageParam[] = [{role: 'user', content: userPrompt}];
