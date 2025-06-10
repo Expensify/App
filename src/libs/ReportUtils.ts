@@ -3952,7 +3952,10 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
-        return getOutstandingReportsForUser(moneyRequestReport?.policyID, moneyRequestReport?.ownerAccountID, allReports ?? {}).length > 1;
+        const isUnreported = !moneyRequestReport || isEmptyObject(moneyRequestReport);
+        return isUnreported
+            ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) => getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, allReports ?? {})).length > 0
+            : getOutstandingReportsForUser(moneyRequestReport?.policyID, moneyRequestReport?.ownerAccountID, allReports ?? {}).length > 1;
     }
 
     return true;
@@ -8967,12 +8970,10 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
 /**
  *  We only want policy members who are members of the report to be able to modify the report description, but not in thread chat.
  */
-function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false): boolean {
     return (
         !isMoneyRequestReport(report) &&
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
-        !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
+        !isReportArchived &&
         isChatRoom(report) &&
         !isChatThread(report) &&
         !isEmpty(policy) &&
