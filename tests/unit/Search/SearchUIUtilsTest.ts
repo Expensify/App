@@ -992,7 +992,24 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
-        test('Should return `Done` action for a closed report', () => {
+        test('Should return `Pay` action for a closed IOU report with an outstanding balance', () => {
+            const closedReportID = 'report_closed_with_balance';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${closedReportID}`]: {
+                    ...searchResults.data[`report_${reportID3}`],
+                    reportID: closedReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                },
+            };
+
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${closedReportID}`);
+
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+        });
+
+        test('Should return `Done` action for a closed report with a zero balance', () => {
             const closedReportID = 'report_closed';
             const localSearchResults = {
                 ...searchResults.data,
@@ -1001,6 +1018,7 @@ describe('SearchUIUtils', () => {
                     reportID: closedReportID,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    total: 0,
                 },
             };
 
@@ -1083,6 +1101,13 @@ describe('SearchUIUtils', () => {
             };
             const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${errorTransactionID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+        test('Should return `Pay` action for an IOU report ready to be paid', async () => {
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            await waitForBatchedUpdates();
+            const iouReportKey = `report_${reportID3}`;
+            const action = SearchUIUtils.getAction(searchResults.data, {}, iouReportKey);
+            expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
     });
 
