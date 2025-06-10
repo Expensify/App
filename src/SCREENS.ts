@@ -148,6 +148,11 @@ const SCREENS = {
             ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
             MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
         },
+        LOCK: {
+            LOCK_ACCOUNT: 'Settings_Lock_LockAccount',
+            UNLOCK_ACCOUNT: 'Settings_Lock_UnlockAccount',
+            FAILED_TO_LOCK_ACCOUNT: 'Settings_Lock_FailedToLockAccount',
+        },
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
             SIZE: 'Settings_Subscription_Size',
