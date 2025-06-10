@@ -84,7 +84,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         }
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
-        if (!primaryContactMethod || (Str.isSMSLogin(primaryContactMethod) && shouldRenderErrorMessageBelowButton)) {
+        if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(
                 getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.DESKTOP ? (
                     <TextLink
@@ -164,7 +164,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         primaryContactMethod,
         policy,
         travelSettings?.hasAcceptedTerms,
-        styles.flexRow,
         styles.link,
         StyleUtils,
         translate,
