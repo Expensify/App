@@ -25,14 +25,12 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -126,9 +124,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
-    const isNativePlatform = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
-    const shouldShowTalkToSales = !!isBetaEnabled(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) && isAdminRoom(report) && !isNativePlatform;
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
@@ -223,7 +218,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || isAdminRoom(report));
     const isArchived = isArchivedReport(reportNameValuePairs);
-    const shouldShowOnBoardingHelpDropdownButton = (shouldShowTalkToSales || shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isArchived;
+    const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isArchived;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
@@ -232,7 +227,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         <OnboardingHelpDropdownButton
             reportID={report?.reportID}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
-            shouldShowTalkToSales={shouldShowTalkToSales}
             shouldShowRegisterForWebinar={shouldShowRegisterForWebinar}
             shouldShowGuideBooking={shouldShowGuideBooking}
             hasActiveScheduledCall={hasActiveScheduledCall}

@@ -1207,6 +1207,7 @@ function getRootParentReport({
 
 /**
  * Returns the policy of the report
+ * @deprecated Get the data straight from Onyx - This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
  */
 function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     if (!allPolicies || !policyID) {
@@ -1526,6 +1527,8 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
     }
 
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(report.invoiceReceiver.policyID);
         return isPolicyAdminPolicyUtils(policy);
     }
@@ -1765,6 +1768,8 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report);
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID;
@@ -1977,6 +1982,8 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
     // Account manager/guide should not have the workspace join request pinned to their LHN,
     // since they are not a part of the company, and should not action it on their behalf.
     if (report.policyID) {
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(report.policyID);
         if (!isExpensifyTeam(policy?.owner) && isExpensifyTeam(currentUserPersonalDetails?.login)) {
             return false;
@@ -1990,6 +1997,8 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
  */
 function isAuditor(report: OnyxEntry<Report>): boolean {
     if (report?.policyID) {
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(report.policyID);
         return isPolicyAuditor(policy);
     }
@@ -2322,7 +2331,8 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
     if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
         return false;
     }
-
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
 
     if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && !arePaymentsEnabled(policy)) {
@@ -2350,7 +2360,8 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchiv
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
-
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
     if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
@@ -2966,6 +2977,8 @@ function getIcons(
                 icons.push(...getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails));
             } else {
                 const receiverPolicyID = report?.invoiceReceiver?.policyID;
+                // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+                // eslint-disable-next-line deprecation/deprecation
                 const receiverPolicy = invoiceReceiverPolicy ?? getPolicy(receiverPolicyID);
                 if (!isEmptyObject(receiverPolicy)) {
                     icons.push({
@@ -3047,6 +3060,8 @@ function getIcons(
         }
 
         const receiverPolicyID = invoiceRoomReport?.invoiceReceiver?.policyID;
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const receiverPolicy = invoiceReceiverPolicy ?? getPolicy(receiverPolicyID);
 
         if (!isEmptyObject(receiverPolicy)) {
@@ -3378,6 +3393,8 @@ function getReasonAndReportActionThatRequiresAttention(
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(optionOrReport.policyID);
     if (
         (optionOrReport.hasOutstandingChildRequest === true || iouReportActionToApproveOrPay?.reportActionID) &&
@@ -3803,7 +3820,8 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
     if (isIOUReport(moneyRequestReport)) {
         return isSubmitted && isRequestor;
     }
-
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = currentUserAccountID === moneyRequestReport?.managerID;
@@ -3900,6 +3918,8 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         return false;
     }
 
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
     const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
@@ -4632,6 +4652,8 @@ function getInvoicesChatName({
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
     const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID;
     const invoiceReceiverPolicyID = isIndividual ? undefined : invoiceReceiver?.policyID;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const invoiceReceiverPolicy = receiverPolicy ?? getPolicy(invoiceReceiverPolicyID);
     const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
 
@@ -5248,6 +5270,8 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
     }
 
     if (parsingDetails?.policyID) {
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const policyType = getPolicy(parsingDetails?.policyID)?.type;
         if (policyType) {
             isGroupPolicyReport = isGroupPolicy(policyType);
@@ -5516,6 +5540,8 @@ function buildOptimisticIOUReport(
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
     const policyID = chatReportID ? getReport(chatReportID, allReports)?.policyID : undefined;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     const participants: Participants = {
@@ -5673,6 +5699,8 @@ function buildOptimisticExpenseReport(
     const report = chatReportID ? getReport(chatReportID, allReports) : undefined;
     const policyName = getPolicyName({report});
     const formattedTotal = convertToDisplayString(storedTotal, currency);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
@@ -6129,7 +6157,11 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
         automaticAction,
     };
 
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const fromPolicy = getPolicy(fromPolicyID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const toPolicy = getPolicy(toPolicyID);
 
     const changePolicyReportActionMessage = [
@@ -7108,6 +7140,8 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
 
 function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): OptimisticAnnounceChat {
     const announceReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const announceRoomOnyxData: AnnounceRoomOnyxData = {
         onyxOptimisticData: [],
@@ -8283,6 +8317,8 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policyOwnerAccountID = getPolicy(report?.policyID)?.ownerAccountID;
     const isPolicyOwnedByExpensifyAccounts = policyOwnerAccountID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID) : false;
     if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
@@ -8363,7 +8399,8 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
     if (report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
         return false;
     }
-
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const isSenderPolicyAdmin = getPolicy(report.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (isSenderPolicyAdmin) {
@@ -8374,6 +8411,8 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
         return report?.invoiceReceiver?.accountID !== currentUserAccountID;
     }
 
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const isReceiverPolicyAdmin = getPolicy(report.invoiceReceiver.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (isReceiverPolicyAdmin) {
@@ -9272,12 +9311,16 @@ function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy> | SearchPolicy): boolean {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = reportPolicy ?? getPolicy(report?.policyID);
     const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
     return !(policy?.preventSelfApproval && isOwner);
 }
 
 function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(report?.policyID);
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
@@ -9513,6 +9556,8 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const activePolicy = getPolicy(activePolicyID);
         if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
@@ -9641,6 +9686,8 @@ function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): Outsta
         };
     }
 
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(iouReport.policyID);
     const shouldBeManuallySubmitted = isPaidGroupPolicyPolicyUtils(policy) && !policy?.harvesting?.enabled;
     if (shouldBeManuallySubmitted) {
@@ -9698,6 +9745,8 @@ function prepareOnboardingOnyxData(
     }
 
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] : '';
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
     const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
     let assignedGuideAccountID: number;
@@ -10114,6 +10163,8 @@ function prepareOnboardingOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
             value: {
+                // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+                // eslint-disable-next-line deprecation/deprecation
                 areConnectionsEnabled: getPolicy(onboardingPolicyID)?.areConnectionsEnabled,
                 pendingFields: {
                     areConnectionsEnabled: null,
@@ -10492,6 +10543,8 @@ function hasMissingInvoiceBankAccount(iouReportID: string | undefined): boolean 
         return false;
     }
 
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     return invoiceReport?.ownerAccountID === currentUserAccountID && !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID && isSettled(iouReportID);
 }
 
