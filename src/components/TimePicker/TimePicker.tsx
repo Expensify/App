@@ -281,24 +281,25 @@ function TimePicker(
                 newSelection = 2;
             }
         } else {
-            // trimmedText.length is 0 or >= 2
+            // Handle empty input or multiple digits
             if (trimmedText.length === 0) {
                 newHour = '00';
                 newSelection = 0;
-            } else {
-                let candidate = trimmedText.substring(0, 2);
-                if (/^\d\d$/.test(candidate)) {
-                    // e.g. "05", "12"
-                    newHour = candidate;
-                } else if (/^\d$/.test(candidate)) {
-                    // e.g. "5" became candidate (should be rare here)
-                    newHour = `0${candidate}`;
-                } else {
-                    // Invalid input like "aa"
-                    newHour = hours; // Revert to previous valid hours
-                }
-                newSelection = 2;
+                return;
             }
+            
+            const candidate = trimmedText.substring(0, 2);
+            if (/^\d\d$/.test(candidate)) {
+                // e.g. "05", "12"
+                newHour = candidate;
+            } else if (/^\d$/.test(candidate)) {
+                // e.g. "5" became candidate (should be rare here)
+                newHour = `0${candidate}`;
+            } else {
+                // Invalid input like "aa"
+                newHour = hours; // Revert to previous valid hours
+            }
+            newSelection = 2;
         }
 
         const newHourNumber = Number(newHour);
