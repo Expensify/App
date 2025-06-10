@@ -702,7 +702,15 @@ function AdvancedSearchFilters() {
     ];
 
     sections.forEach((section) => {
-        section.items.sort((a, b) => (a.key === 'type' || b.key === 'type' ? 1 : localeCompare(a.description, b.description)));
+        section.items.sort((a, b) => {
+            if (a.key === 'type') {
+                return -1;
+            }
+            if (b.key === 'type') {
+                return 1;
+            }
+            return localeCompare(a.description, b.description);
+        });
     });
 
     return (
