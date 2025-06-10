@@ -27,13 +27,8 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
 
-function canUseNativeContactImport(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NATIVE_CONTACT_IMPORT) || canUseAllBetas(betas);
-}
-
 export default {
     canUseLinkPreviews,
     isBlockedFromSpotnanaTravel,
-    canUseNativeContactImport,
     isBetaEnabled,
 };
