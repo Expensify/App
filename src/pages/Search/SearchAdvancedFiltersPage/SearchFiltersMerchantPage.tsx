@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import {Buffer} from 'buffer/';
 
 function SearchFiltersMerchantPage() {
     const styles = useThemeStyles();
@@ -33,9 +34,10 @@ function SearchFiltersMerchantPage() {
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM> = {};
         const merchantValue = values.merchant.trim();
+        const merchantByteLength = Buffer.from(merchantValue).length;
 
-        if (merchantValue.length > CONST.MERCHANT_NAME_MAX_LENGTH) {
-            errors.merchant = translate('common.error.characterLimitExceedCounter', {length: merchantValue.length, limit: CONST.MERCHANT_NAME_MAX_LENGTH});
+        if (merchantByteLength > CONST.MERCHANT_NAME_MAX_BYTES) {
+            errors.merchant = translate('common.error.characterLimitExceedCounter', {length: merchantByteLength, limit: CONST.MERCHANT_NAME_MAX_BYTES});
         }
 
         return errors;
