@@ -179,7 +179,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
 
-    if (isExpenseReport && isReportApprover && isProcessingReport && reportHasDuplicatedTransactions) {
+    if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
     }
 
