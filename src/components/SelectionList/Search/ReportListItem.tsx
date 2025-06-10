@@ -8,12 +8,10 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +34,6 @@ function ReportListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseTableReportView} = usePermissions();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
@@ -44,8 +41,7 @@ function ReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const dateColumnSize = useMemo(() => {
-        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
-        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+        return reportItem.transactions.some((transaction) => transaction.shouldShowYear) ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [reportItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -83,10 +79,6 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    if (isEmptyReport && !canUseTableReportView) {
-        return null;
-    }
-
     const sampleTransaction = reportItem.transactions.at(0);
     const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
 
@@ -100,10 +92,9 @@ function ReportListItem<TItem extends ListItem>({
         ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
         ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
-        COLUMNS.COMMENTS,
         COLUMNS.TOTAL_AMOUNT,
         COLUMNS.ACTION,
-    ] as Array<ValueOf<typeof COLUMNS>>;
+    ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
     return (
         <BaseListItem
@@ -130,7 +121,6 @@ function ReportListItem<TItem extends ListItem>({
                     <ReportListItemHeader
                         report={reportItem}
                         policy={policy}
-                        item={item}
                         onSelectRow={onSelectRow}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
@@ -164,7 +154,7 @@ function ReportListItem<TItem extends ListItem>({
                                     }}
                                     isParentHovered={hovered}
                                     columnWrapperStyles={[styles.ph3, styles.pv1half]}
-                                    isInReportRow
+                                    isReportItemChild
                                 />
                             </View>
                         ))

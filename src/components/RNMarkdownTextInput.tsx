@@ -1,7 +1,7 @@
 import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
 import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
@@ -25,6 +25,25 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
 
     const {mentionsList, currentUserMentions} = useShortMentionsList();
     const mentionsSharedVal = useSharedValue<string[]>(mentionsList);
+    const inputRef = useRef<AnimatedMarkdownTextInputRef>(null);
+
+    // Expose the ref to the parent component
+    React.useImperativeHandle<AnimatedMarkdownTextInputRef | null, AnimatedMarkdownTextInputRef | null>(ref, () => inputRef.current);
+
+    // Check if the cursor is at the end of the text
+    const isCursorAtEnd = props.selection && props.value && props.selection.start === props.value.length;
+
+    // Automatically scroll to the end if the cursor was at the end after value changes
+    useEffect(() => {
+        if (!inputRef.current || !isCursorAtEnd) {
+            return;
+        }
+
+        if ('scrollTop' in inputRef.current && 'scrollHeight' in inputRef.current) {
+            const currentRef = inputRef.current as unknown as {scrollTop: number; scrollHeight: number};
+            currentRef.scrollTop = currentRef.scrollHeight;
+        }
+    }, [props.value, isCursorAtEnd]);
 
     // If `parser` prop was passed down we use it directly, otherwise we default to parsing with ExpensiMark
     const parserWorklet = useCallback(
@@ -54,12 +73,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
             textBreakStrategy="simple"
             keyboardAppearance={theme.colorScheme}
             parser={parserWorklet}
-            ref={(refHandle) => {
-                if (typeof ref !== 'function') {
-                    return;
-                }
-                ref(refHandle as AnimatedMarkdownTextInputRef);
-            }}
+            ref={inputRef}
             formatSelection={toggleSelectionFormat}
             // eslint-disable-next-line
             {...props}

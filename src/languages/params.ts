@@ -129,6 +129,10 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
+type MovedFromReportParams = {
+    reportName: string;
+};
+
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -152,8 +156,6 @@ type CompanyCardFeedNameParams = {feedName: string};
 type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
 type ApprovedAmountParams = {amount: number | string};
-
-type ForwardedAmountParams = {amount: number | string};
 
 type ManagerApprovedParams = {manager: string};
 
@@ -686,11 +688,28 @@ type CurrencyInputDisabledTextParams = {
     currency: string;
 };
 
+type SplitExpenseSubtitleParams = {
+    amount: string;
+    merchant: string;
+};
+
+type SplitExpenseEditTitleParams = {
+    amount: string;
+    merchant: string;
+};
+
+type TotalAmountGreaterOrLessThanOriginalParams = {
+    amount: string;
+};
+
 type EmployeeInviteMessageParams = {
     name: string;
 };
 
 export type {
+    SplitExpenseEditTitleParams,
+    SplitExpenseSubtitleParams,
+    TotalAmountGreaterOrLessThanOriginalParams,
     AuthenticationErrorParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportedTagsMessageParams,
@@ -778,7 +797,6 @@ export type {
     ElectronicFundsParams,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
-    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     HeldRequestParams,
@@ -809,6 +827,7 @@ export type {
     PayerPaidParams,
     PayerSettledParams,
     RemovedTheRequestParams,
+    MovedFromReportParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,

@@ -504,4 +504,17 @@ describe('TransactionUtils', () => {
             expect(result).toEqual(pendingAction);
         });
     });
+
+    describe('isTransactionPendingDelete', () => {
+        it.each([
+            ['when pendingAction is null', null, false],
+            ['when pendingAction is delete', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, true],
+            ['when pendingAction is add', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, false],
+            ['when pendingAction is update', CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, false],
+        ])('%s', (_description, pendingAction, expected) => {
+            const transaction = generateTransaction({pendingAction});
+            const result = TransactionUtils.isTransactionPendingDelete(transaction);
+            expect(result).toEqual(expected);
+        });
+    });
 });

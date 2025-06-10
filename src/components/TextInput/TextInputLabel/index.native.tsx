@@ -7,17 +7,14 @@ function TextInputLabel({label, labelScale, labelTranslateY}: TextInputLabelProp
     const styles = useThemeStyles();
 
     const animatedStyle = useAnimatedStyle(() => styles.textInputLabelTransformation(labelTranslateY, labelScale));
-    const animatedStyleForText = useAnimatedStyle(() => styles.textInputLabelTransformation(labelTranslateY, labelScale, true));
 
     return (
-        <Animated.View style={[styles.textInputLabelContainer, animatedStyle]}>
-            <Animated.Text
-                allowFontScaling={false}
-                style={[styles.textInputLabel, animatedStyleForText]}
-            >
-                {label}
-            </Animated.Text>
-        </Animated.View>
+        <Animated.Text
+            allowFontScaling={false}
+            style={[styles.textInputLabel, animatedStyle]}
+        >
+            {label}
+        </Animated.Text>
     );
 }
 
