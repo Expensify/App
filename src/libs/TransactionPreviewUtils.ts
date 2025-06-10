@@ -1,19 +1,16 @@
 import truncate from 'lodash/truncate';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
-import {extractCollectionItemID} from './CollectionUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
-import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
+import {getOriginalMessage, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {hasActionsWithErrors, hasReportViolations, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isReportOwner, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -37,32 +34,6 @@ import {
     isPerDiemRequest,
     isScanning,
 } from './TransactionUtils';
-
-const allTransactions: Record<string, OnyxTypes.Transaction> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    callback: (transaction, key) => {
-        if (!key || !transaction) {
-            return;
-        }
-        const transactionID = extractCollectionItemID(key);
-        allTransactions[transactionID] = transaction;
-    },
-});
-
-let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allTransactionViolations = {};
-            return;
-        }
-
-        allTransactionViolations = value;
-    },
-});
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -90,24 +61,21 @@ function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: bool
 
 const getReviewNavigationRoute = (
     route: PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, 'Transaction_Duplicate_Review'>,
-    report: OnyxEntry<OnyxTypes.Report>,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
-    duplicates: string[],
+    duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
 ) => {
     const backTo = route.params.backTo;
-
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const reviewingTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-    const reviewingTransaction = allTransactions[`${reviewingTransactionID}`];
-    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
-    const allDuplicateIDs = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-    const allDuplicates = allDuplicateIDs.map((id) => allTransactions?.[id]);
 
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
-    const comparisonResult = compareDuplicateTransactionFields(reviewingTransaction, allDuplicates, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
-    setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
+    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transaction?.reportID, transaction?.transactionID);
+    setReviewDuplicatesKey({
+        ...comparisonResult.keep,
+        duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
+        transactionID: transaction?.transactionID,
+        reportID: transaction?.reportID,
+    });
 
     if (comparisonResult.change.merchant) {
         return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo);
