@@ -9,16 +9,6 @@ type Data = {
     authWriteCommands: string[];
 };
 
-/** Model of OpenAI Emphemeral client secret */
-type ClientSecret = {
-    /** The short lived secret value */
-    value: string;
-
-    /** The expiration time in epoch time */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    expires_at: number;
-};
-
 /** Model of server response */
 type Response = {
     /** ID of the next update that needs to be fetched from the server */
@@ -102,10 +92,6 @@ type Response = {
 
     /** The ID of the original user (returned when in delegate mode) */
     requesterID?: number;
-
-    /** Short-lived client secret for openai session */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    client_secret?: ClientSecret;
 
     /** Whether the account already exists */
     accountExists?: boolean;
