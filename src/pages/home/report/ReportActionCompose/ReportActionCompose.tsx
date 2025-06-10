@@ -544,6 +544,7 @@ function ReportActionCompose({
                     >
                         {PDFThumbnailView}
                         <AttachmentModal
+                            swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
                             headerTitle={translate('reportActionCompose.sendAttachment')}
                             onConfirm={addAttachment}
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
