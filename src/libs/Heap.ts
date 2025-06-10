@@ -72,7 +72,7 @@ class Heap<T = number> {
         return compare > 0 ? rightChildIndex : leftChildIndex;
     }
 
-    private heapifyUp(startIndex: number): void {
+    private bubbleUp(startIndex: number): void {
         let childIndex = startIndex;
         let parentIndex = Math.floor((childIndex - 1) / 2);
 
@@ -83,7 +83,7 @@ class Heap<T = number> {
         }
     }
 
-    private heapifyDown(startIndex: number): void {
+    private bubbleDown(startIndex: number): void {
         let parentIndex = startIndex;
         let childIndex = this.compareChildrenOf(parentIndex);
 
@@ -96,7 +96,7 @@ class Heap<T = number> {
 
     push(value: T): this {
         this.nodes.push(value);
-        this.heapifyUp(this.size() - 1);
+        this.bubbleUp(this.size() - 1);
         if (this.leaf === null || this.compare(value, this.leaf) > 0) {
             this.leaf = value;
         }
@@ -111,7 +111,7 @@ class Heap<T = number> {
         const root = this.peek();
         this.nodes[0] = this.nodes[this.size() - 1];
         this.nodes.pop();
-        this.heapifyDown(0);
+        this.bubbleDown(0);
 
         if (root === this.leaf) {
             this.leaf = null;
