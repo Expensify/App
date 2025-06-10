@@ -2,7 +2,6 @@ import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
 import {setNewDotSignInState} from '@libs/actions/HybridApp';
-import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 import {beginAppleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -45,10 +44,8 @@ function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
             })
             .catch((error: Record<string, unknown>) => {
                 if (error.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) {
-                    Growl.error('[Apple In] Apple Sign In cancelled');
                     return null;
                 }
-                Growl.error(`[Apple Sign In] Apple authentication failed`);
                 Log.alert('[Apple Sign In] Apple authentication failed', error);
             });
     };

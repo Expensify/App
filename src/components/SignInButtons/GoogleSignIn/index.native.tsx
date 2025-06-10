@@ -2,7 +2,6 @@ import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-sign
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
 import {setNewDotSignInState} from '@libs/actions/HybridApp';
-import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -35,7 +34,6 @@ function googleSignInRequest() {
             // Handle unexpected error shape
             if (error?.code === undefined) {
                 Log.alert(`[Google Sign In] Google sign in failed: ${JSON.stringify(error)}`);
-                Growl.error(`[Google Sign In] Google sign in failed: ${JSON.stringify(error)}`);
                 return;
             }
             /** The logged code is useful for debugging any new errors that are not specifically handled. To decode, see:
@@ -44,12 +42,8 @@ function googleSignInRequest() {
             */
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
                 Log.info('[Google Sign In] Google Sign In cancelled');
-                // TODO: Growl is temporary to allow debugging
-                Growl.error('[Google Sign In] Google Sign In cancelled');
             } else {
                 Log.alert(`[Google Sign In] Error Code: ${error.code}. ${error.message}`, {}, false);
-                // TODO: Growl is temporary to allow debugging
-                Growl.error(`[Google Sign In] Error Code: ${error.code}. ${error.message}`);
             }
         });
 }
