@@ -928,6 +928,11 @@ const reportsListItems = [
 
 describe('SearchUIUtils', () => {
     describe('Test getAction', () => {
+        test('Should return `View` action for an invalid key', () => {
+            const action = SearchUIUtils.getAction(searchResults.data, {}, 'invalid_key');
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
             let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -972,7 +977,7 @@ describe('SearchUIUtils', () => {
                 [`policy_${policyIDAuto}`]: {
                     ...searchResults.data[`policy_${policyID}`],
                     id: policyIDAuto,
-                    reimbursementChoice: 'reimburseYes',
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 },
                 [paidReportID]: {
                     ...searchResults.data[`report_${reportID}`],
@@ -1004,17 +1009,17 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
 
-        test('Should return `Review` action if transaction has errors', () => {
-            const errorTransactionID = 'transaction_error';
+        test('Should return `Review` action if report has errors', () => {
+            const errorReportID = 'report_error';
             const localSearchResults = {
                 ...searchResults.data,
-                [`transactions_${errorTransactionID}`]: {
-                    ...searchResults.data[`transactions_${transactionID}`],
-                    transactionID: errorTransactionID,
+                [`report_${errorReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: errorReportID,
                     errors: {error: 'An error'},
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${errorTransactionID}`);
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${errorReportID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
 
@@ -1048,6 +1053,36 @@ describe('SearchUIUtils', () => {
             };
             const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${multiTransactionID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+        test('Should return `Review` action if report export has failed', () => {
+            const failedExportReportID = 'report_failed_export';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${failedExportReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: failedExportReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+                [`reportNameValuePairs_${failedExportReportID}`]: {
+                    exportFailedTime: '2024-01-01',
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${failedExportReportID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+        test('Should return `Review` action if transaction has errors', () => {
+            const errorTransactionID = 'transaction_error';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`transactions_${errorTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: errorTransactionID,
+                    errors: {error: 'An error'},
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${errorTransactionID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
     });
 
