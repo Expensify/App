@@ -3604,8 +3604,12 @@ const CONST = {
 
         // Define the regular expression pattern to find a potential end of a mention suggestion:
         // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
+
+        SPECIAL_CHAR_MENTION_BREAKER: /[,/?"{}[\]()&^%;`$=<>!*]/g,
+
         get MENTION_BREAKER() {
-            return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+            // only break on newline **or** punctuation/emojis — spaces are now allowed in the mention text
+            return new RegExp(`[\\n]|${this.SPECIAL_CHAR_MENTION_BREAKER.source}|${this.EMOJI.source}`, 'gu');
         },
 
         get ALL_EMOJIS() {
