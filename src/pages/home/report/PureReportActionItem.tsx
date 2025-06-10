@@ -28,7 +28,6 @@ import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
-import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -829,7 +828,7 @@ function PureReportActionItem({
             );
 
             // Table Report View does not display these components as separate messages, except for self-DM
-            if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && report?.type === CONST.REPORT.TYPE.CHAT) {
+            if (report?.type === CONST.REPORT.TYPE.CHAT) {
                 const isSplitBill = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
                 if ((report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM && !isDeletedAction(action)) || isSplitBill) {
                     children = (
@@ -878,7 +877,7 @@ function PureReportActionItem({
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
             children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -894,24 +893,6 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
-                />
-            );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-            children = (
-                <ReportPreview
-                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                    chatReportID={reportID}
-                    policyID={report?.policyID}
-                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
-                    action={action}
-                    isHovered={hovered}
-                    onShowContextMenu={handleShowContextMenu}
-                    contextMenuAnchor={popoverAnchorRef.current}
-                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                    onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
-                    onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                    isWhisper={isWhisper}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1276,7 +1257,7 @@ function PureReportActionItem({
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
-        if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses))) {
+        if (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses)) {
             return emptyHTML;
         }
 
