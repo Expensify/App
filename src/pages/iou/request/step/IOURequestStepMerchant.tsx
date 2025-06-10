@@ -63,6 +63,8 @@ function IOURequestStepMerchant({
 
             if (isMerchantRequired && !value.moneyRequestMerchant) {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
+            } else if (isMerchantRequired && value.moneyRequestMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+                errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
             } else if (value.moneyRequestMerchant.length > CONST.MERCHANT_NAME_MAX_LENGTH) {
                 errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', {
                     length: value.moneyRequestMerchant.length,

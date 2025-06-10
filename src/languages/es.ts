@@ -1137,7 +1137,7 @@ const translations = {
             duplicateWaypointsErrorMessage: 'Por favor, elimina los puntos de ruta duplicados',
             atLeastTwoDifferentWaypoints: 'Por favor, introduce al menos dos direcciones diferentes',
             splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con miembros individuales. Por favor, actualiza tu selección.',
-            invalidMerchant: 'Por favor, introduce un comerciante correcto',
+            invalidMerchant: 'Por favor, introduce un comerciante válido',
             atLeastOneAttendee: 'Debe seleccionarse al menos un asistente',
             invalidQuantity: 'Por favor, introduce una cantidad válida',
             quantityGreaterThanZero: 'La cantidad debe ser mayor que cero',
@@ -2385,6 +2385,8 @@ const translations = {
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
             fullName: 'Por favor, introduce un nombre completo válido',
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido',
+            deletePaymentBankAccount:
+                'Esta cuenta bancaria no se puede eliminar porque se utiliza para pagos con la tarjeta Expensify. Si aún deseas eliminar esta cuenta, por favor contacta con Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -6995,12 +6997,6 @@ const translations = {
         title: '¿Descartar cambios?',
         body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
         confirmText: 'Descartar cambios',
-    },
-    aiSales: {
-        talkToSales: 'Habla con ventas',
-        getHelp: 'Obtener ayuda',
-        talkToConcierge: 'Habla con Concierge',
-        hangUp: 'Colgar',
     },
     scheduledCall: {
         book: {
