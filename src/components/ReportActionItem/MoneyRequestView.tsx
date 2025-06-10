@@ -17,7 +17,6 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -482,15 +481,14 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             hasDependentTags(policy, policyTagList),
             tagForDisplay,
         );
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/rules-of-hooks
-        const previousValue = usePrevious(shouldShow);
+
         return (
             <OfflineWithFeedback
                 key={name}
                 pendingAction={getPendingFieldAction('tag')}
             >
                 <HighlightableIOUMenuItem
-                    highlighted={shouldShow && !getTagForDisplay(transaction, index) && !previousValue}
+                    highlighted={shouldShow && !getTagForDisplay(transaction, index)}
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
