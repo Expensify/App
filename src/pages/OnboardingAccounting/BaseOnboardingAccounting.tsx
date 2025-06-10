@@ -257,6 +257,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         isSmallScreenWidth,
         onboardingAdminsChatReportID,
         onboardingCompanySize,
+        onboardingMessages,
         onboardingPolicyID,
         onboardingPurposeSelected,
         paidGroupPolicy,
