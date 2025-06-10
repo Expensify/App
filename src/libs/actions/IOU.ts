@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
@@ -228,7 +229,6 @@ import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, 
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
-import getOnboardingMessages from './Welcome/OnboardingFlowTasks';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
