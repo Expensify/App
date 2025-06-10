@@ -14,18 +14,23 @@ To create a patch for a third-party library that you've modified:
 2. Run the following command to generate the patch file:
 
 ```
-npm run patch-package -- <edited-library> --append "<short-patch-description>"
+npx patch-package <edited-library> --append "<short-patch-description>" --patch-dir ./patches/<edited-library>
 ```
 
 For example:
 ```
-npm run patch-package -- react-native-pdf --append "fix-pdf-rendering-on-ios"
+npx patch-package react-native-pdf --append "fix-pdf-rendering-on-ios" --patch-dir ./patches/react-native-pdf
 ```
 
 This will create a patch file in the `patches/` directory. After creating the patch:
 
 - Create or update the `details.md` file in the library's patch directory
 - Document the patch according to the [`details.md` format](#-detailsmd-format)
+
+> 📝 **Note**
+>
+> The `--patch-dir` option should only be specified when the target library has a dedicated subdirectory within the `./patches` directory.
+> If no such subdirectory exists, omit this option from the command.
 
 ---
 
