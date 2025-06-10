@@ -654,7 +654,7 @@ function MoneyReportHeader({
             isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
             isChatReportArchived,
         );
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, isChatReportArchived]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
