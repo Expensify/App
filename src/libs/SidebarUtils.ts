@@ -218,9 +218,10 @@ function getOrderedReportIDs(
         const isHidden = isHiddenForCurrentUser(report);
         const isFocused = report.reportID === currentReportId;
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+        const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
         const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, reportAttributes);
         const isReportInAccessible = report?.errorFields?.notFound;
-        if (isOneTransactionThread(report, report.parentReportID, parentReportAction)) {
+        if (isOneTransactionThread(report, parentReport, parentReportAction)) {
             return;
         }
         if (hasErrorsOtherThanFailedReceipt && !isReportInAccessible) {
