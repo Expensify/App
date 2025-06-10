@@ -371,7 +371,6 @@ function FeatureTrainingModal({
                       }
                     : {}),
                 ...modalInnerContainerStyle,
-                padding: 0,
             }}
         >
             <Wrapper
