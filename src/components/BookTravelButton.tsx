@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/actions/Link';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -25,7 +26,7 @@ import ConfirmModal from './ConfirmModal';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
-import Text from './Text';
+import RenderHTML from './RenderHTML';
 import TextLink from './TextLink';
 
 type BookTravelButtonProps = {
@@ -83,18 +84,23 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         }
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
-        if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
+        if (!primaryContactMethod || (Str.isSMSLogin(primaryContactMethod) && shouldRenderErrorMessageBelowButton)) {
             setErrorMessage(
-                <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase1')}</Text>{' '}
+                getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.DESKTOP ? (
                     <TextLink
                         style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
                     >
-                        {translate('travel.phoneError.link')}
+                        <RenderHTML html={translate('travel.phoneError')} />
                     </TextLink>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase2')}</Text>
-                </Text>,
+                ) : (
+                    <TextLink
+                        style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
+                        href={`https://new.expensify.com/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`}
+                    >
+                        <RenderHTML html={translate('travel.phoneError')} />
+                    </TextLink>
+                ),
             );
             return;
         }
