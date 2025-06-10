@@ -211,7 +211,7 @@ function SuggestionMention(
             }
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
             const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex);
-            const commentAfterMention = value.slice(suggestionValues.atSignIndex + originalMention.length);
+            const commentAfterMention = value.slice(suggestionValues.atSignIndex + Math.max(originalMention.length, value.length));
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterMention)}`, true);
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
