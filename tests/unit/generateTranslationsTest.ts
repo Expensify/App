@@ -6,6 +6,7 @@ import os from 'os';
 import path from 'path';
 import StringUtils from '@libs/StringUtils';
 import generateTranslations from '../../scripts/generateTranslations';
+import Translator from '../../scripts/utils/Translator/Translator';
 
 jest.mock('openai');
 
@@ -288,5 +289,49 @@ describe('generateTranslations', () => {
                 export default strings;
             `),
         );
+    });
+
+    it("doesn't request duplicate translations", async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            StringUtils.dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                    farewell: 'Goodbye',
+                    repeatGreeting: \`Hello\`,
+                    nested: {
+                        anotherGreeting: 'Hello',
+                        anotherFarewell: 'Goodbye',
+                    },
+                    // @context diff
+                    greetingWithDifferentContext: 'Hello',
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        expect(itContent).toStrictEqual(
+            StringUtils.dedent(`
+                const strings = {
+                    greeting: '[it] Hello',
+                    farewell: '[it] Goodbye',
+                    repeatGreeting: \`[it] Hello\`,
+                    nested: {
+                        anotherGreeting: '[it] Hello',
+                        anotherFarewell: '[it] Goodbye',
+                    },
+                    // @context diff
+                    greetingWithDifferentContext: '[it][ctx: diff] Hello',
+                };
+                export default strings;
+            `),
+        );
+        expect(translateSpy).toHaveBeenCalledTimes(3);
+        expect(translateSpy).toHaveBeenNthCalledWith(1, 'it', 'Hello', undefined);
+        expect(translateSpy).toHaveBeenNthCalledWith(2, 'it', 'Goodbye', undefined);
+        expect(translateSpy).toHaveBeenNthCalledWith(3, 'it', 'Hello', 'diff');
     });
 });

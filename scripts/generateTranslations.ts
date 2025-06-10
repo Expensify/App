@@ -221,7 +221,12 @@ class TranslationGenerator {
         if (!ts.isStringLiteral(node) && !ts.isNoSubstitutionTemplateLiteral(node) && !ts.isTemplateExpression(node)) {
             throw new Error(`Cannot generate translation key for node: ${node.getText()}`);
         }
-        let keyBase = node.getText();
+        let keyBase = node
+            .getText()
+            // Trim leading whitespace, quotation marks, and backticks
+            .trim()
+            .replace(/^['"`]/, '')
+            .replace(/['"`]$/, '');
         const context = this.getContextForNode(node);
         if (context) {
             keyBase += context;
@@ -232,15 +237,12 @@ class TranslationGenerator {
     /**
      * Recursively extract all string literals and templates to translate from the subtree rooted at the given node.
      * Simple templates (as defined by this.isSimpleTemplateExpression) can be translated directly.
-     * Complex templates must have each of their spans recursively translated first, so we'll extract all the lowest-level strings to translate,
-     * and then complex templates will be serialized with a hash of complex spans in place of the span text, and we'll translate that.
+     * Complex templates must have each of their spans recursively translated first, so we'll extract all the lowest-level strings to translate.
+     * Then complex templates will be serialized with a hash of complex spans in place of the span text, and we'll translate that.
      */
     private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>) {
         if (this.shouldNodeBeTranslated(node)) {
             const context = this.getContextForNode(node);
-            if (context) {
-                console.log('RORY_DEBUG found context!', context);
-            }
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
                 stringsToTranslate.set(this.getTranslationKey(node), {text: node.text, context});
             } else if (ts.isTemplateExpression(node)) {
