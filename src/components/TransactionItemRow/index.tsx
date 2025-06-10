@@ -441,18 +441,10 @@ function TransactionItemRow({
                                 </View>
                                 {columns?.map((column) => columnComponent[column])}
                             </View>
-                            {}
-                            {isInReportTableView ? (
-                                <TransactionItemRowRBRWithOnyx
-                                    transaction={transactionItem}
-                                    missingFieldError={missingFieldError}
-                                />
-                            ) : (
-                                <TransactionItemRowRBR
-                                    transactionViolations={transactionItem.violations}
-                                    missingFieldError={missingFieldError}
-                                /> // We are rendering this component only if we are not in the report table view for performance reasons
-                            )}
+                            <TransactionItemRowRBRWithOnyx
+                                transaction={transactionItem}
+                                missingFieldError={missingFieldError}
+                            />
                         </View>
                     </Animated.View>
                 )}
