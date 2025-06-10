@@ -98,9 +98,12 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getReportRouteByID: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(),
     getActiveRoute: jest.fn(),
-    navigationRef: {
-        getRootState: jest.fn(),
-    },
+}));
+
+jest.mock('@src/libs/Navigation/navigationRef', () => ({
+    getRootState: () => ({
+        routes: [],
+    }),
 }));
 
 jest.mock('@react-navigation/native');
