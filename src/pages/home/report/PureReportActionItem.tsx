@@ -830,6 +830,7 @@ function PureReportActionItem({
             );
 
             // Table Report View does not display these components as separate messages, except for self-DM
+            // eslint-disable-next-line deprecation/deprecation
             if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && report?.type === CONST.REPORT.TYPE.CHAT) {
                 if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || isSplitInGroupChat) {
                     children = (
@@ -878,6 +879,7 @@ function PureReportActionItem({
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
             children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
+            // eslint-disable-next-line deprecation/deprecation
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
             children = (
                 <MoneyRequestReportPreview
@@ -1276,6 +1278,7 @@ function PureReportActionItem({
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
+        // eslint-disable-next-line deprecation/deprecation
         if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses))) {
             return emptyHTML;
         }

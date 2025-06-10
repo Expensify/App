@@ -5392,6 +5392,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         }
     }
 
+    // eslint-disable-next-line deprecation/deprecation
     if (activeReportID && (!isMoneyRequestReport || !Permissions.isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW, betas))) {
         notifyNewAction(activeReportID, payeeAccountID);
     }
@@ -7299,6 +7300,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
     dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
 
+    // eslint-disable-next-line deprecation/deprecation
     if (!isMoneyRequestReport || !Permissions.isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW, betas)) {
         notifyNewAction(activeReportID, userAccountID);
     }
@@ -7569,6 +7571,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         chatReport,
         iouReport,
         reportPreviewAction,
+        // eslint-disable-next-line deprecation/deprecation
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, !Permissions.isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW, betas));
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
@@ -7720,6 +7723,7 @@ function deleteMoneyRequest(
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
     isSingleTransactionView = false,
+    // eslint-disable-next-line deprecation/deprecation
     shouldRemoveIOUTransactionID = !Permissions.isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW, betas),
 ) {
     if (!transactionID) {
@@ -8055,6 +8059,7 @@ function deleteTrackExpense(
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
     isSingleTransactionView = false,
+    // eslint-disable-next-line deprecation/deprecation
     shouldRemoveIOUTransaction = !Permissions.isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW, betas),
 ) {
     if (!chatReportID || !transactionID) {
@@ -11732,6 +11737,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const firstIOU = iouActions.at(0);
     if (firstIOU) {
+        // eslint-disable-next-line deprecation/deprecation
         const {updatedReportAction, iouReport} = prepareToCleanUpMoneyRequest(originalTransactionID, firstIOU, Permissions.isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW, betas));
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

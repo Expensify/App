@@ -824,6 +824,7 @@ const CONST = {
          * @deprecated
          * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
          * */
+        // eslint-disable-next-line deprecation/deprecation
         TABLE_REPORT_VIEW: 'tableReportView',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
