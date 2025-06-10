@@ -4203,7 +4203,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightLarge,
             flexShrink: 1,
         },
-        
+
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',
