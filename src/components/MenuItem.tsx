@@ -33,6 +33,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
+import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
@@ -50,7 +51,7 @@ type IconProps = {
 };
 
 type AvatarProps = {
-    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE | typeof CONST.ICON_TYPE_PLAID;
 
     icon: AvatarSource | IconType[];
 };
@@ -375,6 +376,9 @@ type MenuItemBaseProps = {
 
     /** The value to copy on secondary interaction */
     copyValue?: string;
+
+    /** Plaid image for the bank */
+    plaidUrl?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -495,6 +499,7 @@ function MenuItem(
         pressableTestID,
         shouldTeleportPortalToModalLayer,
         copyValue,
+        plaidUrl,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -785,6 +790,7 @@ function MenuItem(
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
                                                             )}
+                                                            {iconType === CONST.ICON_TYPE_PLAID && !!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
                                                         </View>
                                                     )}
                                                     {!!secondaryIcon && (
