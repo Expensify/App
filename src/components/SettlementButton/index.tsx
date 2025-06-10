@@ -17,7 +17,7 @@ import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/acti
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {getActiveAdminWorkspaces, getPolicy, hasVBBA} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, hasVBBA} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -112,7 +112,7 @@ function SettlementButton({
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const isLastPaymentPolicy = !Object.values({...CONST.PAYMENT_METHODS, ...CONST.IOU.PAYMENT_TYPE}).includes(lastPaymentMethod as PaymentMethod);
-    const lastPaymentPolicy = isLastPaymentPolicy ? getPolicy(lastPaymentMethod) : undefined;
+    const lastPaymentPolicy = isLastPaymentPolicy ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPaymentMethod}`] : undefined;
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const bankAccount = bankAccountList[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
     // whether the user has single policy and the expense isn't inside a workspace

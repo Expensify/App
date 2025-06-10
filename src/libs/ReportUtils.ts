@@ -4305,6 +4305,8 @@ function getReportPreviewMessage(
         });
     }
 
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const reportPolicy = getPolicy(report.policyID);
 
     let linkedTransaction;
@@ -8881,6 +8883,9 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         // property. If it does, it indicates that this is a 'Pay someone' action.
         const {amount, currency} = originalMessage?.IOUDetails ?? originalMessage ?? {};
         const formattedAmount = convertToDisplayString(Math.abs(amount), currency) ?? '';
+
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const reportPolicy = getPolicy(report?.policyID);
         const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
 
