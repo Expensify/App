@@ -2,7 +2,7 @@
 title: Distance Expenses
 description: Learn how to create a distance expense in Expensify and expense mileage reimbursement.
 keywords: [New Expensify, distance expense, mileage reimbursement, create expense, map route, add stops, calculate distance, workspace submission, expense money]
-date: 2025-06-06
+date: 2025-06-06T00:00:00Z
 ---
 <div id="new-expensify" markdown="1">
 
