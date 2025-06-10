@@ -53,7 +53,6 @@ type OnyxTabNavigatorProps = ChildrenProps & {
     onTabSelect?: ({index}: {index: number}) => void;
 };
 
-// eslint-disable-next-line rulesdir/no-inline-named-export
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
 
 // The TabFocusTrapContext is to collect the focus trap container element of each tab screen.
