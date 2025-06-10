@@ -1,5 +1,7 @@
-import React from 'react';
-import {Linking, View} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+import {InteractionManager, Linking, View} from 'react-native';
 import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
@@ -33,8 +35,23 @@ function ManageTrips() {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
     };
 
+    const scrollViewRef = useRef<RNScrollView>(null);
+
+    const scrollToBottom = () => {
+        InteractionManager.runAfterInteractions(() => {
+            scrollViewRef.current?.scrollToEnd({animated: true});
+        });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, []);
+
     return (
-        <ScrollView contentContainerStyle={styles.pt3}>
+        <ScrollView
+            contentContainerStyle={styles.pt3}
+            ref={scrollViewRef}
+        >
             <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <FeatureList
                     menuItems={tripsFeatures}
