@@ -171,7 +171,7 @@ class TranslationGenerator {
 
     /**
      * Is the given template expression "simple"? (i.e: can it be sent directly to ChatGPT to be translated)
-     * We define a template expression as "simple" each of its spans are simple (as defined by this.isSimpleTemplateSpan)
+     * We define a template expression as "simple" if each of its spans are simple (as defined by this.isSimpleTemplateSpan)
      *
      * @example `Hello, ${name}!` => true
      * @example `Welcome ${user.firstName}` => true
