@@ -3956,7 +3956,6 @@ function getUpdateMoneyRequestParams(
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
     hash?: number,
-    optimisticTransactionReportID?: string,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -3969,12 +3968,8 @@ function getUpdateMoneyRequestParams(
 
     // Step 2: Get all the collections being updated
     const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-    const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const transaction = {...currentTransaction} as OnyxTypes.Transaction;
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-    if (transaction) {
-        transaction.reportID = optimisticTransactionReportID;
-    }
     const isTransactionOnHold = isOnHold(transaction);
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = isExpenseReport(iouReport);
@@ -4265,7 +4260,7 @@ function getUpdateMoneyRequestParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...currentTransaction,
+            ...transaction,
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
@@ -11715,9 +11710,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         // In case of already created split transactions we have to update fields change messages
         // In case of new transactions we will simply ignore this
         if (splitTransaction && !isReverseSplitOperation) {
-            if (!isReverseSplitOperation) {
-                childTransactions = childTransactions.filter((undeletedTransaction) => undeletedTransaction?.transactionID !== splitTransaction.transactionID);
-            }
+            childTransactions = childTransactions.filter((undeletedTransaction) => undeletedTransaction?.transactionID !== splitTransaction.transactionID);
             const currentSplit = splits.at(index);
             const existing = getTransactionDetails(splitTransaction);
 
@@ -11745,9 +11738,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                     policy,
                     policyTags ?? null,
                     policyCategories ?? null,
-                    undefined,
-                    undefined,
-                    expenseReport?.reportID,
                 );
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
                 canBeClosedWithoutUpdates = false;
