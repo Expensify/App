@@ -1,4 +1,4 @@
-import type {ChatCompletionCreateParamsNonStreaming} from 'openai/src/resources/chat/completions';
+import type {ChatCompletionCreateParamsNonStreaming} from 'openai/resources/chat/completions';
 
 const mockCreate = jest.fn(({messages}: ChatCompletionCreateParamsNonStreaming) => {
     const text = messages?.find((m) => m.role === 'user')?.content ?? '';
