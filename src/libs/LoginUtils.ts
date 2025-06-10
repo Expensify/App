@@ -1,4 +1,4 @@
-import {PUBLIC_DOMAINS, Str} from 'expensify-common';
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -7,8 +7,6 @@ import ROUTES from '@src/ROUTES';
 import {clearSignInData, setAccountError} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
-
-const PUBLIC_DOMAINS_SET = new Set<string>(PUBLIC_DOMAINS);
 
 let countryCodeByIP: number;
 Onyx.connect({

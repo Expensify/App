@@ -1,4 +1,4 @@
-import {PUBLIC_DOMAINS, Str} from 'expensify-common';
+import {PUBLIC_DOMAIN_SET, Str} from 'expensify-common';
 import escapeRegExp from 'lodash/escapeRegExp';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -1635,11 +1635,11 @@ function generateDefaultWorkspaceName(email = ''): string {
     const displayName = userDetails?.displayName?.trim();
     let displayNameForWorkspace = '';
 
-    if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
+    if (!PUBLIC_DOMAIN_SET.has(domain.toLowerCase())) {
         displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
     } else if (displayName) {
         displayNameForWorkspace = Str.UCFirst(displayName);
-    } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
+    } else if (PUBLIC_DOMAIN_SET.has(domain.toLowerCase())) {
         displayNameForWorkspace = Str.UCFirst(username);
     } else {
         displayNameForWorkspace = userDetails?.phoneNumber ?? '';
