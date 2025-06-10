@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useContext} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -8,7 +8,7 @@ import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
 import {Plus} from '@components/Icon/Expensicons';
 import {Workflows} from '@components/Icon/Illustrations';
-import LockedAccountModal from '@components/LockedAccountModal';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -119,9 +119,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
 
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
-    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -268,7 +266,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
                                     if (isAccountLocked) {
-                                        setIsLockedAccountModalOpen(true);
+                                        showLockedAccountModal();
                                         return;
                                     }
                                     if (
@@ -415,10 +413,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     )}
                 </View>
             </WorkspacePageWithSections>
-            <LockedAccountModal
-                isLockedAccountModalOpen={isLockedAccountModalOpen}
-                onClose={() => setIsLockedAccountModalOpen(false)}
-            />
         </AccessOrNotFoundWrapper>
     );
 }

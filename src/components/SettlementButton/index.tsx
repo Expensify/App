@@ -1,9 +1,9 @@
-import React, {useState} from 'react';
+import React, {useContext} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import KYCWall from '@components/KYCWall';
-import LockedAccountModal from '@components/LockedAccountModal';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentOptions from '@hooks/usePaymentOptions';
@@ -66,9 +66,7 @@ function SettlementButton({
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
-    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const paymentButtonOptions = usePaymentOptions({
         addBankAccountRoute,
@@ -88,7 +86,7 @@ function SettlementButton({
 
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (isAccountLocked) {
-            setIsLockedAccountModalOpen(true);
+            showLockedAccountModal();
             return;
         }
         selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, onPress, isUserValidated, confirmApproval, iouReport);
@@ -144,10 +142,6 @@ function SettlementButton({
                     />
                 )}
             </KYCWall>
-            <LockedAccountModal
-                isLockedAccountModalOpen={isLockedAccountModalOpen}
-                onClose={() => setIsLockedAccountModalOpen(false)}
-            />
         </>
     );
 }

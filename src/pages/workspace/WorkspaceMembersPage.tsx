@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState, useContext} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -14,7 +14,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
 import {ReceiptWrangler} from '@components/Icon/Illustrations';
-import LockedAccountModal from '@components/LockedAccountModal';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -110,9 +110,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber} = useLocalize();
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: false});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
-    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const filterEmployees = useCallback(
         (employee?: PolicyEmployee) => {
@@ -252,7 +250,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      */
     const inviteUser = useCallback(() => {
         if (isAccountLocked) {
-            setIsLockedAccountModalOpen(true);
+            showLockedAccountModal();
             return;
         }
         clearInviteDraft(route.params.policyID);
@@ -636,7 +634,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
                     if (isAccountLocked) {
-                        setIsLockedAccountModalOpen(true);
+                        showLockedAccountModal();
                         return;
                     }
                     if (isOffline) {
@@ -820,10 +818,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
-                    />
-                    <LockedAccountModal
-                        isLockedAccountModalOpen={isLockedAccountModalOpen}
-                        onClose={() => setIsLockedAccountModalOpen(false)}
                     />
                 </>
             )}

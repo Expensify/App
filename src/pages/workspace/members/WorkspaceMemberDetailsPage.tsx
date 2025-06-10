@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useContext} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -10,7 +10,7 @@ import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffl
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import LockedAccountModal from '@components/LockedAccountModal';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -100,9 +100,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
-    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
@@ -235,7 +233,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const handleIssueNewCard = useCallback(() => {
         if (isAccountLocked) {
-            setIsLockedAccountModalOpen(true);
+            showLockedAccountModal();
             return;
         }
 
@@ -331,7 +329,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             ) : (
                                 <Button
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
-                                    onPress={() => (isAccountLocked ? setIsLockedAccountModalOpen(true) : askForConfirmationToRemove())}
+                                    onPress={() => (isAccountLocked ? showLockedAccountModal() : askForConfirmationToRemove())}
                                     isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                     icon={Expensicons.RemoveMembers}
                                     style={styles.mb5}

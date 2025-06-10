@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState, useContext} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,7 +11,7 @@ import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Gear, Plus} from '@components/Icon/Expensicons';
 import {HandCard} from '@components/Icon/Illustrations';
-import LockedAccountModal from '@components/LockedAccountModal';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -73,9 +73,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
-    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -96,7 +94,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const handleIssueCardPress = () => {
         if (isAccountLocked) {
-            setIsLockedAccountModalOpen(true);
+            showLockedAccountModal();
             return;
         }
         if (isActingAsDelegate) {
@@ -252,10 +250,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
-            <LockedAccountModal
-                isLockedAccountModalOpen={isLockedAccountModalOpen}
-                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </ScreenWrapper>
     );

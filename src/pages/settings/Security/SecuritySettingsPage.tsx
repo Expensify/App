@@ -1,5 +1,5 @@
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useContext} from 'react';
 import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -10,7 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import LockedAccountModal from '@components/LockedAccountModal';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -78,10 +78,8 @@ function SecuritySettingsPage() {
         horizontal: 0,
         vertical: 0,
     });
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: false});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
-    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
@@ -138,7 +136,7 @@ function SecuritySettingsPage() {
                         return;
                     }
                     if (isAccountLocked) {
-                        setIsLockedAccountModalOpen(true);
+                        showLockedAccountModal();
                         return;
                     }
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
@@ -156,7 +154,7 @@ function SecuritySettingsPage() {
                         return;
                     }
                     if (isAccountLocked) {
-                        setIsLockedAccountModalOpen(true);
+                        showLockedAccountModal();
                         return;
                     }
                     waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route));
@@ -188,7 +186,7 @@ function SecuritySettingsPage() {
                 }
 
                 if (isAccountLocked) {
-                    setIsLockedAccountModalOpen(true);
+                    showLockedAccountModal();
                     return;
                 }
                 waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE));
@@ -287,7 +285,7 @@ function SecuritySettingsPage() {
                     return;
                 }
                 if (isAccountLocked) {
-                    modalClose(() => setIsLockedAccountModalOpen(true));
+                    modalClose(() => showLockedAccountModal());
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
@@ -305,7 +303,7 @@ function SecuritySettingsPage() {
                     return;
                 }
                 if (isAccountLocked) {
-                    modalClose(() => setIsLockedAccountModalOpen(true));
+                    modalClose(() => showLockedAccountModal());
                     return;
                 }
                 modalClose(() => {
@@ -389,7 +387,7 @@ function SecuritySettingsPage() {
                                                     return;
                                                 }
                                                 if (isAccountLocked) {
-                                                    setIsLockedAccountModalOpen(true);
+                                                    showLockedAccountModal();
                                                     return;
                                                 }
                                                 Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
@@ -446,10 +444,6 @@ function SecuritySettingsPage() {
                     <DelegateNoAccessModal
                         isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                         onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                    />
-                    <LockedAccountModal
-                        isLockedAccountModalOpen={isLockedAccountModalOpen}
-                        onClose={() => setIsLockedAccountModalOpen(false)}
                     />
                 </>
             )}

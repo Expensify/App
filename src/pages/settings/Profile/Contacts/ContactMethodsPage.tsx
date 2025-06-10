@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useContext} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -7,7 +7,7 @@ import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LockedAccountModal from '@components/LockedAccountModal';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -38,10 +38,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
-
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
-    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
@@ -101,7 +98,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             return;
         }
         if (isAccountLocked) {
-            setIsLockedAccountModalOpen(true);
+            showLockedAccountModal();
             return;
         }
 
@@ -147,10 +144,6 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
-            <LockedAccountModal
-                isLockedAccountModalOpen={isLockedAccountModalOpen}
-                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </ScreenWrapper>
     );

@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useContext} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -6,7 +6,7 @@ import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
-import LockedAccountModal from '@components/LockedAccountModal';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import useLocalize from '@hooks/useLocalize';
@@ -58,9 +58,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
-    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList ?? {});
 
@@ -107,7 +105,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                             return;
                         }
                         if (isAccountLocked) {
-                            setIsLockedAccountModalOpen(true);
+                            showLockedAccountModal();
                             return;
                         }
                         if (!(policy?.outputCurrency === CONST.CURRENCY.USD)) {
@@ -136,10 +134,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
-            <LockedAccountModal
-                isLockedAccountModalOpen={isLockedAccountModalOpen}
-                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </WorkspacePageWithSections>
     );
