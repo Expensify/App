@@ -674,7 +674,7 @@ function IOURequestStepScan({
                     .then((photo: PhotoFile) => {
                         // Store the receipt on the transaction object in Onyx
                         const source = getPhotoSource(photo.path);
-                        const transaction = initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
+                        const transaction = isMultiScanEnabled && initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
 
                         setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
@@ -753,6 +753,9 @@ function IOURequestStepScan({
             <View
                 style={styles.flex1}
                 onLayout={() => {
+                    if (!onLayout) {
+                        return;
+                    }
                     onLayout(setTestReceiptAndNavigate);
                 }}
             >
