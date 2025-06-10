@@ -406,7 +406,7 @@ async function main(): Promise<void> {
     const enSourceFile = path.join(languagesDir, 'en.ts');
 
     const generator = new TranslationGenerator({
-        targetLanguages: ['it' as Locale],
+        targetLanguages: ['pr-BR', 'it', 'de', 'fr', 'nl', 'ja', 'zh-hans'] as unknown as Locale[],
         languagesDir,
         sourceFile: enSourceFile,
         translator,
