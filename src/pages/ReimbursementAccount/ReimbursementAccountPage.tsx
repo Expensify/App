@@ -20,6 +20,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -384,11 +385,22 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     if (userHasPhonePrimaryEmail) {
-        errorText = (
-            <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}>
-                <RenderHTML html={translate('bankAccount.hasPhoneLoginError')} />
-            </TextLink>
-        );
+        errorText =
+            getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.DESKTOP ? (
+                <TextLink
+                    style={styles.link}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
+                >
+                    <RenderHTML html={translate('bankAccount.hasPhoneLoginError')} />
+                </TextLink>
+            ) : (
+                <TextLink
+                    style={styles.link}
+                    href={`https://new.expensify.com/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`}
+                >
+                    <RenderHTML html={translate('bankAccount.hasPhoneLoginError')} />
+                </TextLink>
+            );
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
