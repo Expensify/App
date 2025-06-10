@@ -39,7 +39,11 @@ import {
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
-function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
+function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], isChatReportArchived = false) {
+    if (isChatReportArchived) {
+        return false;
+    }
+
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpen = isOpenReport(report);
@@ -223,14 +227,15 @@ function getReportPreviewAction(
     isReportArchived = false,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
     invoiceReceiverPolicy?: Policy,
+    isChatReportArchived = false,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
-    if (isAddExpenseAction(report, transactions ?? [])) {
+    if (isAddExpenseAction(report, transactions ?? [], isChatReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
-    if (canSubmit(report, violations, policy, transactions)) {
+    if (canSubmit(report, violations, policy, transactions, isChatReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, violations, policy, transactions)) {
