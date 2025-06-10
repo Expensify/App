@@ -434,7 +434,7 @@ function WorkspacesListPage() {
             {isLessThanMediumScreen && <View style={styles.mt3} />}
             {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
-                    label="Find workspace"
+                    label={translate('workspace.common.findWorkspace')}
                     inputValue={inputValue}
                     onChangeText={setInputValue}
                     shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
