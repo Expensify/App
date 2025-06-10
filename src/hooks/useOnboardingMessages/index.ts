@@ -4,6 +4,6 @@ import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 
 export default function useOnboardingMessages() {
     const {translate} = useLocalize();
-    const onboardingMessages = useMemo(getOnboardingMessages, [translate]);
+    const onboardingMessages = useMemo(() => getOnboardingMessages(), [translate]);
     return onboardingMessages;
 }
