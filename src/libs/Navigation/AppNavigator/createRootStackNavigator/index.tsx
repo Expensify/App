@@ -43,6 +43,7 @@ function createRootStackNavigator<const ParamList extends ParamListBase,
   },
   const Config extends StaticConfig<TypeBag> = StaticConfig<TypeBag>,
   >(config?: Config): TypedNavigator<TypeBag, Config> {
+    // In React Navigation 7 createNavigatorFactory returns any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return createNavigatorFactory(RootStackNavigatorComponent)(config);
 }
