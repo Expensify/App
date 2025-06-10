@@ -15,7 +15,7 @@ import Overlay from './Overlay';
 
 type PublicRightModalNavigatorComponentProps = PlatformStackScreenProps<PublicScreensParamList, typeof NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR>;
 
-const Stack = createPlatformStackNavigator<ConsoleNavigatorParamList>();
+const Stack = createPlatformStackNavigator<ConsoleNavigatorParamList, string>();
 
 function PublicRightModalNavigatorComponent({navigation}: PublicRightModalNavigatorComponentProps) {
     const styles = useThemeStyles();

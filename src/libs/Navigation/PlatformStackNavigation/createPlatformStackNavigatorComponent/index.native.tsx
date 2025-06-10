@@ -40,6 +40,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             navigation,
             state: originalState,
             descriptors,
+            describe,
             NavigationContent,
         } = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
@@ -96,6 +97,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         state={state}
                         descriptors={descriptors}
                         navigation={navigation}
+                        describe={describe}
                     />
                     {!!ExtraContent && (
                         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -103,7 +105,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, descriptors, navigation, props, state],
+            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, navigation, props, state],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading

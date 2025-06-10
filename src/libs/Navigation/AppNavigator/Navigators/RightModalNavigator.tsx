@@ -19,7 +19,7 @@ import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
-const Stack = createPlatformStackNavigator<RightModalNavigatorParamList>();
+const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();

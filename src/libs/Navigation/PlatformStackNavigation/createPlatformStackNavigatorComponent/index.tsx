@@ -41,6 +41,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             navigation,
             state: originalState,
             descriptors,
+            describe,
             NavigationContent,
         } = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
@@ -105,9 +106,11 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     <StackView
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
+                        direction="ltr"
                         state={mappedState}
                         descriptors={descriptors}
                         navigation={navigation}
+                        describe={describe}
                     />
 
                     {!!ExtraContent && (
@@ -116,7 +119,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, descriptors, mappedState, navigation, props],
+            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, mappedState, navigation, props],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading
