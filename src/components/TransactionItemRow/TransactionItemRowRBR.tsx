@@ -17,29 +17,39 @@ type TransactionItemRowRBRProps = {
 
     /** Styles for the RBR messages container */
     containerStyles?: ViewStyle[];
+
+    /** Error message for missing required fields in the transaction */
+    missingFieldError?: string;
 };
 
 /** This component is lighter version of TransactionItemRowRBRWithOnyx that doesn't use onyx but uses transactionViolations data computed from search,
  *  thus it doesn't include violations taken from reportActions like its counterpart does. */
-function TransactionItemRowRBR({transactionViolations, containerStyles}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBR({transactionViolations, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    if (!transactionViolations) {
+
+    if (!transactionViolations && !missingFieldError) {
         return null;
     }
 
     const RBRMessages = [
+        ...(missingFieldError ? [`${missingFieldError}.`] : []),
         // Some violations end with a period already so lets make sure the connected messages have only single period between them
         // and end with a single dot.
-        ...transactionViolations.map((violation) => {
-            const message = ViolationsUtils.getViolationTranslation(violation, translate);
-            return message.endsWith('.') || transactionViolations.length === 1 ? message : `${message}.`;
-        }),
+        ...(transactionViolations
+            ? transactionViolations.map((violation) => {
+                  const message = ViolationsUtils.getViolationTranslation(violation, translate);
+                  return message.endsWith('.') ? message : `${message}.`;
+              })
+            : []),
     ].join(' ');
     return (
         RBRMessages.length > 0 && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}>
+            <View
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}
+                testID="TransactionItemRowRBR"
+            >
                 <Icon
                     src={DotIndicator}
                     fill={theme.danger}

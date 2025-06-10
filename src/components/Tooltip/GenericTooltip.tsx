@@ -37,7 +37,7 @@ function GenericTooltip({
     shouldTeleportPortalToModalLayer,
     shouldRender = true,
     isEducationTooltip = false,
-    onTooltipPress = () => {},
+    onTooltipPress,
     computeHorizontalShiftForNative = false,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
