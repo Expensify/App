@@ -6535,6 +6535,7 @@ const CONST = {
     },
 
     SEARCH: {
+        DEFAULT_HASH: -1,
         NEVER: 'never',
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
