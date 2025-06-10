@@ -6,7 +6,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SearchContextData} from './types';
 
 const defaultSearchContextData: SearchContextData = {
-    currentSearchHash: -1,
+    currentSearchHash: CONST.SEARCH.DEFAULT_HASH,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
