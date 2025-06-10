@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import KYCWall from '@components/KYCWall';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentOptions from '@hooks/usePaymentOptions';
@@ -65,6 +66,7 @@ function SettlementButton({
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const paymentButtonOptions = usePaymentOptions({
         addBankAccountRoute,
@@ -82,8 +84,13 @@ function SettlementButton({
 
     const filteredPaymentOptions = paymentButtonOptions.filter((option) => option.value !== undefined) as Array<DropdownOption<PaymentType>>;
 
-    const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
+    const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
         selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, onPress, isUserValidated, confirmApproval, iouReport);
+    };
 
     const savePreferredPaymentMethod = (id: string, value: PaymentMethodType) => {
         savePreferredPaymentMethodIOU(id, value, undefined);
@@ -113,7 +120,9 @@ function SettlementButton({
                     isSplitButton={!isInvoiceReport}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
-                    onPress={(event, iouPaymentType) => onPaymentSelect(event, iouPaymentType, triggerKYCFlow)}
+                    onPress={(event, iouPaymentType) => {
+                        onPaymentSelect(event, iouPaymentType, triggerKYCFlow);
+                    }}
                     pressOnEnter={pressOnEnter}
                     options={filteredPaymentOptions}
                     onOptionSelected={(option) => {
