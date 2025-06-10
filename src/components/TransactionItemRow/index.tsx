@@ -232,6 +232,7 @@ function TransactionItemRow({
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
                             isLoading={isActionLoading}
+                            reportID={transactionItem.reportID}
                         />
                     )}
                 </View>
