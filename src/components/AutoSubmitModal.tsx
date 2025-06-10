@@ -2,13 +2,13 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { TranslationPaths } from '@src/languages/types';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
@@ -49,7 +49,6 @@ function AutoSubmitModal() {
         ),
         [onboardingIsMediumOrLargerScreenWidth, styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, translate],
     );
-
 
     return (
         <FeatureTrainingModal
