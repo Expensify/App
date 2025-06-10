@@ -2120,11 +2120,11 @@ const translations = {
         },
         tasks: {
             testDriveAdminTask: {
-                title: ({testDriveURL}) => (`Take a [test drive](${testDriveURL})`),
+                title: ({testDriveURL}) => `Take a [test drive](${testDriveURL})`,
                 description: ({testDriveURL}) => `[Take a quick product tour](${testDriveURL}) to see why Expensify is the fastest way to do your expenses.`,
             },
             testDriveEmployeeTask: {
-                title: ({testDriveURL}) => (`Take a [test drive](${testDriveURL})`),
+                title: ({testDriveURL}) => `Take a [test drive](${testDriveURL})`,
                 description: ({testDriveURL}) => `Take us for a [test drive](${testDriveURL}) and get your team *3 free months of Expensify!*`,
             },
             createTestDriveAdminWorkspaceTask: {
@@ -2136,8 +2136,7 @@ const translations = {
                 description: ({workspaceSettingsLink}) =>
                     '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Click *Workspaces* > *New workspace*.\n' +
+                    '1. Click *Workspaces* > *New workspace*.\n' +
                     '\n' +
                     `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
             },
@@ -2146,8 +2145,7 @@ const translations = {
                 description: ({workspaceCategoriesLink}) =>
                     '*Set up categories* so your team can code expenses for easy reporting.\n' +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
+                    '1. Click *Workspaces*.\n' +
                     '3. Select your workspace.\n' +
                     '4. Click *Categories*.\n' +
                     "5. Disable any categories you don't need.\n" +
@@ -2201,8 +2199,7 @@ const translations = {
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
+                    '1. Click *Workspaces*.\n' +
                     '3. Select your workspace.\n' +
                     '4. Click *Accounting*.\n' +
                     `5. Find ${integrationName}.\n` +
@@ -2224,7 +2221,7 @@ const translations = {
                     '3. Click *Corporate cards*.\n' +
                     '4. Follow the prompts to connect your card.\n' +
                     '\n' +
-                    `[Take me to connect my corporate card](${corporateCardLink}).`,
+                    `[Take me to connect my corporate cards](${corporateCardLink}).`,
             },
 
             inviteTeamTask: {
@@ -2232,8 +2229,7 @@ const translations = {
                 description: ({workspaceMembersLink}) =>
                     '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
+                    '1. Click *Workspaces*.\n' +
                     '3. Select your workspace.\n' +
                     '4. Click *Members* > *Invite member*.\n' +
                     '5. Enter emails or phone numbers. \n' +
@@ -2254,10 +2250,9 @@ const translations = {
             setupTagsTask: {
                 title: ({workspaceMoreFeaturesLink}) => `Set up [tags](${workspaceMoreFeaturesLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
+                    'Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
+                    '1. Click *Workspaces*.\n' +
                     '3. Select your workspace.\n' +
                     '4. Click *More features*.\n' +
                     '5. Enable *Tags*.\n' +
@@ -2272,10 +2267,9 @@ const translations = {
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
+                    '*Invite your accountant* to Expensify and share your expenses to make tax time easier.\n' +
                     '\n' +
-                    '1. Click your profile picture.\n' +
-                    '2. Go to *Workspaces*.\n' +
+                    '1. Click *Workspaces*.\n' +
                     '3. Select your workspace.\n' +
                     '4. Click *Members* > Invite member.\n' +
                     '5. Enter their email or phone number.\n' +
@@ -2284,19 +2278,19 @@ const translations = {
                     '\n' +
                     'That’s it, happy expensing! 😄\n' +
                     '\n' +
-                    `[View your workspace members](${workspaceMembersLink}).`,
+                    `[Take me to workspace members](${workspaceMembersLink}).`,
             },
 
             startChatTask: {
                 title: 'Start a chat',
                 description:
-                    '*Start a chat* with a friend or group using their email or phone number.\n' +
+                    '*Start a chat* with anyone using their email or phone number.\n' +
                     '\n' +
                     '1. Click the green *+* button.\n' +
                     '2. Choose *Start chat*.\n' +
-                    '3. Enter emails or phone numbers.\n' +
+                    '3. Enter an email or phone number.\n' +
                     '\n' +
-                    'If any of your friends aren’t using Expensify already, they’ll be invited automatically.\n' +
+                    'If they’re not using Expensify already, they’ll be invited automatically.\n' +
                     '\n' +
                     'Every chat will also turn into an email or text that they can respond to directly.',
             },
@@ -2304,13 +2298,13 @@ const translations = {
             splitExpenseTask: {
                 title: 'Split an expense',
                 description:
-                    '*Split an expense* right in your chat with one or more friends.\n' +
+                    '*Split expenses* with one or more people.\n' +
                     '\n' +
                     '1. Click the green *+* button.\n' +
                     '2. Choose *Start chat*.\n' +
-                    '3. Enter any email, SMS, or name of who you want to split with.\n' +
-                    '4. From within the chat, click the *+* button on the message bar, and click *Split expense*.\n' +
-                    '5. Create the expense by selecting *Manual*, *Scan* or *Distance*.\n' +
+                    '3. Enter emails or phone numbers..\n' +
+                    '4. Click the grey *+* button in the chat > *Split expense*.\n' +
+                    '5. Create the expense by selecting *Manual*, *Scan*, or *Distance*.\n' +
                     '\n' +
                     'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
             },
@@ -2319,28 +2313,28 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     "Here's how to review and update your workspace settings:\n" +
-                    '1. Click the settings tab.\n' +
-                    '2. Click *Workspaces* > [Your workspace].\n' +
-                    `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
+                    '1. Click *Workspaces*.\n' +
+                    '2. Select your workspace.\n' +
+                    `[Go to your workspace](${workspaceSettingsLink}). We'll track any changes in the #admins room.`,
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
-            name: ({testDriveURL}:{testDriveURL?:string}) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive'),
+            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive'),
             embeddedDemoIframeTitle: 'Test Drive',
             employeeFakeReceipt: {
-                description:'My test drive receipt!',
-            }
+                description: 'My test drive receipt!',
+            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             onboardingPersonalSpendMessage: 'Here’s how to track your spend in a few clicks.',
             onboardingMangeTeamMesssage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Here is a task list I’d recommend for a company of your size with ${onboardingCompanySize} submitters:`,
+                `Here’s a task list I’d recommend for a company of your size with ${onboardingCompanySize} submitters:`,
             onboardingTrackWorkspaceMessage: 'Here are some important tasks to help get your workspace set up.',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
-            onboardingAdminMessage: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
+            onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
             onboardingLookingAroundMessage:
-                "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
+                "Expensify is best known for expenses, travel, and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             onboardingTestDriveReceiverMessage: "*You've got 3 months free! Get started below.*",
         },
     },
