@@ -82,7 +82,6 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FormattedMaxLengthParams,
-    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
@@ -111,6 +110,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    MovedFromReportParams,
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
@@ -979,6 +979,7 @@ const translations = {
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
+        movedFromReport: ({reportName}: MovedFromReportParams) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'movió este gasto a tu espacio personal',
         receiptIssuesFound: () => ({
@@ -1078,9 +1079,8 @@ const translations = {
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         approvedMessage: `aprobado`,
         unapproved: `no aprobado`,
-        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
-            `aprobó ${amount} mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
-        forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
+        automaticallyForwarded: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
+        forwarded: `aprobó`,
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago`,
@@ -1139,7 +1139,7 @@ const translations = {
             duplicateWaypointsErrorMessage: 'Por favor, elimina los puntos de ruta duplicados',
             atLeastTwoDifferentWaypoints: 'Por favor, introduce al menos dos direcciones diferentes',
             splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con miembros individuales. Por favor, actualiza tu selección.',
-            invalidMerchant: 'Por favor, introduce un comerciante correcto',
+            invalidMerchant: 'Por favor, introduce un comerciante válido',
             atLeastOneAttendee: 'Debe seleccionarse al menos un asistente',
             invalidQuantity: 'Por favor, introduce una cantidad válida',
             quantityGreaterThanZero: 'La cantidad debe ser mayor que cero',
@@ -1569,6 +1569,27 @@ const translations = {
             description: 'No puedes combinar una cuenta consigo misma.',
         },
         mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
+    },
+    lockAccountPage: {
+        lockAccount: 'Bloquear cuenta',
+        unlockAccount: 'Desbloquear cuenta',
+        compromisedDescription:
+            'Si sospechas que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar nuevas transacciones con la Tarjeta Expensify y bloquear cambios no deseados en la cuenta.',
+        domainAdminsDescriptionPartOne: 'Para los administradores de dominio, ',
+        domainAdminsDescriptionPartTwo: 'esta acción detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas ',
+        domainAdminsDescriptionPartThree: 'en todos tus dominios.',
+        warning: `Una vez que tu cuenta esté bloqueada, nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberás trabajar con Concierge para asegurar tu cuenta.`,
+    },
+    failedToLockAccountPage: {
+        failedToLockAccount: 'No se pudo bloquear la cuenta',
+        failedToLockAccountDescription: 'No pudimos bloquear tu cuenta. Por favor, chatea con Concierge para resolver este problema.',
+        chatWithConcierge: 'Chatear con Concierge',
+    },
+    unlockAccountPage: {
+        accountLocked: 'Cuenta bloqueada',
+        yourAccountIsLocked: 'Tu cuenta está bloqueada',
+        chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad y desbloquear tu cuenta.',
+        chatWithConcierge: 'Chatear con Concierge',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
@@ -2366,6 +2387,8 @@ const translations = {
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
             fullName: 'Por favor, introduce un nombre completo válido',
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido',
+            deletePaymentBankAccount:
+                'Esta cuenta bancaria no se puede eliminar porque se utiliza para pagos con la tarjeta Expensify. Si aún deseas eliminar esta cuenta, por favor contacta con Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3940,6 +3963,8 @@ const translations = {
             assignedCard: ({assignee, link}: AssignedCardParams) => `ha asignado a ${assignee} una ${link}! Las transacciones importadas aparecerán en este chat.`,
             companyCard: 'tarjeta de empresa',
             chooseCardFeed: 'Elige feed de tarjetas',
+            ukRegulation:
+                'Expensify Limited es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -5611,7 +5636,7 @@ const translations = {
                     manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
                     automaticActionThree: 'y creó un registro con éxito para',
                     reimburseableLink: 'Exportar gastos por cuenta propia como',
-                    nonReimbursableLink: 'gastos de la tarjeta de empresa.',
+                    nonReimbursableLink: 'gastos de la tarjeta de empresa',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
                 integrationsMessage: ({label, errorMessage, linkText, linkURL}: IntegrationSyncFailedParams) =>
@@ -6974,12 +6999,6 @@ const translations = {
         title: '¿Descartar cambios?',
         body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
         confirmText: 'Descartar cambios',
-    },
-    aiSales: {
-        talkToSales: 'Habla con ventas',
-        getHelp: 'Obtener ayuda',
-        talkToConcierge: 'Habla con Concierge',
-        hangUp: 'Colgar',
     },
     scheduledCall: {
         book: {

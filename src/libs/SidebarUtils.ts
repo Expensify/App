@@ -230,6 +230,7 @@ function getOrderedReportIDs(
             return;
         }
         const isSystemChat = isSystemChatUtil(report);
+        const isReportArchived = isArchivedReport(reportNameValuePairs);
         const shouldOverrideHidden =
             hasValidDraftComment(report.reportID) ||
             hasErrorsOtherThanFailedReceipt ||
@@ -237,7 +238,7 @@ function getOrderedReportIDs(
             isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
-            (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
+            (!isInFocusMode && isReportArchived) ||
             reportAttributes?.[report?.reportID]?.requiresAttention;
         if (isHidden && !shouldOverrideHidden) {
             return;
@@ -253,6 +254,7 @@ function getOrderedReportIDs(
                 excludeEmptyChats: true,
                 doesReportHaveViolations,
                 includeSelfDM: true,
+                isReportArchived,
             })
         ) {
             reportsToDisplay.push(report);
@@ -532,7 +534,6 @@ function getOptionData({
     // then try to get that from the last report action if that action is valid
     // to get data from.
     let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-
     if (!lastActorDetails && lastAction) {
         const lastActorDisplayName = lastAction?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
@@ -541,6 +542,12 @@ function getOptionData({
                   accountID: report.lastActorAccountID,
               }
             : null;
+    }
+
+    // Assign the actor account ID from the last action when it’s a REPORT_PREVIEW action.
+    // to ensures that lastActorDetails.accountID is correctly set in case it's empty string
+    if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDetails) {
+        lastActorDetails.accountID = lastAction.actorAccountID;
     }
 
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
@@ -810,7 +817,9 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
-                : getPolicy(report?.invoiceReceiver?.policyID)?.name;
+                : // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+                  // eslint-disable-next-line deprecation/deprecation
+                  getPolicy(report?.invoiceReceiver?.policyID)?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageText = `${welcomeMessage.phrase1}${payer} ${translateLocal('common.and')} ${receiver}${welcomeMessage.phrase2}`;
         return welcomeMessage;

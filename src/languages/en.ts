@@ -83,7 +83,6 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FormattedMaxLengthParams,
-    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
@@ -112,6 +111,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    MovedFromReportParams,
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
@@ -979,6 +979,7 @@ const translations = {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report, ${merchant} - ${amount}`,
+        movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'moved this expense to your personal space',
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
@@ -1083,8 +1084,8 @@ const translations = {
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         approvedMessage: `approved`,
         unapproved: `unapproved`,
-        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
-        forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
+        automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
+        forwarded: `approved`,
         rejectedThisReport: 'rejected this report',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceled the payment`,
@@ -1140,7 +1141,7 @@ const translations = {
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
-            invalidMerchant: 'Please enter a correct merchant',
+            invalidMerchant: 'Please enter a valid merchant',
             atLeastOneAttendee: 'At least one attendee must be selected',
             invalidQuantity: 'Please enter a valid quantity',
             quantityGreaterThanZero: 'Quantity must be greater than zero',
@@ -1571,6 +1572,26 @@ const translations = {
             description: 'You cannot merge an account into itself.',
         },
         mergeFailureGenericHeading: 'Can’t merge accounts',
+    },
+    lockAccountPage: {
+        lockAccount: 'Lock account',
+        unlockAccount: 'Unlock account',
+        compromisedDescription: 'If you suspect your Expensify account is compromised, you can lock it to prevent new Expensify Card transactions and block unwanted account changes.',
+        domainAdminsDescriptionPartOne: 'For domain admins, ',
+        domainAdminsDescriptionPartTwo: 'this action halts all Expensify Card activity and admin actions ',
+        domainAdminsDescriptionPartThree: 'across your domain(s).',
+        warning: `Once your account is locked, our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge to secure your account.`,
+    },
+    failedToLockAccountPage: {
+        failedToLockAccount: 'Failed to lock account',
+        failedToLockAccountDescription: `We couldn't lock your account. Please chat with Concierge to resolve this problem.`,
+        chatWithConcierge: 'Chat with Concierge',
+    },
+    unlockAccountPage: {
+        accountLocked: 'Account locked',
+        yourAccountIsLocked: 'Your account is locked',
+        chatToConciergeToUnlock: 'Chat with Concierge to resolve security concerns and unlock your account.',
+        chatWithConcierge: 'Chat with Concierge',
     },
     passwordPage: {
         changePassword: 'Change password',
@@ -2345,6 +2366,8 @@ const translations = {
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
             fullName: 'Please enter a valid full name',
             ownershipPercentage: 'Please enter a valid percentage number',
+            deletePaymentBankAccount:
+                "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge",
         },
     },
     addPersonalBankAccount: {
@@ -3900,6 +3923,8 @@ const translations = {
             assignedCard: ({assignee, link}: AssignedCardParams) => `assigned ${assignee} a ${link}! Imported transactions will appear in this chat.`,
             companyCard: 'company card',
             chooseCardFeed: 'Choose card feed',
+            ukRegulation:
+                'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -5556,7 +5581,7 @@ const translations = {
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
                     automaticActionThree: 'and successfully created a record for',
                     reimburseableLink: 'out-of-pocket expenses',
-                    nonReimbursableLink: 'company card expenses.',
+                    nonReimbursableLink: 'company card expenses',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
@@ -6448,12 +6473,6 @@ const translations = {
         title: 'Discard changes?',
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
-    },
-    aiSales: {
-        talkToSales: 'Talk to sales',
-        getHelp: 'Get help',
-        talkToConcierge: 'Talk to Concierge',
-        hangUp: 'Hang up',
     },
     scheduledCall: {
         book: {

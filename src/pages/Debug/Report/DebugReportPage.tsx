@@ -70,12 +70,12 @@ function DebugReportPage({
         const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(reportID);
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
-        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
+        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
             DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, transactions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR, isReportArchived);
 
         return [
             {
