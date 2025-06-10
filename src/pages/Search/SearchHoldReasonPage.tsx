@@ -9,7 +9,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
-import {bulkHold} from '@userActions/IOU';
+import {putTransactionsOnHold} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';

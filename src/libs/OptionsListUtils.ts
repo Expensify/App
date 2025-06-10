@@ -104,7 +104,6 @@ import {
     getRejectedReportMessage,
     getReportLastMessage,
     getReportName,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportParticipantsTitle,
@@ -1482,10 +1481,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             includeSelfDM,
             login: option.login,
             includeDomainEmail,
-
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
-            isReportArchived: isArchivedReport(getReportNameValuePairs(report?.reportID)),
+            isReportArchived: !!option.private_isArchived,
         });
 
         if (!shouldBeInOptionList) {
