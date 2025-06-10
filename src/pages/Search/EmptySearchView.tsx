@@ -191,7 +191,11 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
 
         const startTestDrive = () => {
             InteractionManager.runAfterInteractions(() => {
-                if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+                if (
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                ) {
                     completeTestDriveTask(viewTourReport, viewTourReportID);
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                 } else {

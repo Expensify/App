@@ -490,7 +490,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
                       onSelected: () => {
                           InteractionManager.runAfterInteractions(() => {
-                              if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+                              if (
+                                  introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+                                  introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
+                                  introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                              ) {
                                   completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
                                   Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                               } else {
