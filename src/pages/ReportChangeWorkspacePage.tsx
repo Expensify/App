@@ -51,6 +51,8 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
             } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {
                 moveIOUReportToPolicy(reportID, policyID);
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
                 const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
                 changeReportPolicyAndInviteSubmitter(report, policyID, employeeList);
