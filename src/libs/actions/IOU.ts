@@ -11608,13 +11608,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     // A value that prevents API call from being called if there are no updates in the split item
     let canBeClosedWithoutUpdates = true;
 
-    const isReverseSplitOperation = splitExpenses.length === 1;
-
-    if (!childTransactions.length && isReverseSplitOperation) {
-        InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
-        Navigation.dismissModal();
-        return;
-    }
+    const isReverseSplitOperation = splitExpenses.length === 1 && !!childTransactions.length;
 
     let totalAmount = 0;
     const splits: SplitTransactionSplitsParam =
