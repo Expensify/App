@@ -319,7 +319,9 @@ function IOURequestStepAmount({
                 iouType={iouType}
                 policyID={policy?.id}
                 bankAccountRoute={getBankAccountRoute(report)}
-                ref={(e) => (textInput.current = e)}
+                ref={(e) => {
+                    textInput.current = e;
+                }}
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}

@@ -347,7 +347,9 @@ function Composer(
             autoComplete="off"
             autoCorrect={!isMobileSafari()}
             placeholderTextColor={theme.placeholderText}
-            ref={(el) => (textInput.current = el)}
+            ref={(el) => {
+                textInput.current = el;
+            }}
             selection={selection}
             style={[inputStyleMemo]}
             markdownStyle={markdownStyle}

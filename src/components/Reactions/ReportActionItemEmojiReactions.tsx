@@ -8,7 +8,7 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import {getEmojiReactionDetails, getLocalizedEmojiName} from '@libs/EmojiUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import type {ReactionListAnchor, ReactionListEvent} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
@@ -93,7 +93,7 @@ function ReportActionItemEmojiReactions({
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
     const formattedReactions: Array<FormattedReaction | null> = sortBy(
         Object.entries(emojiReactions ?? {}).map(([emojiName, emojiReaction]) => {
-            const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = EmojiUtils.getEmojiReactionDetails(
+            const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = getEmojiReactionDetails(
                 emojiName,
                 emojiReaction,
                 currentUserPersonalDetails.accountID,
@@ -139,7 +139,7 @@ function ReportActionItemEmojiReactions({
                         <Tooltip
                             renderTooltipContent={() => (
                                 <ReactionTooltipContent
-                                    emojiName={EmojiUtils.getLocalizedEmojiName(reaction.reactionEmojiName, preferredLocale)}
+                                    emojiName={getLocalizedEmojiName(reaction.reactionEmojiName, preferredLocale)}
                                     emojiCodes={reaction.emojiCodes}
                                     accountIDs={reaction.userAccountIDs}
                                     currentUserPersonalDetails={currentUserPersonalDetails}
@@ -154,7 +154,9 @@ function ReportActionItemEmojiReactions({
                                     shouldDisableOpacity={!!reportAction.pendingAction}
                                 >
                                     <EmojiReactionBubble
-                                        ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref ?? null)}
+                                        ref={(ref) => {
+                                            popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref ?? null;
+                                        }}
                                         count={reaction.reactionCount}
                                         emojiCodes={reaction.emojiCodes}
                                         onPress={reaction.onPress}
