@@ -23,17 +23,16 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {getTravelDotLink, openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import getIconForAction from '@libs/getIconForAction';
-import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
+import openTravelDotLink from '@libs/openTravelDotLink';
 import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoice as canSendInvoicePolicyUtils,
@@ -53,6 +52,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+import { openOldDotLink } from '@libs/actions/Link';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -390,28 +390,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const openTravel = useCallback(() => {
         if (isTravelEnabled) {
-            if (getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID) {
-                getTravelDotLink(activePolicy?.id)
-                    ?.then((response) => {
-                        if (response.spotnanaToken) {
-                            Navigation.navigate(ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.getRoute(response.spotnanaToken, response.isTestAccount));
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
-                    })
-                    ?.catch(() => {
-                        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
-                    });
-                return;
-            }
-            openTravelDotLink(activePolicy?.id)
-                ?.then(() => {})
-                ?.catch(() => {
-                    Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
-                });
-        } else {
-            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+            openTravelDotLink(activePolicy?.id);
+            return;
         }
+        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
     }, [activePolicy, isTravelEnabled]);
 
     const menuItems = [
