@@ -18,48 +18,42 @@ function RecordTroubleshootDataToolMenu() {
     const createAndSaveFile = (logs: Log[]) => {
         const newFileName = appendTimeToFileName('logs.txt');
         const zipFileName = 'troubleshoot.zip';
-        const dir = RNFetchBlob.fs.dirs.DocumentDir;
-        const zipPath = `${dir}/${zipFileName}`;
-        const tempZipPath = `${RNFetchBlob.fs.dirs.CacheDir}/${zipFileName}-temp`;
+        const tempZipPath = `${RNFetchBlob.fs.dirs.CacheDir}/${zipFileName}`;
 
         zipRef.current.file(newFileName, JSON.stringify(logs, null, 2));
 
         return ExportOnyxState.readFromOnyxDatabase()
             .then((value: Record<string, unknown>) => {
                 const dataToShare = JSON.stringify(ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState));
-                return zipRef.current.file(CONST.DEFAULT_ONYX_DUMP_FILE_NAME, dataToShare);
+                zipRef.current.file(CONST.DEFAULT_ONYX_DUMP_FILE_NAME, dataToShare);
+
+                return zipRef.current.generateAsync({type: 'base64'});
             })
-            .then(() => {
-                return zipRef.current
-                    .generateAsync({type: 'base64'})
-                    .then((base64zip) => {
-                        // Save zip archive to a temporary path (this is reaquired because of Android 10+ limitations)
-                        return RNFetchBlob.fs.writeFile(tempZipPath, base64zip, 'base64');
-                    })
-                    .then(() => {
-                        // Copy the zip archive from the temporary path to the Downloads folder
-                        return RNFetchBlob.MediaCollection.copyToMediaStore(
-                            {
-                                name: zipFileName,
-                                parentFolder: '',
-                                mimeType: 'application/zip',
-                            },
-                            'Download',
-                            tempZipPath,
-                        ).then(() => {
-                            return RNFetchBlob.fs.stat(zipPath).then(({size}) => ({
-                                path: zipPath,
-                                newFileName: zipFileName,
-                                size,
-                            }));
-                        });
-                    })
-                    .then((localZipFile) => {
-                        return setFile(localZipFile);
-                    })
-                    .catch((err) => {
-                        console.error('Failed to write ZIP file:', err);
+            .then((base64zip: string) => {
+                return RNFetchBlob.fs.writeFile(tempZipPath, base64zip, 'base64').then(() => {
+                    return RNFetchBlob.MediaCollection.copyToMediaStore(
+                        {
+                            name: zipFileName,
+                            // parentFolder: 'Download',
+                            parentFolder: '',
+                            mimeType: 'application/zip',
+                        },
+                        'Download',
+                        tempZipPath,
+                    );
+                });
+            })
+            .then((path: string) => {
+                return RNFetchBlob.fs.stat(path).then(({size}) => {
+                    setFile({
+                        path,
+                        newFileName: zipFileName,
+                        size,
                     });
+                });
+            })
+            .catch((error: unknown) => {
+                console.error('Failed to write ZIP file:', error);
             });
     };
 
