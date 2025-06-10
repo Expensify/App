@@ -5406,10 +5406,10 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
     );
-    const optimisticPolicyExpenseChatReport = membersChats.reportCreationData[submitterEmail].report;
+    const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
 
-    if (!optimisticPolicyExpenseChatReport || !optimisticPolicyExpenseChatCreatedReportActionID) {
+    if (!optimisticPolicyExpenseChatReportID || !optimisticPolicyExpenseChatCreatedReportActionID) {
         return;
     }
 
@@ -5419,7 +5419,7 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         failureData: failureChangePolicyData,
         optimisticReportPreviewAction,
         optimisticMovedReportAction,
-    } = buildOptimisticChangePolicyData(report, policyID, optimisticPolicyExpenseChatReport);
+    } = buildOptimisticChangePolicyData(report, policyID);
     optimisticData.push(...optimisticChangePolicyData);
     successData.push(...successChangePolicyData);
     failureData.push(...failureChangePolicyData);
@@ -5429,7 +5429,7 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         policyID,
         reportPreviewReportActionID: optimisticReportPreviewAction.reportActionID,
         changePolicyReportActionID: optimisticMovedReportAction.reportActionID,
-        policyExpenseChatReportID: optimisticPolicyExpenseChatReport.reportID,
+        policyExpenseChatReportID: optimisticPolicyExpenseChatReportID,
         policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID,
     };
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params, {optimisticData, successData, failureData});

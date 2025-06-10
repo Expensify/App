@@ -9675,7 +9675,7 @@ function updatePolicyIdForReportAndThreads(
     });
 }
 
-function buildOptimisticChangePolicyData(report: Report, policyID: string, optimisticPolicyExpenseChatReport?: Report | undefined) {
+function buildOptimisticChangePolicyData(report: Report, policyID: string) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -9750,11 +9750,11 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, optim
 
     // 3. Optimistically create a new REPORT_PREVIEW reportAction with the newReportPreviewActionID
     // and set it as a parent of the moved report
-    const newPolicyExpenseChatReport = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(currentUserAccountID, policyID);
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(newPolicyExpenseChatReport, report);
+    const policyExpenseChat = getPolicyExpenseChat(currentUserAccountID, policyID);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report);
 
-    if (newPolicyExpenseChatReport) {
-        const newPolicyExpenseChatReportID = newPolicyExpenseChatReport.reportID;
+    if (policyExpenseChat) {
+        const newPolicyExpenseChatReportID = policyExpenseChat.reportID;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -9798,7 +9798,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, optim
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
-            value: {lastVisibleActionCreated: newPolicyExpenseChatReport.lastVisibleActionCreated},
+            value: {lastVisibleActionCreated: policyExpenseChat.lastVisibleActionCreated},
         });
     }
 
