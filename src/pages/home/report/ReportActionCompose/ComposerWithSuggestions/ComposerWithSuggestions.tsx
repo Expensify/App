@@ -830,7 +830,7 @@ function ComposerWithSuggestions(
                 />
             </View>
 
-            {textInputRef.current?.isFocused() ? (
+            {textInputRef.current?.isFocused() && value.length > 0 ? (
               <Suggestions
                 ref={suggestionsRef}
                 isComposerFocused={textInputRef.current?.isFocused()}
