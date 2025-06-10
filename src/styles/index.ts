@@ -5908,7 +5908,8 @@ const styles = (theme: ThemeColors) =>
         multiScanEducationalPopupImage: {
             backgroundColor: colors.pink700,
             overflow: 'hidden',
-            height: 220,
+            paddingHorizontal: 0,
+            aspectRatio: 1.7,
         },
     }) satisfies Styles;
 

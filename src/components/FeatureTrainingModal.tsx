@@ -5,6 +5,7 @@ import {Image, InteractionManager, View} from 'react-native';
 import type {ImageResizeMode, ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
+import ImageSVGProps from '@components/ImageSVG/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -147,10 +148,10 @@ type FeatureTrainingModalSVGProps = {
     contentFitImage?: ImageContentFit;
 
     /** The width of the image */
-    imageWidth?: number;
+    imageWidth?: ImageSVGProps['width'];
 
     /** The height of the image */
-    imageHeight?: number;
+    imageHeight?: ImageSVGProps['height'];
 };
 
 // This page requires either an icon or a video/animation, but not both
@@ -370,6 +371,7 @@ function FeatureTrainingModal({
                       }
                     : {}),
                 ...modalInnerContainerStyle,
+                padding: 0,
             }}
         >
             <Wrapper

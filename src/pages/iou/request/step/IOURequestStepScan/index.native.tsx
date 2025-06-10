@@ -14,7 +14,7 @@ import {useCameraDevice} from 'react-native-vision-camera';
 import type {TupleToUnion} from 'type-fest';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
-import MultiScan from '@assets/images/multi-scan.svg';
+import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -868,7 +868,7 @@ function IOURequestStepScan({
                         title={translate('iou.scanMultipleReceipts')}
                         image={MultiScan}
                         shouldRenderSVG
-                        contentFitImage="contain"
+                        imageHeight={220}
                         modalInnerContainerStyle={styles.pt0}
                         illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
                         onConfirm={dismissMultiScanEducationalPopup}

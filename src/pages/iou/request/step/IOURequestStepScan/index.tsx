@@ -10,7 +10,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-nati
 import type Webcam from 'react-webcam';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
-import MultiScan from '@assets/images/multi-scan.svg';
+import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
@@ -997,7 +997,8 @@ function IOURequestStepScan({
                     title={translate('iou.scanMultipleReceipts')}
                     image={MultiScan}
                     shouldRenderSVG
-                    contentFitImage="contain"
+                    imageHeight="auto"
+                    imageWidth="auto"
                     modalInnerContainerStyle={styles.pt0}
                     illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
                     onConfirm={dismissMultiScanEducationalPopup}
