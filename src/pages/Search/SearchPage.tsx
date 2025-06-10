@@ -508,6 +508,15 @@ function SearchPage({route}: SearchPageProps) {
                             dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
                         />
                     </DragAndDropConsumer>
+                    <ConfirmModal
+                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                        onConfirm={hideReceiptModal}
+                        onCancel={hideReceiptModal}
+                        isVisible={isAttachmentInvalid}
+                        prompt={getConfirmModalPrompt(attachmentInvalidReason)}
+                        confirmText={translate('common.close')}
+                        shouldShowCancelButton={false}
+                    />
                 </DragAndDropProvider>
                 {!!selectionMode && selectionMode?.isEnabled && (
                     <View>
