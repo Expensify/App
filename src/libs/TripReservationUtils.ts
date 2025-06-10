@@ -2,6 +2,7 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {AirPnr, CarPnr, HotelPnr, LimoPnr, MiscPnr, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
@@ -56,5 +57,19 @@ function getTripReservationCode(reservation: Reservation): string {
     return `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations.at(0)?.value} • ` : ''}`;
 }
 
-export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, getTripReservationCode};
+function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationData[] {
+    return [];
+}
+
+function getReservationsFromTrip(tripData?: TripData, transactions?: Transaction[]): ReservationData[] {
+    if (tripData) {
+        return getReservationsFromSpotnanaPayload(tripData);
+    }
+    if (transactions) {
+        return getReservationsFromTripTransactions(transactions);
+    }
+    return [];
+}
+
+export {getTripReservationIcon, getTripEReceiptIcon, getTripReservationCode, getReservationsFromTrip};
 export type {ReservationData};

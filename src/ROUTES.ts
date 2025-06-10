@@ -1938,12 +1938,12 @@ const ROUTES = {
     },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
-        route: 'r/:reportID/trip/:transactionID',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
-            if (!reportID || !transactionID) {
+        route: 'r/:reportID/trip/:transactionID/:pnr',
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, backTo?: string) => {
+            if (!reportID || !transactionID || !pnr) {
                 Log.warn('Invalid reportID or transactionID is used to build the TRAVEL_TRIP_SUMMARY route');
             }
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}`, backTo);
+            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}`, backTo);
         },
     },
     TRAVEL_TRIP_DETAILS: {

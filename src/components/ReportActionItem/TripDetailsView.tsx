@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,8 +19,9 @@ import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {getReservationsFromTripTransactions, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {getReservationsFromTrip, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -146,7 +148,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
 
 type TripDetailsViewProps = {
     /** The active tripRoomReportID, used for Onyx subscription */
-    tripRoomReportID: string;
+    tripRoomReport: OnyxEntry<Report>;
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
@@ -155,11 +157,15 @@ type TripDetailsViewProps = {
     tripTransactions: Transaction[];
 };
 
-function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
+function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
+    if (!tripRoomReport) {
+        return null;
+    }
+
+    const reservationsData: ReservationData[] = getReservationsFromTrip(tripRoomReport?.tripData?.payload, tripTransactions);
 
     return (
         <View>
@@ -180,7 +186,7 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule, tripTransa
                             <ReservationView
                                 reservation={reservation}
                                 transactionID={transactionID}
-                                tripRoomReportID={tripRoomReportID}
+                                tripRoomReportID={tripRoomReport.reportID}
                                 reservationIndex={reservationIndex}
                             />
                         </OfflineWithFeedback>

@@ -50,6 +50,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    console.debug('[TripDetailsPage] Rendering', parentReport?.tripData);
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.reportID);
     const reservationType = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0)?.type;
