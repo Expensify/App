@@ -18587,16 +18587,19 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 function sanitizeJSONStringValues(inputString) {
     function replacer(str) {
         return ({
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '\\': '\\\\',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '\t': '\\t',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '\n': '\\n',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '\r': '\\r',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '\f': '\\f',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '"': '\\"',
         }[str] ?? '');
-    }
-    if (typeof inputString !== 'string') {
-        throw new TypeError('Input must be of type String.');
     }
     try {
         const parsed = JSON.parse(inputString);
@@ -18659,7 +18662,7 @@ class OpenAIUtils {
         this.client = new openai_1.default({ apiKey });
     }
     /**
-     * Prompt the Chat Completions API (gpt-4o).
+     * Prompt the Chat Completions API.
      */
     async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-4o' }) {
         const messages = [{ role: 'user', content: userPrompt }];
