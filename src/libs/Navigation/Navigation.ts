@@ -180,6 +180,8 @@ function isActiveRoute(routePath: Route): boolean {
 /**
  * Navigates to a specified route.
  * Main navigation method for redirecting to a route.
+ * For detailed information about moving between screens,
+ * see the NAVIGATION.md documentation.
  *
  * @param route - The route to navigate to.
  * @param options - Optional navigation options.
@@ -326,6 +328,9 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 }
 
 /**
+ * Navigate back to the previous screen or a specified route.
+ * For detailed information about navigation patterns and best practices,
+ * see the NAVIGATION.md documentation.
  * @param backToRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param options - Optional configuration that affects navigation logic
  */
@@ -347,6 +352,11 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     navigationRef.current?.goBack();
 }
 
+/**
+ * Navigate back to the sidebar screen in SplitNavigator and pop all central screens from the navigator at the same time.
+ * For detailed information about moving between screens,
+ * see the NAVIGATION.md documentation.
+ */
 function popToSidebar() {
     setShouldPopToSidebar(false);
 
@@ -537,6 +547,8 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 
 /**
  * Closes the modal navigator (RHP, onboarding).
+ * For detailed information about dismissing modals,
+ * see the NAVIGATION.md documentation.
  */
 const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
@@ -546,6 +558,8 @@ const dismissModal = (ref = navigationRef) => {
 
 /**
  * Dismisses the modal and opens the given report.
+ * For detailed information about dismissing modals,
+ * see the NAVIGATION.md documentation.
  */
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
