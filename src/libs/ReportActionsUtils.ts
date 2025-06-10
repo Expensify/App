@@ -129,7 +129,7 @@ const SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
  */
 const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
-const POLICY_CHANGE_LOG_ARRAY = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
+const POLICY_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
@@ -220,7 +220,7 @@ function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): 
 }
 
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
-    return isActionOfType(reportAction, ...POLICY_CHANGE_LOG_ARRAY);
+    return reportAction?.actionName ? POLICY_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
 
 function isChronosOOOListAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST> {
@@ -239,22 +239,8 @@ function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportActi
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW);
 }
 
-function isActionOfType<T extends ReportActionName[]>(
-    action: OnyxInputOrEntry<ReportAction>,
-    ...actionNames: T
-): action is {
-    [K in keyof T]: ReportAction<T[K]>;
-}[number] {
-    const actionName = action?.actionName as T[number];
-
-    // This is purely a performance optimization to limit the 'includes()' calls on Hermes
-    for (const i of actionNames) {
-        if (i === actionName) {
-            return true;
-        }
-    }
-
-    return false;
+function isActionOfType<T extends ReportActionName>(action: OnyxInputOrEntry<ReportAction>, actionName: T): action is ReportAction<T> {
+    return action?.actionName === actionName;
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
@@ -328,20 +314,19 @@ function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction
 function isMemberChangeAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
-    return isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY,
+    return (
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY)
     );
 }
 
 function isInviteMemberAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM);
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM);
 }
 
 function isLeavePolicyAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY> {
@@ -374,19 +359,20 @@ function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction i
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED);
 }
 
+const isRoomChangeLogActionSet = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
+
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
-    return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
+    return reportAction?.actionName ? isRoomChangeLogActionSet.has(reportAction.actionName) : false;
 }
 
 function isInviteOrRemovedAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG | typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
-    return isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM,
+    return (
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM)
     );
 }
 
@@ -2359,13 +2345,19 @@ function getDemotedFromWorkspaceMessage(reportAction: OnyxEntry<ReportAction<typ
     return translateLocal('workspaceActions.demotedFromWorkspace', {policyName, oldRole});
 }
 
-function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
-    return isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+function isCardIssuedAction(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
+> {
+    return (
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED)
     );
 }
 
@@ -2399,15 +2391,7 @@ function getCardIssuedMessage({
     policyID?: string;
     card?: Card;
 }) {
-    const cardIssuedActionOriginalMessage = isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-    )
-        ? getOriginalMessage(reportAction)
-        : undefined;
+    const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;

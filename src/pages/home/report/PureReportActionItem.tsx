@@ -93,6 +93,7 @@ import {
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isActionOfType,
+    isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
     isCreatedTaskReportAction,
@@ -1120,15 +1121,7 @@ function PureReportActionItem({
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE)) {
             children = <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(action)} />;
-        } else if (
-            isActionOfType(
-                action,
-                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-                CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-                CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
-            )
-        ) {
+        } else if (isCardIssuedAction(action)) {
             children = (
                 <IssueCardMessage
                     action={action}
