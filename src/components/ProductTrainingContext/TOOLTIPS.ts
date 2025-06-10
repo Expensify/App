@@ -16,6 +16,7 @@ const {
     GBR_RBR_CHAT,
     ACCOUNT_SWITCHER,
     EXPENSE_REPORTS_FILTER,
+    SCAN_TEST_DRIVE_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -170,6 +171,16 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: OUTSTANDING_FILTER,
         priority: 1925,
         shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
+    },
+    [SCAN_TEST_DRIVE_CONFIRMATION]: {
+        content: [
+            {text: 'productTrainingTooltip.scanTestDriveTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.scanTestDriveTooltip.part2', isBold: true},
+        ],
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_DRIVE_CONFIRMATION, isDismissedUsingCloseButton),
+        name: SCAN_TEST_DRIVE_CONFIRMATION,
+        priority: 1200,
+        shouldShow: () => true,
     },
 };
 

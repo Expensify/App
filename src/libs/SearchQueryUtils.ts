@@ -517,7 +517,7 @@ function buildFilterFormValuesFromQuery(
                       .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
                       .flat();
             const uniqueTags = new Set(tags);
-            uniqueTags.add(CONST.SEARCH.EMPTY_VALUE);
+            uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
             filtersForm[filterKey] = filterValues.filter((name) => uniqueTags.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
@@ -527,8 +527,11 @@ function buildFilterFormValuesFromQuery(
                       .map((item) => Object.values(item ?? {}).map((category) => category.name))
                       .flat();
             const uniqueCategories = new Set(categories);
-            uniqueCategories.add(CONST.SEARCH.EMPTY_VALUE);
-            filtersForm[filterKey] = filterValues.filter((name) => uniqueCategories.has(name));
+            const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
+            const hasEmptyCategoriesInFilter = emptyCategories.every((category) => filterValues.includes(category));
+            // We split CATEGORY_EMPTY_VALUE into individual values to detect both are present in filterValues.
+            // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
+            filtersForm[filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues
@@ -591,26 +594,6 @@ function buildFilterFormValuesFromQuery(
     }
 
     return filtersForm;
-}
-
-/**
- * Given a SearchQueryJSON this function will try to find the value of policyID filter saved in query
- * and return just the first policyID value from the filter.
- *
- * Note: `policyID` property can store multiple policy ids (just like many other search filters) as a comma separated value;
- * however there are several places in the app (related to WorkspaceSwitcher) that will accept only a single policyID.
- */
-function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
-    const policyIDFilter = queryJSON.policyID;
-
-    if (!policyIDFilter) {
-        return;
-    }
-
-    // policyID is a comma-separated value
-    const [policyID] = policyIDFilter.split(',');
-
-    return policyID;
 }
 
 /**
@@ -787,6 +770,19 @@ function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
 }
 
 /**
+ * Always show `No category` and `No tag` as the first option
+ */
+const sortOptionsWithEmptyValue = (a: string, b: string) => {
+    if (a === CONST.SEARCH.CATEGORY_EMPTY_VALUE || a === CONST.SEARCH.TAG_EMPTY_VALUE) {
+        return -1;
+    }
+    if (b === CONST.SEARCH.CATEGORY_EMPTY_VALUE || b === CONST.SEARCH.TAG_EMPTY_VALUE) {
+        return 1;
+    }
+    return localeCompare(a, b);
+};
+
+/**
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
 function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => string | string[]) {
@@ -910,7 +906,6 @@ export {
     getFilterDisplayValue,
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
-    getPolicyIDFromSearchQuery,
     buildCannedSearchQuery,
     isCannedSearchQuery,
     sanitizeSearchValue,
@@ -919,5 +914,6 @@ export {
     getQueryWithoutFilters,
     getUserFriendlyKey,
     isDefaultExpensesQuery,
+    sortOptionsWithEmptyValue,
     shouldHighlight,
 };

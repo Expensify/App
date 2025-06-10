@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseNetSuiteUSATax} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const policyID = policy?.id;
 
@@ -74,7 +74,7 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
             title="workspace.netsuite.journalEntriesTaxPostingAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldBeBlocked={!!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country)}
+            shouldBeBlocked={!!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseTaxNetSuite(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary?.country)}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}

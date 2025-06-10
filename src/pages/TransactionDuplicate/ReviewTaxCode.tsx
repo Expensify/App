@@ -22,6 +22,8 @@ function ReviewTaxRate() {
     const {translate} = useLocalize();
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID ?? route.params.threadReportID}`);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = PolicyUtils.getPolicy(report?.policyID ?? '');
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');

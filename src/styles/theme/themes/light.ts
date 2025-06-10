@@ -72,10 +72,14 @@ const lightTheme = {
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
     dropWrapperBG: 'rgba(235, 230, 223, 0.72)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
-    attachmentDropUIBG: 'rgba(90, 176, 255, 0.9)',
-    attachmentDropBorderColor: colors.blue100,
-    receiptDropUIBG: 'rgba(3, 212, 124, 0.9)',
-    receiptDropBorderColor: colors.green100,
+    attachmentDropUIBG: 'rgba(90, 176, 255, 0.8)',
+    attachmentDropUIBGActive: 'rgba(90, 176, 255, 0.96)',
+    attachmentDropBorderColor: 'rgba(176, 217, 255, 0)',
+    attachmentDropBorderColorActive: colors.blue100,
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.8)',
+    receiptDropUIBGActive: 'rgba(3, 212, 124, 0.96)',
+    receiptDropBorderColor: 'rgba(177, 242, 214, 0)',
+    receiptDropBorderColorActive: colors.green100,
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productLight700,
     fallbackIconColor: colors.green700,
@@ -126,7 +130,7 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
+        [SCREENS.WORKSPACES_LIST]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
@@ -139,10 +143,6 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
-            backgroundColor: colors.productLight100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
-        },
-        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
