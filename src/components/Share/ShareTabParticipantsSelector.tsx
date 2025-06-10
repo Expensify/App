@@ -8,9 +8,12 @@ import type ROUTES from '@src/ROUTES';
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
+
+    /** Whether text input should be focused */
+    textInputAutoFocus?: boolean;
 };
 
-export default function ShareTabParticipantsSelector({detailsPageRouteObject}: ShareTabParticipantsSelectorProps) {
+export default function ShareTabParticipantsSelector({detailsPageRouteObject, textInputAutoFocus}: ShareTabParticipantsSelectorProps) {
     return (
         <MoneyRequestParticipantsSelector
             iouType={CONST.IOU.TYPE.SUBMIT}
@@ -31,6 +34,7 @@ export default function ShareTabParticipantsSelector({detailsPageRouteObject}: S
                 }
             }}
             action="create"
+            textInputAutoFocus={textInputAutoFocus}
         />
     );
 }
