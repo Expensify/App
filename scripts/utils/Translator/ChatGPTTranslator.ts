@@ -1,40 +1,31 @@
-import OpenAI from 'openai';
 import StringUtils from '@libs/StringUtils';
 import getBasePrompt from '@prompts/translation/base';
 import getContextPrompt from '@prompts/translation/context';
 import type Locale from '@src/types/onyx/Locale';
+import OpenAIUtils from '../OpenAIUtils';
 import Translator from './Translator';
 
 class ChatGPTTranslator extends Translator {
     /**
      * OpenAI API client to perform translations.
      */
-    private readonly openai: OpenAI;
+    private readonly openai: OpenAIUtils;
 
     public constructor(apiKey: string) {
         super();
-        this.openai = new OpenAI({
-            apiKey,
-        });
+        this.openai = new OpenAIUtils(apiKey);
     }
 
     protected async performTranslation(targetLang: Locale, text: string, context?: string): Promise<string> {
         try {
-            const response = await this.openai.chat.completions.create({
-                model: 'gpt-4',
-                messages: [
-                    {
-                        role: 'system',
-                        content: StringUtils.dedent(`
-                            ${getBasePrompt(targetLang)}
-                            ${getContextPrompt(context)}
-                        `),
-                    },
-                    {role: 'user', content: text},
-                ],
-                temperature: 0.3,
+            const systemPrompt = StringUtils.dedent(`
+                ${getBasePrompt(targetLang)}
+                ${getContextPrompt(context)}
+            `);
+            const result = await this.openai.promptChatCompletions({
+                systemPrompt,
+                userPrompt: text,
             });
-            const result = response.choices.at(0)?.message?.content?.trim() ?? text;
             console.log(`🧠 Translated "${text}" to ${targetLang}: "${result}"`);
             return result;
         } catch (error) {
