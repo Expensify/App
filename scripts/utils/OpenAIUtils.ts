@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type {ChatCompletionMessageParam} from 'openai/resources';
+import type {ChatCompletionMessageParam, ChatModel} from 'openai/resources';
 import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
 
 class OpenAIUtils {
@@ -30,7 +30,7 @@ class OpenAIUtils {
     /**
      * Prompt the Chat Completions API.
      */
-    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4o'}: {userPrompt: string; systemPrompt?: string; model?: string}): Promise<string> {
+    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4o'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
         const messages: ChatCompletionMessageParam[] = [{role: 'user', content: userPrompt}];
         if (systemPrompt) {
             messages.unshift({role: 'system', content: systemPrompt});
