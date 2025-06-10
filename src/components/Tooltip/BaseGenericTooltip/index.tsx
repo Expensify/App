@@ -42,7 +42,7 @@ function BaseGenericTooltip({
     shouldUseOverlay = false,
     onHideTooltip = () => {},
     isEducationTooltip = false,
-    onTooltipPress = () => {},
+    onTooltipPress,
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -175,6 +175,7 @@ function BaseGenericTooltip({
                 onPress={isEducationTooltip ? onTooltipPress : undefined}
                 role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                interactive={isEducationTooltip ? !!onTooltipPress : undefined}
             >
                 {content}
                 <View style={pointerWrapperStyle}>
