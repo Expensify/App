@@ -1022,6 +1022,7 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
+                hasOnceLoadedReportActions: true,
                 isLoadingInitialReportActions: false,
             },
         },
@@ -2713,6 +2714,13 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         },
         {
             onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                hasOnceLoadedReportActions: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportActionID]: optimisticCreateAction},
         },
@@ -2801,6 +2809,8 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
 }
 
 function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldNotifyNewAction = false) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -4929,6 +4939,8 @@ function deleteAppReport(reportID: string | undefined) {
  */
 function moveIOUReportToPolicy(reportID: string, policyID: string) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     // This flow only works for IOU reports
@@ -5097,6 +5109,8 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
  */
 function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: string) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     if (!policy || !iouReport) {

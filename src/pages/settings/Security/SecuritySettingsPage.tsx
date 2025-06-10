@@ -2,7 +2,7 @@ import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
@@ -42,6 +42,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
+
+type BaseMenuItemType = {
+    translationKey: TranslationPaths;
+    icon: IconAsset;
+    iconRight?: IconAsset;
+    action: () => Promise<void> | void;
+    link?: string;
+    wrapperStyle?: StyleProp<ViewStyle>;
+};
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
@@ -67,6 +77,8 @@ function SecuritySettingsPage() {
         horizontal: 0,
         vertical: 0,
     });
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: false});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -114,7 +126,7 @@ function SecuritySettingsPage() {
     }, [setMenuPosition]);
 
     const securityMenuItems = useMemo(() => {
-        const baseMenuItems = [
+        const baseMenuItems: BaseMenuItemType[] = [
             {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
@@ -130,6 +142,20 @@ function SecuritySettingsPage() {
             });
         }
 
+        if (isAccountLocked) {
+            baseMenuItems.push({
+                translationKey: 'lockAccountPage.unlockAccount',
+                icon: Expensicons.UserLock,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
+            });
+        } else {
+            baseMenuItems.push({
+                translationKey: 'lockAccountPage.lockAccount',
+                icon: Expensicons.UserLock,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
+            });
+        }
+
         baseMenuItems.push({
             translationKey: 'closeAccountPage.closeAccount',
             icon: Expensicons.ClosedSign,
@@ -137,14 +163,14 @@ function SecuritySettingsPage() {
         });
         return baseMenuItems.map((item) => ({
             key: item.translationKey,
-            title: translate(item.translationKey as TranslationPaths),
+            title: translate(item.translationKey),
             icon: item.icon,
             onPress: item.action,
             shouldShowRightIcon: true,
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, isBetaEnabled]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, isBetaEnabled, isAccountLocked]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>

@@ -31,7 +31,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getAllNonDeletedTransactions, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -98,6 +98,7 @@ type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigato
 type ReportScreenProps = ReportScreenNavigationProps;
 
 const defaultReportMetadata = {
+    hasOnceLoadedReportActions: false,
     isLoadingInitialReportActions: true,
     isLoadingOlderReportActions: false,
     hasLoadingOlderReportActionsError: false,
@@ -152,7 +153,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true});
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: false, allowStaleData: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
         canEvict: false,
@@ -290,7 +291,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // The linked report actions should have at least 15 messages (counting as 1 page) above them to fill the screen.
     // If the count is too high (equal to or exceeds the web pagination size / 50) and there are no cached messages in the report,
-    // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
+    // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back.
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
     const [transactionsAndViolationsByReport = {}] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
@@ -308,11 +309,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
+    // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
+    // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
     const prevTransactions = usePrevious(reportTransactions);
 
     const newTransactions = useMemo(() => {
-        if (!prevTransactions || reportTransactions.length <= prevTransactions.length) {
+        if (!reportTransactions || !prevTransactions || reportTransactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
         return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
@@ -766,7 +770,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions ?? []);
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -813,8 +817,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!report && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList ? (
+                                {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -826,7 +830,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                                     />
                                 ) : null}
-                                {!!report && shouldDisplayMoneyRequestActionsList ? (
+                                {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                     <MoneyRequestReportActionsList
                                         report={report}
                                         policy={policy}
@@ -835,7 +839,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
-                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                        showReportActionsLoadingState={reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                     />
                                 ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (
