@@ -83,25 +83,26 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
         const endName = reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? reservation.end.shortName : reservation.end.longName;
 
         titleComponent = (
-            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                {/* StartName + Arrow with max 50% width */}
+            <View style={[styles.flexRow, styles.alignItemsStart]}>
                 <View style={styles.tripReservationRow}>
-                    <Text
-                        numberOfLines={2}
-                        style={[styles.labelStrong, styles.mr2]} // gap between startName and arrow
-                        ellipsizeMode="tail"
-                    >
-                        {startName}
-                    </Text>
-                    <Icon
-                        src={Expensicons.ArrowRightLong}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                        fill={theme.icon}
-                    />
+                    <View style={styles.flexShrink}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.labelStrong, styles.mr2]}
+                            ellipsizeMode="tail"
+                        >
+                            {startName}
+                        </Text>
+                    </View>
+                    <View style={styles.iconWrapper}>
+                        <Icon
+                            src={Expensicons.ArrowRightLong}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                            fill={theme.icon}
+                        />
+                    </View>
                 </View>
-
-                {/* EndName with marginLeft instead of spacer */}
                 <View style={[styles.flex1, styles.ml2]}>
                     <Text
                         numberOfLines={2}

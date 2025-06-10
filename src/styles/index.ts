@@ -5631,6 +5631,17 @@ const styles = (theme: ThemeColors) =>
             flexShrink: 1,
         },
 
+        flexShrink: {
+            flexShrink: 1,
+        },
+
+        iconWrapper: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            alignSelf: 'flex-start', // Keeps icon from dropping below
+            paddingTop: 2, // Adjust slightly for vertical centering
+        },
+
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
