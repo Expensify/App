@@ -101,7 +101,6 @@ import type Session from './Session';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
-import type TalkToAISales from './TalkToAISales';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -260,7 +259,6 @@ export type {
     SidePanel,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
-    TalkToAISales,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,

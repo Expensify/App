@@ -1139,7 +1139,7 @@ const translations = {
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
-            invalidMerchant: 'Please enter a correct merchant',
+            invalidMerchant: 'Please enter a valid merchant',
             atLeastOneAttendee: 'At least one attendee must be selected',
             invalidQuantity: 'Please enter a valid quantity',
             quantityGreaterThanZero: 'Quantity must be greater than zero',
@@ -2364,6 +2364,8 @@ const translations = {
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
             fullName: 'Please enter a valid full name',
             ownershipPercentage: 'Please enter a valid percentage number',
+            deletePaymentBankAccount:
+                "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge",
         },
     },
     addPersonalBankAccount: {
@@ -6469,12 +6471,6 @@ const translations = {
         title: 'Discard changes?',
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
-    },
-    aiSales: {
-        talkToSales: 'Talk to sales',
-        getHelp: 'Get help',
-        talkToConcierge: 'Talk to Concierge',
-        hangUp: 'Hang up',
     },
     scheduledCall: {
         book: {

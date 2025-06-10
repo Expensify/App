@@ -821,7 +821,9 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
-                : getPolicy(report?.invoiceReceiver?.policyID)?.name;
+                : // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+                  // eslint-disable-next-line deprecation/deprecation
+                  getPolicy(report?.invoiceReceiver?.policyID)?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageText = `${welcomeMessage.phrase1}${payer} ${translateLocal('common.and')} ${receiver}${welcomeMessage.phrase2}`;
         return welcomeMessage;
