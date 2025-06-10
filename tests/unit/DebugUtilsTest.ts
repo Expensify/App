@@ -1,4 +1,6 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
@@ -791,9 +793,14 @@ describe('DebugUtils', () => {
             };
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs);
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-            });
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseReport?.reportID));
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                },
+                false,
+                isReportArchived.current,
+            );
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
         it('returns correct reason when report is self DM', () => {
@@ -952,7 +959,7 @@ describe('DebugUtils', () => {
                         choice: '' as JoinWorkspaceResolution,
                         policyID: '0',
                     },
-                } as ReportAction<'ACTIONABLEJOINREQUEST'>,
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reason} =
@@ -1019,7 +1026,7 @@ describe('DebugUtils', () => {
                         choice: '' as JoinWorkspaceResolution,
                         policyID: '0',
                     },
-                } as ReportAction<'ACTIONABLEJOINREQUEST'>,
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reportAction} =
@@ -1315,7 +1322,7 @@ describe('DebugUtils', () => {
                                 linkedReportID: '2',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'REPORTPREVIEW'>,
+                        } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>,
                     };
                     const MOCK_IOU_REPORT_ACTIONS = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention

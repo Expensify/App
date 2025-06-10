@@ -235,6 +235,9 @@ const ONYXKEYS = {
     /** If the user should see the team 2025 subscription pricing */
     NVP_PRIVATE_MANUAL_TEAM_2025_PRICING: 'nvp_private_manualTeam2025Pricing',
 
+    /** Details on whether an account is locked or not */
+    NVP_PRIVATE_LOCK_ACCOUNT_DETAILS: 'nvp_private_lockAccountDetails',
+
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
 
@@ -274,9 +277,6 @@ const ONYXKEYS = {
 
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
-
-    /** Boolean flag used to display the focus mode notification */
-    FOCUS_MODE_NOTIFICATION: 'focusModeNotification',
 
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
@@ -495,9 +495,6 @@ const ONYXKEYS = {
     /** Stores the information about the state of side panel */
     NVP_SIDE_PANEL: 'nvp_sidePanel',
 
-    /** Information about loading states while talking with AI sales */
-    TALK_TO_AI_SALES: 'talkToAISales',
-
     /** Stores draft information while user is scheduling the call. */
     SCHEDULE_CALL_DRAFT: 'scheduleCallDraft',
 
@@ -523,6 +520,20 @@ const ONYXKEYS = {
 
     /** Set this gets redirected from global reimbursements flow */
     IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
+
+    /** Stores information for OpenUnreportedExpensesPage API call pagination */
+    HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS: 'hasMoreUnreportedTransactionsResults',
+
+    /** Is unreported transactions loading */
+    IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
+
+    /** Timestamp of the last login on iOS */
+    NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',
+    NVP_LAST_IPHONE_LOGIN: 'nvp_lastiPhoneLogin',
+
+    /** Timestamp of the last login on Android */
+    NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
+    NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
 
     /** Collection Keys */
     COLLECTION: {
@@ -1030,7 +1041,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
-    [ONYXKEYS.TALK_TO_AI_SALES]: OnyxTypes.TalkToAISales;
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: OnyxUpdate[];
 
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
@@ -1039,7 +1049,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
-    [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
@@ -1134,6 +1143,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
     [ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING]: string;
+    [ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS]: OnyxTypes.LockAccountDetails;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
@@ -1158,6 +1168,12 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
     [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
+    [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
+    [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
+    [ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN]: string;
+    [ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN]: string;
+    [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
+    [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
 };
 
 type OnyxDerivedValuesMapping = {

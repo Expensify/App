@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
@@ -9,12 +10,16 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import CONST from '@src/CONST';
 import {createDraftWorkspace, createWorkspace} from '@src/libs/actions/Policy/Policy';
+import type SCREENS from '@src/SCREENS';
 
-function TravelUpgrade() {
+type TravelUpgradeProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.UPGRADE>;
+
+function TravelUpgrade({route}: TravelUpgradeProps) {
     const styles = useThemeStyles();
     const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel;
     const {translate} = useLocalize();
@@ -42,7 +47,7 @@ function TravelUpgrade() {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
             />
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}

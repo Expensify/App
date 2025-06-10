@@ -35,7 +35,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {mappings} = policy?.connections?.xero?.config ?? {};
 
     const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
-    const currentTrackingCategoryValue = currentTrackingCategory ? mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '' : '';
+    const currentTrackingCategoryValue = currentTrackingCategory ? (mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '') : '';
 
     const optionsList = useMemo(
         () =>
