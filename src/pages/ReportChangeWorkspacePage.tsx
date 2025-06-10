@@ -11,13 +11,13 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
-import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import {changeReportPolicy, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -45,18 +45,17 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 return;
             }
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
             if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
             } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {
                 moveIOUReportToPolicy(reportID, policyID);
-            } else if (isExpenseReport(report) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
-                const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policyID, employeeList);
             } else {
-                changeReportPolicy(report, policyID);
+                changeReportPolicy(reportID, policyID);
             }
         },
-        [session?.email, report, reportID, policies],
+        [session?.email, report, reportID],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({

@@ -1141,7 +1141,7 @@ const translations = {
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
-            invalidMerchant: 'Please enter a correct merchant',
+            invalidMerchant: 'Please enter a valid merchant',
             atLeastOneAttendee: 'At least one attendee must be selected',
             invalidQuantity: 'Please enter a valid quantity',
             quantityGreaterThanZero: 'Quantity must be greater than zero',
@@ -6471,12 +6471,6 @@ const translations = {
         title: 'Discard changes?',
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
-    },
-    aiSales: {
-        talkToSales: 'Talk to sales',
-        getHelp: 'Get help',
-        talkToConcierge: 'Talk to Concierge',
-        hangUp: 'Hang up',
     },
     scheduledCall: {
         book: {
