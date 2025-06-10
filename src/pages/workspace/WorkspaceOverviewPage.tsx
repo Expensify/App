@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState, useContext} from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -396,7 +396,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <Button
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
-                                    onPress={() => (isAccountLocked ? showLockedAccountModal() : onPressShare())}
+                                    onPress={isAccountLocked ? showLockedAccountModal : onPressShare}
                                     icon={QrCode}
                                 />
                                 {isOwner && (
