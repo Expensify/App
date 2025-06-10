@@ -15,19 +15,22 @@ async function retryWithBackoff<T>(fn: () => Promise<T>, {maxRetries = 5, initia
     let attempt = 0;
     let delay = initialDelayMs;
 
-    while (true) {
+    let lastError: unknown;
+    do {
         try {
             return await fn();
         } catch (err) {
+            lastError = err;
             attempt++;
-            if (attempt > maxRetries || !isRetryable(err)) {
-                throw err;
+            if (!isRetryable(err)) {
+                break;
             }
-
             await sleep(delay);
             delay *= factor;
         }
-    }
+    } while (attempt <= maxRetries);
+
+    throw lastError;
 }
 
 export default retryWithBackoff;
