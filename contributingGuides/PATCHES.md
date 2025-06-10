@@ -77,14 +77,14 @@ Each patch must be listed and explained in the `details.md` file within the same
 
 ### [<patch-name>.patch](<patch-name>.patch)
 
-- Reason: 
+- Reason:
   
     ```
     Please explain why the patch is necessary
     ```
   
 - Upstream PR/issue: <Please create an upstream PR fixing the patch. Link it here and if no upstream issue or PR exists, explain why>
-- E/App issue: <Please create an E/App issue ([template](./../.github/ISSUE_TEMPLATE/NewPatchAdded.md)) for each introduced patch. Link it here and if patch won't be removed in the future (no upstream PR exists) explain why>
+- E/App issue: <Please create an E/App issue ([template](./../.github/ISSUE_TEMPLATE/NewPatchTemplate.md)) for each introduced patch. Link it here and if patch won't be removed in the future (no upstream PR exists) explain why>
 - PR introducing patch: <Link to E/App (or Mobile-Expensify) PR that added the patch>
 ```
 
