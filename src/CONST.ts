@@ -232,7 +232,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '1. Click the settings tab.\n' +
                 '2. Click *Workspaces* > [Your workspace].\n' +
                 `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
-        }
+        },
     ],
 };
 
