@@ -6,7 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import * as User from '@userActions/User';
+import {dismissInstantSubmitExplanation} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,9 +36,9 @@ function AutoSubmitModal() {
 
     const onClose = useCallback((willShowAgain: boolean) => {
         if (!willShowAgain) {
-            User.dismissInstantSubmitExplanation(true);
+            dismissInstantSubmitExplanation(true);
         } else {
-            User.dismissInstantSubmitExplanation(false);
+            dismissInstantSubmitExplanation(false);
         }
     }, []);
 
