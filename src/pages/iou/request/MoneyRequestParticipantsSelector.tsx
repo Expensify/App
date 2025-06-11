@@ -98,8 +98,8 @@ function MoneyRequestParticipantsSelector({
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const canUseNativeContactImport = isBetaEnabled(CONST.BETAS.NATIVE_CONTACT_IMPORT);
     const platform = getPlatform();
-    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP || platform === CONST.PLATFORM.MOBILE_WEB;
-    const showImportContacts = canUseNativeContactImport && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
+    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
+    const showImportContacts = isNative && canUseNativeContactImport && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
@@ -547,7 +547,7 @@ function MoneyRequestParticipantsSelector({
     );
 
     const footerContentAbovePaginationComponent = useMemo(() => {
-        if (!showImportContacts || isWebOrDesktop) {
+        if (!showImportContacts) {
             return null;
         }
         return (
@@ -559,7 +559,7 @@ function MoneyRequestParticipantsSelector({
                 style={styles.mb3}
             />
         );
-    }, [showImportContacts, styles.mb3, translate, isWebOrDesktop]);
+    }, [showImportContacts, styles.mb3, translate]);
 
     const ClickableImportContactTextComponent = useMemo(() => {
         if (debouncedSearchTerm.length || isSearchingForReports) {
