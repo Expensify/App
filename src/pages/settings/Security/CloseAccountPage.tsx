@@ -14,6 +14,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
+import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
@@ -22,7 +23,6 @@ import {closeAccount} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
-import { formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars } from '@libs/LoginUtils';
 
 function CloseAccountPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -83,7 +83,7 @@ function CloseAccountPage() {
                 // For phone numbers, normalize both values to E.164 format before comparison
                 const normalizedStored = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone)) ?? '';
                 const normalizedInput = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail)) ?? '';
-                
+
                 if (normalizedStored !== normalizedInput) {
                     errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
                 }
