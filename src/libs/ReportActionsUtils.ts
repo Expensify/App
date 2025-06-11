@@ -2066,6 +2066,14 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policyID?: stri
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
+        if (updatedField === 'commentHint') {
+            return translateLocal('workspaceActions.updatedDescriptionHint', {
+                oldValue: oldValue as string | undefined,
+                newValue: newValue as string | undefined,
+                categoryName,
+            });
+        }
+
         if (updatedField === 'enabled') {
             return translateLocal('workspaceActions.updateCategory', {
                 oldValue: !!oldValue,
@@ -2113,6 +2121,8 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policyID?: stri
         }
 
         if (updatedField === 'maxAmountNoReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
             const policy = getPolicy(policyID);
 
             const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
@@ -2515,7 +2525,7 @@ function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPO
     });
 }
 
-function getAddedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
+function getAddedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
     const {name, approverAccountID, approverEmail, field, approverName} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE>) ?? {};
 
@@ -2531,7 +2541,7 @@ function getAddedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
     return getReportActionText(reportAction);
 }
 
-function getDeletedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
+function getDeletedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
     const {name, approverAccountID, approverEmail, field, approverName} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE>) ?? {};
 
@@ -2765,8 +2775,8 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    getAddedApprovaRulelMessage,
-    getDeletedApprovaRulelMessage,
+    getAddedApprovalRuleMessage,
+    getDeletedApprovalRuleMessage,
     getUpdatedApprovalRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
