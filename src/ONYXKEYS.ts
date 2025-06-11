@@ -536,7 +536,7 @@ const ONYXKEYS = {
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
     /** List of transaction thread IDs used when navigating to prev/next transaction when viewing it in RHP */
-    TRANSACTION_THREAD_NAVIGATION_REPORT_IDS: 'TransactionThreadNavigationReportIDs',
+    TRANSACTION_THREAD_NAVIGATION_REPORT_IDS: 'transactionThreadNavigationReportIDs',
 
     /** Timestamp of the last login on iOS */
     NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',

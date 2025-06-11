@@ -1,5 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -49,6 +50,17 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
             return action?.childReportID;
         })
         .filter((reportID): reportID is string => !!reportID);
+}
+
+/**
+ * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
+ */
+function getReportIDForTransaction(transactionItem: TransactionListItemType) {
+    const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+        ? transactionItem.transactionThreadReportID
+        : transactionItem.reportID;
 }
 
 /**
@@ -145,6 +157,7 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
 export {
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,
+    getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
     selectAllTransactionsForReport,
     isSingleTransactionReport,
