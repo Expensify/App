@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 import type {MaskOnyxState} from './types';
@@ -20,6 +21,8 @@ const keysToMask = [
     'lastMessageHtml',
     'lastMessageText',
 ];
+
+const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID];
 
 const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
@@ -51,8 +54,8 @@ function replaceEmailInString(text: string, emailReplacement: string) {
     return text.replace(emailRegex, emailReplacement);
 }
 
-const maskSessionDetails = (data: Record<string, unknown>): Record<string, unknown> => {
-    const session = data.session as Session;
+const maskSessionDetails = (onyxState: Record<string, unknown>): Record<string, unknown> => {
+    const session = onyxState.session as Session;
     const maskedData: Record<string, unknown> = {};
 
     Object.keys(session).forEach((key) => {
@@ -64,7 +67,7 @@ const maskSessionDetails = (data: Record<string, unknown>): Record<string, unkno
     });
 
     return {
-        ...data,
+        ...onyxState,
         session: maskedData,
     };
 };
@@ -134,10 +137,28 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
     return maskedData;
 };
 
+const removePrivateOnyxKeys = (onyxState: Record<string, unknown>): Record<string, unknown> => {
+    const newState: Record<string, unknown> = {};
+
+    Object.keys(onyxState).forEach((key) => {
+        if (onyxKeysToRemove.includes(key as ValueOf<typeof ONYXKEYS>)) {
+            return;
+        }
+        newState[key] = onyxState[key];
+    });
+
+    return newState;
+};
+
 const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     let onyxState = data;
+
     // Mask session details by default
     onyxState = maskSessionDetails(onyxState);
+
+    // Remove private/sensitive Onyx keys
+    onyxState = removePrivateOnyxKeys(onyxState);
+
     // Mask fragile data other than session details if the user has enabled the option
     if (isMaskingFragileDataEnabled) {
         onyxState = maskFragileData(onyxState) as Record<string, unknown>;
