@@ -126,6 +126,9 @@ type SettingsNavigatorParamList = {
         result: ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS>;
         login: string;
     };
+    [SCREENS.SETTINGS.LOCK.LOCK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.CONSOLE]: {
         backTo: Routes;
     };
@@ -196,7 +199,16 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: {
+        policyID: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
+        policyID: string;
+        categoryName: string;
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT]: {
         policyID: string;
         categoryName: string;
         backTo?: Routes;
@@ -206,7 +218,17 @@ type SettingsNavigatorParamList = {
         categoryName: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_PAYROLL_CODE]: {
+        policyID: string;
+        categoryName: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
+        policyID: string;
+        categoryName: string;
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE]: {
         policyID: string;
         categoryName: string;
         backTo?: Routes;
@@ -236,6 +258,11 @@ type SettingsNavigatorParamList = {
         categoryName: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: {
+        policyID: string;
+        categoryName: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID?: string;
         featureName?: string;
@@ -253,7 +280,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.CATEGORIES_IMPORT]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT]: {
         policyID: string;
         backTo?: Routes;
     };
@@ -261,7 +296,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED]: {
+        policyID: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.TAG_CREATE]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE]: {
         policyID: string;
         backTo?: Routes;
     };
@@ -285,7 +328,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.TAGS_IMPORT]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT]: {
         policyID: string;
         backTo?: Routes;
     };
@@ -301,6 +352,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED]: {policyID: string; backTo?: Routes};
     [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
         policyID: string;
         backTo?: Routes;
@@ -311,7 +363,18 @@ type SettingsNavigatorParamList = {
         tagName: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
+        policyID: string;
+        orderWeight: number;
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW]: {
         policyID: string;
         orderWeight: number;
         backTo?: Routes;
@@ -321,7 +384,18 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT]: {
+        policyID: string;
+        orderWeight: number;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_EDIT]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
@@ -333,7 +407,19 @@ type SettingsNavigatorParamList = {
         tagName: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_APPROVER]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.TAG_GL_CODE]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_GL_CODE]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
@@ -1761,10 +1847,18 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: {
+        policyID: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.MORE_FEATURES]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TAGS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT]: {
         policyID: string;
         backTo?: Routes;
     };

@@ -136,6 +136,7 @@ function ShareDetailsPage({
                 Navigation.navigate(routeToNavigate, {forceReplace: true});
             },
             () => {},
+            currentAttachment.mimeType,
         );
     };
 
