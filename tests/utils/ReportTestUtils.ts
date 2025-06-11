@@ -1,5 +1,5 @@
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, screen, waitFor, within} from '@testing-library/react-native';
+import {fireEvent, screen, waitFor, within} from '@testing-library/react-native';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
