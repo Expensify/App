@@ -772,6 +772,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
+                pendingAction: reportItem?.pendingAction ?? reportItem?.pendingFields?.preview,
             };
 
             if (isIOUReport) {

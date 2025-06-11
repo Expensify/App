@@ -7435,6 +7435,10 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
         );
     }
 
+    if (shouldDeleteIOUReport && updatedIOUReport) {
+        updatedIOUReport.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    }
+
     if (updatedIOUReport) {
         const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction);
         const iouReportLastMessageText = getLastVisibleMessage(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction).lastMessageText;
