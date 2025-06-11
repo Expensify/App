@@ -629,8 +629,11 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
-        NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
+        /**
+         * Deprecated - do not use this beta in new code anymore.
+         * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
+         * */
         TABLE_REPORT_VIEW: 'tableReportView',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
@@ -640,6 +643,7 @@ const CONST = {
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
         NEW_DOT_SPLITS: 'newDotSplits',
     },
@@ -874,7 +878,6 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
-    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -887,6 +890,7 @@ const CONST = {
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
+    COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
@@ -1048,7 +1052,6 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
-            MOVE_EXPENSE: 'moveExpense',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1361,12 +1364,14 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         TRANSACTION_PREVIEW: {
             CAROUSEL: {
-                WIDTH_WIDE: 303,
+                WIDE_WIDTH: 303,
+                WIDE_HEIGHT: 269,
             },
             DUPLICATE: {
-                HEIGHT_WIDE: 347,
+                WIDE_HEIGHT: 347,
             },
         },
+        CAROUSEL_MAX_WIDTH_WIDE: 680,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
@@ -1623,11 +1628,6 @@ const CONST = {
             OFFLINE: 'offline',
             UNKNOWN: 'unknown',
         },
-    },
-    OPEN_AI_REALTIME_API: 'https://api.openai.com/v1/realtime',
-    OPEN_AI_TOOL_NAMES: {
-        END_CALL: 'EndCall',
-        SEND_RECAP_IN_ADMINS_ROOM: 'SendRecapInAdminsRoom',
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
@@ -3048,6 +3048,7 @@ const CONST = {
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
+    ICON_TYPE_PLAID: 'plaid',
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
@@ -3091,6 +3092,7 @@ const CONST = {
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
+            PLAID_CONNECTION: 'PlaidConnection',
             ASSIGNEE: 'Assignee',
             CARD: 'Card',
             CARD_NAME: 'CardName',
@@ -6711,6 +6713,7 @@ const CONST = {
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
+        MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -6757,7 +6760,10 @@ const CONST = {
     },
 
     ONBOARDING_HELP: {
-        TALK_TO_SALES: 'talkToSales',
+        SCHEDULE_CALL: 'scheduleCall',
+        EVENT_TIME: 'eventTime',
+        RESCHEDULE: 'reschedule',
+        CANCEL: 'cancel',
         REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
 

@@ -8,8 +8,9 @@ import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
     AddedOrDeletedPolicyReportFieldParams,
-    AddedPolicyCustomUnitRateParams,
+    AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
+    AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
@@ -84,7 +85,6 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FormattedMaxLengthParams,
-    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
@@ -113,6 +113,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    MovedFromReportParams,
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
@@ -133,6 +134,9 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PolicyAddedReportFieldOptionParams,
+    PolicyDisabledReportFieldAllOptionsParams,
+    PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -193,13 +197,23 @@ import type {
     UnshareParams,
     UntilTimeParams,
     UpdatedCustomFieldParams,
+    UpdatedPolicyApprovalRuleParams,
+    UpdatedPolicyAuditRateParams,
+    UpdatedPolicyCategoryExpenseLimitTypeParams,
+    UpdatedPolicyCategoryGLCodeParams,
+    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateParams,
+    UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
+    UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyFrequencyParams,
+    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
@@ -207,6 +221,8 @@ import type {
     UpdatedPolicyTagParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
+    UpdatePolicyCustomUnitParams,
+    UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -583,6 +599,10 @@ const translations = {
         title: 'Not so fast',
         description: 'You are not authorized to take this action when support logged in.',
     },
+    lockedAccount: {
+        title: 'Locked Account',
+        description: "You're not allowed to complete this action as this account has been locked. Please reach out to concierge@expensify.com for next steps",
+    },
     location: {
         useCurrent: 'Use current location',
         notFound: 'We were unable to find your location. Please try again or enter an address manually.',
@@ -590,6 +610,13 @@ const translations = {
         please: 'Please',
         allowPermission: 'allow location access in settings',
         tryAgain: 'and try again.',
+    },
+    contact: {
+        importContacts: 'Import contacts',
+        importContactsTitle: 'Import your contacts',
+        importContactsText: 'Import contacts from your phone so your favorite people are always a tap away.',
+        importContactsExplanation: 'so your favorite people are always a tap away.',
+        importContactsNativeText: 'Just one more step! Give us the green light to import your contacts.',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -980,6 +1007,7 @@ const translations = {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report, ${merchant} - ${amount}`,
+        movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'moved this expense to your personal space',
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
@@ -991,8 +1019,12 @@ const translations = {
             one: 'Receipt scanning...',
             other: 'Receipts scanning...',
         }),
+        scanMultipleReceipts: 'Scan multiple receipts',
+        scanMultipleReceiptsDescription: 'Snap photos of all your receipts at once, then confirm details yourself or let SmartScan handle it.',
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
+        removeFromReport: 'Remove from report',
+        moveToPersonalSpace: 'Move expenses to your personal space',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potential duplicate expenses identified. Review duplicates to enable submission.'
@@ -1082,8 +1114,8 @@ const translations = {
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         approvedMessage: `approved`,
         unapproved: `unapproved`,
-        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
-        forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
+        automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
+        forwarded: `approved`,
         rejectedThisReport: 'rejected this report',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceled the payment`,
@@ -1139,7 +1171,7 @@ const translations = {
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
-            invalidMerchant: 'Please enter a correct merchant',
+            invalidMerchant: 'Please enter a valid merchant',
             atLeastOneAttendee: 'At least one attendee must be selected',
             invalidQuantity: 'Please enter a valid quantity',
             quantityGreaterThanZero: 'Quantity must be greater than zero',
@@ -1570,6 +1602,26 @@ const translations = {
             description: 'You cannot merge an account into itself.',
         },
         mergeFailureGenericHeading: 'Can’t merge accounts',
+    },
+    lockAccountPage: {
+        lockAccount: 'Lock account',
+        unlockAccount: 'Unlock account',
+        compromisedDescription: 'If you suspect your Expensify account is compromised, you can lock it to prevent new Expensify Card transactions and block unwanted account changes.',
+        domainAdminsDescriptionPartOne: 'For domain admins, ',
+        domainAdminsDescriptionPartTwo: 'this action halts all Expensify Card activity and admin actions ',
+        domainAdminsDescriptionPartThree: 'across your domain(s).',
+        warning: `Once your account is locked, our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge to secure your account.`,
+    },
+    failedToLockAccountPage: {
+        failedToLockAccount: 'Failed to lock account',
+        failedToLockAccountDescription: `We couldn't lock your account. Please chat with Concierge to resolve this problem.`,
+        chatWithConcierge: 'Chat with Concierge',
+    },
+    unlockAccountPage: {
+        accountLocked: 'Account locked',
+        yourAccountIsLocked: 'Your account is locked',
+        chatToConciergeToUnlock: 'Chat with Concierge to resolve security concerns and unlock your account.',
+        chatWithConcierge: 'Chat with Concierge',
     },
     passwordPage: {
         changePassword: 'Change password',
@@ -2563,6 +2615,8 @@ const translations = {
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
             fullName: 'Please enter a valid full name',
             ownershipPercentage: 'Please enter a valid percentage number',
+            deletePaymentBankAccount:
+                "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge",
         },
     },
     addPersonalBankAccount: {
@@ -4118,6 +4172,8 @@ const translations = {
             assignedCard: ({assignee, link}: AssignedCardParams) => `assigned ${assignee} a ${link}! Imported transactions will appear in this chat.`,
             companyCard: 'company card',
             chooseCardFeed: 'Choose card feed',
+            ukRegulation:
+                'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -5410,10 +5466,64 @@ const translations = {
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        addApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) => `added ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
+        deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
+            `removed ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
+        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+            const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
+
+            return `changed the approver for the ${field} "${name}" to ${formatApprover(newApproverName, newApproverEmail)} (previously ${formatApprover(
+                oldApproverName,
+                oldApproverEmail,
+            )})`;
+        },
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
+        updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+            if (!oldValue) {
+                return `added the payroll code "${newValue}" to the category "${categoryName}"`;
+            }
+            if (!newValue && oldValue) {
+                return `removed the payroll code "${oldValue}" from the category "${categoryName}"`;
+            }
+            return `changed the "${categoryName}" category payroll code to “${newValue}” (previously “${oldValue}”)`;
+        },
+        updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+            if (!oldValue) {
+                return `added the GL code "${newValue}” to the category "${categoryName}"`;
+            }
+            if (!newValue && oldValue) {
+                return `removed the GL code "${oldValue}" from the category "${categoryName}"`;
+            }
+            return `changed the “${categoryName}” category GL code to “${newValue}” (previously “${oldValue}“)`;
+        },
+        updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
+            return `changed the "${categoryName}" category description to ${!oldValue ? 'required' : 'not required'} (previously ${!oldValue ? 'not required' : 'required'})`;
+        },
+        updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
+            if (newAmount && !oldAmount) {
+                return `added a ${newAmount} max amount to the category "${categoryName}"`;
+            }
+            if (oldAmount && !newAmount) {
+                return `removed the ${oldAmount} max amount from the category "${categoryName}"`;
+            }
+            return `changed the "${categoryName}" category max amount to ${newAmount} (previously ${oldAmount})`;
+        },
+        updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
+            if (!oldValue) {
+                return `added a limit type of ${newValue} to the category "${categoryName}"`;
+            }
+            return `changed the "${categoryName}" category limit type to ${newValue} (previously ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `updated the category "${categoryName}" by changing Receipts to ${newValue}`;
+            }
+            return `changed the "${categoryName}" category to ${newValue} (previously ${oldValue})`;
+        },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
+        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
@@ -5425,9 +5535,37 @@ const translations = {
             }
             return `updated the tag "${tagName}" on the list "${tagListName}" by adding a ${updatedField} of "${newValue}"`;
         },
-        addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
+        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+            `changed the ${customUnitName} ${updatedField} to "${newValue}" (previously "${oldValue}")`,
+        updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'enabled' : 'disabled'} tax tracking on distance rates`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
+        updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
+            `changed the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`,
+        updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
+            if (oldTaxPercentage && oldValue) {
+                return `changed the tax rate on the distance rate "${customUnitRateName}" to "${newValue} (${newTaxPercentage})" (previously "${oldValue} (${oldTaxPercentage})")`;
+            }
+            return `added the tax rate "${newValue} (${newTaxPercentage})" to the distance rate "${customUnitRateName}"`;
+        },
+        updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
+            if (oldValue) {
+                return `changed the tax reclaimable portion on the distance rate "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`;
+            }
+            return `added a tax reclaimable portion of "${newValue}" to the distance rate "${customUnitRateName}`;
+        },
+        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
+        addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `added the option "${optionName}" to the report field "${fieldName}"`,
+        removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `removed the option "${optionName}" from the report field "${fieldName}"`,
+        updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
+            `${optionEnabled ? 'enabled' : 'disabled'} the option "${optionName}" for the report field "${fieldName}"`,
+        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled, toggledOptionsCount}: PolicyDisabledReportFieldAllOptionsParams) => {
+            if (toggledOptionsCount && toggledOptionsCount > 1) {
+                return `${allEnabled ? 'enabled' : 'disabled'} all options for the report field "${fieldName}" `;
+            }
+            return `${allEnabled ? 'enabled' : 'disabled'} the option "${optionName}" for the report field "${fieldName}", making all options ${allEnabled ? 'enabled' : 'disabled'}`;
+        },
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `removed ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
@@ -5472,6 +5610,10 @@ const translations = {
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `updated the approval mode to "${newValue}" (previously "${oldValue}")`,
         upgradedWorkspace: 'upgraded this workspace to the Control plan',
         downgradedWorkspace: 'downgraded this workspace to the Collect plan',
+        updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
+            `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
+        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
+            `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -5774,7 +5916,7 @@ const translations = {
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
                     automaticActionThree: 'and successfully created a record for',
                     reimburseableLink: 'out-of-pocket expenses',
-                    nonReimbursableLink: 'company card expenses.',
+                    nonReimbursableLink: 'company card expenses',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
@@ -5814,6 +5956,7 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                addedConnection: ({connectionName}: ConnectionNameParams) => `connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'left the chat',
             },
         },
@@ -6666,12 +6809,6 @@ const translations = {
         title: 'Discard changes?',
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
-    },
-    aiSales: {
-        talkToSales: 'Talk to sales',
-        getHelp: 'Get help',
-        talkToConcierge: 'Talk to Concierge',
-        hangUp: 'Hang up',
     },
     scheduledCall: {
         book: {
