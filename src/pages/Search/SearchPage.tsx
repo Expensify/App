@@ -379,7 +379,6 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
-
     const saveFileAndInitMoneyRequest = (file: FileObject) => {
         const source = URL.createObjectURL(file as Blob);
         const newReportID = generateReportID();
@@ -393,32 +392,24 @@ function SearchPage({route}: SearchPageProps) {
         navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
     };
 
-    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, isLoadingReceipt, fileError, PDFValidationComponent, setPdfFiles} =
-        useFilesValidation(saveFileAndInitMoneyRequest);
+    const {validateFiles, setIsAttachmentInvalid, isAttachmentInvalid, isLoadingReceipt, fileError, PDFValidationComponent} = useFilesValidation(saveFileAndInitMoneyRequest);
 
     const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateAndResizeFile(originalFile, isPdfValidated);
-    };
-
     const initScanRequest = (e: DragEvent) => {
-        const file = e?.dataTransfer?.files[0];
-        if (e?.dataTransfer?.files && e?.dataTransfer?.files.length > 1) {
-            const files = Array.from(e?.dataTransfer?.files).map((f) => {
-                // eslint-disable-next-line no-param-reassign
-                f.uri = URL.createObjectURL(f);
-                return f;
-            });
-            setPdfFiles(files);
+        const files = Array.from(e?.dataTransfer?.files ?? []);
+
+        if (files.length === 0) {
             return;
         }
-        if (file) {
+        files.forEach((file) => {
+            // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
-            setReceiptAndNavigate(file);
-        }
+        });
+
+        validateFiles(files);
     };
 
     const createExportAll = useCallback(() => {
