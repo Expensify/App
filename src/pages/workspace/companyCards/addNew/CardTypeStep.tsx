@@ -14,7 +14,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPlaidCountrySupported} from '@libs/CardUtils';
+import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import variables from '@styles/variables';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -94,7 +94,7 @@ function CardTypeStep() {
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;
-    const isCountrySupportPlaid = isPlaidCountrySupported(addNewCard?.data.selectedCountry);
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data.selectedCountry);
 
     const submit = () => {
         if (!typeSelected) {
@@ -120,7 +120,7 @@ function CardTypeStep() {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
-        if (isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !isCountrySupportPlaid) {
+        if (isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !doesCountrySupportPlaid) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
             return;
         }

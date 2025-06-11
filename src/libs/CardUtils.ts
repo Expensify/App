@@ -432,7 +432,7 @@ function getPlaidInstitutionId(feedName?: string) {
     return feed.at(1);
 }
 
-function isPlaidCountrySupported(selectedCountry?: string) {
+function isPlaidSupportedCountry(selectedCountry?: string) {
     if (!selectedCountry) {
         return false;
     }
@@ -702,7 +702,7 @@ export {
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
     isCardClosed,
-    isPlaidCountrySupported,
+    isPlaidSupportedCountry,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,

@@ -12,7 +12,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPlaidCountrySupported} from '@libs/CardUtils';
+import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,7 @@ function SelectFeedType() {
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const isCountrySupportPlaid = isPlaidCountrySupported(addNewCard?.data?.selectedCountry);
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
 
     const submit = () => {
@@ -53,10 +53,10 @@ function SelectFeedType() {
             setTypeSelected(addNewCard?.data.selectedFeedType);
             return;
         }
-        if (isCountrySupportPlaid) {
+        if (doesCountrySupportPlaid) {
             setTypeSelected(CONST.COMPANY_CARDS.FEED_TYPE.DIRECT);
         }
-    }, [addNewCard?.data.selectedFeedType, isCountrySupportPlaid]);
+    }, [addNewCard?.data.selectedFeedType, doesCountrySupportPlaid]);
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK});
@@ -85,7 +85,7 @@ function SelectFeedType() {
         if (!isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
             return data;
         }
-        if (isCountrySupportPlaid) {
+        if (doesCountrySupportPlaid) {
             return data.reverse();
         }
 

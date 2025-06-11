@@ -12,7 +12,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPlaidCountrySupported} from '@libs/CardUtils';
+import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
@@ -58,7 +58,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
     const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
-    const isCountrySupportPlaid = isPlaidCountrySupported(currentCountry);
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
 
     const submit = () => {
         if (!currentCountry) {
@@ -68,10 +68,10 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
-                step: isCountrySupportPlaid ? CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                step: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
                 data: {
                     selectedCountry: currentCountry,
-                    selectedFeedType: isCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
+                    selectedFeedType: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
                 },
                 isEditing: false,
             });
