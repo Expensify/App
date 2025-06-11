@@ -14,7 +14,6 @@ import type {Report} from '@src/types/onyx';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
-import normalizePath from './normalizePath';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -224,11 +223,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  * @throws Error if unable to get state from path
  */
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
-    // Redirect /signin to root path to prevent NotFound page
-    if (normalizePath(path) === '/signin') {
-        return getAdaptedStateFromPath('', options, shouldReplacePathInNestedState);
-    }
-
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
 
     const state = getStateFromPath(normalizedPath, options) as PartialState<NavigationState<RootNavigatorParamList>>;

@@ -187,7 +187,6 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -3359,12 +3358,7 @@ function openReportFromDeepLink(url: string) {
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     }
 
-    let route = getRouteFromLink(url);
-
-    // Redirect /signin to root path to prevent NotFound page
-    if (normalizePath(route) === '/signin') {
-        route = '';
-    }
+    const route = getRouteFromLink(url);
 
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
