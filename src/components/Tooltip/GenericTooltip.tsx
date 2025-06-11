@@ -37,7 +37,8 @@ function GenericTooltip({
     shouldTeleportPortalToModalLayer,
     shouldRender = true,
     isEducationTooltip = false,
-    onTooltipPress = () => {},
+    onTooltipPress,
+    computeHorizontalShiftForNative = false,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -189,6 +190,7 @@ function GenericTooltip({
                     shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                     onHideTooltip={onPressOverlay}
                     onTooltipPress={onTooltipPress}
+                    computeHorizontalShiftForNative={computeHorizontalShiftForNative}
                 />
             )}
             {/* eslint-disable-next-line react-compiler/react-compiler */}

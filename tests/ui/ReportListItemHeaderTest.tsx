@@ -12,7 +12,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReport from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -23,10 +22,18 @@ jest.mock('@components/AvatarWithDisplayName.tsx');
 const mockSearchContext = {
     currentSearchHash: 12345,
     selectedReports: {},
-    setSelectedReports: jest.fn(),
     selectedTransactionIDs: [],
-    setSelectedTransactionIDs: jest.fn(),
-    clearSelectedItems: jest.fn(),
+    selectedTransactions: {},
+    isOnSearch: false,
+    shouldTurnOffSelectionMode: false,
+    setSelectedReports: jest.fn(),
+    clearSelectedTransactions: jest.fn(),
+    setLastSearchType: jest.fn(),
+    setCurrentSearchHash: jest.fn(),
+    setSelectedTransactions: jest.fn(),
+    setShouldShowFiltersBarLoading: jest.fn(),
+    setShouldShowExportModeOption: jest.fn(),
+    setExportMode: jest.fn(),
 };
 
 const mockPersonalDetails: Record<string, SearchPersonalDetails> = {
@@ -81,16 +88,13 @@ const createReportListItem = (type: ValueOf<typeof CONST.REPORT.TYPE>, from?: st
 
 // Helper function to wrap component with context
 const renderReportListItemHeader = (reportItem: ReportListItemType) => {
-    const mockReport = createRandomReport(Number(reportItem.reportID));
-
     return render(
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
             <SearchContext.Provider value={mockSearchContext}>
                 <ReportListItemHeader
-                    report={mockReport}
+                    report={reportItem}
                     policy={mockPolicy}
-                    item={reportItem}
                     onSelectRow={jest.fn()}
                     onCheckboxPress={jest.fn()}
                     isDisabled={false}
