@@ -275,6 +275,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 onPress={() => handleIntegrationSelect(item.keyForList)}
                 accessibilityLabel={item.text}
                 accessible={false}
+                hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
                 style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
             >
                 <RadioButtonWithLabel
@@ -288,6 +289,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                             <Text style={styles.textStrong}>{item.text}</Text>
                         </View>
                     }
+                    shouldBlendOpacity
                 />
             </PressableWithoutFeedback>
         ),
