@@ -138,7 +138,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 currencySymbol,
                 onSplitExpenseAmountChange,
-                isTransactionLinked: splitExpenseTransactionID === item.transactionID,
+                isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
                 isCannotEdit: !!item.statusNum && item.statusNum >= CONST.REPORT.STATUS_NUM.CLOSED,
             };

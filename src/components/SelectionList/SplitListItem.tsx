@@ -5,7 +5,6 @@ import {Folder, Tag} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
@@ -26,7 +25,6 @@ function SplitListItem<TItem extends ListItem>({
 }: SplitListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const splitItem = item as unknown as SplitListItemType;
 
@@ -45,22 +43,22 @@ function SplitListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.p2, styles.br2]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.p3, styles.br3]}
             isFocused={isFocused}
             containerStyle={[
                 styles.mh4,
                 styles.mv1,
                 styles.reportPreviewBoxHoverBorder,
                 styles.br2,
-                splitItem.isTransactionLinked && StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG),
             ]}
             hoverStyle={[styles.br2]}
-            pressableStyle={[styles.br2, styles.p1]}
+            pressableStyle={[styles.br2]}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
+            shouldUseDefaultRightHandSideCheckmark={false}
             keyForList={item.keyForList}
             onFocus={onFocus}
             pendingAction={item.pendingAction}

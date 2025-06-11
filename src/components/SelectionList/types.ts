@@ -413,9 +413,6 @@ type SplitListItemType = ListItem &
         /** Original amount before split */
         originalAmount: number;
 
-        /** Indicates whether a split was opened through this transaction */
-        isTransactionLinked: boolean;
-
         /** Indicates whether a split was approved, paid etc. */
         isCannotEdit: boolean;
 
