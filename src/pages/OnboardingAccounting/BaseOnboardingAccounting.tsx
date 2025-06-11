@@ -303,6 +303,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             styles.ml0,
             styles.onboardingAccountingItem,
             styles.textStrong,
+            styles.hoveredComponentBG,
         ],
     );
 
