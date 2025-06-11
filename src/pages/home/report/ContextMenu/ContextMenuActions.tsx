@@ -126,7 +126,7 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Account, Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {Account, Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -170,7 +170,6 @@ type ShouldShow = (args: {
     moneyRequestAction: ReportAction | undefined;
     areHoldRequirementsMet: boolean;
     account: OnyxEntry<Account>;
-    policy?: OnyxEntry<Policy>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -192,7 +191,6 @@ type ContextMenuActionPayload = {
     anchorRef?: MutableRefObject<View | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
-    policy?: OnyxEntry<Policy>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -484,7 +482,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, policy}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card}) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = getReportActionMessageText(reportAction);
@@ -534,7 +532,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY ||
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
                 ) {
-                    Clipboard.setString(getWorkspaceCategoryUpdateMessage(reportAction, policy));
+                    Clipboard.setString(getWorkspaceCategoryUpdateMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
                     Clipboard.setString(getCleanedTagName(getTagListNameUpdatedMessage(reportAction)));
                 } else if (isTagModificationAction(reportAction.actionName)) {
