@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -8,6 +8,7 @@ import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -107,6 +108,7 @@ function ExpensifyCardPage({
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
     const [validateError, setValidateError] = useState<Errors>({});
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const openValidateCodeModal = (revealedCardID: number) => {
         setCurrentCardID(revealedCardID);
@@ -239,7 +241,13 @@ function ExpensifyCardPage({
                                                 !isSignedInAsDelegate ? (
                                                     <Button
                                                         text={translate('cardPage.cardDetails.revealDetails')}
-                                                        onPress={() => openValidateCodeModal(card.cardID)}
+                                                        onPress={() => {
+                                                            if (isAccountLocked) {
+                                                                showLockedAccountModal();
+                                                                return;
+                                                            }
+                                                            openValidateCodeModal(card.cardID);
+                                                        }}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
                                                     />
@@ -259,7 +267,13 @@ function ExpensifyCardPage({
                                         titleStyle={styles.walletCardMenuItem}
                                         icon={Expensicons.Flag}
                                         shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
+                                        onPress={() => {
+                                            if (isAccountLocked) {
+                                                showLockedAccountModal();
+                                                return;
+                                            }
+                                            Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()));
+                                        }}
                                     />
                                 )}
                             </>
@@ -321,7 +335,13 @@ function ExpensifyCardPage({
                                     title={translate('reportCardLostOrDamaged.report')}
                                     icon={Expensicons.Flag}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)))}
+                                    onPress={() => {
+                                        if (isAccountLocked) {
+                                            showLockedAccountModal();
+                                            return;
+                                        }
+                                        Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
+                                    }}
                                 />
                             </>
                         )}
