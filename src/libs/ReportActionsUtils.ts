@@ -1283,7 +1283,6 @@ function getOneTransactionThreadReportID(
         if (
             actionType &&
             iouRequestTypesSet.has(actionType) &&
-            action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an associated IOU transaction ID or
             // - they have visible childActions (like comments) that we'd want to display
@@ -1311,8 +1310,8 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    // Ensure we have a childReportID associated with the IOU report action
-    return singleAction?.childReportID;
+    // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
+    return singleAction?.childReportID ?? CONST.FAKE_REPORT_ID;
 }
 
 /**
