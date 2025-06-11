@@ -12,12 +12,14 @@ import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequ
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
 import type {TupleToUnion} from 'type-fest';
+import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
+import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -32,6 +34,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
@@ -111,11 +114,13 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+    const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -541,6 +546,13 @@ function IOURequestStepScan({
         });
     };
 
+    const dismissMultiScanEducationalPopup = () => {
+        InteractionManager.runAfterInteractions(() => {
+            dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
+            setShouldShowMultiScanEducationalPopup(false);
+        });
+    };
+
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
@@ -730,6 +742,9 @@ function IOURequestStepScan({
     ]);
 
     const toggleMultiScan = () => {
+        if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
+            setShouldShowMultiScanEducationalPopup(true);
+        }
         if (isMultiScanEnabled) {
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
@@ -849,7 +864,21 @@ function IOURequestStepScan({
                         </View>
                     )}
                 </View>
-
+                {shouldShowMultiScanEducationalPopup && (
+                    <FeatureTrainingModal
+                        title={translate('iou.scanMultipleReceipts')}
+                        image={MultiScan}
+                        shouldRenderSVG
+                        imageHeight={220}
+                        modalInnerContainerStyle={styles.pt0}
+                        illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
+                        onConfirm={dismissMultiScanEducationalPopup}
+                        titleStyles={styles.mb2}
+                        confirmText={translate('common.buttonConfirm')}
+                        description={translate('iou.scanMultipleReceiptsDescription')}
+                        shouldGoBack={false}
+                    />
+                )}
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker onOpenPicker={() => setIsLoaderVisible(true)}>
                         {({openPicker}) => (
