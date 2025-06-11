@@ -56,7 +56,7 @@ function AutoSubmitModal() {
             illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.green700), styles.p8]}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.p0}
-            shouldShowDismissModalOption={!dismissedInstantSubmitExplanation}
+            shouldShowDismissModalOption={dismissedInstantSubmitExplanation === false}
             onConfirm={onClose}
             titleStyles={[styles.mb1]}
             contentInnerContainerStyles={[styles.mb5]}
