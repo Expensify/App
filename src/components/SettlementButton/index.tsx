@@ -496,6 +496,11 @@ function SettlementButton({
         selectedOption: PaymentMethodType | PaymentMethod,
         triggerKYCFlow: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void,
     ) => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+
         const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(selectedOption as PaymentMethod);
         const shouldSelectPaymentMethod = (isPaymentMethod ?? lastPaymentPolicy ?? !isEmpty(latestBankItem)) && !shouldShowApproveButton && !shouldHidePaymentOptions;
         const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === selectedOption);
