@@ -3358,7 +3358,12 @@ function openReportFromDeepLink(url: string) {
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     }
 
-    const route = getRouteFromLink(url);
+    let route = getRouteFromLink(url);
+
+    // Replace signin route with empty string to redirect to home page
+    if (route.toLowerCase() === 'signin' || route === '/signin') {
+        route = '';
+    }
 
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {

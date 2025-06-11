@@ -223,6 +223,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  * @throws Error if unable to get state from path
  */
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
+    // Redirect /signin to root path to prevent NotFound page
+    if (path.toLowerCase() === '/signin' || path === 'signin') {
+        return getAdaptedStateFromPath('', options, shouldReplacePathInNestedState);
+    }
+
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
 
     const state = getStateFromPath(normalizedPath, options) as PartialState<NavigationState<RootNavigatorParamList>>;
