@@ -3141,6 +3141,7 @@ const translations = {
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s gastos`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: 'No puedes eliminar el espacio de trabajo hasta el final del período de suscripción anual.',
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',

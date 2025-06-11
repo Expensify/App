@@ -3117,6 +3117,7 @@ const translations = {
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: "You can't delete the workspace until the end of the annual subscription term.",
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
