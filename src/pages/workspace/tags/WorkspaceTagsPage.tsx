@@ -556,7 +556,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 {translate(`workspace.tags.${emptyTagsCopy}.subtitle3`)}
             </Text>
         ),
-        [styles.textAlignCenter, styles.textNormal, styles.textSupporting, translate],
+        [styles.textAlignCenter, styles.textNormal, styles.textSupporting, translate, emptyTagsCopy, hasAccountingConnections, policyID],
     );
 
     return (
