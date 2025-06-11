@@ -235,6 +235,9 @@ const ONYXKEYS = {
     /** If the user should see the team 2025 subscription pricing */
     NVP_PRIVATE_MANUAL_TEAM_2025_PRICING: 'nvp_private_manualTeam2025Pricing',
 
+    /** Details on whether an account is locked or not */
+    NVP_PRIVATE_LOCK_ACCOUNT_DETAILS: 'nvp_private_lockAccountDetails',
+
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
 
@@ -491,9 +494,6 @@ const ONYXKEYS = {
 
     /** Stores the information about the state of side panel */
     NVP_SIDE_PANEL: 'nvp_sidePanel',
-
-    /** Information about loading states while talking with AI sales */
-    TALK_TO_AI_SALES: 'talkToAISales',
 
     /** Stores draft information while user is scheduling the call. */
     SCHEDULE_CALL_DRAFT: 'scheduleCallDraft',
@@ -1041,7 +1041,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
-    [ONYXKEYS.TALK_TO_AI_SALES]: OnyxTypes.TalkToAISales;
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: OnyxUpdate[];
 
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
@@ -1144,6 +1143,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
     [ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING]: string;
+    [ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS]: OnyxTypes.LockAccountDetails;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
