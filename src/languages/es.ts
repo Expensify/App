@@ -7129,12 +7129,12 @@ const translations = {
         callScheduled: 'Llamada programada',
     },
     autoSubmitModal: {
-        title: 'Envío Automático de Gastos',
-        description: 'Envío Automático de Gastos ayuda a ahorrar tiempo enviando tus gastos por ti.',
-        submittedExpensesTitle: 'Gastos Enviados',
-        submittedExpensesDescription: 'Gastos que han sido enviados automáticamente por ti.',
-        pendingExpensesTitle: 'Gastos Pendientes',
-        pendingExpensesDescription: 'Gastos en espera de ser enviados automáticamente.',
+        title: '¡Todo claro y enviado!',
+        description: 'Se han solucionado todas las advertencias e infracciones, así que:',
+        submittedExpensesTitle: 'Estos gastos han sido enviados',
+        submittedExpensesDescription: 'Estos gastos se han enviado a tu aprobador pero aún se pueden editar hasta que sean aprobados.',
+        pendingExpensesTitle: 'Los gastos pendientes se han movido',
+        pendingExpensesDescription: 'Cualquier gasto pendiente de tarjeta se ha movido a un informe separado hasta que se contabilicen.',
     },
     testDrive: {
         quickAction: {
