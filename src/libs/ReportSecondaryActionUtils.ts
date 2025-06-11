@@ -21,7 +21,6 @@ import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
     canDeclineReportAction,
-    canEditFieldOfMoneyRequest,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     getTransactionDetails,
@@ -104,8 +103,15 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     return isSubmitter || isAdmin || isManager;
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]): boolean {
-    if (isArchivedReport(reportNameValuePairs)) {
+function isSubmitAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+    reportActions?: ReportAction[],
+    isChatReportArchived = false,
+): boolean {
+    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
 
@@ -123,7 +129,9 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-    if (!isReportSubmitter && !isReportApprover) {
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = report.managerID === getCurrentUserAccountID();
+    if (!isReportSubmitter && !isReportApprover && !isAdmin && !isManager) {
         return false;
     }
 
@@ -142,8 +150,6 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = report.managerID === getCurrentUserAccountID();
     if (isAdmin || isManager) {
         return true;
     }
@@ -180,7 +186,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
 
-    if (isExpenseReport && isReportApprover && isProcessingReport && reportHasDuplicatedTransactions) {
+    if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
     }
 
@@ -398,20 +404,6 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy);
 }
 
-function isMoveTransactionAction(reportTransactions: Transaction[], reportActions?: ReportAction[]) {
-    const transaction = reportTransactions.at(0);
-
-    if (reportTransactions.length !== 1 || !transaction || !reportActions) {
-        return false;
-    }
-
-    const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-
-    const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
-
-    return canMoveExpense;
-}
-
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
@@ -502,8 +494,8 @@ function getSecondaryReportActions(
     reportActions?: ReportAction[],
     policies?: OnyxCollection<Policy>,
     canUseRetractNewDot?: boolean,
-    canUseTableReportView?: boolean,
     canUseNewDotSplits?: boolean,
+    isChatReportArchived = false,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -511,11 +503,11 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
-    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs))) {
+    if (isAddExpenseAction(report, reportTransactions, isChatReportArchived || isArchivedReport(reportNameValuePairs))) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -561,10 +553,6 @@ function getSecondaryReportActions(
 
     if (isChangeWorkspaceAction(report, policies)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
-    }
-
-    if (isMoveTransactionAction(reportTransactions, reportActions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);

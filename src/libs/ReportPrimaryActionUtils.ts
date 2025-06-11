@@ -56,7 +56,11 @@ type GetReportPrimaryActionParams = {
     isChatReportArchived?: boolean;
 };
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived = false) {
+    if (isChatReportArchived) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const canAddTransaction = canAddTransactionUtil(report);
@@ -110,10 +114,9 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID) || managerID === currentUserAccountID;
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
-    if (!isExpenseReport || !isReportApprover || !isApprovalEnabled || reportTransactions.length === 0) {
+    if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
         return false;
     }
 
@@ -314,7 +317,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
 
-    if (isAddExpenseAction(report, reportTransactions)) {
+    if (isAddExpenseAction(report, reportTransactions, isChatReportArchived)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
     }
 

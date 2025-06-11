@@ -394,16 +394,15 @@ export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOURepo
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
-export type {default as SendRecapInAdminsRoomParams} from './SendRecapInAdminsRoomParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
-export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
 export type {default as RetractReportParams} from './RetractReportParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
 export type {default as DeclineMoneyRequestParams} from './DeclineMoneyRequestParams';
 export type {default as MarkTransactionViolationAsResolvedParams} from './MarkTransactionViolationAsResolvedParams';
+export type {default as LockAccountParams} from './LockAccountParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
