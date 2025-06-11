@@ -24,7 +24,10 @@ import {
     getMerchant,
     getCreated as getTransactionCreated,
     getTransactionPendingAction,
+    hasMissingSmartscanFields,
     hasReceipt,
+    isAmountMissing,
+    isMerchantMissing,
     isReceiptBeingScanned,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
@@ -41,7 +44,6 @@ import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
-import TransactionItemRowRBR from './TransactionItemRowRBR';
 import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
 
 type ColumnComponents = {
@@ -165,6 +167,23 @@ function TransactionItemRow({
     }, [hovered, isParentHovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
 
     const merchantOrDescriptionName = useMemo(() => getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout), [shouldUseNarrowLayout, transactionItem, translate]);
+    const missingFieldError = useMemo(() => {
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem);
+        if (hasFieldErrors) {
+            const amountMissing = isAmountMissing(transactionItem);
+            const merchantMissing = isMerchantMissing(transactionItem);
+            let error = '';
+
+            if (amountMissing && merchantMissing) {
+                error = translate('violations.reviewRequired');
+            } else if (amountMissing) {
+                error = translate('iou.missingAmount');
+            } else if (merchantMissing) {
+                error = translate('iou.missingMerchant');
+            }
+            return error;
+        }
+    }, [transactionItem, translate]);
 
     useEffect(() => {
         if (!transactionItem.shouldBeHighlighted || !scrollToNewTransaction) {
@@ -395,6 +414,7 @@ function TransactionItemRow({
                                     <TransactionItemRowRBRWithOnyx
                                         transaction={transactionItem}
                                         containerStyles={[styles.mt2, styles.minHeight4]}
+                                        missingFieldError={missingFieldError}
                                     />
                                 </View>
                                 <ChatBubbleCell
@@ -420,12 +440,10 @@ function TransactionItemRow({
                                 </View>
                                 {columns?.map((column) => columnComponent[column])}
                             </View>
-                            {}
-                            {isInReportTableView ? (
-                                <TransactionItemRowRBRWithOnyx transaction={transactionItem} />
-                            ) : (
-                                <TransactionItemRowRBR transactionViolations={transactionItem.violations} /> // We are rendering this component only if we are not in the report table view for performance reasons
-                            )}
+                            <TransactionItemRowRBRWithOnyx
+                                transaction={transactionItem}
+                                missingFieldError={missingFieldError}
+                            />
                         </View>
                     </Animated.View>
                 )}
