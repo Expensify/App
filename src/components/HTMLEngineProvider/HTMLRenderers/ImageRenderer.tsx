@@ -119,7 +119,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     source,
                                     accountID,
                                     isAuthTokenRequired: isAttachmentOrReceipt,
-                                    fileName,
+                                    originalFileName: fileName,
                                     attachmentLink,
                                 });
                                 Navigation.navigate(route);
