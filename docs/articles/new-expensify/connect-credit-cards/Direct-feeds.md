@@ -1,11 +1,12 @@
 ---
-title: Direct Feeds
-description: Learn how to connect your bank to Expensify using a direct feed to import company card expenses quickly and reliably.
-keywords: [New Expensify, direct feeds, company cards, credit card integration, import transactions, assign cards, manage cards]
+title: Direct Company Card Feeds
+description: Learn how to connect company credit cards using direct feeds or Plaid to import transactions and assign cards in New Expensify.
+keywords: [New Expensify, direct feeds, Plaid integration, company cards, credit card import, assign cards, connect bank, manage card feeds]
 ---
+
 <div id="new-expensify" markdown="1">
 
-Direct feeds offer a fast and reliable way to import company card transactions. By connecting your bank to Expensify using your credentials, you can be up and running in just a few minutes.
+Direct feeds in New Expensify provide a fast, reliable way to import company card transactions. You can now also use Plaid to connect to over 12,000 global banks, giving you even more options to connect cards without needing Expensify Classic.
 
 You can add one **direct** or [**commercial feed**](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds) on the **Collect plan**. Upgrade to the **Control plan** to add unlimited company cards.
 
@@ -13,124 +14,128 @@ You can add one **direct** or [**commercial feed**](https://help.expensify.com/a
 
 # Prerequisites
 
-Before setting up a direct feed, go to **Workspaces > New Workspace** to create a workspace (if you haven't already).
+Before setting up a direct or Plaid feed, go to **Workspaces > New Workspace** to create a workspace (if you haven't already).
 
 ---
 
 # Set Up a Direct Feed
 
-1. Go to **Workspaces > [Workspace Name] > Company Cards**.
-2. Click **Add Cards**.
+1. . Go to **Workspaces > [Workspace Name] > Company cards** to view your company’s card setup page.
+2. Click **Add cards** to start connecting a new feed.
 
 ![Click add cards to add a card feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_01.png){:width="100%"}
 
-3. Select your **bank** from the list.
-   - If your bank isn't listed, consider using a [commercial feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds).
+3. **Select your country** from the list.  
+   - We’ll try to prefill this based on your workspace’s currency, but you can manually change it if needed.  
+   - You won’t be able to continue without selecting a country — if it’s left blank, we’ll show an error.  
+   - All countries are listed, except those where Expensify isn’t available (like Iran, Cuba, Syria, Ukraine, or North Korea).
 
-![Select your bank and click Next]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_02.png){:width="100%"}
+4. **Choose your feed type** when prompted:
+   - **Direct feed** – This is the default option in most supported countries and works for the majority of users.  
+   - **Commercial feed** – Best for large-scale card programs where your bank facilitates the connection directly.
 
-4. Select **Direct Feed**.
-
-![Select your feed type and click next]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_03.png){:width="100%"}
-
-5. Log in to your bank using **master credentials** (typically those of the account owner).
-6. Select the account(s) to connect.
-
-![Login to your bank]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_04.png){:width="100%"}
+5. **Pick your bank:**
+   - If you’re in the U.S., select your bank from the list or choose **Other banks** to connect through Plaid.
+   - For international members in supported countries, choosing **Direct feed** will automatically launch the Plaid connection process.
 
 ---
 
-# Assign Company Cards
+# Using Plaid to Connect a Direct Feed
+
+If your bank isn’t listed, or you're in a supported Plaid country, Plaid will launch automatically to complete the connection.
+
+## Supported countries for Plaid feeds:
+
+- United States
+- Canada
+- United Kingdom
+- Austria, Belgium, Denmark, Estonia, Finland, France, Germany, Ireland, Italy, Latvia, Lithuania, Netherlands, Norway, Poland, Portugal, Spain, Sweden
+
+Once you choose **Direct feed** for any of these countries, you'll see the **Plaid UI**, where you can securely log in to your bank and select accounts.
+
+**Note for UK customers:** Per Plaid's compliance guidelines, you'll see the required regulatory text before and after connecting.
+
+---
+
+## Assign Company Cards
 
 Once connected:
 
-1. Go to **Workspaces > [Workspace Name] > Company Cards**.
+1. Go to **Workspaces > [Workspace Name] > Company cards**.
 
 ![Click company cards in the workspace editor to open the feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_05.png){:width="100%"}
 
-2. If you have multiple feeds, click the feed name at the top left to select the correct card feed.
+2. If you have multiple feeds, click the feed name at the top left to select the correct one.
 
 ![Click the feed name in the top left to open the feed selector where you can select a feed from the list]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_06.png){:width="100%"}
 
-3. Click **Assign Card**.
-   - You may be prompted to reauthenticate with your bank.
-4. Select a workspace member.
+3. Click **Assign card**.  
+   - You may be prompted to reauthenticate your Plaid login.
 
-![Click assign card to begin the flow. Start by selecting a member from the list]({{site.url}}/assets/images/Direct Feed HelpDot Images
-/directfeeds_07.png){:width="100%"}
+4. Select a **workspace member** from the list.
 
-5. Choose a card (only cards with recent transactions will appear).
-
-![Select a card from the list]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_08.png){:width="100%"}
+5. Choose a **card** (only cards with recent transactions will appear).
 
 6. Set a **start date**:
-   - **From the beginning** – All available transactions (typically 30–90 days)
-   - **Custom start date** – Specify a date
-  
-![Choose a transaction start date]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_09.png){:width="100%"}
+   - **From the beginning** (typically 30–90 days)
+   - **Custom date** to define your own range
 
-7. Review your selections and click **Assign Card**.
-
-![Check your selections and assign the card]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_10.png){:width="100%"}
+7. Review your selections and click **Assign card**.
 
 ---
 
 # Manage Assigned Cards
 
-To manage a card, click any assigned card to open the **Card Details** page.
+To manage a card, click any assigned card to open the **Card details** page.
 
 ![Tap the assigned card to open the card details page where you can manage the card]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_11.png){:width="100%"}
 
-**Available actions:**
+Available actions:
 
-- **Rename the card**
-- **Assign a specific export account** (if connected to accounting software)
-- **Update transactions**
-- **Unassign the card:** This will remove the card and delete any unsubmitted expenses from draft reports in the cardholder’s account.
+- Rename the card  
+- Assign a specific export account  
+- Update transactions  
+- Unassign the card
+
+> Unassigning a card will delete unsubmitted expenses from draft reports for that cardholder.
 
 ---
 
 # FAQ
 
-## My Direct Feed Is Connected. Why Isn’t a Specific Card Showing Up?
+## Can I use Plaid if my bank isn’t listed?
 
-Make sure you use the master credentials when connecting. Cards must be active and have at least one recent transaction to appear. If issues persist, contact your account manager or email [concierge@expensify.com](mailto:concierge@expensify.com).
+Yes! If you don’t see your bank in the list, you can still connect it using Plaid. Just select **Other banks** (if you're in the US) or choose **Direct feed** in a country where Plaid is supported — we’ll take care of the rest.
 
----
+## Do Plaid feeds behave the same as direct feeds?
 
-## Are Direct Feeds the Best Option?
+They sure do. Once your cards are connected through Plaid, they’ll show up just like any other direct feed. You can assign and manage them from the **Company cards** page or a member’s **Wallet**, with no extra steps needed.
 
-If Expensify supports your bank, direct feeds are a fast and convenient setup.  
-For **greater stability**, consider a [commercial feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds) or use the [Expensify Card](https://use.expensify.com/company-credit-card).
+## What if I’m outside the U.S.?
 
----
+Plaid feeds are available in many countries outside the U.S. See the list above. If your country isn’t supported, you’ll see the option to connect a **Commercial feed**.
 
-## Is There an Extra Fee?
+## How do I reconnect a broken feed?
 
-No.  
-- One direct feed is included in the **Collect plan**.  
-- Add more by upgrading to the **Control plan**.
+1. Go to **Workspaces > [Workspace Name] > Company cards**  
+2. Click the red error banner  
+3. Log in to your bank using Plaid or direct credentials to restore the connection
 
----
+## Can I connect multiple feeds from the same bank?
 
-## What’s the Difference Between Direct and Commercial Feeds?
+Not quite. Each workspace can only have **one direct feed per bank**.  
+If your company uses cards from multiple banks, that’s no problem — just connect each bank as its own separate feed.
 
-| Feature            | Direct Feed                  | Commercial Feed               |
-|--------------------|------------------------------|--------------------------------|
-| Setup              | User credentials (login)     | Bank-initiated (no login)      |
-| Stability          | May require reauthentication | Most reliable connection       |
-| Bank involvement   | Not required                 | Required                       |
+## Is there an extra cost?
 
----
+Nope — there’s no extra charge for using Plaid or direct feeds.
 
-## What If Expensify Doesn’t Support My Bank?
+- With the **Collect** plan, you can add one direct or Plaid feed at no cost.  
+- To connect more than one, you’ll need to upgrade to the **Control** plan.
 
-If your bank isn’t supported for direct feeds, consider:
+## Which banks support direct feeds?
 
-- Setting up a [commercial feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds)
-- Using the [Expensify Card](https://use.expensify.com/company-credit-card)
-
-Supported banks for direct feeds include:
+Some examples of supported direct feed banks include:
 
 - American Express  
 - Bank of America  
@@ -139,28 +144,7 @@ Supported banks for direct feeds include:
 - Chase  
 - Citibank  
 - Stripe  
-- Wells Fargo
-
----
-
-## Can Direct Feeds Have Downtime?
-
-Occasionally, yes. Bank security updates can interrupt connections. Expensify’s engineering team monitors these and works to restore access quickly.
-
----
-
-## My Direct Feed Is Broken. How Do I Fix It?
-
-If login credentials, card numbers, or security questions have changed:
-
-1. Go to **Workspaces > [Workspace Name] > Company Cards**
-2. Click **Log into your bank** on the error message
-3. Reauthenticate to restore the connection
-
----
-
-## Can I Connect Multiple Direct Feeds from the Same Bank?
-
-No. Each workspace supports **one direct feed per bank**. If you have multiple programs, request that your bank consolidate them under one login. You can connect multiple direct feeds from **different banks** in the same workspace.
+- Wells Fargo  
+- ...plus 12,000+ more through **Plaid**
 
 </div>
