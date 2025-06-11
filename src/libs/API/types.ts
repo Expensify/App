@@ -1014,7 +1014,7 @@ const READ_COMMANDS = {
     OPEN_PLAID_BANK_LOGIN: 'OpenPlaidBankLogin',
     OPEN_PLAID_CARDS_BANK_LOGIN: 'OpenPlaidCardsBankLogin',
     OPEN_PLAID_BANK_ACCOUNT_SELECTOR: 'OpenPlaidBankAccountSelector',
-    OPEN_SEARCH: 'OpenSearch',
+    OPEN_SEARCH_PAGE: 'OpenSearchPage',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',
     EXPAND_URL_PREVIEW: 'ExpandURLPreview',
@@ -1105,7 +1105,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_ONFIDO_FLOW]: null;
     [READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: null;
-    [READ_COMMANDS.OPEN_SEARCH]: null;
+    [READ_COMMANDS.OPEN_SEARCH_PAGE]: null;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN]: Parameters.SignInWithShortLivedAuthTokenParams;
     [READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]: Parameters.SignInWithSupportAuthTokenParams;

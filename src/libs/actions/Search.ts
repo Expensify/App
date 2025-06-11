@@ -246,8 +246,8 @@ function openSearchFiltersCardPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_FILTERS_CARD_PAGE, null, {optimisticData, successData, failureData});
 }
 
-function openSearch() {
-    API.read(READ_COMMANDS.OPEN_SEARCH, null);
+function openSearchPage() {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
@@ -448,6 +448,6 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchFiltersCardPage,
-    openSearch,
+    openSearchPage as openSearch,
     getLastPolicyPaymentMethod,
 };
