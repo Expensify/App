@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import {InteractionManager, Linking, View} from 'react-native';
@@ -30,6 +30,7 @@ function ManageTrips() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
@@ -44,8 +45,12 @@ function ManageTrips() {
     };
 
     useEffect(() => {
+        if (!shouldScrollToBottom) {
+            return;
+        }
         scrollToBottom();
-    }, []);
+        setShouldScrollToBottom(false);
+    }, [shouldScrollToBottom]);
 
     return (
         <ScrollView
@@ -74,6 +79,7 @@ function ManageTrips() {
                             <BookTravelButton
                                 text={translate('travel.bookTravel')}
                                 shouldRenderErrorMessageBelowButton
+                                setShouldScrollToBottom={setShouldScrollToBottom}
                             />
                         </>
                     }
