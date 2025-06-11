@@ -154,6 +154,7 @@ export type {
     CompanyCardFeed,
     LastExportMethod,
     Locale,
+    LockAccountDetails,
     Login,
     LoginList,
     PendingContactAction,
@@ -264,5 +265,4 @@ export type {
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
     HybridApp,
-    LockAccountDetails,
 };
