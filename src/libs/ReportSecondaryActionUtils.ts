@@ -20,7 +20,6 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
-    canEditFieldOfMoneyRequest,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     getTransactionDetails,
@@ -122,7 +121,9 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-    if (!isReportSubmitter && !isReportApprover) {
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = report.managerID === getCurrentUserAccountID();
+    if (!isReportSubmitter && !isReportApprover && !isAdmin && !isManager) {
         return false;
     }
 
@@ -141,8 +142,6 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = report.managerID === getCurrentUserAccountID();
     if (isAdmin || isManager) {
         return true;
     }
@@ -155,6 +154,12 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
     const currentUserAccountID = getCurrentUserAccountID();
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
@@ -173,7 +178,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
 
-    if (isExpenseReport && isReportApprover && isProcessingReport && reportHasDuplicatedTransactions) {
+    if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
     }
 
@@ -391,20 +396,6 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy);
 }
 
-function isMoveTransactionAction(reportTransactions: Transaction[], reportActions?: ReportAction[]) {
-    const transaction = reportTransactions.at(0);
-
-    if (reportTransactions.length !== 1 || !transaction || !reportActions) {
-        return false;
-    }
-
-    const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-
-    const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
-
-    return canMoveExpense;
-}
-
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
@@ -419,7 +410,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         return isOwner;
     }
 
-    // Users cannot delete a report in the unrepeorted or IOU cases, but they can delete individual transactions.
+    // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
     // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
     if (isIOUReport) {
         return isSingleTransaction && isOwner && isReportOpenOrProcessing;
@@ -495,7 +486,6 @@ function getSecondaryReportActions(
     reportActions?: ReportAction[],
     policies?: OnyxCollection<Policy>,
     canUseRetractNewDot?: boolean,
-    canUseTableReportView?: boolean,
     canUseNewDotSplits?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
@@ -504,7 +494,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
-    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs))) {
+    if (isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs))) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
@@ -554,10 +544,6 @@ function getSecondaryReportActions(
 
     if (isChangeWorkspaceAction(report, policies)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
-    }
-
-    if (isMoveTransactionAction(reportTransactions, reportActions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);

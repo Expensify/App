@@ -9,6 +9,7 @@ import times from '@src/utils/times';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 type CategoryTreeSection = SectionBase & {
     data: OptionTree[];
@@ -126,17 +127,11 @@ function getCategoryListSections({
 
     if (searchValue) {
         const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
-        const searchCategories: Category[] = [];
 
-        categoriesForSearch.forEach((category) => {
-            if (!category.name.toLowerCase().includes(searchValue.toLowerCase())) {
-                return;
-            }
-            searchCategories.push({
-                ...category,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
-            });
-        });
+        const searchCategories: Category[] = tokenizedSearch(categoriesForSearch, searchValue, (category) => [category.name]).map((category) => ({
+            ...category,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+        }));
 
         const data = getCategoryOptionTree(searchCategories, true);
         categorySections.push({

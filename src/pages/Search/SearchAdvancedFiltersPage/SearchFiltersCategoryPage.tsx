@@ -7,7 +7,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
+import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -16,19 +16,20 @@ function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const selectedCategoriesItems = searchAdvancedFiltersForm?.category?.map((category) => {
-        if (category === CONST.SEARCH.EMPTY_VALUE) {
+        if (category === CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
             return {name: translate('search.noCategory'), value: category};
         }
         return {name: category, value: category};
     });
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
     const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryItems = useMemo(() => {
-        const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.EMPTY_VALUE as string}];
+        const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
         if (!singlePolicyCategories) {
             const uniqueCategoryNames = new Set<string>();
             Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
@@ -39,7 +40,7 @@ function SearchFiltersCategoryPage() {
         return items;
     }, [allPolicyCategories, singlePolicyCategories, translate]);
 
-    const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
+    const onSaveSelection = useCallback((values: string[]) => updateAdvancedFilters({category: values}), []);
 
     return (
         <ScreenWrapper
