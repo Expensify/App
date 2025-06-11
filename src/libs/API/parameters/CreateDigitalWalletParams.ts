@@ -12,6 +12,7 @@ type CreateDigitalGoogleWalletParams = {
     appVersion: string;
     walletAccountID: string;
     deviceID: string;
+    cardID: number;
 };
 
 type CreateDigitalWalletParams = CreateDigitalAppleWalletParams | CreateDigitalGoogleWalletParams;

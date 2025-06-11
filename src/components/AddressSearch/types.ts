@@ -87,6 +87,9 @@ type AddressSearchProps = {
 
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
+
+    /** If true, caret is hidden. The default value is false. */
+    caretHidden?: boolean;
 };
 
 type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement>) => boolean;

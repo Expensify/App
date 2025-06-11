@@ -12,7 +12,7 @@ import type {
     EventCallbackError,
     EventData,
     PusherEventName,
-    PusherSubscribtionErrorData,
+    PusherSubscriptionErrorData,
     PusherWithAuthParams,
     SocketEventCallback,
     SocketEventName,
@@ -226,7 +226,7 @@ function subscribe<EventName extends PusherEventName>(
                             onResubscribe();
                         });
 
-                        channel.bind('pusher:subscription_error', (data: PusherSubscribtionErrorData = {}) => {
+                        channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
                             const {type, error, status} = data;
                             Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                                 channelName,
@@ -341,7 +341,7 @@ function registerCustomAuthorizer(authorizer: ChannelAuthorizerGenerator) {
  */
 function disconnect() {
     if (!socket) {
-        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
+        Log.info('[Pusher] Attempting to disconnect from Pusher before initialization has occurred, ignoring.');
         return;
     }
 

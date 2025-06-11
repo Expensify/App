@@ -147,6 +147,7 @@ const INPUT_IDS = {
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
             SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+            DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
         },
     },
 } as const;

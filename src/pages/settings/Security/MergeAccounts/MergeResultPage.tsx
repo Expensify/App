@@ -226,6 +226,13 @@ function MergeResultPage() {
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.LockClosedOrange,
             },
+            [CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF]: {
+                heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
+                description: translate('mergeAccountsPage.mergeFailureSelfMerge.description'),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                illustration: Illustrations.LockClosedOrange,
+            },
         };
     }, [setRootStatusBarEnabled, login, translate, userEmailOrPhone, styles]);
 

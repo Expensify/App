@@ -16,6 +16,7 @@ function Backdrop({
     onBackdropPress,
     animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
     animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
+    isBackdropVisible,
     backdropOpacity = variables.overlayOpacity,
 }: BackdropProps) {
     const styles = useThemeStyles();
@@ -54,29 +55,34 @@ function Backdrop({
 
     if (!customBackdrop) {
         return (
-            <Animated.View
-                style={[styles.modalBackdrop, backdropStyle, style]}
-                entering={Entering}
-                exiting={Exiting}
+            <PressableWithoutFeedback
+                accessible
+                accessibilityLabel={translate('modal.backdropLabel')}
+                onPress={onBackdropPress}
+                style={[styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
-                <PressableWithoutFeedback
-                    accessible
-                    accessibilityLabel={translate('modal.backdropLabel')}
-                    onPress={onBackdropPress}
-                >
-                    <View style={[styles.modalBackdrop, backdropStyle, style]} />
-                </PressableWithoutFeedback>
-            </Animated.View>
+                {isBackdropVisible && (
+                    <Animated.View
+                        style={[styles.modalBackdrop, backdropStyle, style]}
+                        entering={Entering}
+                        exiting={Exiting}
+                    />
+                )}
+            </PressableWithoutFeedback>
         );
     }
-
     return (
-        <Animated.View
-            entering={Entering}
-            exiting={Exiting}
-        >
-            <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
-        </Animated.View>
+        isBackdropVisible && (
+            <Animated.View
+                entering={Entering}
+                exiting={Exiting}
+                style={[styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
+            </Animated.View>
+        )
     );
 }
 

@@ -10,6 +10,8 @@ import {useSession} from '@components/OnyxProvider';
 import type {TaskListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useParentReport from '@hooks/useParentReport';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -68,9 +70,9 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const StyleUtils = useStyleUtils();
     const session = useSession();
     const {translate} = useLocalize();
-
-    const taskAssigneeID = taskItem.assignee.accountID;
-    const taskCreatorID = taskItem.createdBy.accountID;
+    const parentReport = useParentReport(taskItem?.report?.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
     if (isTaskCompleted) {
@@ -102,7 +104,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             success
             text={translate('task.action')}
             style={[styles.w100]}
-            isDisabled={!canActionTask(taskItem.report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, taskCreatorID, taskAssigneeID)}
+            isDisabled={!isTaskActionable}
             onPress={callFunctionIfActionIsAllowed(() => {
                 completeTask(taskItem, taskItem.reportID);
             })}
@@ -219,7 +221,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         isLargeScreenWidth
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CREATED_BY)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
                         accountID={item.createdBy.accountID}
                         avatar={item.createdBy.avatar}
