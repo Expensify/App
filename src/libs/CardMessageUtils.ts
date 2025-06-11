@@ -5,7 +5,7 @@ import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, ReportAction, WorkspaceCardsList} from '@src/types/onyx';
 import {getPolicy, getWorkspaceAccountID, isPolicyAdmin} from './PolicyUtils';
-import {getOriginalMessage, isActionOfType, isCardIssuedAction} from './ReportActionsUtils';
+import {getOriginalMessage, isCardIssuedAction} from './ReportActionsUtils';
 
 let allUserCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
