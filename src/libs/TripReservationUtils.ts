@@ -3,7 +3,7 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {AirPnr, CarPnr, HotelPnr, TripData} from '@src/types/onyx/TripData';
+import type {AirPnr, CarPnr, HotelPnr, PnrData, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
@@ -77,7 +77,45 @@ function getSeatByLegAndFlight(travelerInfo: ArrayValues<AirPnr['travelerInfos']
     }
     return '';
 }
+function getTravelerName(traveler: ArrayValues<PnrData['pnrTravelers']>['personalInfo'] | undefined): string {
+    if (!traveler?.name) {
+        return '';
+    }
+    let name = traveler.name.family1;
 
+    if (traveler.name.family2) {
+        name += ` ${traveler.name.family2}`;
+    }
+    if (traveler.name.middle) {
+        name += ` ${traveler.name.middle}`;
+    }
+    if (traveler.name.given) {
+        name += ` ${traveler.name.given}`;
+    }
+
+    return name.trim();
+}
+
+function getAddressFromLocation(location: {addressLines?: string[]; postalCode?: string; locality?: string; administrativeArea?: string; regionCode?: string}): string {
+    let address = '';
+    if (location.addressLines) {
+        address += location.addressLines.join(', ');
+    }
+    if (location.postalCode) {
+        address += ` ${location.postalCode}`;
+    }
+    if (location.locality) {
+        address += `, ${location.locality}`;
+    }
+    if (location.administrativeArea) {
+        address += `, ${location.administrativeArea}`;
+    }
+    if (location.regionCode) {
+        address += `, ${location.regionCode}`;
+    }
+
+    return address.trim();
+}
 function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationData[] {
     if (!tripData?.pnrs) {
         return [];
@@ -106,9 +144,9 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                         const longAirlineName = airlineinfo.find((info) => info.airlineCode === airlineCode)?.airlineName ?? airlineCode;
 
                         const company = {
-                            shortName: airlineCode,
+                            shortName: airlineCode ?? '',
                             phone: '',
-                            longName: longAirlineName,
+                            longName: longAirlineName ?? '',
                         };
 
                         // Start location
@@ -116,7 +154,7 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                         const originLong = airports.find((airport) => airport.airportCode === origin)?.airportName ?? origin;
                         const originCity = origin; // @todo
                         const start = {
-                            date: flightObject?.departureDateTime?.iso8601,
+                            date: flightObject?.departureDateTime?.iso8601 ?? '',
                             timezoneOffset: '',
                             shortName: origin,
                             longName: originLong,
@@ -128,7 +166,7 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                         const destLong = airports.find((airport) => airport.airportCode === dest)?.airportName ?? dest;
                         const destCity = dest; // @todo
                         const end = {
-                            date: flightObject?.arrivalDateTime?.iso8601,
+                            date: flightObject?.arrivalDateTime?.iso8601 ?? '',
                             timezoneOffset: '',
                             shortName: dest,
                             longName: destLong,
@@ -136,7 +174,7 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                         };
 
                         const route = {
-                            number: flightObject?.marketing.num,
+                            number: flightObject?.marketing.num ?? '',
                             airlineCode: `${flightObject?.marketing.airlineCode}${flightObject?.marketing.num}`,
                             class: flightObject?.cabin,
                         };
@@ -144,7 +182,7 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                         const confirmations = [
                             {
                                 name: 'Confirmation Number',
-                                value: flightObject?.vendorConfirmationNumber,
+                                value: flightObject?.vendorConfirmationNumber ?? '',
                             },
                         ];
                         const traveler = travelers.find((travelerData) => travelerData.userId.id === travelerInfo.userId.id)?.personalInfo;
@@ -160,7 +198,7 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                             duration: parseDurationToSeconds(flightObject?.duration.iso8601 ?? ''),
                             reservationID: pnr.pnrId,
                             travelerPersonalInfo: {
-                                name: `${traveler?.name?.family1 ?? ''} ${traveler?.name?.family2 ?? ''} ${traveler?.name?.middle ?? ''} ${traveler?.name?.given ?? ''}`.trim(),
+                                name: getTravelerName(traveler),
                                 email: traveler?.email ?? '',
                             },
                         };
@@ -187,14 +225,14 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                 reservationID: pnr.pnrId,
                 start: {
                     date: pnrData.checkInDateTime?.iso8601,
-                    address: `${pnrData.hotelInfo.address.addressLines?.join(', ') ?? ''}, ${pnrData.hotelInfo.address.locality}, ${pnrData.hotelInfo.address.administrativeArea}, ${pnrData.hotelInfo.address.regionCode}`,
+                    address: getAddressFromLocation(pnrData.hotelInfo.address),
                     longName: pnrData.hotelInfo.name,
                     shortName: pnrData.hotelInfo.chainCode,
                     cityName: pnrData.hotelInfo.chainName,
                 },
                 end: {
                     date: pnrData.checkOutDateTime?.iso8601,
-                    address: `${pnrData.hotelInfo.address.addressLines?.join(', ') ?? ''}, ${pnrData.hotelInfo.address.locality}, ${pnrData.hotelInfo.address.administrativeArea}, ${pnrData.hotelInfo.address.regionCode}`,
+                    address: getAddressFromLocation(pnrData.hotelInfo.address),
                     longName: pnrData.hotelInfo.name,
                     shortName: pnrData.hotelInfo.chainCode,
                     cityName: pnrData.hotelInfo.chainName,
@@ -208,7 +246,7 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                 cancellationDeadline: pnrData.room.cancellationPolicy?.deadline?.iso8601,
                 confirmations,
                 travelerPersonalInfo: {
-                    name: `${traveler?.name?.family1 ?? ''} ${traveler?.name?.family2 ?? ''} ${traveler?.name?.middle ?? ''} ${traveler?.name?.given ?? ''}`.trim(),
+                    name: getTravelerName(traveler),
                     email: traveler?.email ?? '',
                 },
             });
@@ -223,18 +261,18 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                 },
             ];
             const traveler = travelers.at(0)?.personalInfo;
-            const pickupLocation = pnrData.carInfo.pickupLocation;
-            const dropLocation = pnrData.carInfo.dropOffLocation;
+            const pickupLocation = pnrData.carInfo.pickupLocation.address;
+            const dropLocation = pnrData.carInfo.dropOffLocation.address;
 
             reservationList.push({
                 reservationID: pnr.pnrId,
                 start: {
                     date: pnrData.pickupDateTime?.iso8601,
-                    location: `${pickupLocation.addressLines?.join(', ') ?? ''}, ${pickupLocation.locality}, ${pickupLocation.administrativeArea}, ${pickupLocation.regionCode}`,
+                    location: getAddressFromLocation(pickupLocation),
                 },
                 end: {
                     date: pnrData.dropOffDateTime?.iso8601,
-                    location: `${dropLocation.addressLines?.join(', ') ?? ''}, ${dropLocation.locality}, ${dropLocation.administrativeArea}, ${dropLocation.regionCode}`,
+                    location: getAddressFromLocation(dropLocation),
                 },
                 type: CONST.RESERVATION_TYPE.CAR,
                 confirmations,
@@ -244,7 +282,7 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
                 cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601,
                 duration: 0,
                 travelerPersonalInfo: {
-                    name: `${traveler?.name?.family1 ?? ''} ${traveler?.name?.family2 ?? ''} ${traveler?.name?.middle ?? ''} ${traveler?.name?.given ?? ''}`.trim(),
+                    name: getTravelerName(traveler),
                     email: traveler?.email ?? '',
                 },
             });
