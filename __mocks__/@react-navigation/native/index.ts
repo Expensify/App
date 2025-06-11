@@ -45,7 +45,7 @@ const useScrollToTop = isJestEnv ? realReactNavigation.useScrollToTop : () => nu
 const useRoute = isJestEnv ? realReactNavigation.useRoute : () => ({params: {}});
 const useFocusEffect = isJestEnv ? realReactNavigation.useFocusEffect : (callback: () => void) => callback();
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const UNSTABLE_usePreventRemove = isJestEnv ? jest.fn() : () => {};
+const usePreventRemove = isJestEnv ? jest.fn() : () => {};
 
 export {
     // Overridden modules
@@ -68,7 +68,7 @@ export {
     useScrollToTop,
     useRoute,
     useFocusEffect,
-    UNSTABLE_usePreventRemove,
+    usePreventRemove,
 };
 
 export type {NativeNavigationMock};
