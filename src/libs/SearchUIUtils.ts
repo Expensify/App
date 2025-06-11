@@ -140,20 +140,11 @@ const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
 ];
 
 let currentAccountID: number | undefined;
-let currentAccountEmail: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
         currentAccountID = session?.accountID;
-        currentAccountEmail = session?.email;
     },
-});
-
-let allPolicies: OnyxCollection<OnyxTypes.Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
 });
 
 const emptyPersonalDetails = {
@@ -1367,7 +1358,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
     }
 }
 
-function getTypeOptions() {
+function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
         {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
         {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
@@ -1375,7 +1366,7 @@ function getTypeOptions() {
         {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
         {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
-    const shouldHideInvoiceOption = !canSendInvoice(allPolicies, currentAccountEmail) && !hasInvoiceReports();
+    const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
     // Remove the invoice option if the user is not allowed to send invoices
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;

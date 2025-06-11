@@ -20,18 +20,20 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const [selectedItem, setSelectedItem] = useState<string>(searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
     const [status, setStatus] = useState(searchAdvancedFiltersForm?.status ?? CONST.SEARCH.STATUS.EXPENSE.ALL);
     const [groupBy, setGroupBy] = useState(searchAdvancedFiltersForm?.groupBy);
 
     const listData: ListItem[] = useMemo(() => {
-        return getTypeOptions().map((typeOption) => ({
+        return getTypeOptions(allPolicies, session?.email).map((typeOption) => ({
             text: translate(typeOption.translation),
             keyForList: typeOption.value,
             isSelected: selectedItem === typeOption.value,
         }));
-    }, [selectedItem, translate]);
+    }, [allPolicies, selectedItem, session?.email, translate]);
 
     const updateSelectedItem = useCallback(
         (type: ListItem) => {
