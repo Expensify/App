@@ -159,7 +159,7 @@ function SidebarOrderedReportsContextProvider({
             chatReports,
             reportsToUpdate,
             derivedCurrentReportID,
-            false,
+            priorityMode === CONST.PRIORITY_MODE.GSD,
             betas,
             policies,
             transactionViolations,
