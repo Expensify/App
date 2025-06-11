@@ -1,5 +1,5 @@
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, screen, waitFor, within} from '@testing-library/react-native';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -122,7 +122,7 @@ function triggerListLayout(reportID?: string) {
 async function navigateToSidebarOption(reportID: string): Promise<void> {
     const optionRow = screen.getByTestId(reportID);
     fireEvent(optionRow, 'press');
-    await act(() => {
+    await waitFor(() => {
         (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
     });
     // ReportScreen relies on the onLayout event to receive updates from onyx.
