@@ -28,6 +28,7 @@ function ImTeacherUpdateEmailPage() {
                 title={translate('teachersUnitePage.updateYourEmail')}
                 subtitle={translate('teachersUnitePage.schoolMailAsDefault')}
                 linkKey="teachersUnitePage.contactMethods"
+                shouldShowEndingPeriod
                 onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRouteWithoutParams()))}
                 iconWidth={variables.signInLogoWidthLargeScreen}
                 iconHeight={variables.signInLogoHeightLargeScreen}
