@@ -13,7 +13,7 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
 
-    const avatarURL = (policy?.avatarURL ?? '') ? (policy?.avatarURL ?? '') : getDefaultWorkspaceAvatar(policy?.name ?? '');
+    const avatarURL = policy?.avatarURL ?? '' ?? getDefaultWorkspaceAvatar(policy?.name ?? '');
 
     const contentProps = useMemo(
         () =>
