@@ -12,7 +12,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPlaidSupportedCountry} from '@libs/CardUtils';
+import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
@@ -44,18 +44,10 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         if (addNewCard?.data?.selectedCountry) {
             return addNewCard.data.selectedCountry;
         }
-        const selectedCurrency = policy?.outputCurrency ? currencyList?.[policy.outputCurrency] : null;
-        const countries = selectedCurrency?.countries;
 
-        if (policy?.outputCurrency === CONST.CURRENCY.EUR) {
-            if (countryByIp && countries?.includes(countryByIp)) {
-                return countryByIp;
-            }
-            return '';
-        }
-        const country = countries?.[0];
-        return country ?? '';
+        return getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
     }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
+
     const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);

@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CurrencyList, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -443,6 +443,20 @@ function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData:
     return cardFeedData?.domainID ?? workspaceAccountID;
 }
 
+function getPlaidCountry(outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+    const selectedCurrency = outputCurrency ? currencyList?.[outputCurrency] : null;
+    const countries = selectedCurrency?.countries;
+
+    if (outputCurrency === CONST.CURRENCY.EUR) {
+        if (countryByIp && countries?.includes(countryByIp)) {
+            return countryByIp;
+        }
+        return '';
+    }
+    const country = countries?.[0];
+    return country ?? '';
+}
+
 // We will simplify the logic below once we have #50450 #50451 implemented
 const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
     const banksWithFeedType = [
@@ -700,6 +714,7 @@ export {
     getBankCardDetailsImage,
     getSelectedFeed,
     getCorrectStepForSelectedBank,
+    getPlaidCountry,
     getCustomOrFormattedFeedName,
     isCardClosed,
     isPlaidSupportedCountry,

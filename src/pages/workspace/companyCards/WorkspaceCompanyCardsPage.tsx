@@ -17,6 +17,7 @@ import {
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
+    getPlaidCountry,
     getPlaidInstitutionId,
     getSelectedFeed,
     hasOnlyOneCardToAssign,
@@ -30,7 +31,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import {clearAddNewCardFlow, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -56,6 +57,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useCardsList(policyID, selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
 
@@ -139,6 +141,14 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
         if (isFeedExpired) {
             const institutionId = !!getPlaidInstitutionId(selectedFeed);
+            if (institutionId) {
+                const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+                setAddNewCompanyCardStepAndData({
+                    data: {
+                        selectedCountry: country,
+                    },
+                });
+            }
             currentStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
         }
 
