@@ -1674,14 +1674,178 @@ type RailPnr = {
 
     /** Leg information for the rail booking. */
     legInfos: Array<{
-        /** Allocated spaces for the rail journey. */
-        allocatedSpaces: Array<Record<string, unknown>>;
-
-        /** Traveler rail information. */
-        travelerRailInfo: Array<Record<string, unknown>>;
-
-        /** Amenities provided for the rail journey. */
-        amenities: Array<Record<string, unknown>>;
+        /** Allocated spaces for the leg. */
+        allocatedSpaces: unknown[];
+        /** Amenities available for the leg. */
+        amenities: unknown[];
+        /** Arrival time in ISO 8601 format. */
+        arriveAt: {
+            /** ISO 8601 format. */
+            iso8601: string;
+        };
+        /** Local arrival time in ISO 8601 format. */
+        arriveAtLocal: {
+            /** ISO 8601 format. */
+            iso8601: string;
+        };
+        /** Carrier confirmation number. */
+        carrierConfirmationNumber: string;
+        /** CO2 emission in grams per passenger. */
+        co2EmissionGramsPerPassenger: number;
+        /** Departure time in ISO 8601 format. */
+        departAt: {
+            /** ISO 8601 format. */
+            iso8601: string;
+        };
+        /** Local departure time in ISO 8601 format. */
+        departAtLocal: {
+            /** ISO 8601 format. */
+            iso8601: string;
+        };
+        /** Destination of the leg. */
+        destination: string;
+        /** Information about the destination. */
+        destinationInfo: {
+            /** City code of the destination. */
+            cityCode: string;
+            /** City name of the destination. */
+            cityName: string;
+            /** Code of the destination station. */
+            code: string;
+            /** Continent code of the destination. */
+            continentCode: string;
+            /** Country code of the destination. */
+            countryCode: string;
+            /** Latitude and longitude of the destination. */
+            latLong: {
+                /** Latitude of the destination. */
+                latitude: number;
+                /** Longitude of the destination. */
+                longitude: number;
+            };
+            /** Local code of the destination. */
+            localCode: string;
+            /** Name of the destination station. */
+            name: string;
+            /** Source reference information for the destination. */
+            sourceRefInfos: Array<{
+                /** Name of the inventory. */
+                inventoryName: string;
+                /** Station reference ID. */
+                stationReferenceId: string;
+            }>;
+            /** State code of the destination. */
+            stateCode: string;
+            /** Type of the destination station. */
+            stationType: string;
+            /** Time zone of the destination. */
+            timeZone: string;
+        };
+        /** Distance details for the leg. */
+        distance: {
+            /** Length of the distance. */
+            length: number;
+            /** Unit of the distance. */
+            unit: string;
+        };
+        /** Duration of the leg in ISO 8601 format. */
+        duration: {
+            /** ISO 8601 format. */
+            iso8601: string;
+        };
+        /** Fare type for the leg. */
+        fareType: string;
+        /** Unique identifier for the leg. */
+        legId: string;
+        /** Origin of the leg. */
+        origin: string;
+        /** Information about the origin. */
+        originInfo: {
+            /** City code of the origin. */
+            cityCode: string;
+            /** City name of the origin. */
+            cityName: string;
+            /** Code of the origin station. */
+            code: string;
+            /** Continent code of the origin. */
+            continentCode: string;
+            /** Country code of the origin. */
+            countryCode: string;
+            /** Latitude and longitude of the origin. */
+            latLong: {
+                /** Latitude of the origin. */
+                latitude: number;
+                /** Longitude of the origin. */
+                longitude: number;
+            };
+            /** Local code of the origin. */
+            localCode: string;
+            /** Name of the origin station. */
+            name: string;
+            /** Source reference information for the origin. */
+            sourceRefInfos: Array<{
+                /** Name of the inventory. */
+                inventoryName: string;
+                /** Station reference ID. */
+                stationReferenceId: string;
+            }>;
+            /** State code of the origin. */
+            stateCode: string;
+            /** Type of the origin station. */
+            stationType: string;
+            /** Time zone of the origin. */
+            timeZone: string;
+        };
+        /** Rail fare type details. */
+        railFareType: {
+            /** Description of the rail fare type. */
+            description: string;
+            /** Fare details for the rail fare type. */
+            fareDetails: Array<{
+                /** Description of the fare detail. */
+                description: string;
+                /** Name of the fare detail. */
+                name: string;
+            }>;
+            /** Summary of the rail fare type. */
+            fareSummary: string;
+        };
+        /** Seat preference selection details. */
+        seatPreferenceSelection: {
+            /** Type of carriage. */
+            carriageType: string;
+            /** Type of deck. */
+            deckType: string;
+            /** Direction of the seat. */
+            direction: string;
+            /** Facilities available for the seat. */
+            facilities: unknown[];
+            /** Position type of the seat. */
+            positionType: string;
+            /** Location type of the seat. */
+            seatLocationType: string;
+            /** Type of the seat. */
+            seatType: string;
+        };
+        /** Ticket number for the leg. */
+        ticketNumber: string;
+        /** Travel class for the leg. */
+        travelClass: string;
+        /** Rail information for the traveler. */
+        travelerRailInfo: unknown[];
+        /** Vehicle details for the leg. */
+        vehicle: {
+            /** Name of the carrier. */
+            carrierName: string;
+            /** Timetable ID for the vehicle. */
+            timetableId: string;
+            /** Name of the transport. */
+            transportName: string;
+            /** Type of the vehicle. */
+            type: string;
+        };
+        /** Name of the vendor. */
+        vendorName: string;
     }>;
 
     /** Details of the outward journey. */
@@ -1763,7 +1927,25 @@ type RailPnr = {
     };
 
     /** Passenger information for the rail booking. */
-    passengerInfos: Array<Record<string, unknown>>;
+    passengerInfos: Array<{
+        /** Type of the passenger (e.g., ADULT, CHILD). */
+        passengerType: string;
+
+        /** Organization and user ID associated with the passenger. */
+        userOrgId: {
+            /** Organization ID details. */
+            organizationId: {
+                /** ID of the organization. */
+                id: string;
+            };
+
+            /** User ID details. */
+            userId: {
+                /** ID of the user. */
+                id: string;
+            };
+        };
+    }>;
 
     /** Payment mode for the rail booking. */
     paymentMode: string;
@@ -1780,10 +1962,10 @@ type RailPnr = {
     /** Tickets associated with the rail booking. */
     tickets: Array<{
         /** Legs associated with the ticket. */
-        legs: Array<Record<string, unknown>>;
+        legs: number[];
 
         /** Passenger references for the ticket. */
-        passengerRefs: Array<Record<string, unknown>>;
+        passengerRefs: number[];
     }>;
 
     /** Ticket details for the rail booking. */

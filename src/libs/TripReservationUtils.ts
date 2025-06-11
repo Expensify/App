@@ -120,11 +120,9 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
     if (!tripData?.pnrs) {
         return [];
     }
-
     const reservations: ReservationData[] = tripData.pnrs.flatMap((pnr, pnrIndex) => {
         const reservationList: Reservation[] = [];
 
-        // let pnrData: AirPnr | CarPnr | HotelPnr | RailPnr | MiscPnr | LimoPnr;
         const travelers = pnr.data.pnrTravelers ?? [];
 
         if (pnr.data.airPnr) {
@@ -288,19 +286,55 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
             });
         }
 
-        // if (pnr.data.railPnr) {
-        //     const pnrData: RailPnr = pnr.data.railPnr;
-        //     reservationList.push(
-        //         ...pnrData.legInfos.map((leg) => ({
-        //             reservationID: pnr.pnrId,
-        //             start: {date: leg.departureDateTime.iso8601, location: leg.departureStation},
-        //             end: {date: leg.arrivalDateTime.iso8601, location: leg.arrivalStation},
-        //             type: CONST.RESERVATION_TYPE.TRAIN,
-        //             coachNumber: leg.coachNumber,
-        //             seatNumber: leg.seatNumber,
-        //         })),
-        //     );
-        // }
+        if (pnr.data.railPnr) {
+            const pnrData: RailPnr = pnr.data.railPnr;
+            pnrData.tickets.forEach((ticket) => {
+                ticket.legs.forEach((legIdx, legIndex) => {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    const leg = pnrData.legInfos.at(legIdx)!;
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    const travelerIdx = ticket.passengerRefs.at(legIndex)!;
+                    const travelerInfo = pnrData.passengerInfos.at(travelerIdx);
+
+                    const traveler = travelers.find((travelerData) => travelerData.userId.id === travelerInfo?.userOrgId.userId.id)?.personalInfo;
+
+                    reservationList.push({
+                        reservationID: pnr.pnrId,
+                        start: {
+                            date: leg.departAt.iso8601,
+                            longName: leg.originInfo.name,
+                            shortName: leg.originInfo.code,
+                            cityName: leg.originInfo.cityName,
+                        },
+                        end: {
+                            date: leg.arriveAt.iso8601,
+                            longName: leg.destinationInfo.name,
+                            shortName: leg.destinationInfo.code,
+                            cityName: leg.destinationInfo.cityName,
+                        },
+                        route: {
+                            name: `${leg.vehicle.carrierName} ${leg.vehicle.timetableId}`,
+                            airlineCode: leg.vehicle.carrierName,
+                            number: leg.vehicle.timetableId,
+                        },
+                        duration: parseDurationToSeconds(leg.duration.iso8601),
+                        type: CONST.RESERVATION_TYPE.TRAIN,
+                        confirmations: [
+                            {
+                                name: 'Confirmation Number',
+                                value: leg.ticketNumber ?? '',
+                            },
+                        ],
+                        vendor: leg.vendorName,
+                        coachNumber: leg.travelClass,
+                        travelerPersonalInfo: {
+                            name: getTravelerName(traveler),
+                            email: traveler?.email ?? '',
+                        },
+                    });
+                });
+            });
+        }
 
         return reservationList.map((reservation, reservationIndex) => ({
             reservation,
