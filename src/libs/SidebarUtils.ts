@@ -236,6 +236,7 @@ function shouldDisplayReportInLHN(
 
     // Check if report should override hidden status
     const isSystemChat = isSystemChatUtil(report);
+    const isReportArchived = isArchivedReport(reportNameValuePairs);
     const shouldOverrideHidden =
         hasValidDraftComment(report.reportID) ||
         hasErrorsOtherThanFailedReceipt ||
@@ -243,7 +244,7 @@ function shouldDisplayReportInLHN(
         isSystemChat ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report.isPinned ||
-        (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
+        (!isInFocusMode && isReportArchived) ||
         reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
@@ -260,6 +261,7 @@ function shouldDisplayReportInLHN(
         excludeEmptyChats: true,
         doesReportHaveViolations,
         includeSelfDM: true,
+        isReportArchived,
     });
 
     return {shouldDisplay};
@@ -321,6 +323,7 @@ function updateReportsToDisplayInLHN(
         if (!report) {
             return;
         }
+
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
             report,
             currentReportId,
