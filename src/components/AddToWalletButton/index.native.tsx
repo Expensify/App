@@ -1,11 +1,14 @@
 import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
+import type {TokenizationStatus} from '@expensify/react-native-wallet';
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, Alert, View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openWalletPage} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 import CONST from '@src/CONST';
 import type AddToWalletButtonProps from './types';
@@ -35,7 +38,20 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
 
     const handleOnPress = useCallback(() => {
         setIsLoading(true);
-        handleAddCardToWallet(card, cardHolderName, cardDescription, () => setIsLoading(false));
+        handleAddCardToWallet(card, cardHolderName, cardDescription, () => setIsLoading(false))
+            .then((status: TokenizationStatus) => {
+                if (status === 'success') {
+                    Log.info('Card added to wallet');
+                    openWalletPage();
+                } else {
+                    setIsLoading(false);
+                }
+            })
+            .catch((error) => {
+                setIsLoading(false);
+                Log.warn(`Error while adding card to wallet: ${error}`);
+                Alert.alert('Failed to add card to wallet', 'Please try again later.');
+            });
     }, [card, cardDescription, cardHolderName]);
 
     useEffect(() => {

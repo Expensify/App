@@ -82,7 +82,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             });
 
             // Generate the deploy blocker list, preserving the previous state of `isResolved`
-            const {data: openDeployBlockers} = await GithubUtils.octokit.issues.listForRepo({
+            const openDeployBlockers = await GithubUtils.paginate(GithubUtils.octokit.issues.listForRepo, {
                 log: console,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
@@ -117,7 +117,6 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 deployBlockers.map((blocker) => blocker.url),
                 deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
                 currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
-                didVersionChange ? false : currentChecklistData.isTimingDashboardChecked,
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
             );

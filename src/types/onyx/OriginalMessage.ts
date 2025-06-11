@@ -370,8 +370,17 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom unit name */
     customUnitName?: string;
 
+    /** Rate name of the custom unit */
+    customUnitRateName?: string;
+
     /** Custom unit name */
     rateName?: string;
+
+    /** Tax percentage of the new tax rate linked to distance rate */
+    newTaxPercentage?: string;
+
+    /** Tax percentage of the old tax rate linked to distance rate */
+    oldTaxPercentage?: string;
 
     /** Added/Updated tag name */
     tagName?: string;
@@ -399,6 +408,54 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Old role of user or old value of the category/tag field */
     oldValue?: boolean | string;
+
+    /** Old approval audit rate */
+    oldAuditRate?: number;
+
+    /** New approval audit rate */
+    newAuditRate?: number;
+
+    /** Old limit of manual approval threshold */
+    oldLimit?: number;
+
+    /** New limit of manual approval threshold */
+    newLimit?: number;
+
+    /** Name for the field of which approver has been updated */
+    name?: string;
+
+    /** Account ID of the approver */
+    approverAccountID?: string;
+
+    /** Email of the new approver */
+    newApproverEmail?: string;
+
+    /** Name of the new approver */
+    newApproverName?: string;
+
+    /** Email of the old approver */
+    oldApproverEmail?: string;
+
+    /** Name of the old approver */
+    oldApproverName?: string;
+
+    /** Email of the approver */
+    approverEmail?: string;
+
+    /** Name of the approver */
+    approverName?: string;
+
+    /** Option name of a list report field */
+    optionName?: string;
+
+    /** Option enabled state of a list report field */
+    optionEnabled?: string;
+
+    /** Number of report field options updated */
+    toggledOptionsCount?: number;
+
+    /** Are all allEnabled report field options enabled */
+    allEnabled?: string;
 };
 
 /** Model of `join policy` report action */
@@ -489,6 +546,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The ID of moved report */
     movedToReportID?: string;
+
+    /** The ID of the report the expense moved from */
+    movedFromReport?: string;
 
     /** The old list of attendees */
     oldAttendees?: Attendee[];
@@ -832,6 +892,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
+    [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;

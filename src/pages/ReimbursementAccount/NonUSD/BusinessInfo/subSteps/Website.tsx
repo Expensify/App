@@ -47,11 +47,11 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext: (values) => {
-            const website = Str.sanitizeURL((values as {website: string})?.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+            const website = Str.sanitizeURL((values as {websiteUrl: string})?.websiteUrl, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COMPANY_WEBSITE]: website});
             onNext();
         },
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     return (

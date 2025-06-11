@@ -36,7 +36,7 @@ function SearchFiltersTaxRatePage() {
         if (!singlePolicyTaxRates) {
             return Object.entries(allTaxRates).map(([taxRateName, taxRateKeys]) => ({name: taxRateName, value: taxRateKeys}));
         }
-        return Object.entries(singlePolicyTaxRates).map(([taxRatekey, taxRate]) => ({name: taxRate.name, value: [taxRatekey]}));
+        return Object.entries(singlePolicyTaxRates).map(([taxRateKey, taxRate]) => ({name: taxRate.name, value: [taxRateKey]}));
     }, [allTaxRates, singlePolicyTaxRates]);
 
     const updateTaxRateFilters = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({taxRate: values}), []);
