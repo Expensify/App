@@ -19,10 +19,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getReportActionMessage} from '@libs/ReportActionsUtils';
+import {getReportActionMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
+    canUserPerformWriteAction,
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
     getIcons,
@@ -39,7 +41,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
@@ -116,7 +118,19 @@ function ReportActionItemSingle({
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
+    const [visibleIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.reportID)}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>) => {
+            const visibleReportAction = getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(iouReport), false);
+            return visibleReportAction.filter((reportAction) => isMoneyRequestAction(reportAction));
+        },
+        canBeMissing: true,
+    });
+    const actorAccountIDsFromReportActions = [...new Set(visibleIOUReportActions?.map((reportAction) => reportAction.actorAccountID).filter((accountID) => !!accountID))];
+    // Ensure that if all expenses are from a single sender, the sender is displayed.
+    const actorAccountID =
+        // eslint-disable-next-line rulesdir/prefer-at
+        actorAccountIDsFromReportActions.length === 1 ? actorAccountIDsFromReportActions[0] : getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
+
     const invoiceReceiverPolicy =
         report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? activePolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
 
@@ -126,7 +140,7 @@ function ReportActionItemSingle({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = isTripRoomReportUtils(report);
-    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
+    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report) && actorAccountIDsFromReportActions.length > 1;
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
 
@@ -162,7 +176,8 @@ function ReportActionItemSingle({
             };
         } else {
             // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-            const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
+            const managerID = iouReport?.managerID ?? action?.childManagerAccountID;
+            const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? managerID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
             const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
 
@@ -314,18 +329,42 @@ function ReportActionItemSingle({
                             accessibilityLabel={actorHint}
                             role={CONST.ROLE.BUTTON}
                         >
-                            {personArray?.map((fragment, index) => (
-                                <ReportActionItemFragment
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
-                                    fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
-                                    delegateAccountID={action?.delegateAccountID}
-                                    isSingleLine
-                                    actorIcon={icon}
-                                    moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                                />
-                            ))}
+                            <View style={[displayAllActors && [styles.flex1, styles.flexRow, styles.overflowHidden]]}>
+                                {personArray?.map((fragment, index) => (
+                                    <ReportActionItemFragment
+                                        style={[styles.flexShrink1, styles.flexBasis0]}
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`person-${action?.reportActionID}-${index}`}
+                                        accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
+                                        fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
+                                        delegateAccountID={action?.delegateAccountID}
+                                        isSingleLine
+                                        actorIcon={icon}
+                                        moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                                    />
+                                ))}
+                                {displayAllActors && (
+                                    <>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[styles.chatItemMessageHeaderSender, styles.flexShrink0]}
+                                        >
+                                            {`\u00A0&\u00A0`}
+                                        </Text>
+                                        <ReportActionItemFragment
+                                            style={[styles.flexShrink1, styles.flexBasis0]}
+                                            // eslint-disable-next-line react/no-array-index-key
+                                            key={`person-${action?.reportActionID}-${personArray?.length ?? 0}`}
+                                            accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
+                                            fragment={{type: 'TEXT', text: secondaryAvatar.name ?? ''}}
+                                            delegateAccountID={action?.delegateAccountID}
+                                            isSingleLine
+                                            actorIcon={icon}
+                                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                                        />
+                                    </>
+                                )}
+                            </View>
                         </PressableWithoutFeedback>
                         {!!hasEmojiStatus && (
                             <Tooltip text={statusTooltipText}>

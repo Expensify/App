@@ -9479,7 +9479,7 @@ function getReportActionActorAccountID(
             const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
             const actorAccountID = iouReport?.managerID ?? reportAction?.childManagerAccountID;
 
-            if (isPolicyExpenseChat(report) || delegatePersonalDetails) {
+            if (isPolicyExpenseChat(report) || isIOUReport(iouReport) || delegatePersonalDetails) {
                 return ownerAccountID;
             }
 
