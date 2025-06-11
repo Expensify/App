@@ -187,6 +187,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -3361,7 +3362,7 @@ function openReportFromDeepLink(url: string) {
     let route = getRouteFromLink(url);
 
     // Replace signin route with empty string to redirect to home page
-    if (route.toLowerCase() === 'signin' || route === '/signin') {
+    if (normalizePath(route) === '/signin') {
         route = '';
     }
 
