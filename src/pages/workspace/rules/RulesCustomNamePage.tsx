@@ -129,6 +129,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     isLoading={isLoading}
+                    addBottomSafeAreaPadding
                 >
                     <OfflineWithFeedback
                         pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
