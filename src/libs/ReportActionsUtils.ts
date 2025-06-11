@@ -2080,6 +2080,14 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
+        if (updatedField === 'commentHint') {
+            return translateLocal('workspaceActions.updatedDescriptionHint', {
+                oldValue: oldValue as string | undefined,
+                newValue: newValue as string | undefined,
+                categoryName,
+            });
+        }
+
         if (updatedField === 'enabled') {
             return translateLocal('workspaceActions.updateCategory', {
                 oldValue: !!oldValue,
