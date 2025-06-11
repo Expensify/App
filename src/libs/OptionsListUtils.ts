@@ -106,7 +106,6 @@ import {
     getRejectedReportMessage,
     getReportLastMessage,
     getReportName,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportParticipantsTitle,
@@ -143,6 +142,7 @@ import {
 } from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
+import type {AvatarSource} from './UserUtils';
 import {generateAccountID} from './UserUtils';
 
 type SearchOption<T> = OptionData & {
@@ -236,7 +236,13 @@ type GetUserToInviteConfig = {
     searchValue: string | undefined;
     loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    avatar?: AvatarSource;
     shouldAcceptName?: boolean;
+    optionsToExclude?: GetOptionsConfig['selectedOptions'];
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -510,25 +516,30 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = participant?.displayName || formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID ?? login),
         login,
         accountID: detail?.accountID,
         text: displayName,
-        firstName: detail?.firstName ?? '',
-        lastName: detail?.lastName ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        firstName: (detail?.firstName || participant.firstName) ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        lastName: (detail?.lastName || participant.lastName) ?? '',
         alternateText: formatPhoneNumber(login) || displayName,
         icons: [
             {
-                source: detail?.avatar ?? FallbackAvatar,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                source: (participant.avatar || detail?.avatar) ?? FallbackAvatar,
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail?.accountID,
             },
         ],
-        phoneNumber: detail?.phoneNumber ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        phoneNumber: (detail?.phoneNumber || participant?.phoneNumber) ?? '',
         selected: participant.selected,
         isSelected: participant.selected,
         searchText: participant.searchText ?? undefined,
@@ -1463,6 +1474,100 @@ function getUserToInviteOption({searchValue, loginsToExclude = {}, selectedOptio
     return userToInvite;
 }
 
+function getUserToInviteContactOption({
+    searchValue = '',
+    optionsToExclude = [],
+    selectedOptions = [],
+    firstName = '',
+    lastName = '',
+    email = '',
+    phone = '',
+    avatar = '',
+}: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
+    // If email is provided, use it as the primary identifier
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const effectiveSearchValue = email || searchValue;
+
+    // Handle phone number parsing for either provided phone or searchValue
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const phoneToCheck = phone || searchValue;
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(phoneToCheck)));
+
+    const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
+    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
+
+    // Validate email (either provided email or searchValue)
+    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
+
+    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
+
+    const isInOptionToExclude =
+        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(effectiveSearchValue).toLowerCase()) !== -1;
+
+    if (!effectiveSearchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude) {
+        return null;
+    }
+
+    // Generates an optimistic account ID for new users not yet saved in Onyx
+    const optimisticAccountID = generateAccountID(effectiveSearchValue);
+
+    // Construct display name if firstName/lastName are provided
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
+
+    // Create the base user details that will be used in both item and participantsList
+    const userDetails = {
+        accountID: optimisticAccountID,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        avatar: avatar || FallbackAvatar,
+        firstName: firstName ?? '',
+        lastName: lastName ?? '',
+        displayName,
+        login: effectiveSearchValue,
+        pronouns: '',
+        phoneNumber: phone ?? '',
+        validated: true,
+    };
+
+    const userToInvite = {
+        item: userDetails,
+        text: displayName,
+        alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
+        brickRoadIndicator: null,
+        icons: [
+            {
+                source: userDetails.avatar,
+                type: CONST.ICON_TYPE_AVATAR,
+                name: effectiveSearchValue,
+                id: optimisticAccountID,
+            },
+        ],
+        tooltipText: null,
+        participantsList: [userDetails],
+        accountID: optimisticAccountID,
+        login: effectiveSearchValue,
+        reportID: '',
+        phoneNumber: phone ?? '',
+        hasDraftComment: false,
+        keyForList: optimisticAccountID.toString(),
+        isDefaultRoom: false,
+        isPinned: false,
+        isWaitingOnBankAccount: false,
+        isIOUReportOwner: false,
+        iouReportAmount: 0,
+        isChatRoom: false,
+        shouldShowSubscript: false,
+        isPolicyExpenseChat: false,
+        isOwnPolicyExpenseChat: false,
+        isExpenseReport: false,
+        lastMessageText: '',
+        isBold: true,
+        isOptimisticAccount: true,
+    };
+
+    return userToInvite;
+}
+
 function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig): GetValidReportsReturnTypeCombined {
     const {
         betas = [],
@@ -1511,10 +1616,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             includeSelfDM,
             login: option.login,
             includeDomainEmail,
-
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
-            isReportArchived: isArchivedReport(getReportNameValuePairs(report?.reportID)),
+            isReportArchived: !!option.private_isArchived,
         });
 
         if (!shouldBeInOptionList) {
@@ -2491,6 +2593,7 @@ export {
     getFirstKeyForList,
     canCreateOptimisticPersonalDetailOption,
     getUserToInviteOption,
+    getUserToInviteContactOption,
     getPersonalDetailSearchTerms,
     getCurrentUserSearchTerms,
     getEmptyOptions,

@@ -222,8 +222,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return;
             }
 
-            onRouterClose();
-            backHistory().then(() => {
+            backHistory(() => {
+                onRouterClose();
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
             });
 
@@ -289,8 +289,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     submitSearch(item.searchQuery);
                 }
             } else {
-                onRouterClose();
-                backHistory().then(() => {
+                backHistory(() => {
+                    onRouterClose();
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {

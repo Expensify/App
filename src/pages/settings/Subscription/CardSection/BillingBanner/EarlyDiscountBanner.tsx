@@ -24,7 +24,7 @@ type EarlyDiscountBannerProps = {
     /** Whether the banner is being displayed on the subscription page. */
     isSubscriptionPage: boolean;
 
-    /** The talk to sales button to display */
+    /** The Onboarding help dropdown button to display */
     onboardingHelpDropdownButton?: React.JSX.Element;
 
     /** Function to trigger when the discount banner is dismissed */
