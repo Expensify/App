@@ -10,7 +10,7 @@ import {
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
-    hasAccountingConnections,
+    getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
     isPreferredExporter,
@@ -259,7 +259,7 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
         return false;
     }
 
-    const hasAccountingConnection = hasAccountingConnections(policy);
+    const hasAccountingConnection = !!getValidConnectedIntegration(policy);
     if (!hasAccountingConnection) {
         return false;
     }
@@ -301,7 +301,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    const hasAccountingConnection = hasAccountingConnections(policy);
+    const hasAccountingConnection = !!getValidConnectedIntegration(policy);
     if (!hasAccountingConnection) {
         return false;
     }
