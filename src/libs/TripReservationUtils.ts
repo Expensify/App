@@ -304,8 +304,8 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
 
         return reservationList.map((reservation, reservationIndex) => ({
             reservation,
-            transactionID: pnr.data.sourceInfo.sourcePnrId || '',
-            reportID: pnr.data.sourceInfo.bookingSource || undefined,
+            transactionID: '',
+            reportID: '',
             reservationIndex: reservationIndex + pnrIndex * 100,
         }));
     });
