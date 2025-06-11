@@ -1,10 +1,10 @@
-import { Str } from 'expensify-common';
-import React, { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect} from 'react';
+import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type { FormInputErrors, FormOnyxValues } from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,15 +18,14 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { SettingsNavigatorParamList } from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import { clearPolicyErrorField, setPolicyDefaultReportTitle } from '@userActions/Policy/Policy';
+import {clearPolicyErrorField, setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesCustomNameModalForm';
-
 
 type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
 
@@ -47,18 +46,21 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
 
     const customNameDefaultValue = Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '');
 
-    const validateCustomName = useCallback(({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
-        if (!customName) {
-            errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.fieldRequired');
-        } else if (customName.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
-            errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.characterLimitExceedCounter', {
-                length: customName.length,
-                limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT,
-            });
-        }
-        return errors;
-    }, [translate]);
+    const validateCustomName = useCallback(
+        ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
+            if (!customName) {
+                errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.fieldRequired');
+            } else if (customName.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+                errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.characterLimitExceedCounter', {
+                    length: customName.length,
+                    limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT,
+                });
+            }
+            return errors;
+        },
+        [translate],
+    );
 
     const clearFieldListError = () => {
         clearPolicyErrorField(policyID, 'fieldList');
@@ -90,7 +92,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
 
     const submitForm = (values: FormOnyxValues<'rulesCustomNameModalForm'>) => {
         setPolicyDefaultReportTitle(policyID, values.customName);
-    }
+    };
 
     return (
         <AccessOrNotFoundWrapper
