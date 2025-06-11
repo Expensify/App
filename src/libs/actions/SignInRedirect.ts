@@ -25,7 +25,6 @@ Onyx.connect({
     },
 });
 
-
 function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
