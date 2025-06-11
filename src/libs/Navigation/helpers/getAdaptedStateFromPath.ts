@@ -13,8 +13,8 @@ import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
-import replacePathInNestedState from './replacePathInNestedState';
 import normalizePath from './normalizePath';
+import replacePathInNestedState from './replacePathInNestedState';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
