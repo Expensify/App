@@ -1,8 +1,7 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
@@ -30,11 +29,10 @@ const menuSections = [
 ];
 
 function AutoSubmitModal() {
-    const [dismissedInstantSubmitExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION);
+    const [dismissedInstantSubmitExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const onClose = useCallback((willShowAgain: boolean) => {
         if (!willShowAgain) {
@@ -43,15 +41,6 @@ function AutoSubmitModal() {
             User.dismissInstantSubmitExplanation(false);
         }
     }, []);
-
-    // const title = useMemo(
-    //     () => (
-    //         <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
-    //             <Text style={[styles.textHeadline, styles.mr2]}>{translate('autoSubmitModal.title')}</Text>
-    //         </View>
-    //     ),
-    //     [onboardingIsMediumOrLargerScreenWidth, styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, translate],
-    // );
 
     return (
         <FeatureTrainingModal
@@ -67,6 +56,8 @@ function AutoSubmitModal() {
             illustrationOuterContainerStyle={styles.p0}
             shouldShowDismissModalOption={!dismissedInstantSubmitExplanation}
             onConfirm={onClose}
+            titleStyles={[styles.mb1]}
+            contentInnerContainerStyles={[styles.mb5]}
         >
             {menuSections.map((section) => (
                 <View
@@ -81,7 +72,7 @@ function AutoSubmitModal() {
                     />
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
                         <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>
-                        <Text style={[styles.textSupporting]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
+                        <Text style={[styles.mutedTextLabel]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
                     </View>
                 </View>
             ))}
