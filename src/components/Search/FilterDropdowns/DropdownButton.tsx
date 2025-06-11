@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type PopoverComponentProps = {
     closeOverlay: () => void;
@@ -60,8 +61,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
      */
     const toggleOverlay = () => {
         setIsOverlayVisible((previousValue) => {
-            if (!isOverlayVisible && modal?.willAlertModalBecomeVisible) {
-                return;
+            if (!previousValue && willAlertModalBecomeVisible) {
+                return previousValue;
             }
             triggerRef.current?.measureInWindow((x, y, _, height) => {
                 setPopoverTriggerPosition({
