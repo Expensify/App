@@ -84,9 +84,11 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     if (!card) {
         return '';
     }
+    const isPlaid = !!getPlaidInstitutionId(card.bank);
+    const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
-    const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : getBankName(card.bank as CompanyCardFeed);
-    return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+    const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
+    return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -413,6 +415,23 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     return customFeedName ?? formattedFeedName;
 }
 
+function getPlaidInstitutionIconUrl(feedName?: string) {
+    const institutionId = getPlaidInstitutionId(feedName);
+    if (!institutionId) {
+        return '';
+    }
+    return `${CONST.COMPANY_CARD_PLAID}${institutionId}.png`;
+}
+
+function getPlaidInstitutionId(feedName?: string) {
+    const feed = feedName?.split('.');
+    if (!feed || feed?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+        return '';
+    }
+
+    return feed.at(1);
+}
+
 function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData: CardFeedData | undefined): number {
     return cardFeedData?.domainID ?? workspaceAccountID;
 }
@@ -468,7 +487,7 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
 }
 
 function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): boolean {
-    if (!directFeed) {
+    if (!directFeed || !directFeed.expiration) {
         return false;
     }
 
@@ -488,7 +507,7 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: D
         }
         const {cardList, ...workspaceCardItems} = workspaceCards;
         Object.values(workspaceCardItems).forEach((card) => {
-            if (!card.cardName) {
+            if (!card?.cardName) {
                 return;
             }
             allWorkspaceAssignedCards.add(card.cardName);
@@ -514,12 +533,12 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
-function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds) {
+function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds, plaidBank?: string) {
     const prevFeeds = Object.keys(prevFeedsData);
     const currentFeeds = Object.keys(currentFeedsData);
 
     return {
-        isNewFeedConnected: currentFeeds.length > prevFeeds.length,
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length || (plaidBank && currentFeeds.includes(`${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`)),
         newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeed | undefined,
     };
 }
@@ -698,6 +717,8 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
+    getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
     getCustomCardName,
 };
