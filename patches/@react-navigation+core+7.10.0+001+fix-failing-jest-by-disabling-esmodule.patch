@@ -1,4 +1,4 @@
-# This patch is necessary to run Jest with the necessary for us --experimental-vm-modules flag. 
+# This patch is necessary to run Jest with the obligatory at the moment --experimental-vm-modules flag. 
 # Currently we transpile all the code to commonjs, but Jest looks up to individual package.jsons
 # to see whether the package is commonjs or ESModule. That causes a conflict, which can be solved
 # by removing {"type":"module"} from lib/module/package.json. 
