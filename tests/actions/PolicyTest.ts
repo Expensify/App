@@ -730,7 +730,7 @@ describe('actions/Policy', () => {
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL);
 
-            expect(workspaceName).toBe(translateLocal('workspace.new.myGroupWorkspace'));
+            expect(workspaceName).toBe(translateLocal('workspace.new.myGroupWorkspace', {}));
         });
 
         it('should generate a workspace name with an incremented number even if previous workspaces were created in english lang', async () => {
