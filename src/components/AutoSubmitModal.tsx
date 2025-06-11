@@ -50,6 +50,8 @@ function AutoSubmitModal() {
             image={Illustrations.ReceiptsStackedOnPin}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
+            imageWidth={variables.changePolicyEducationModalIconWidth}
+            imageHeight={variables.changePolicyEducationModalIconHeight}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
             illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.green700), styles.p8]}
             modalInnerContainerStyle={styles.pt0}
