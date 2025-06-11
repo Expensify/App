@@ -5630,6 +5630,20 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        tripReservationRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            maxWidth: '50%',
+            flexShrink: 1,
+        },
+
+        iconWrapper: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            alignSelf: 'flex-start', // Keeps icon from dropping below
+            paddingTop: 2, // Adjust slightly for vertical centering
+        },
+
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
@@ -5909,6 +5923,13 @@ const styles = (theme: ThemeColors) =>
 
         thumbnailImageContainerHighlight: {
             backgroundColor: theme.highlightBG,
+        },
+
+        multiScanEducationalPopupImage: {
+            backgroundColor: colors.pink700,
+            overflow: 'hidden',
+            paddingHorizontal: 0,
+            aspectRatio: 1.7,
         },
     }) satisfies Styles;
 

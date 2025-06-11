@@ -90,7 +90,6 @@ function OptionRowLHNData({
             {...propsToForward}
             isFocused={isReportFocused}
             optionItem={optionItem}
-            report={fullReport}
         />
     );
 }
