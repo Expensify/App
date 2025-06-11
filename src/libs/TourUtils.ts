@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {OnboardingPurpose} from '@src/CONST';
+import type {OnboardingPurpose} from './actions/Welcome/OnboardingFlow';
 
 function getNavatticURL(environment: ValueOf<typeof CONST.ENVIRONMENT>, introSelected?: OnboardingPurpose) {
     const adminTourURL = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.NAVATTIC.ADMIN_TOUR_PRODUCTION : CONST.NAVATTIC.ADMIN_TOUR_STAGING;

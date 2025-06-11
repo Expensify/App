@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
+import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {translateLocal} from '@libs/Localize';
 import BaseLocaleListener from '@libs/Localize/LocaleListener/BaseLocaleListener';
 // eslint-disable-next-line no-restricted-syntax

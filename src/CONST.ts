@@ -5,7 +5,6 @@ import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type ResponsiveLayoutResult from './hooks/useResponsiveLayout/types';
-import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import {addTrailingForwardSlash} from './libs/Url';
@@ -121,9 +120,7 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
-type OnboardingCompanySize = ValueOf<typeof onboardingCompanySize>;
 
 type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
 
@@ -143,41 +140,7 @@ const onboardingCompanySize = {
 
 type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 
-type OnboardingTaskLinks = Partial<{
-    onboardingCompanySize: OnboardingCompanySize;
-    integrationName: string;
-    workspaceSettingsLink: string;
-    workspaceCategoriesLink: string;
-    workspaceMoreFeaturesLink: string;
-    workspaceMembersLink: string;
-    workspaceAccountingLink: string;
-    workspaceConfirmationLink: string;
-    navatticURL: string;
-    testDriveURL: string;
-    corporateCardLink: string;
-}>;
 
-type OnboardingTask = {
-    type: string;
-    autoCompleted: boolean;
-    mediaAttributes: Record<string, string>;
-    title: string | ((params: OnboardingTaskLinks) => string);
-    description: string | ((params: OnboardingTaskLinks) => string);
-};
-
-type OnboardingMessage = {
-    /** Text message that will be displayed first */
-    message: string | ((params: OnboardingTaskLinks) => string);
-
-    /** Video object to be displayed after initial description message */
-    video?: Video;
-
-    /** List of tasks connected with the message, they will have a checkbox and a separate report for more information */
-    tasks: OnboardingTask[];
-
-    /** Type of task described in a string format */
-    type?: string;
-};
 
 const EMAIL_WITH_OPTIONAL_DOMAIN =
     /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
@@ -6824,10 +6787,7 @@ export type {
     Country,
     IOUAction,
     IOUType,
-    OnboardingPurpose,
-    OnboardingCompanySize,
-    OnboardingTaskLinks,
-    OnboardingTask,
+
     IOURequestType,
     SubscriptionType,
     FeedbackSurveyOptionID,
@@ -6835,7 +6795,6 @@ export type {
     OnboardingInvite,
     OnboardingAccounting,
     IOUActionParams,
-    OnboardingMessage,
 };
 
 export default CONST;
