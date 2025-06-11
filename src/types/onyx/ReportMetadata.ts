@@ -14,6 +14,9 @@ type PendingChatMember = {
 
 /** Model of report metadata */
 type ReportMetadata = {
+    /** Whether the user has successfully opened a report at least once, or if it was created by this user */
+    hasOnceLoadedReportActions?: boolean;
+
     /** Are we loading newer report actions? */
     isLoadingNewerReportActions?: boolean;
 
