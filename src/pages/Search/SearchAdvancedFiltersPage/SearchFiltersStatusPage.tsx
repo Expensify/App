@@ -46,13 +46,13 @@ function SearchFiltersStatusPage() {
     }, [items, selectedItems, translate]);
 
     const updateSelectedItems = useCallback(
-        (item: ListItem) => {
-            if (item.isSelected) {
-                setSelectedItems(selectedItems.filter((i) => i !== item.keyForList));
+        (listItem: ListItem) => {
+            if (listItem.isSelected) {
+                setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList));
                 return;
             }
 
-            const newItem = items.find((i) => i.value === item.keyForList)?.value;
+            const newItem = items.find((i) => i.value === listItem.keyForList)?.value;
 
             if (newItem) {
                 setSelectedItems([...selectedItems, newItem]);
