@@ -96,7 +96,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             linkStyle = [
                 styles.link,
                 {
-                    fontSize: styles.formError.fontSize,
+                    fontSize: styles.textMicro.fontSize,
                     textDecorationLine: 'underline',
                 },
             ];
