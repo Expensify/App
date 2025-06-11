@@ -73,22 +73,23 @@ function CloseAccountPage() {
         const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
 
         if (values.phoneOrEmail && userEmailOrPhone) {
-            // Check if the stored contact method is an email
+            let isValid = false;
+
             if (Str.isValidEmail(userEmailOrPhone)) {
-                // For emails, use the existing sanitization logic
-                if (sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
-                    errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
-                }
+                // Email comparison - use existing sanitization
+                isValid = sanitizePhoneOrEmail(userEmailOrPhone) === sanitizePhoneOrEmail(values.phoneOrEmail);
             } else {
-                // For phone numbers, normalize both values to E.164 format before comparison
+                // Phone number comparison - normalize to E.164
                 const normalizedStored = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone)) ?? '';
                 const normalizedInput = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail)) ?? '';
+                isValid = normalizedStored === normalizedInput;
+            }
 
-                if (normalizedStored !== normalizedInput) {
-                    errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
-                }
+            if (!isValid) {
+                errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
             }
         }
+
         return errors;
     };
 
