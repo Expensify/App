@@ -65,8 +65,8 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
     };
 
     // Get the actual error from the nested structure
-    const fieldListErrors = policy?.errorFields?.fieldList as Record<string, any> | undefined;
-    const textTitleErrors = fieldListErrors?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE] as Record<string, any> | undefined;
+    const fieldListErrors = policy?.errorFields?.fieldList as Record<string, unknown> | undefined;
+    const textTitleErrors = fieldListErrors?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE] as Record<string, unknown> | undefined;
     const defaultValueErrors = textTitleErrors?.defaultValue as Record<string, string> | undefined;
 
     // Get pending action for loading state
