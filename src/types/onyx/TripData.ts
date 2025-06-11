@@ -1420,42 +1420,45 @@ type CarPnr = {
 
         /** Drop-off location details. */
         dropOffLocation: {
-            /** Address lines for the drop-off location. */
-            addressLines: string[];
-            /** Administrative area for the drop-off location. */
-            administrativeArea: string;
-            /** Administrative area name for the drop-off location. */
-            administrativeAreaName: string;
-            /** Continent code for the drop-off location. */
-            continentCode: string;
-            /** Description of the drop-off location. */
-            description: string;
-            /** Indicates if the drop-off location is default. */
-            isDefault: boolean;
-            /** Language code for the drop-off location. */
-            languageCode: string;
-            /** Locality of the drop-off location. */
-            locality: string;
-            /** Location code for the drop-off location. */
-            locationCode: string;
-            /** Organization associated with the drop-off location. */
-            organization: string;
-            /** Postal code for the drop-off location. */
-            postalCode: string;
-            /** Recipients associated with the drop-off location. */
-            recipients: unknown[];
-            /** Region code for the drop-off location. */
-            regionCode: string;
-            /** Region name for the drop-off location. */
-            regionName: string;
-            /** Revision number for the drop-off location. */
-            revision: number;
-            /** Sorting code for the drop-off location. */
-            sortingCode: string;
-            /** Sublocality of the drop-off location. */
-            sublocality: string;
-            /** Timezone for the drop-off location. */
-            timezone: string;
+            /** Address details for the drop-off location. */
+            address: {
+                /** Address lines for the drop-off location. */
+                addressLines: string[];
+                /** Administrative area for the drop-off location. */
+                administrativeArea: string;
+                /** Administrative area name for the drop-off location. */
+                administrativeAreaName: string;
+                /** Continent code for the drop-off location. */
+                continentCode: string;
+                /** Description of the drop-off location. */
+                description: string;
+                /** Indicates if the drop-off location is default. */
+                isDefault: boolean;
+                /** Language code for the drop-off location. */
+                languageCode: string;
+                /** Locality of the drop-off location. */
+                locality: string;
+                /** Location code for the drop-off location. */
+                locationCode: string;
+                /** Organization associated with the drop-off location. */
+                organization: string;
+                /** Postal code for the drop-off location. */
+                postalCode: string;
+                /** Recipients associated with the drop-off location. */
+                recipients: unknown[];
+                /** Region code for the drop-off location. */
+                regionCode: string;
+                /** Region name for the drop-off location. */
+                regionName: string;
+                /** Revision number for the drop-off location. */
+                revision: number;
+                /** Sorting code for the drop-off location. */
+                sortingCode: string;
+                /** Sublocality of the drop-off location. */
+                sublocality: string;
+                /** Timezone for the drop-off location. */
+                timezone: string;
+            };
         };
 
         /** Mileage allowance for the car booking. */
@@ -1463,42 +1466,45 @@ type CarPnr = {
 
         /** Pickup location details. */
         pickupLocation: {
-            /** Address lines for the pickup location. */
-            addressLines: string[];
-            /** Administrative area for the pickup location. */
-            administrativeArea: string;
-            /** Administrative area name for the pickup location. */
-            administrativeAreaName: string;
-            /** Continent code for the pickup location. */
-            continentCode: string;
-            /** Description of the pickup location. */
-            description: string;
-            /** Indicates if the pickup location is default. */
-            isDefault: boolean;
-            /** Language code for the pickup location. */
-            languageCode: string;
-            /** Locality of the pickup location. */
-            locality: string;
-            /** Location code for the pickup location. */
-            locationCode: string;
-            /** Organization associated with the pickup location. */
-            organization: string;
-            /** Postal code for the pickup location. */
-            postalCode: string;
-            /** Recipients associated with the pickup location. */
-            recipients: unknown[];
-            /** Region code for the pickup location. */
-            regionCode: string;
-            /** Region name for the pickup location. */
-            regionName: string;
-            /** Revision number for the pickup location. */
-            revision: number;
-            /** Sorting code for the pickup location. */
-            sortingCode: string;
-            /** Sublocality of the pickup location. */
-            sublocality: string;
-            /** Timezone for the pickup location. */
-            timezone: string;
+            /** Address details for the drop-off location. */
+            address: {
+                /** Address lines for the pickup location. */
+                addressLines: string[];
+                /** Administrative area for the pickup location. */
+                administrativeArea: string;
+                /** Administrative area name for the pickup location. */
+                administrativeAreaName: string;
+                /** Continent code for the pickup location. */
+                continentCode: string;
+                /** Description of the pickup location. */
+                description: string;
+                /** Indicates if the pickup location is default. */
+                isDefault: boolean;
+                /** Language code for the pickup location. */
+                languageCode: string;
+                /** Locality of the pickup location. */
+                locality: string;
+                /** Location code for the pickup location. */
+                locationCode: string;
+                /** Organization associated with the pickup location. */
+                organization: string;
+                /** Postal code for the pickup location. */
+                postalCode: string;
+                /** Recipients associated with the pickup location. */
+                recipients: unknown[];
+                /** Region code for the pickup location. */
+                regionCode: string;
+                /** Region name for the pickup location. */
+                regionName: string;
+                /** Revision number for the pickup location. */
+                revision: number;
+                /** Sorting code for the pickup location. */
+                sortingCode: string;
+                /** Sublocality of the pickup location. */
+                sublocality: string;
+                /** Timezone for the pickup location. */
+                timezone: string;
+            };
         };
 
         /** Vendor details for the car booking. */
