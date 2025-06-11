@@ -71,17 +71,17 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // If there is one transaction thread that has not yet been created, we should create it.
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && currentUserEmail) {
             const optimisticTransactionThreadReportID = generateReportID();
-            const transactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            const transactions = getReportTransactions(reportIDFromRoute).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             const oneTransactionID = transactions.at(0)?.transactionID;
-            const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
+            const iouAction = getIOUActionForReportID(reportIDFromRoute, oneTransactionID);
             const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
             openReport(optimisticTransactionThreadReportID, undefined, [currentUserEmail], optimisticTransactionThread, iouAction?.reportActionID, false, [], undefined, true);
         }
 
-        openReport(reportID, undefined, [], undefined, undefined, false, [], undefined, true);
+        openReport(reportIDFromRoute, undefined, [], undefined, undefined, false, [], undefined, true);
         // We don't want to call openReport when report is changed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reportMetadata.isOptimisticReport, currentUserEmail, reportID, transactionThreadReport, transactionThreadReportID]);
+    }, [reportMetadata.isOptimisticReport, currentUserEmail, reportIDFromRoute, transactionThreadReport, transactionThreadReportID]);
 
     useEffect(() => {
         fetchReport();
