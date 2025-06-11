@@ -1565,13 +1565,9 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
     }
 }
 
-function getTravelUpdateMessage(action: ReportAction, formatDate?: (datetime: string, includeTimezone: boolean, isLowercase?: boolean | undefined) => string) {
-    const details = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE) ? getOriginalMessage(action) : undefined;
-    if (!details) {
-        return translateLocal('travel.updates.notSupported');
-    }
-
-    const formattedStartDate = formatDate?.(details.start.date, false) ?? format(details.start.date, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>, formatDate?: (datetime: string, includeTimezone: boolean, isLowercase?: boolean | undefined) => string) {
+    const details = getOriginalMessage(action);
+    const formattedStartDate = formatDate?.(details?.start.date ?? '', false) ?? format(details?.start.date ?? '', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
     switch (details?.operation) {
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
@@ -1619,7 +1615,7 @@ function getTravelUpdateMessage(action: ReportAction, formatDate?: (datetime: st
             });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CHANGED:
-            return translateLocal('travel.updates.flightChanged', {
+            return translateLocal('travel.updates.flightUpdated', {
                 airlineCode: details.route?.airlineCode ?? '',
                 origin: details.start.shortName ?? '',
                 destination: details.end?.shortName ?? '',
@@ -1686,7 +1682,7 @@ function getTravelUpdateMessage(action: ReportAction, formatDate?: (datetime: st
                     startDate: formattedStartDate,
                 });
             }
-            return translateLocal('travel.updates.flightChanged', {
+            return translateLocal('travel.updates.flightUpdated', {
                 airlineCode: details.route?.airlineCode ?? '',
                 origin: details.start.shortName ?? '',
                 destination: details.end?.shortName ?? '',
@@ -1705,7 +1701,7 @@ function getTravelUpdateMessage(action: ReportAction, formatDate?: (datetime: st
                     startDate: formattedStartDate,
                 });
             }
-            return translateLocal('travel.updates.flightChanged', {
+            return translateLocal('travel.updates.flightUpdated', {
                 airlineCode: details.route?.airlineCode ?? '',
                 origin: details.start.shortName ?? '',
                 destination: details.end?.shortName ?? '',
@@ -1728,7 +1724,7 @@ function getTravelUpdateMessage(action: ReportAction, formatDate?: (datetime: st
 
         default:
             return translateLocal('travel.updates.defaultUpdate', {
-                type: details.type,
+                type: details?.type ?? '',
             });
     }
 }

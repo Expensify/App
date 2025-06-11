@@ -3036,7 +3036,7 @@ const translations = {
                 `Tu vuelo ${airlineCode} (${origin} → ${destination}) del ${startDate} ha sido cancelado por la aerolínea.`,
             flightScheduleChangePending: ({airlineCode}: AirlineParams) => `La aerolínea ha propuesto un cambio de horario para el vuelo ${airlineCode}; estamos esperando la confirmación.`,
             flightScheduleChangeClosed: ({airlineCode, startDate}: AirlineParams) => `Cambio de horario confirmado: el vuelo ${airlineCode} ahora sale a las ${startDate}.`,
-            flightChanged: ({airlineCode, origin, destination, startDate}: FlightParams) => `Tu vuelo ${airlineCode} (${origin} → ${destination}) del ${startDate} ha sido modificado.`,
+            flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `Tu vuelo ${airlineCode} (${origin} → ${destination}) del ${startDate} ha sido actualizado.`,
             flightCabinChanged: ({airlineCode, cabinClass}: AirlineParams) => `Tu clase de cabina ha sido actualizada a ${cabinClass} en el vuelo ${airlineCode}.`,
             flightSeatConfirmed: ({airlineCode}: AirlineParams) => `Tu asignación de asiento en el vuelo ${airlineCode} ha sido confirmada.`,
             flightSeatChanged: ({airlineCode}: AirlineParams) => `Tu asignación de asiento en el vuelo ${airlineCode} ha sido modificada.`,
@@ -3051,7 +3051,6 @@ const translations = {
             railTicketExchange: ({origin, destination, startDate}: RailTicketParams) => `Tu billete de tren de ${origin} a ${destination} para el ${startDate} ha sido cambiado.`,
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Tu billete de tren de ${origin} a ${destination} para el ${startDate} ha sido actualizado.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Tu reserva de ${type} fue actualizada.`,
-            notSupported: 'Actualización de viaje no admitida.',
         },
     },
     workspace: {

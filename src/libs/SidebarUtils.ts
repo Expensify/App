@@ -701,7 +701,7 @@ function getOptionData({
             result.alternateText = getRetractedMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
             result.alternateText = getReopenedMessage();
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE) {
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             result.alternateText = getTravelUpdateMessage(lastAction);
         } else {
             result.alternateText =

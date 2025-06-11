@@ -1067,7 +1067,7 @@ function PureReportActionItem({
                     <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE) {
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             children = (
                 <ReportActionItemBasicMessage message="">
                     <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(action, datetimeToCalendarTime)}</muted-text></comment>`} />
