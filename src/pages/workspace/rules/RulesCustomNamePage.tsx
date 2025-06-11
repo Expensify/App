@@ -12,8 +12,10 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
@@ -69,13 +71,25 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
 
     // Get pending action for loading state
     const isLoading = !!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue;
+    const prevIsLoading = usePrevious(isLoading);
+
+    // Clear errors when modal is dismissed
+    useBeforeRemove(() => {
+        clearFieldListError();
+    });
+
+    useEffect(() => {
+        if (!prevIsLoading || isLoading) {
+            return;
+        }
+
+        if (!defaultValueErrors) {
+            Navigation.goBack();
+        }
+    }, [isLoading, prevIsLoading, defaultValueErrors]);
 
     const submitForm = (values: FormOnyxValues<'rulesCustomNameModalForm'>) => {
         setPolicyDefaultReportTitle(policyID, values.customName);
-
-        if (defaultValueErrors?.length) {
-            Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-        }
     }
 
     return (
@@ -118,7 +132,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                         pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
                         errors={defaultValueErrors}
                         errorRowStyles={styles.mh0}
-                        onClose={() => clearFieldListError()}
+                        onClose={clearFieldListError}
                     >
                         <InputWrapper
                             InputComponent={TextInput}
@@ -127,7 +141,6 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                             label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
                             aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
                             ref={inputCallbackRef}
-                            onBlur={() => clearFieldListError()}
                         />
                     </OfflineWithFeedback>
                     <BulletList
