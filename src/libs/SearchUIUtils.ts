@@ -1362,14 +1362,15 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
         {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
         {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
-        {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
         {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
         {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
-    const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
-    // Remove the invoice option if the user is not allowed to send invoices
-    return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
+    if (canSendInvoice(policies, currentUserLogin) || hasInvoiceReports()) {
+        typeOptions.splice(2, 0, {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE});
+    }
+
+    return typeOptions;
 }
 
 export {
