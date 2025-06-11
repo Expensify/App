@@ -1022,8 +1022,6 @@ const translations = {
         scanMultipleReceiptsDescription: 'Tome fotos de todos sus recibos a la vez y confirme los detalles usted mismo o deje que SmartScan se encargue.',
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
-        removeFromReport: 'Eliminar del informe',
-        moveToPersonalSpace: 'Mover gastos a tu espacio personal',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.'
@@ -2416,8 +2414,6 @@ const translations = {
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
             fullName: 'Por favor, introduce un nombre completo válido',
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido',
-            deletePaymentBankAccount:
-                'Esta cuenta bancaria no se puede eliminar porque se utiliza para pagos con la tarjeta Expensify. Si aún deseas eliminar esta cuenta, por favor contacta con Concierge.',
         },
     },
     addPersonalBankAccount: {
