@@ -11,7 +11,6 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -132,7 +131,6 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -198,7 +196,7 @@ function AttachmentPickerWithMenuItems({
     }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) || !isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
+        if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
             return [];
         }
 
@@ -209,7 +207,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, true), true),
             },
         ];
-    }, [isBetaEnabled, currentUserPersonalDetails, report, selectOption, translate]);
+    }, [currentUserPersonalDetails, report, selectOption, translate]);
 
     /**
      * Determines if we can show the task option
