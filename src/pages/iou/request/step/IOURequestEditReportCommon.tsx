@@ -1,14 +1,17 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, getPolicyName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -41,13 +44,17 @@ type Props = {
     selectedReportID: string | undefined;
     selectedPolicyID?: string | undefined;
     selectReport: (item: ReportListItem) => void;
+    removeFromReport?: () => void;
+    isEditing: boolean;
 };
 
-function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID, selectReport}: Props) {
+function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID, selectReport, removeFromReport, isEditing}: Props) {
     const {translate} = useLocalize();
+    const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -57,6 +64,9 @@ function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID,
         }
         return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
     }, [allReports, selectedReportID]);
+
+    const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
+
 
     const expenseReports = useMemo(() => {
         if (!selectedReportID) {
@@ -78,13 +88,16 @@ function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID,
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
-            .map((report) => ({
-                text: report.reportName,
-                value: report.reportID,
-                keyForList: report.reportID,
-                isSelected: report.reportID === selectedReportID,
-            }));
-    }, [allReports, debouncedSearchValue, expenseReports, selectedReportID]);
+            .map((report) => {
+                const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
+                return {
+                    ...matchingOption,
+                    alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
+                    value: report.reportID,
+                    isSelected: selectedReportID === report.reportID,
+                };
+            });
+    }, [allReports, expenseReports, debouncedSearchValue, options.reports, selectedReportID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -110,7 +123,17 @@ function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID,
                 shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
                 initiallyFocusedOptionKey={selectedReportID}
-                ListItem={UserListItem}
+                ListItem={InviteMemberListItem}
+                listFooterContent={
+                    isEditing && isOwner ? (
+                        <MenuItem
+                            onPress={removeFromReport}
+                            title={translate('iou.removeFromReport')}
+                            description={translate('iou.moveToPersonalSpace')}
+                            icon={Expensicons.Close}
+                        />
+                    ) : undefined
+                }
             />
         </StepScreenWrapper>
     );

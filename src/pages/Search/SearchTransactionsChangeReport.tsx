@@ -35,6 +35,7 @@ function SearchTransactionsChangeReport() {
             backTo={undefined}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
+            isEditing={false}
             selectReport={selectReport}
         />
     );

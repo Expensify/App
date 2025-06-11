@@ -3,6 +3,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -31,11 +32,21 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         Navigation.dismissModalWithReport({reportID: item.value});
     };
 
+    const removeFromReport = () => {
+        if (!reportID || selectedTransactionIDs.length === 0) {
+            return;
+        }
+        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID);
+        Navigation.dismissModal();
+    };
+
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
             selectedReportID={reportID}
             selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing
         />
     );
 }
