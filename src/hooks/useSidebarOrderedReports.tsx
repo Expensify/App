@@ -1,5 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -23,6 +23,8 @@ type SidebarOrderedReportsContextValue = {
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
 };
+
+type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
 
 const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
     orderedReports: [],
@@ -56,19 +58,22 @@ function SidebarOrderedReportsContextProvider({
     const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
-    const draftAmount = Object.keys(reportsDrafts ?? {}).length;
+    const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
-    const [reportsToDisplayInLHN, setReportsToDisplayInLHN] = useState<OnyxCollection<Report>>([]);
+    const [reportsToDisplayInLHN, setReportsToDisplayInLHN] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
 
+    /**
+     * Find the reports that need to be updated in the LHN
+     */
     const getUpdatedReports = useCallback(() => {
         let reportsToUpdate: string[] = [];
+
         if (reportUpdates) {
             reportsToUpdate = Object.keys(reportUpdates ?? {});
         } else if (reportNameValuePairsUpdates) {
@@ -89,14 +94,19 @@ function SidebarOrderedReportsContextProvider({
         }
 
         return reportsToUpdate;
+        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportUpdates, reportNameValuePairsUpdates, transactionsUpdates, transactionViolationsUpdates, reportsDraftsUpdates, policiesUpdates]);
 
+    /**
+     * This useEffect is responsible for calculating the initial list of reports to display in the LHN.
+     */
     useEffect(() => {
         // if reportsToDisplayInLHN is already set, we don't need to re-calculate entirely
         if (Object.keys(reportsToDisplayInLHN ?? {}).length > 0) {
             return;
         }
+
         const reports = SidebarUtils.getReportsToDisplayInLHN(
             derivedCurrentReportID,
             chatReports,
@@ -107,12 +117,15 @@ function SidebarOrderedReportsContextProvider({
             reportNameValuePairs,
             reportAttributes,
         );
+
         setReportsToDisplayInLHN(reports);
     }, [chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes, derivedCurrentReportID, reportsToDisplayInLHN]);
 
+    /**
+     * This useEffect is responsible for updating the list of reports to display in the LHN when the reports are updated.
+     */
     useEffect(() => {
         const reportsToUpdate = getUpdatedReports();
-        console.log('[p] reportsToUpdate', reportsToUpdate);
 
         const updatedReportsToDisplayInLHN = SidebarUtils.updateReportsToDisplayInLHN(
             reportsToDisplayInLHN,
@@ -127,13 +140,15 @@ function SidebarOrderedReportsContextProvider({
             reportAttributes,
         );
         setReportsToDisplayInLHN(updatedReportsToDisplayInLHN);
+        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [getUpdatedReports]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(Object.values(reportsToDisplayInLHN), priorityMode, reportNameValuePairs, reportAttributes),
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, reportNameValuePairs, reportAttributes),
+        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [reportsToDisplayInLHN, priorityMode, reportNameValuePairs, reportAttributes, draftAmount],
+        [reportsToDisplayInLHN],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
@@ -191,4 +206,4 @@ function useSidebarOrderedReports() {
 }
 
 export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
-export type {PartialPolicyForSidebar};
+export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};

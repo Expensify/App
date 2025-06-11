@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {PartialPolicyForSidebar} from '@hooks/useSidebarOrderedReports';
+import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -277,9 +277,13 @@ function getReportsToDisplayInLHN(
 ) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
-    const reportsToDisplay: OnyxCollection<Report & {hasErrorsOtherThanFailedReceipt?: boolean}> = {};
+    const reportsToDisplay: ReportsToDisplayInLHN = {};
 
     Object.entries(allReportsDictValues).forEach(([reportID, report]) => {
+        if (!report) {
+            return;
+        }
+
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
             report,
             currentReportId,
@@ -300,7 +304,7 @@ function getReportsToDisplayInLHN(
 }
 
 function updateReportsToDisplayInLHN(
-    displayedReports: OnyxCollection<Report>,
+    displayedReports: ReportsToDisplayInLHN,
     reports: OnyxCollection<Report>,
     updatedReportsKeys: string[],
     currentReportId: string | undefined,
@@ -311,7 +315,7 @@ function updateReportsToDisplayInLHN(
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
-    const displayedReportsCopy = {...displayedReports};
+    const displayedReportsCopy = displayedReports;
     updatedReportsKeys.forEach((reportID) => {
         const report = reports?.[reportID];
         if (!report) {
@@ -342,7 +346,7 @@ function updateReportsToDisplayInLHN(
  * @returns An array of reportIDs sorted in the proper order
  */
 function sortReportsToDisplayInLHN(
-    reportsToDisplay: Array<Report & {hasErrorsOtherThanFailedReceipt?: boolean}>,
+    reportsToDisplay: ReportsToDisplayInLHN,
     priorityMode: OnyxEntry<PriorityMode>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
@@ -369,7 +373,7 @@ function sortReportsToDisplayInLHN(
     const archivedReports: MiniReport[] = [];
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    reportsToDisplay.forEach((reportToDisplay) => {
+    Object.values(reportsToDisplay).forEach((reportToDisplay) => {
         const report = reportToDisplay;
         const miniReport: MiniReport = {
             reportID: report?.reportID,
