@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
@@ -14,19 +15,43 @@ type PlaidCardFeedIconProps = {
 };
 
 function PlaidCardFeedIcon({plaidUrl, style, isLarge}: PlaidCardFeedIconProps) {
+    const [isBrokenImage, setIsBrokenImage] = useState<boolean>(false);
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
+    const width = isLarge ? variables.cardPreviewWidth : variables.cardIconWidth;
+    const height = isLarge ? variables.cardPreviewHeight : variables.cardIconHeight;
+
+    useEffect(() => {
+        if (!plaidUrl) {
+            return;
+        }
+        setIsBrokenImage(false);
+    }, [plaidUrl]);
+
     return (
         <View style={[style]}>
-            <Image
-                source={{uri: plaidUrl}}
-                style={isLarge ? styles.plaidIcon : styles.plaidIconSmall}
-                cachePolicy="memory-disk"
-            />
-            <Icon
-                src={isLarge ? Illustrations.PlaidCompanyCardDetailLarge : Illustrations.PlaidCompanyCardDetail}
-                height={isLarge ? variables.cardPreviewHeight : variables.cardIconHeight}
-                width={isLarge ? variables.cardPreviewWidth : variables.cardIconWidth}
-            />
+            {isBrokenImage ? (
+                <Icon
+                    src={illustrations.GenericCompanyCardLarge}
+                    height={height}
+                    width={width}
+                    additionalStyles={styles.cardIcon}
+                />
+            ) : (
+                <>
+                    <Image
+                        source={{uri: plaidUrl}}
+                        style={isLarge ? styles.plaidIcon : styles.plaidIconSmall}
+                        cachePolicy="memory-disk"
+                        onError={() => setIsBrokenImage(true)}
+                    />
+                    <Icon
+                        src={isLarge ? Illustrations.PlaidCompanyCardDetailLarge : Illustrations.PlaidCompanyCardDetail}
+                        height={height}
+                        width={width}
+                    />
+                </>
+            )}
         </View>
     );
 }
