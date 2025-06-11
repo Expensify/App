@@ -197,6 +197,7 @@ import type {
     UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
+    UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -5306,6 +5307,15 @@ const translations = {
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
+        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
+            if (!newValue) {
+                return `eliminó la sugerencia de descripción "${oldValue}" de la categoría "${categoryName}"`;
+            }
+
+            return !oldValue
+                ? `añadió la sugerencia de descripción "${newValue}" a la categoría "${categoryName}"`
+                : `cambió la sugerencia de descripción de la categoría "${categoryName}" a “${newValue}” (anteriormente “${oldValue}”)`;
+        },
         updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
                 return `añadió el código de nómina "${newValue}" a la categoría "${categoryName}"`;
