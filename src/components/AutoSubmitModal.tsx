@@ -72,7 +72,7 @@ function AutoSubmitModal() {
                     />
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
                         <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>
-                        <Text style={[styles.mutedTextLabel]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
+                        <Text style={[styles.mutedTextLabel, styles.lh16]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
                     </View>
                 </View>
             ))}
