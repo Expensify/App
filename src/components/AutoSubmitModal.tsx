@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -16,12 +18,12 @@ import Text from './Text';
 
 const menuSections = [
     {
-        icon: Illustrations.ChatBubbles,
+        icon: Illustrations.PaperAirplane,
         titleTranslationKey: 'autoSubmitModal.submittedExpensesTitle',
         descriptionTranslationKey: 'autoSubmitModal.submittedExpensesDescription',
     },
     {
-        icon: Illustrations.Flash,
+        icon: Illustrations.Pencil,
         titleTranslationKey: 'autoSubmitModal.pendingExpensesTitle',
         descriptionTranslationKey: 'autoSubmitModal.pendingExpensesDescription',
     },
@@ -31,6 +33,7 @@ function AutoSubmitModal() {
     const [dismissedInstantSubmitExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const onClose = useCallback((willShowAgain: boolean) => {
@@ -41,25 +44,25 @@ function AutoSubmitModal() {
         }
     }, []);
 
-    const title = useMemo(
-        () => (
-            <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
-                <Text style={[styles.textHeadline, styles.mr2]}>{translate('autoSubmitModal.title')}</Text>
-            </View>
-        ),
-        [onboardingIsMediumOrLargerScreenWidth, styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, translate],
-    );
+    // const title = useMemo(
+    //     () => (
+    //         <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
+    //             <Text style={[styles.textHeadline, styles.mr2]}>{translate('autoSubmitModal.title')}</Text>
+    //         </View>
+    //     ),
+    //     [onboardingIsMediumOrLargerScreenWidth, styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, translate],
+    // );
 
     return (
         <FeatureTrainingModal
-            title={title}
+            title={translate('autoSubmitModal.title')}
             description={translate('autoSubmitModal.description')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.HoldExpense}
+            image={Illustrations.ReceiptsStackedOnPin}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
-            contentInnerContainerStyles={styles.mb5}
+            illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.green700), styles.p8]}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.p0}
             shouldShowDismissModalOption={!dismissedInstantSubmitExplanation}
