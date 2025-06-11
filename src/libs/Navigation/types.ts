@@ -1999,6 +1999,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
