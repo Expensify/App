@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {SearchGroupBy} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -17,14 +16,13 @@ import {getStatusOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 function SearchFiltersStatusPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const currentType = (searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
-    const currentGroupBy = searchAdvancedFiltersForm?.groupBy as SearchGroupBy | undefined;
+    const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const currentGroupBy = searchAdvancedFiltersForm?.groupBy;
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
         if (!searchAdvancedFiltersForm?.status || searchAdvancedFiltersForm.status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
             return [];
