@@ -7,12 +7,12 @@ import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFro
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import type {Video} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type {Video} from '../Report';
 
 let onboardingInitialPath = '';
 const onboardingLastVisitedPathConnection = Onyx.connect({
@@ -373,7 +373,6 @@ const getOnboardingMessages = () => {
         testDrive,
     };
 };
-
 
 function clearInitialPath() {
     onboardingInitialPath = '';

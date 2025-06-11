@@ -120,8 +120,6 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-
-
 type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
 
 const onboardingInviteTypes = {
@@ -139,8 +137,6 @@ const onboardingCompanySize = {
 } as const;
 
 type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
-
-
 
 const EMAIL_WITH_OPTIONAL_DOMAIN =
     /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
@@ -6783,18 +6779,6 @@ type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {
-    Country,
-    IOUAction,
-    IOUType,
-
-    IOURequestType,
-    SubscriptionType,
-    FeedbackSurveyOptionID,
-    CancellationType,
-    OnboardingInvite,
-    OnboardingAccounting,
-    IOUActionParams,
-};
+export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
 export default CONST;

@@ -81,6 +81,8 @@ import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPo
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
+import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -103,8 +105,6 @@ import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuit
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getOnboardingMessages} from '../Welcome/OnboardingFlow';
-import type {OnboardingCompanySize, OnboardingPurpose} from '../Welcome/OnboardingFlow';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
 
 type ReportCreationData = Record<
