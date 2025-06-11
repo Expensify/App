@@ -141,6 +141,7 @@ import {
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    isActionOrReportPreviewOwner,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
@@ -148,6 +149,7 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportReportUtils,
     isInvoiceRoom,
+    isIOUReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOneOnOneChat,
     isOneTransactionThread,
@@ -820,6 +822,15 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
+});
+
+let allSnapshots: OnyxCollection<OnyxTypes.SearchResults>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    callback: (val) => {
+        allSnapshots = val;
+    },
+    waitForCollectionCallback: true,
 });
 
 /**
@@ -9262,6 +9273,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -9373,6 +9385,41 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
                         hold: heldTransaction.comment?.hold,
                     },
                 },
+            });
+        });
+    }
+
+    const hash = currentSearchQueryJSON?.hash;
+    if (hash) {
+        const transactions = getReportTransactions(expenseReport.reportID);
+        const snapshot = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
+
+        transactions.forEach((transaction) => {
+            const snapshotTransaction = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] ?? {}) as SearchTransaction;
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            canHold: false,
+                            canUnhold: false,
+                        },
+                    },
+                } as Record<string, Record<string, Partial<SearchTransaction>>>,
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            canHold: snapshotTransaction.canHold,
+                            canUnhold: snapshotTransaction.canUnhold,
+                        },
+                    },
+                } as Record<string, Record<string, Partial<SearchTransaction>>>,
             });
         });
     }
@@ -9681,6 +9728,7 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
 
     const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
     const optimisticNextStep = buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED, false, true);
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticReportActionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -9785,6 +9833,57 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
                     childStatusNum: expenseReport.statusNum,
                 },
             },
+        });
+    }
+
+    const hash = currentSearchQueryJSON?.hash;
+    if (hash) {
+        const snapshot = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
+        const canHold = () => {
+            const iouOrExpenseReport = isMoneyRequestReportReportUtils(expenseReport);
+            if (!iouOrExpenseReport) {
+                return false;
+            }
+
+            const isRequestIOU = isIOUReport(expenseReport);
+            const isTrackExpenseMoneyReport = isTrackExpenseReport(expenseReport);
+            const isActionOwner = isActionOrReportPreviewOwner(expenseReport);
+            const isApprover = iouOrExpenseReport && expenseReport?.managerID !== null && currentUserPersonalDetails?.accountID === expenseReport?.managerID;
+            const policy = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport.policyID}`] ?? {}) as SearchPolicy;
+            const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+            const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
+            return isRequestIOU || canModifyStatus;
+        };
+        const transactions = getReportTransactions(expenseReport.reportID);
+
+        transactions.forEach((transaction) => {
+            const snapshotTransaction = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] ?? {}) as SearchTransaction;
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            canHold: canHold(),
+                            canUnhold: false,
+                        },
+                    },
+                } as Record<string, Record<string, Partial<SearchTransaction>>>,
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            canHold: snapshotTransaction.canHold,
+                            canUnhold: snapshotTransaction.canUnhold,
+                        },
+                    },
+                } as Record<string, Record<string, Partial<SearchTransaction>>>,
+            });
         });
     }
 
