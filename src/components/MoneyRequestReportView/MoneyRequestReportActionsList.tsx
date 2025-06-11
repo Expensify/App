@@ -94,8 +94,8 @@ type MoneyRequestReportListProps = {
     /** If the report has older actions to load */
     hasOlderActions: boolean;
 
-    /** Whether report actions are still loading and we load the report for the first time, since the last sign in */
-    showReportActionsLoadingState?: boolean;
+    /** Whether report actions are still loading */
+    isLoadingInitialReportActions?: boolean;
 };
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
@@ -113,7 +113,7 @@ function MoneyRequestReportActionsList({
     newTransactions,
     hasNewerActions,
     hasOlderActions,
-    showReportActionsLoadingState,
+    isLoadingInitialReportActions,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -591,7 +591,7 @@ function MoneyRequestReportActionsList({
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-                {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
+                {isEmpty(visibleReportActions) && isEmpty(transactions) && !isLoadingInitialReportActions ? (
                     <>
                         <MoneyRequestViewReportFields
                             report={report}
@@ -624,7 +624,7 @@ function MoneyRequestReportActionsList({
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
-                                    isLoadingInitialReportActions={showReportActionsLoadingState}
+                                    isLoadingInitialReportActions={isLoadingInitialReportActions}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                 />
                             </>
@@ -633,7 +633,7 @@ function MoneyRequestReportActionsList({
                         onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
                         ref={reportScrollManager.ref}
-                        ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
+                        ListEmptyComponent={!isOffline && isLoadingInitialReportActions ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                     />
                 )}
             </View>

@@ -1022,7 +1022,6 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                hasOnceLoadedReportActions: true,
                 isLoadingInitialReportActions: false,
             },
         },
@@ -2711,13 +2710,6 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: optimisticReportData,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                hasOnceLoadedReportActions: true,
-            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
