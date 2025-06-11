@@ -559,7 +559,7 @@ function MoneyRequestParticipantsSelector({
                 style={styles.mb3}
             />
         );
-    }, [showImportContacts, styles.mb3, translate]);
+    }, [showImportContacts, styles.mb3, translate, isWebOrDesktop]);
 
     const ClickableImportContactTextComponent = useMemo(() => {
         if (debouncedSearchTerm.length || isSearchingForReports) {
