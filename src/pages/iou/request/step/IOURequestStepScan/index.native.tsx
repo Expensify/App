@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/core';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -12,12 +12,14 @@ import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequ
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
 import type {TupleToUnion} from 'type-fest';
+import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
+import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -25,12 +27,9 @@ import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,15 +45,14 @@ import HapticFeedback from '@libs/HapticFeedback';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
+import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import variables from '@styles/variables';
 import {
     getMoneyRequestParticipantsFromReport,
     replaceReceipt,
@@ -89,10 +87,10 @@ function IOURequestStepScan({
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
+    onLayout,
     setTabSwipeDisabled,
     isMultiScanEnabled = false,
     setIsMultiScanEnabled,
-    isTooltipAllowed = false,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -100,9 +98,7 @@ function IOURequestStepScan({
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
-    const {isBetaEnabled} = usePermissions();
 
-    const [elementTop, setElementTop] = useState(0);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
@@ -118,12 +114,13 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
-    const isTabActive = useIsFocused();
+    const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -532,17 +529,6 @@ function IOURequestStepScan({
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && isTabActive && !isUserInvitedToWorkspace(),
-        {
-            onConfirm: setTestReceiptAndNavigate,
-            onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
-            },
-        },
-    );
-
     /**
      * Converts HEIC image to JPEG using promises
      */
@@ -556,6 +542,13 @@ function IOURequestStepScan({
                 },
                 onFinish: () => setIsLoaderVisible(false),
             });
+        });
+    };
+
+    const dismissMultiScanEducationalPopup = () => {
+        InteractionManager.runAfterInteractions(() => {
+            dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
+            setShouldShowMultiScanEducationalPopup(false);
         });
     };
 
@@ -692,7 +685,7 @@ function IOURequestStepScan({
                     .then((photo: PhotoFile) => {
                         // Store the receipt on the transaction object in Onyx
                         const source = getPhotoSource(photo.path);
-                        const transaction = initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
+                        const transaction = isMultiScanEnabled && initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
 
                         setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
@@ -748,6 +741,9 @@ function IOURequestStepScan({
     ]);
 
     const toggleMultiScan = () => {
+        if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
+            setShouldShowMultiScanEducationalPopup(true);
+        }
         if (isMultiScanEnabled) {
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
@@ -770,8 +766,11 @@ function IOURequestStepScan({
         >
             <View
                 style={styles.flex1}
-                onLayout={(e) => {
-                    setElementTop(e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding) * 2);
+                onLayout={() => {
+                    if (!onLayout) {
+                        return;
+                    }
+                    onLayout(setTestReceiptAndNavigate);
                 }}
             >
                 {!!pdfFile && (
@@ -794,89 +793,91 @@ function IOURequestStepScan({
                         }}
                     />
                 )}
-                <EducationalTooltip
-                    shouldRender={shouldShowProductTrainingTooltip}
-                    renderTooltipContent={renderProductTrainingTooltip}
-                    shouldHideOnNavigate
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    wrapperStyle={styles.productTrainingTooltipWrapper}
-                    shiftVertical={-elementTop}
-                >
-                    <View style={[styles.flex1]}>
-                        {cameraPermissionStatus !== RESULTS.GRANTED && (
-                            <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                                <ImageSVG
-                                    contentFit="contain"
-                                    src={Hand}
-                                    width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                                    height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                                    style={styles.pb5}
-                                />
+                <View style={[styles.flex1]}>
+                    {cameraPermissionStatus !== RESULTS.GRANTED && (
+                        <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
+                            <ImageSVG
+                                contentFit="contain"
+                                src={Hand}
+                                width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                style={styles.pb5}
+                            />
 
-                                <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                                <Button
-                                    success
-                                    text={translate('common.continue')}
-                                    accessibilityLabel={translate('common.continue')}
-                                    style={[styles.p9, styles.pt5]}
-                                    onPress={capturePhoto}
-                                />
-                            </View>
-                        )}
-                        {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
-                            <View style={[styles.cameraView]}>
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                    style={[styles.flex1]}
-                                    color={theme.textSupporting}
-                                />
-                            </View>
-                        )}
-                        {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                            <View style={[styles.cameraView]}>
-                                <GestureDetector gesture={tapGesture}>
-                                    <View style={styles.flex1}>
-                                        <NavigationAwareCamera
-                                            ref={camera}
-                                            device={device}
-                                            style={styles.flex1}
-                                            zoom={device.neutralZoom}
-                                            photo
-                                            cameraTabIndex={1}
-                                        />
-                                        <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
-                                        {canUseMultiScan ? (
-                                            <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
-                                                <PressableWithFeedback
-                                                    role={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={translate('receipt.flash')}
-                                                    disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                                                    onPress={() => setFlash((prevFlash) => !prevFlash)}
-                                                >
-                                                    <Icon
-                                                        height={16}
-                                                        width={16}
-                                                        src={Expensicons.Bolt}
-                                                        fill={theme.white}
-                                                    />
-                                                </PressableWithFeedback>
-                                            </View>
-                                        ) : null}
-                                        <Animated.View
-                                            pointerEvents="none"
-                                            style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
-                                        />
-                                    </View>
-                                </GestureDetector>
-                            </View>
-                        )}
-                    </View>
-                </EducationalTooltip>
-
+                            <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                            <Button
+                                success
+                                text={translate('common.continue')}
+                                accessibilityLabel={translate('common.continue')}
+                                style={[styles.p9, styles.pt5]}
+                                onPress={capturePhoto}
+                            />
+                        </View>
+                    )}
+                    {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
+                        <View style={[styles.cameraView]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                style={[styles.flex1]}
+                                color={theme.textSupporting}
+                            />
+                        </View>
+                    )}
+                    {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
+                        <View style={[styles.cameraView]}>
+                            <GestureDetector gesture={tapGesture}>
+                                <View style={styles.flex1}>
+                                    <NavigationAwareCamera
+                                        ref={camera}
+                                        device={device}
+                                        style={styles.flex1}
+                                        zoom={device.neutralZoom}
+                                        photo
+                                        cameraTabIndex={1}
+                                    />
+                                    <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                                    {canUseMultiScan ? (
+                                        <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
+                                            <PressableWithFeedback
+                                                role={CONST.ROLE.BUTTON}
+                                                accessibilityLabel={translate('receipt.flash')}
+                                                disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                                                onPress={() => setFlash((prevFlash) => !prevFlash)}
+                                            >
+                                                <Icon
+                                                    height={16}
+                                                    width={16}
+                                                    src={Expensicons.Bolt}
+                                                    fill={theme.white}
+                                                />
+                                            </PressableWithFeedback>
+                                        </View>
+                                    ) : null}
+                                    <Animated.View
+                                        pointerEvents="none"
+                                        style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                    />
+                                </View>
+                            </GestureDetector>
+                        </View>
+                    )}
+                </View>
+                {shouldShowMultiScanEducationalPopup && (
+                    <FeatureTrainingModal
+                        title={translate('iou.scanMultipleReceipts')}
+                        image={MultiScan}
+                        shouldRenderSVG
+                        imageHeight={220}
+                        modalInnerContainerStyle={styles.pt0}
+                        illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
+                        onConfirm={dismissMultiScanEducationalPopup}
+                        titleStyles={styles.mb2}
+                        confirmText={translate('common.buttonConfirm')}
+                        description={translate('iou.scanMultipleReceiptsDescription')}
+                        shouldGoBack={false}
+                    />
+                )}
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker onOpenPicker={() => setIsLoaderVisible(true)}>
                         {({openPicker}) => (

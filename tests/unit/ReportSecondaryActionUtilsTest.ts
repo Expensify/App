@@ -71,7 +71,7 @@ describe('getSecondaryAction', () => {
             transactionID: TRANSACTION_ID,
         } as unknown as Transaction;
 
-        const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, undefined, undefined, true, true, true);
+        const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, undefined, undefined, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
 
@@ -89,6 +89,27 @@ describe('getSecondaryAction', () => {
             harvesting: {
                 enabled: true,
             },
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions(report, [], {}, policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('includes SUBMIT option for admin', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        } as unknown as Report;
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
@@ -180,6 +201,30 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions(report, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]}, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
+    });
+
+    it('does not include APPROVE option for report with transactions are being scanned', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            approver: EMPLOYEE_EMAIL,
+        } as unknown as Policy;
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            receipt: {
+                state: CONST.IOU.RECEIPT_STATE.SCANNING,
+            },
+        } as unknown as Transaction;
+
+        const result = getSecondaryReportActions(report, [transaction], {}, policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
 
     it('includes UNAPPROVE option', () => {
@@ -431,7 +476,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -462,7 +507,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -495,7 +540,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -541,7 +586,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, oldPolicy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, oldPolicy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -587,7 +632,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: APPROVER_EMAIL, accountID: APPROVER_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -635,7 +680,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true, true);
+        const result = getSecondaryReportActions(report, [], {}, policy, undefined, undefined, policies, true, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 

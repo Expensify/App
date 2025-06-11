@@ -1,102 +1,98 @@
 ---
-title: Configure Xero
-description: How to configure your settings for Xero
+title: Configure Xero Settings
+description: Learn how to configure Xero import, export, and advanced sync settings in Expensify.
+keywords: [New Expensify, Xero configuration, set up Xero integration, import export Xero, Xero auto-sync]
 ---
 
-# Best Practices Using Xero
+<div id="new-expensify" markdown="1">
 
-Using Expensify with Xero brings a seamless, efficient approach to managing expenses. With automatic syncing, expense reports flow directly into Xero, reducing manual entry and errors while giving real-time visibility into spending. This integration speeds up approvals, simplifies reimbursements, and provides clear insights for smarter budgeting and compliance. Together, Expensify and Xero make expense management faster, more accurate, and stress-free.
+Learn how to configure the settings for your Xero integration, including import preferences, export setup, and advanced sync features. These steps ensure your expense data flows smoothly and accurately between Expensify and Xero.
 
-# Accessing the Xero Configuration Settings
+**The Xero integration simplifies expense management by:**
 
-Xero is connected at the workspace level, and each workspace can have a unique configuration that dictates how the connection functions. To access the connection settings:
+- Automatically syncing expense reports into Xero
+- Reducing manual entry and human error
+- Providing real-time visibility for smarter budgeting
+- Speeding up approvals and reimbursements
 
-1. Click your profile image or icon in the bottom left menu.
-2. Scroll down and click **Workspaces** in the left menu.
-3. Select the workspace you want to access settings for.
-4. Click **Accounting** in the left menu.
+---
 
-# Step 1: Configure import settings
+# How to Access Xero's Configuration Settings
 
-The following steps help you determine how data will be imported from Xero to Expensify. 
+Each Workspace has a unique Xero configuration. To view or update it:
 
-<ol type="a">
-   <li>Under the Accounting settings for your workspace, click <b>Import</b> under the Xero connection.</li>
-   <li>Select an option for each of the following settings to determine what information will be imported from Xero into Expensify:</li>
-       <ul>
-           <li><b>Xero organization</b>: Select which Xero organization your Expensify workspace is connected to. Each organization can only be connected to one workspace at a time.</li>
-           <li><b>Chart of Accounts</b>: Your Xero chart of accounts and any accounts marked as “Show In Expense Claims” will be automatically imported into Expensify as Categories. This cannot be amended.</li>
-           <li><b>Tracking Categories</b>: Choose whether to import your Xero categories for cost centers and regions as tags in Expensify.</li>
-           <li><b>Re-bill Customers</b>: When enabled, Xero customer contacts are imported into Expensify as tags for expense tracking. After exporting to Xero, tagged billable expenses can be included on a sales invoice to your customer.</li>
-           <li><b>Taxes</b>: Choose whether to import tax rates and tax defaults from Xero.</li>
-       </ul>  
-</ol>
+1. In the left-hand menu, select **Settings > Workspaces**, then choose your Workspace.
+2. From the Workspace menu, click **Accounting**.
 
-# Step 2: Configure export settings
-The following steps help you determine how data will be exported from Expensify to Xero.
+---
 
-<ol type="a">
-   <li>Under the Accounting settings for your workspace, click <b>Export</b> under the Xero connection.</li>
-   <li>Review each of the following export settings:</li>
-       <ul>
-           <li><b>Preferred Exporter</b>: Choose whether to assign a Workspace Admin as the Preferred Exporter. Once selected, the Preferred Exporter automatically receives reports for export in their account to help automate the exporting process.</li>
-       </ul>  
-</ol> 
-{% include info.html %}
-- Other Workspace Admins will still be able to export to Xero. 
-- If you set different export accounts for individual company cards under your domain settings, then your Preferred Exporter must be a Domain Admin.
-{% include end-info.html %}
+# Step 1: Set Up Import Settings
 
-<ol type="a">
-      <ul>
-           <li><b>Export Out-of-Pocket Expenses as</b>: All out-of-pocket expenses will be exported as purchase bills. This cannot be amended.</li>
-           <li><b>Purchase Bill Date</b>: Choose whether to use the date of the last expense, export date, or submitted date.</li>
-           <li><b>Export invoices as</b>: All invoices exported to Xero will be as sales invoices. This cannot be amended.</li>
-           <li><b>Export company card expenses as</b>: All company card expenses are exported to Xero as bank transactions. This cannot be amended.</li>
-           <li><b>Xero Bank Account</b>: Select which bank account will be used to post bank transactions when non-reimbursable expenses are exported.</li>
-      </ul>
-</ol>
+Import settings control which Xero data appears in Expensify.
 
-# Step 3: Configure advanced settings
+1. Under the Xero connection, click **Import**.
+2. Choose your preferences:
 
-The following steps help you determine the advanced settings for your connection, like auto-sync.
+- **Xero organization** – Select the organization to connect. Each organization can only link to one Workspace at a time.
+- **Chart of accounts** – Accounts marked “Show in Expense Claims” are imported into Expensify as Categories (not editable).
+- **Tracking categories** – Import Xero tracking categories (e.g., cost centers, regions) as tags.
+- **Re-bill customers** – Enable the import of Xero customer contacts as tags for billable expenses.
+- **Taxes** – Import tax rates and defaults from Xero.
 
-<ol type="a">
-   <li>Under the Accounting settings for your workspace, click <b>Advanced</b> under the Xero connection.</li>
-   <li>Select an option for each of the following settings:</li>
-      <ul>
-           <li><b>Auto-sync</b>: Choose whether to enable Xero to automatically communicate changes with Expensify to ensure that the data shared between the two systems is up-to-date. New report approvals/reimbursements will be synced during the next auto-sync period. Once you’ve added a business bank account for ACH reimbursement, any reimbursable expenses will be sent to Xero automatically when the report is reimbursed. For non-reimbursable reports, Expensify automatically queues the report to export to Xero after it has completed the approval workflow in Expensify.</li>
-           <li><b>Set Purchase Bill Status</b>: Choose the status of your purchase bills:</li>
-              <ul>
-                 <li>Draft</li>
-                 <li>Awaiting Approval</li>
-                 <li>Awaiting Payment</li>                
-              </ul>
-           <li><b>Sync Reimbursed Reports</b>: Choose whether to enable report syncing for reimbursed expenses. If enabled, all reports that are marked as Paid in Xero will also show in Expensify as Paid. If enabled, you must also select the Xero account that reimbursements are coming out of, and Expensify will automatically create the payment in Xero.</li>
-           <li><b>Xero Bill Payment Account</b>: If you enable Sync Reimbursed Reports, you must select the Xero Bill Payment account your reimbursements will come from.</li>
-           <li><b>Xero Invoice Collections Account</b>: If you are exporting invoices from Expensify, select the invoice collection account that you want invoices to appear under once they are marked as paid.</li>
-      </ul>
-</ol>
+---
 
-{% include faq-begin.md %}
+# Step 2: Set Up Export Settings
 
-## How do I know if a report is successfully exported to Xero?
+Export settings determine how Expensify sends data to Xero.
 
-When a report exports successfully, a message is posted in the related Expensify Chat room.
+1. Under the Xero connection, click **Export**.
+2. Configure the following:
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/Xero_help_01.png){:width="100%"}
+- **Preferred exporter** – Assign a Workspace Admin to automatically receive reports to export.  
+  - Other Workspace Admins can still export to Xero.  
+  - If card-specific export settings are configured under your domain, the Preferred Exporter must be a Domain Admin.
 
-## What happens if I manually export a report that has already been exported?
+- **Export out-of-pocket expenses as** – All out-of-pocket expenses are exported as purchase bills (not editable).
+- **Purchase bill date** – Choose to use the date of the last expense, submitted date, or export date.
+- **Export invoices as** – All invoices export as sales invoices (not editable).
+- **Export company card expenses as** – All company card expenses are exported as bank transactions (not editable).
+- **Xero bank account** – Select the account to post non-reimbursable expenses.
 
-When an admin manually exports a report, Expensify will warn them if the report has already been exported. If the admin chooses to export it again, it will create a duplicate report in Xero. You will need to delete the duplicate entries from within Xero.
+---
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/Xero_help_05.png){:width="100%"}
+# Step 3: Configure Advanced Settings
 
-## What happens to existing reports that have already been approved and reimbursed if I enable Auto Sync?
+Advanced settings control sync frequency and automation.
 
-- If Auto Sync was disabled when your Workspace was linked to Xero, enabling it won’t impact existing reports that haven’t been exported.
-- If a report has been exported and reimbursed via ACH, it will be automatically marked as paid in Xero during the next sync.
-- If a report has been exported and marked as paid in Xero, it will be automatically marked as reimbursed in Expensify during the next sync.
-- If a report has not yet been exported to Xero, it won’t be automatically exported.
+1. Under the Xero connection, click **Advanced**.
+2. Choose your options:
 
-{% include faq-end.md %}
+- **Auto-sync** – Automatically keep Xero and Expensify in sync. Reports are exported after approval, and reimbursable reports post to Xero once reimbursed.
+- **Set purchase bill status** – Choose between:
+  - Draft
+  - Awaiting Approval
+  - Awaiting Payment
+- **Sync reimbursed reports**—Mark reimbursed reports in Expensify as Paid in Xero. This requires selecting a Xero reimbursement account.
+- **Xero bill payment account** – Required if **Sync reimbursed reports** is enabled.
+- **Xero invoice collections account** – Select the account where paid invoices appear.
+
+---
+
+# FAQ
+
+## How do I know if a report was exported successfully to Xero?
+
+When a report exports successfully, Concierge posts a confirmation message in the related Expensify Chat room.
+
+## What happens if I export a report that was already exported?
+
+Expensify warns you if the report has already been exported. If you proceed, it creates a duplicate in Xero, which you'll need to delete manually.
+
+## Will existing reports be affected when I enable auto-sync?
+
+- Reports already exported won’t be re-exported.
+- Reimbursed reports marked as Paid in Xero will also show as Paid in Expensify after sync.
+- If a report was reimbursed via ACH, the Paid status syncs to Xero.
+- Reports not yet exported won’t be affected unless exported manually.
+
+</div>
