@@ -3975,12 +3975,10 @@ const styles = (theme: ThemeColors) =>
 
         dropWrapper: {
             zIndex: 2,
-            backgroundColor: theme.dropWrapperBG,
         },
 
         dropInnerWrapper: {
             borderWidth: 2,
-            flex: 1,
             borderStyle: 'dashed',
         },
 
@@ -3993,30 +3991,33 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.fileDropUIBG,
         },
 
-        attachmentDropOverlay: {
-            backgroundColor: theme.attachmentDropUIBG,
-        },
+        attachmentDropOverlay: (isActive?: boolean) => ({
+            backgroundColor: isActive ? theme.attachmentDropUIBGActive : theme.attachmentDropUIBG,
+            transition: 'background-color 0.2s ease-in',
+        }),
 
         attachmentDropText: {
             color: theme.textAttachmentDropZone,
         },
 
-        attachmentDropInnerWrapper: {
-            borderColor: theme.attachmentDropBorderColor,
-        },
+        attachmentDropInnerWrapper: (isActive?: boolean) => ({
+            borderColor: isActive ? theme.attachmentDropBorderColorActive : theme.attachmentDropBorderColor,
+            transition: '0.2s ease-in',
+        }),
 
-        receiptDropOverlay: {
-            backgroundColor: theme.receiptDropUIBG,
-            zIndex: 2,
-        },
+        receiptDropOverlay: (isActive?: boolean) => ({
+            backgroundColor: isActive ? theme.receiptDropUIBGActive : theme.receiptDropUIBG,
+            transition: 'background-color 0.2s ease-in',
+        }),
 
         receiptDropText: {
             color: theme.textReceiptDropZone,
         },
 
-        receiptDropInnerWrapper: {
-            borderColor: theme.receiptDropBorderColor,
-        },
+        receiptDropInnerWrapper: (isActive?: boolean) => ({
+            borderColor: isActive ? theme.receiptDropBorderColorActive : theme.receiptDropBorderColor,
+            transition: '0.2s ease-in',
+        }),
 
         flashButtonContainer: {
             position: 'absolute',
@@ -5623,6 +5624,20 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        tripReservationRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            maxWidth: '50%',
+            flexShrink: 1,
+        },
+
+        iconWrapper: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            alignSelf: 'flex-start', // Keeps icon from dropping below
+            paddingTop: 2, // Adjust slightly for vertical centering
+        },
+
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
@@ -5881,10 +5896,6 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
-        unreportedExpenseCreateExpenseButton: {
-            ...flex.alignSelfStart,
-        },
-
         testDriveBannerGap: {
             height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
@@ -5902,6 +5913,13 @@ const styles = (theme: ThemeColors) =>
 
         thumbnailImageContainerHighlight: {
             backgroundColor: theme.highlightBG,
+        },
+
+        multiScanEducationalPopupImage: {
+            backgroundColor: colors.pink700,
+            overflow: 'hidden',
+            paddingHorizontal: 0,
+            aspectRatio: 1.7,
         },
     }) satisfies Styles;
 
