@@ -72,9 +72,12 @@ PODS:
     - React-Fabric
     - React-featureflags
     - React-graphics
+    - React-hermes
     - React-ImageManager
+    - React-jsi
     - React-NativeModulesApple
     - React-RCTFabric
+    - React-renderercss
     - React-rendererdebug
     - React-utils
     - ReactCodegen
@@ -2910,7 +2913,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNPermissions (3.10.1):
+  - RNPermissions (5.4.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3704,7 +3707,7 @@ SPEC CHECKSUMS:
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 47792ed07f5a1a6d1fe27eaff09148f033321f46
-  ExpensifyNitroUtils: 531df6f934e9cd9ef8ba4eb4cb51b47ebd32245f
+  ExpensifyNitroUtils: 09cf69acfb53779914e1c458ef1758b2f24c9657
   Expo: 28d2e49ab68e9823a8c452b2ad125b76a6209bac
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
@@ -3745,7 +3748,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  NitroModules: 6cad985fa4a6efaf567fe5c9aa464bce17e2d0cc
+  NitroModules: 9971afee433c04d492fc035941c67dfc68b1f45e
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 535b5c213516c2695877d26ec2789653927460e4
@@ -3850,11 +3853,11 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 5d8431415d4b8518e86e289e9ad5bb9be78f6dba
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: c5eb96d42d1f695dc6da2d2d38064259bc6abe22
+  RNLiveMarkdown: 1c09c5813366c29885b757b4c0a5e163a89f8d55
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: ef00aafe2cbef8808f2aa6168e3f86ce103058bc
   RNNitroSQLite: 1ad7b0fb50f6cd2ceed494a1625af433f75ca300
-  RNPermissions: d1d4ae2fab871ac9252d96938b49aa95f94f9a42
+  RNPermissions: 1a7ad9a08c9fefe4f44a6b6c3bd6f15ac9afb2c4
   RNReactNativeHapticFeedback: 7dfb10cca09eb7a4ed6b63ae6415a195beec8cf2
   RNReanimated: a50f72086390d4cd708349272d1c4ae03d4ee633
   RNScreens: 297343f8f56f6a11ee0ebed0848e074120c5bfd7
