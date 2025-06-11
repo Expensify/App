@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -272,13 +273,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const handleModalHide = () => {
         runAndResetOnPopoverHide();
 
-        if (composerToRefocusOnClose === 'main') {
-            ReportActionComposeFocusManager.composerRef.current?.focus();
+        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
             setComposerToRefocusOnClose(undefined);
-        } else if (composerToRefocusOnClose === 'edit') {
-            ReportActionComposeFocusManager.editComposerRef.current?.focus();
-            setComposerToRefocusOnClose(undefined);
-        }
+        });
     };
 
     /**

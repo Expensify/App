@@ -14,6 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorOrigin, EmojiPickerOnModalHide, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, ShowEmojiPickerOptions} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {close} from '@userActions/Modal';
@@ -138,13 +139,9 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     const handleModalHide = () => {
         onModalHide.current();
 
-        if (composerToRefocusOnClose.current === 'main') {
-            ReportActionComposeFocusManager.composerRef.current?.focus();
+        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose.current).then(() => {
             composerToRefocusOnClose.current = undefined;
-        } else if (composerToRefocusOnClose.current === 'edit') {
-            ReportActionComposeFocusManager.editComposerRef.current?.focus();
-            composerToRefocusOnClose.current = undefined;
-        }
+        });
     };
 
     /**
