@@ -11406,8 +11406,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
 
     const autoAddedActionReportActionID = NumberUtils.rand64();
     const removedFromReportActionID = NumberUtils.rand64();
-    const declinedActionReportActionID = NumberUtils.rand64();
-    const declinedCommentReportActionID = NumberUtils.rand64();
     let movedToReportID;
     let movedToReport;
 
@@ -11545,8 +11543,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         movedToReportID,
         autoAddedActionReportActionID,
         removedFromReportActionID,
-        declinedActionReportActionID,
-        declinedCommentReportActionID,
+        declinedActionReportActionID: optimisticDeclineReportAction.reportActionID,
+        declinedCommentReportActionID: optimisticDeclineReportActionComment.reportActionID,
     };
 
     // Make API call
