@@ -52,22 +52,45 @@ function SidebarOrderedReportsContextProvider({
 }: SidebarOrderedReportsContextProviderProps) {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
-    const [, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
+    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
+    const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
     const draftAmount = Object.keys(reportsDrafts ?? {}).length;
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const [reportsToDisplayInLHN, setReportsToDisplayInLHN] = useState<OnyxCollection<Report>>([]);
-
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
-
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
+
+    const getUpdatedReports = useCallback(() => {
+        let reportsToUpdate: string[] = [];
+        if (reportUpdates) {
+            reportsToUpdate = Object.keys(reportUpdates ?? {});
+        } else if (reportNameValuePairsUpdates) {
+            reportsToUpdate = Object.keys(reportNameValuePairsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT));
+        } else if (transactionsUpdates) {
+            reportsToUpdate = Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+        } else if (transactionViolationsUpdates) {
+            reportsToUpdate = Object.keys(transactionViolationsUpdates ?? {})
+                .map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION))
+                .map((key) => `${ONYXKEYS.COLLECTION.REPORT}${transactions?.[key]?.reportID}`);
+        } else if (reportsDraftsUpdates) {
+            reportsToUpdate = Object.keys(reportsDraftsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT));
+        } else if (policiesUpdates) {
+            const updatedPolicies = Object.keys(policiesUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+            reportsToUpdate = Object.entries(chatReports ?? {})
+                .filter(([, value]) => updatedPolicies.includes(value?.policyID ?? ''))
+                .map(([key]) => key);
+        }
+
+        return reportsToUpdate;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportUpdates, reportNameValuePairsUpdates, transactionsUpdates, transactionViolationsUpdates, reportsDraftsUpdates, policiesUpdates]);
 
     useEffect(() => {
         // if reportsToDisplayInLHN is already set, we don't need to re-calculate entirely
@@ -88,14 +111,8 @@ function SidebarOrderedReportsContextProvider({
     }, [chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes, derivedCurrentReportID, reportsToDisplayInLHN]);
 
     useEffect(() => {
-        let reportsToUpdate = [];
-        if (reportUpdates) {
-            reportsToUpdate = Object.keys(reportUpdates ?? {});
-        } else if (reportNameValuePairsUpdates) {
-            reportsToUpdate = Object.keys(reportNameValuePairsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT));
-        } else if (transactionsUpdates) {
-            reportsToUpdate = Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-        }
+        const reportsToUpdate = getUpdatedReports();
+        console.log('[p] reportsToUpdate', reportsToUpdate);
 
         const updatedReportsToDisplayInLHN = SidebarUtils.updateReportsToDisplayInLHN(
             reportsToDisplayInLHN,
@@ -111,7 +128,7 @@ function SidebarOrderedReportsContextProvider({
         );
         setReportsToDisplayInLHN(updatedReportsToDisplayInLHN);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportUpdates, reportNameValuePairsUpdates, transactionsUpdates]);
+    }, [getUpdatedReports]);
 
     const getOrderedReportIDs = useCallback(
         () => SidebarUtils.sortReportsToDisplayInLHN(Object.values(reportsToDisplayInLHN), priorityMode, reportNameValuePairs, reportAttributes),
