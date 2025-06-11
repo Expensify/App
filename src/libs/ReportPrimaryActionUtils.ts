@@ -57,7 +57,11 @@ type GetReportPrimaryActionParams = {
     isChatReportArchived?: boolean;
 };
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived = false) {
+    if (isChatReportArchived) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const canAddTransaction = canAddTransactionUtil(report);
@@ -300,7 +304,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
 
-    if (isAddExpenseAction(report, reportTransactions)) {
+    if (isAddExpenseAction(report, reportTransactions, isChatReportArchived)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
     }
 

@@ -198,6 +198,7 @@ import type {
     UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
+    UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -1022,8 +1023,6 @@ const translations = {
         scanMultipleReceiptsDescription: 'Snap photos of all your receipts at once, then confirm details yourself or let SmartScan handle it.',
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
-        removeFromReport: 'Remove from report',
-        moveToPersonalSpace: 'Move expenses to your personal space',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potential duplicate expenses identified. Review duplicates to enable submission.'
@@ -2395,8 +2394,6 @@ const translations = {
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
             fullName: 'Please enter a valid full name',
             ownershipPercentage: 'Please enter a valid percentage number',
-            deletePaymentBankAccount:
-                "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge",
         },
     },
     addPersonalBankAccount: {
@@ -4049,6 +4046,11 @@ const translations = {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
             },
+            emptyCategoriesWithAccounting: {
+                subtitle1: 'Your categories are currently importing from an accounting connection. Head over to ',
+                subtitle2: 'accounting',
+                subtitle3: ' to make any changes.',
+            },
             updateFailureMessage: 'An error occurred while updating the category, please try again',
             createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
@@ -4299,6 +4301,11 @@ const translations = {
                 subtitle1: 'Import a spreadsheet to add tags for tracking projects, locations, departments, and more.',
                 subtitle2: ' Learn more',
                 subtitle3: ' about formatting tag files.',
+            },
+            emptyTagsWithAccounting: {
+                subtitle1: 'Your tags are currently importing from an accounting connection. Head over to ',
+                subtitle2: 'accounting',
+                subtitle3: ' to make any changes.',
             },
             deleteTag: 'Delete tag',
             deleteTags: 'Delete tags',
@@ -5303,6 +5310,15 @@ const translations = {
             return `changed the "${categoryName}" category to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
+        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
+            if (!newValue) {
+                return `removed the description hint "${oldValue}" from the category "${categoryName}"`;
+            }
+
+            return !oldValue
+                ? `added the description hint "${newValue}" to the category "${categoryName}"`
+                : `changed the "${categoryName}" category description hint to “${newValue}” (previously “${oldValue}”)`;
+        },
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,

@@ -2080,6 +2080,14 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policyID?: stri
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
+        if (updatedField === 'commentHint') {
+            return translateLocal('workspaceActions.updatedDescriptionHint', {
+                oldValue: oldValue as string | undefined,
+                newValue: newValue as string | undefined,
+                categoryName,
+            });
+        }
+
         if (updatedField === 'enabled') {
             return translateLocal('workspaceActions.updateCategory', {
                 oldValue: !!oldValue,
@@ -2127,6 +2135,8 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policyID?: stri
         }
 
         if (updatedField === 'maxAmountNoReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
             const policy = getPolicy(policyID);
 
             const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
