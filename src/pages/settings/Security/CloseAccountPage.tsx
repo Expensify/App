@@ -22,6 +22,7 @@ import {closeAccount} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
+import {getPhoneNumberWithoutSpecialChars, formatE164PhoneNumber} from '@libs/PhoneNumber';
 
 function CloseAccountPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -71,8 +72,24 @@ function CloseAccountPage() {
         const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
         const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
 
-        if (values.phoneOrEmail && userEmailOrPhone && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
-            errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
+        if (values.phoneOrEmail && userEmailOrPhone) {
+            // Check if the stored contact method is a phone number
+            const isPhoneNumber = /^\+?[0-9\s\-()]+$/.test(userEmailOrPhone);
+            
+            if (isPhoneNumber) {
+                // For phone numbers, normalize both values to E.164 format before comparison
+                const normalizedStored = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone)) ?? '';
+                const normalizedInput = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail)) ?? '';
+                
+                if (normalizedStored !== normalizedInput) {
+                    errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
+                }
+            } else {
+                // For email addresses, use the existing sanitization
+                if (sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
+                    errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
+                }
+            }
         }
         return errors;
     };
