@@ -127,7 +127,7 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
                 return stackRouter.getRehydratedState(maybeAdaptedState, {routeNames, routeParamList, routeGetIdList});
             }
 
-            return maybeAdaptedState;
+            return maybeAdaptedState as StackNavigationState<ParamListBase>;
         },
 
         getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
