@@ -153,6 +153,8 @@
         "durationMillis",
         "e2edelta",
         "ecash",
+        "econn",
+        "ecconnrefused",
         "Egencia",
         "Electromedical",
         "electronmon",

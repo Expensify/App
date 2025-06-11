@@ -45,8 +45,9 @@ describe('ChatGPTTranslator.performTranslation', () => {
         // @ts-expect-error TS2445
         const result = await translator.performTranslation(targetLang, original);
 
+        // @ts-expect-error TS2341
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptChatCompletions).toHaveBeenCalledTimes(ChatGPTTranslator['MAX_RETRIES'] + 1);
+        expect(MockedOpenAIUtils.prototype.promptChatCompletions).toHaveBeenCalledTimes(ChatGPTTranslator.MAX_RETRIES + 1);
         expect(result).toBe(original);
     });
 });
