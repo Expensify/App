@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
+import type {MaskOnyxState} from './types';
 
 const MASKING_PATTERN = '***';
 const keysToMask = [
@@ -133,7 +134,7 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
     return maskedData;
 };
 
-const maskOnyxState = (data: Record<string, unknown>, isMaskingFragileDataEnabled?: boolean) => {
+const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     let onyxState = data;
     // Mask session details by default
     onyxState = maskSessionDetails(onyxState);
