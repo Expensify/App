@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
 import lodashFindLast from 'lodash/findLast';
@@ -272,6 +273,10 @@ function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>)
 
 function isIntegrationMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE;
+}
+
+function isTravelUpdate(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE);
 }
 
 /**
@@ -828,7 +833,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isTripPreview(reportAction)) {
+    if (isTripPreview(reportAction) || isTravelUpdate(reportAction)) {
         return true;
     }
 
@@ -1560,6 +1565,170 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
     }
 }
 
+function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>, formatDate?: (datetime: string, includeTimezone: boolean, isLowercase?: boolean | undefined) => string) {
+    const details = getOriginalMessage(action);
+    const formattedStartDate = formatDate?.(details?.start.date ?? '', false) ?? format(details?.start.date ?? '', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
+    switch (details?.operation) {
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
+            return translateLocal('travel.updates.bookingTicketed', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+                confirmationID: details.confirmations?.at(0)?.value,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_VOIDED:
+            return translateLocal('travel.updates.ticketVoided', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_REFUNDED:
+            return translateLocal('travel.updates.ticketRefunded', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CANCELLED:
+            return translateLocal('travel.updates.flightCancelled', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SCHEDULE_CHANGE_PENDING:
+            return translateLocal('travel.updates.flightScheduleChangePending', {
+                airlineCode: details.route?.airlineCode ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SCHEDULE_CHANGE_CLOSED:
+            return translateLocal('travel.updates.flightScheduleChangeClosed', {
+                airlineCode: details.route?.airlineCode ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CHANGED:
+            return translateLocal('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CABIN_CHANGED:
+            return translateLocal('travel.updates.flightCabinChanged', {
+                airlineCode: details.route?.airlineCode ?? '',
+                cabinClass: details.route?.class ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SEAT_CONFIRMED:
+            return translateLocal('travel.updates.flightSeatConfirmed', {
+                airlineCode: details.route?.airlineCode ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SEAT_CHANGED:
+            return translateLocal('travel.updates.flightSeatChanged', {
+                airlineCode: details.route?.airlineCode ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SEAT_CANCELLED:
+            return translateLocal('travel.updates.flightSeatCancelled', {
+                airlineCode: details.route?.airlineCode ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.PAYMENT_DECLINED:
+            return translateLocal('travel.updates.paymentDeclined');
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CANCELED_BY_TRAVELER:
+            return translateLocal('travel.updates.bookingCancelledByTraveler', {
+                type: details.type,
+                id: details.reservationID,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CANCELED_BY_VENDOR:
+            return translateLocal('travel.updates.bookingCancelledByVendor', {
+                type: details.type,
+                id: details.reservationID,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_REBOOKED:
+            return translateLocal('travel.updates.bookingRebooked', {
+                type: details.type,
+                id: details.confirmations?.at(0)?.value,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_UPDATED:
+            return translateLocal('travel.updates.bookingUpdated', {
+                type: details.type,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TRIP_UPDATED:
+            if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
+                return translateLocal('travel.updates.defaultUpdate', {
+                    type: details.type,
+                });
+            }
+            if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
+                return translateLocal('travel.updates.railTicketUpdate', {
+                    origin: details.start.cityName ?? details.start.shortName ?? '',
+                    destination: details.end.cityName ?? details.end.shortName ?? '',
+                    startDate: formattedStartDate,
+                });
+            }
+            return translateLocal('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_OTHER_UPDATE:
+            if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
+                return translateLocal('travel.updates.defaultUpdate', {
+                    type: details.type,
+                });
+            }
+            if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
+                return translateLocal('travel.updates.railTicketUpdate', {
+                    origin: details.start.cityName ?? details.start.shortName ?? '',
+                    destination: details.end.cityName ?? details.end.shortName ?? '',
+                    startDate: formattedStartDate,
+                });
+            }
+            return translateLocal('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.REFUND:
+            return translateLocal('travel.updates.railTicketRefund', {
+                origin: details.start.cityName ?? details.start.shortName ?? '',
+                destination: details.end.cityName ?? details.end.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.EXCHANGE:
+            return translateLocal('travel.updates.railTicketExchange', {
+                origin: details.start.cityName ?? details.start.shortName ?? '',
+                destination: details.end.cityName ?? details.end.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        default:
+            return translateLocal('travel.updates.defaultUpdate', {
+                type: details?.type ?? '',
+            });
+    }
+}
+
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction, getReportNameCallback);
     const html = messageElements
@@ -1628,6 +1797,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         const message = getReopenedMessage();
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
+        const message = getTravelUpdateMessage(action);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -2897,6 +3071,7 @@ export {
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
     getJoinRequestMessage,
+    getTravelUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     getWorkspaceCurrencyUpdateMessage,
