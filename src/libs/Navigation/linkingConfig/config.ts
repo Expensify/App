@@ -196,6 +196,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 login: (login: string) => decodeURIComponent(login),
                             },
                         },
+                        [SCREENS.SETTINGS.LOCK.LOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_LOCK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_UNLOCK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
