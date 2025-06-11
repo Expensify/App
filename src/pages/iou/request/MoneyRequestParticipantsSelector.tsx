@@ -31,6 +31,7 @@ import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import getContacts from '@libs/ContactUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -96,6 +97,8 @@ function MoneyRequestParticipantsSelector({
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const canUseNativeContactImport = isBetaEnabled(CONST.BETAS.NATIVE_CONTACT_IMPORT);
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP || platform === CONST.PLATFORM.MOBILE_WEB;
     const showImportContacts = canUseNativeContactImport && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
@@ -544,7 +547,7 @@ function MoneyRequestParticipantsSelector({
     );
 
     const footerContentAbovePaginationComponent = useMemo(() => {
-        if (!showImportContacts) {
+        if (!showImportContacts || isWebOrDesktop) {
             return null;
         }
         return (
