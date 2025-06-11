@@ -15,9 +15,6 @@ type AttachmentCarouselProps = {
     /** The report currently being looked at */
     report: Report;
 
-    /** A callback that is called when swipe-down-to-close gesture happens */
-    onClose: () => void;
-
     /** The id of the current active attachment */
     attachmentID?: string;
 
@@ -32,6 +29,9 @@ type AttachmentCarouselProps = {
 
     /** If the attachment originates from a note, the accountID will represent the author of that note. */
     accountID?: number;
+
+    /** A callback that is called when swipe-down-to-close gesture happens */
+    onClose?: () => void;
 
     attachmentLink?: string;
 
