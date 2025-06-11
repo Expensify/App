@@ -821,7 +821,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
         /**
-         * @deprecated
+         * Deprecated - do not use this beta in new code anymore.
          * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
          * */
         TABLE_REPORT_VIEW: 'tableReportView',
