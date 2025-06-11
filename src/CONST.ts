@@ -821,7 +821,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
         /**
-         * @deprecated
+         * Deprecated - do not use this beta in new code anymore.
          * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
          * */
         TABLE_REPORT_VIEW: 'tableReportView',
@@ -833,6 +833,7 @@ const CONST = {
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
         NEW_DOT_SPLITS: 'newDotSplits',
     },
@@ -1240,7 +1241,6 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
-            MOVE_EXPENSE: 'moveExpense',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
