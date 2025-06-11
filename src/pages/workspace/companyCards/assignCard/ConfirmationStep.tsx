@@ -46,11 +46,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             return;
         }
 
-        if (backTo) {
-            Navigation.goBack(backTo);
-        } else {
-            Navigation.goBack();
-        }
+        Navigation.goBack(backTo);
+
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID]);
 

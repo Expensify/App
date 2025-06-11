@@ -225,7 +225,7 @@ describe('AssignCardFeedPage', () => {
         // Verify that we go back to the company cards page as the card assignee has changed
         const goBack = jest.spyOn(Navigation, 'goBack');
         await waitFor(() => {
-            expect(goBack);
+            expect(goBack).toHaveBeenCalled();
         });
         // Unmount the component after assertions to clean up.
         unmount();
