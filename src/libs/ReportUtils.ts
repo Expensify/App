@@ -49,6 +49,7 @@ import type {
     TransactionViolation,
     UserWallet,
 } from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
@@ -243,7 +244,6 @@ import {
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
 } from './TransactionUtils';
-import type * as OnyxTypes from '@src/types/onyx';
 import {addTrailingForwardSlash} from './Url';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
@@ -4701,7 +4701,7 @@ function getReportName(
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
     }
-    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
+    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy}) ?? report?.reportName ?? '';
 }
 
 function getSearchReportName(props: GetReportNameParams): string {
@@ -5783,11 +5783,15 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
+function getReportUrl(reportID: string) {
+    return `${environmentURL}/r/${toReportID}`;
+}
+
 function getMovedTransactionMessage(action: ReportAction, parentReportAction: OnyxEntry<OnyxTypes.ReportAction>, report?: Report) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
     const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    const reportName = getReportName(report, undefined, parentReportAction) ?? report?.reportName ?? '';
-    const reportUrl = `${environmentURL}/r/${toReportID}`;
+    const reportName = getReportName(report, undefined, parentReportAction);
+    const reportUrl = getReportUrl(toReportID);
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
