@@ -14,6 +14,7 @@ import type {Report} from '@src/types/onyx';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
+import normalizePath from './normalizePath';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -224,7 +225,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  */
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     // Redirect /signin to root path to prevent NotFound page
-    if (path.toLowerCase() === '/signin' || path === 'signin') {
+    if (normalizePath(path) === '/signin') {
         return getAdaptedStateFromPath('', options, shouldReplacePathInNestedState);
     }
 
