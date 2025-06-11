@@ -118,7 +118,31 @@ function SidebarOrderedReportsContextProvider({
         );
 
         setReportsToDisplayInLHN(reports);
-    }, [chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes, derivedCurrentReportID, reportsToDisplayInLHN]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes, derivedCurrentReportID]);
+
+    /**
+     * This useEffect is responsible for updating the entire list when the priority mode or betas are updated.
+     */
+    useEffect(() => {
+        if (!betas || !priorityMode) {
+            return;
+        }
+
+        const reports = SidebarUtils.getReportsToDisplayInLHN(
+            derivedCurrentReportID,
+            chatReports,
+            betas,
+            policies,
+            priorityMode,
+            transactionViolations,
+            reportNameValuePairs,
+            reportAttributes,
+        );
+
+        setReportsToDisplayInLHN(reports);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [priorityMode, betas]);
 
     /**
      * This useEffect is responsible for updating the list of reports to display in the LHN when the reports are updated.
