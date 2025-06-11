@@ -1,5 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -51,12 +52,17 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         vertical: 0,
     });
 
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.willAlertModalBecomeVisible, canBeMissing: true});
+
     /**
      * Toggle the overlay between open & closed, and re-calculate the
      * position of the trigger
      */
     const toggleOverlay = () => {
         setIsOverlayVisible((previousValue) => {
+            if (!isOverlayVisible && modal?.willAlertModalBecomeVisible) {
+                return;
+            }
             triggerRef.current?.measureInWindow((x, y, _, height) => {
                 setPopoverTriggerPosition({
                     horizontal: x,
