@@ -153,6 +153,7 @@ export type {
     CompanyCardFeed,
     LastExportMethod,
     Locale,
+    LockAccountDetails,
     Login,
     LoginList,
     PendingContactAction,
@@ -263,5 +264,4 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
-    LockAccountDetails,
 };
