@@ -315,7 +315,7 @@ function updateReportsToDisplayInLHN(
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
-    const displayedReportsCopy = displayedReports;
+    const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
         const report = reports?.[reportID];
         if (!report) {
