@@ -94,8 +94,7 @@ function SidebarOrderedReportsContextProvider({
         }
 
         return reportsToUpdate;
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportUpdates, reportNameValuePairsUpdates, transactionsUpdates, transactionViolationsUpdates, reportsDraftsUpdates, policiesUpdates]);
 
     /**
@@ -140,14 +139,12 @@ function SidebarOrderedReportsContextProvider({
             reportAttributes,
         );
         setReportsToDisplayInLHN(updatedReportsToDisplayInLHN);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [getUpdatedReports]);
 
     const getOrderedReportIDs = useCallback(
         () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, reportNameValuePairs, reportAttributes),
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [reportsToDisplayInLHN],
     );
 
