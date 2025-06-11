@@ -3361,7 +3361,7 @@ function openReportFromDeepLink(url: string) {
 
     let route = getRouteFromLink(url);
 
-    // Replace signin route with empty string to redirect to home page
+    // Redirect /signin to root path to prevent NotFound page
     if (normalizePath(route) === '/signin') {
         route = '';
     }
