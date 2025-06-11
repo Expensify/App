@@ -162,9 +162,17 @@ function BaseRecordTroubleshootDataToolMenu({
     const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
 
     const onDisableSwitch = useCallback(() => {
-        if (getPlatform() === CONST.PLATFORM.WEB) {
+        if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
             onStopProfiling(true, newFileName).then(() => {
                 onDownloadZip?.();
+            });
+        } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
+            onStopProfiling(true, newFileName).then((path) => {
+                if (!path) {
+                    return;
+                }
+
+                setShareUrls([`file://${path}`, `file://${file?.path}`]);
             });
         } else {
             onStopProfiling(true, newFileName).then((path) => {
@@ -189,10 +197,14 @@ function BaseRecordTroubleshootDataToolMenu({
                         Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
                     })
                     .then(() => {
-                        RNFS.copyFile(path, newFilePath).then(() => {
-                            Log.hmmm('[ProfilingToolMenu] file copied successfully');
-                            setShareUrls([`file://${newFilePath}`, `file://${file?.path}`]);
-                        });
+                        RNFS.copyFile(path, newFilePath)
+                            .then(() => {
+                                Log.hmmm('[ProfilingToolMenu] file copied successfully');
+                                setShareUrls([`file://${newFilePath}`, `file://${file?.path}`]);
+                            })
+                            .catch((err) => {
+                                console.error('[ProfilingToolMenu] error copying file: ', err);
+                            });
                     })
                     .catch((error: Record<string, unknown>) => {
                         console.error('[ProfilingToolMenu] error copying file: ', error);
