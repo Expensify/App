@@ -514,7 +514,7 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: D
         }
         const {cardList, ...workspaceCardItems} = workspaceCards;
         Object.values(workspaceCardItems).forEach((card) => {
-            if (!card.cardName) {
+            if (!card?.cardName) {
                 return;
             }
             allWorkspaceAssignedCards.add(card.cardName);
