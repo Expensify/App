@@ -54,6 +54,7 @@ import {
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
+import { getManagerMcTestParticipant } from './OptionsListUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -413,6 +414,10 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
     // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
     if (isIOUReport) {
+        const isSubmittedToManagerMcTest = report.managerID === CONST.ACCOUNT_ID.MANAGER_MCTEST;
+        if(isSubmittedToManagerMcTest){
+            return true;
+        }
         return isSingleTransaction && isOwner && isReportOpenOrProcessing;
     }
 
