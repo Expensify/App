@@ -636,6 +636,9 @@ const ONYXKEYS = {
 
         /** Stores the information about the state of issuing a new card */
         ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
+
+        /** Stores the information about the events */
+        EVENTS: 'events_',
     },
 
     /** List of Form ids */
@@ -995,6 +998,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
+    [ONYXKEYS.COLLECTION.EVENTS]: OnyxTypes.Event;
 };
 
 type OnyxValuesMapping = {

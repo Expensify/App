@@ -484,6 +484,7 @@ const WRITE_COMMANDS = {
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     REOPEN_REPORT: 'ReopenReport',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
+    MARK_EVENT_AS_FAVORITE: 'MarkEventAsFavorite',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -988,6 +989,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
 
     [WRITE_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
+    [WRITE_COMMANDS.MARK_EVENT_AS_FAVORITE]: Parameters.MarkEventAsFavoriteParams;
 };
 
 const READ_COMMANDS = {
@@ -1059,6 +1061,7 @@ const READ_COMMANDS = {
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
     CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
+    GET_EVENTS: 'GetEvents',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1132,6 +1135,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
     [READ_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
+    [READ_COMMANDS.GET_EVENTS]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

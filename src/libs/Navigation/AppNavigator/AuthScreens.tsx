@@ -38,6 +38,7 @@ import * as SessionUtils from '@libs/SessionUtils';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import EventsPage from '@pages/events/BookEventsPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
@@ -753,6 +754,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.BANK_CONNECTION_COMPLETE}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.BOOK_EVENTS}
+                    options={rootNavigatorScreenOptions.fullScreen}
+                    component={EventsPage}
                 />
             </RootStack.Navigator>
             <SearchRouterModal />

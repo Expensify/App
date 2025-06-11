@@ -8,6 +8,8 @@ gem 'activesupport', '>= 6.1.7.5', '!= 7.1.0'
 gem 'xcodeproj', '< 1.26.0'
 gem "fastlane", "~> 2", ">= 2.227.1"
 gem "xcpretty", "~> 0"
+gem 'bigdecimal'
+gem 'mutex_m'
 
 
 plugins_path = File.join(File.dirname(__FILE__), 'fastlane', 'Pluginfile')

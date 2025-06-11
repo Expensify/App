@@ -1935,6 +1935,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+    [SCREENS.BOOK_EVENTS]: undefined;
 };
 
 type SearchReportParamList = {

@@ -27,6 +27,7 @@ import type ReportAttributesDerivedValue from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type {Event} from './Event';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -140,6 +141,7 @@ export type {
     CustomStatusDraft,
     DismissedReferralBanners,
     Download,
+    Event,
     WorkspaceCardsList,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,

@@ -25,6 +25,7 @@ const SCREENS = {
     BANK_CONNECTION_COMPLETE: 'BankConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    BOOK_EVENTS: 'BookEvents',
     TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',

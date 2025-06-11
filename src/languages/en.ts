@@ -2945,6 +2945,9 @@ const translations = {
             message: `Please contact your Account manager or salesteam@expensify.com to get a demo of travel and have it enabled for your company.`,
         },
     },
+    events: {
+        bookEvents: 'Book events',
+    },
     workspace: {
         common: {
             card: 'Cards',

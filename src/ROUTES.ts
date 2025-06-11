@@ -2583,6 +2583,7 @@ const ROUTES = {
         route: 'r/:reportID/schedule-call/confirmation',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
+    BOOK_EVENTS: 'events/book-events',
 } as const;
 
 /**

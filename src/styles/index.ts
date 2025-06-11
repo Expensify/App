@@ -5848,6 +5848,29 @@ const styles = (theme: ThemeColors) =>
         thumbnailImageContainerHighlight: {
             backgroundColor: theme.highlightBG,
         },
+
+        eventCard: {
+            shadowColor: '#000',
+            shadowOffset: {width: 0, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+            backgroundColor: theme.cardBG,
+            marginBottom: 16,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+        eventCardImage: {
+            width: '100%',
+            height: 200,
+            borderTopLeftRadius: variables.componentBorderRadiusNormal,
+            borderTopRightRadius: variables.componentBorderRadiusNormal,
+        },
+        eventCardFavoriteButton: {
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            padding: 8,
+        },
     }) satisfies Styles;
 
 type ThemeStyles = ReturnType<typeof styles>;

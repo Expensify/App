@@ -48,6 +48,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -477,6 +478,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 text: translate('travel.bookTravel'),
                 rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
                 onSelected: () => interceptAnonymousUser(() => openTravel()),
+            },
+            {
+                icon: Expensicons.Calendar,
+                text: translate('events.bookEvents'),
+                onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.BOOK_EVENTS)),
             },
         ],
         ...(!hasSeenTour
