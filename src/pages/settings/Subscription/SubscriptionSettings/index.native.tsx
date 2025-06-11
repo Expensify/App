@@ -2,7 +2,7 @@ import React from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
-import type {CustomRendererProps, TNode} from 'react-native-render-html';
+import type {CustomBlockRenderer} from 'react-native-render-html';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -89,13 +89,17 @@ function SubscriptionSettings() {
                         },
                     }}
                     renderers={{
-                        a: ({TDefaultRenderer, ...props}: CustomRendererProps<TNode>) => {
-                            // Determine which link to use based on the href or position
+                        a: (({TDefaultRenderer, ...props}) => {
+                            const firstChild = props.tnode.domNode.children.at(0);
                             const isAdminsRoom =
                                 !!adminsChatReportID &&
-                                props?.tnode?.domNode?.children?.[0] &&
-                                'data' in props.tnode.domNode.children.at(0) &&
-                                (props.tnode.domNode.children.at(0) as {data: string}).data.includes('#admins');
+                                firstChild &&
+                                'data' in firstChild &&
+                                typeof firstChild === 'object' &&
+                                firstChild !== null &&
+                                'data' in firstChild &&
+                                typeof (firstChild as {data?: unknown}).data === 'string' &&
+                                (firstChild as {data: string}).data.includes('#admins');
                             if (isAdminsRoom) {
                                 return (
                                     <TextLink onPress={openAdminsRoom}>
@@ -116,7 +120,7 @@ function SubscriptionSettings() {
                                     <TDefaultRenderer {...props} />
                                 </TextLink>
                             );
-                        },
+                        }) as CustomBlockRenderer,
                     }}
                 />
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>

@@ -3,7 +3,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
-import type {CustomRendererProps, TNode} from 'react-native-render-html';
+import type {CustomBlockRenderer} from 'react-native-render-html';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -198,16 +198,14 @@ function SubscriptionSettings() {
                         },
                     }}
                     renderers={{
-                        a: ({TDefaultRenderer, ...props}: CustomRendererProps<TNode>) => {
-                            // Determine which link to use based on the href or position
-                            const firstChild = props?.tnode?.domNode?.children?.[0];
+                        a: (({TDefaultRenderer, ...props}) => {
+                            const firstChild = props.tnode.domNode.children.at(0);
                             const isAdminsRoom =
                                 !!adminsChatReportID &&
                                 firstChild &&
-                                typeof firstChild === 'object' &&
                                 'data' in firstChild &&
-                                typeof firstChild.data === 'string' &&
-                                firstChild.data.includes('#admins');
+                                typeof (firstChild as {data?: unknown}).data === 'string' &&
+                                (firstChild as {data: string}).data.includes('#admins');
                             if (isAdminsRoom) {
                                 return (
                                     <TextLink onPress={openAdminsRoom}>
@@ -219,14 +217,16 @@ function SubscriptionSettings() {
                             return (
                                 <TextLink
                                     onPress={() => {
-                                        Linking.openURL(CONST.PRICING);
+                                        Linking.openURL(CONST.PRICING).catch((error) => {
+                                            console.error('Failed to open URL:', error);
+                                        });
                                     }}
                                 >
                                     {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                                     <TDefaultRenderer {...props} />
                                 </TextLink>
                             );
-                        },
+                        }) as CustomBlockRenderer,
                     }}
                 />
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
