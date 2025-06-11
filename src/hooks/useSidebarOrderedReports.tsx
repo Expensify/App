@@ -126,6 +126,10 @@ function SidebarOrderedReportsContextProvider({
     useEffect(() => {
         const reportsToUpdate = getUpdatedReports();
 
+        if (reportsToUpdate.length === 0) {
+            return;
+        }
+
         const updatedReportsToDisplayInLHN = SidebarUtils.updateReportsToDisplayInLHN(
             reportsToDisplayInLHN,
             chatReports,
