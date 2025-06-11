@@ -33,7 +33,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
 
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
-    const [page, setPage] = useState<number>(0);
+    const [page, setPage] = useState<number>(-1);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
     const [receipts = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
