@@ -1293,8 +1293,8 @@ const translations = {
             markAsResolved: 'Mark as resolved',
             reportActions: {
                 removedFromReport: ({amount, merchant}: {amount: string; merchant?: string}) => `removed ${amount} ${merchant ? `from ${merchant}` : ``}`,
-                declinedExpense: () => `declined this expense`,
-                markedAsResolved: () => `marked the decline reason as resolved`,
+                declinedExpense: 'declined this expense',
+                markedAsResolved: 'marked the decline reason as resolved',
                 autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `added ${amount} ${merchant ? `from ${merchant}` : ``}`,
             },
         },
