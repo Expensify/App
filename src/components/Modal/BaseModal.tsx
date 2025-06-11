@@ -17,7 +17,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isMobileSafari} from '@libs/Browser';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import getPlatform from '@libs/getPlatform';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
@@ -194,12 +196,12 @@ function BaseModal(
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
     useEffect(() => {
-        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
+        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || getPlatform() === CONST.PLATFORM.WEB) {
             return;
         }
         const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
         const availableHeight = windowHeight - modalHeight - keyboardStateContextValue.keyboardActiveHeight - paddingTop;
-        setModalOverlapsWithTopSafeArea((keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive) && availableHeight <= 0);
+        setModalOverlapsWithTopSafeArea((keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive) && Math.floor(availableHeight) <= 0);
     }, [
         StyleUtils,
         insets,
@@ -347,7 +349,13 @@ function BaseModal(
                             >
                                 <View
                                     onLayout={onViewLayout}
-                                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
+                                    style={[
+                                        styles.defaultModalContainer,
+                                        modalContainerStyle,
+                                        modalPaddingStyles,
+                                        !isVisible && styles.pointerEventsNone,
+                                        isMobileSafari() && {maxHeight: `${windowHeight}px`},
+                                    ]}
                                     ref={ref}
                                 >
                                     <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
