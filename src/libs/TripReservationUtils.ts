@@ -1,8 +1,9 @@
+import type {ArrayValues} from 'type-fest';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {AirPnr, CarPnr, HotelPnr, LimoPnr, MiscPnr, RailPnr, TripData} from '@src/types/onyx/TripData';
+import type {AirPnr, CarPnr, HotelPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
@@ -57,8 +58,221 @@ function getTripReservationCode(reservation: Reservation): string {
     return `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations.at(0)?.value} • ` : ''}`;
 }
 
+function parseDurationToSeconds(duration: string): number {
+    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+    const matches = duration.match(regex);
+    if (!matches) {
+        return 0;
+    }
+    const hours = parseInt(matches[1] || '0', 10);
+    const minutes = parseInt(matches[2] || '0', 10);
+    const seconds = parseInt(matches[3] || '0', 10);
+    return hours * 3600 + minutes * 60 + seconds;
+}
+
+function getSeatByLegAndFlight(travelerInfo: ArrayValues<AirPnr['travelerInfos']>, legIdx: number, flightIdx: number): string | undefined {
+    const seats = travelerInfo.booking?.seats?.filter((seat) => seat.legIdx === legIdx && seat.flightIdx === flightIdx);
+    if (seats && seats.length > 0) {
+        return seats.join(', ');
+    }
+    return '';
+}
+
 function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationData[] {
-    return [];
+    if (!tripData?.pnrs) {
+        return [];
+    }
+
+    const reservations: ReservationData[] = tripData.pnrs.flatMap((pnr, pnrIndex) => {
+        const reservationList: Reservation[] = [];
+
+        // let pnrData: AirPnr | CarPnr | HotelPnr | RailPnr | MiscPnr | LimoPnr;
+        const travelers = pnr.data.pnrTravelers ?? [];
+
+        if (pnr.data.airPnr) {
+            const pnrData: AirPnr = pnr.data.airPnr;
+            const airlineinfo = pnr.data.additionalMetadata?.airlineInfo ?? [];
+            const airports = pnr.data.additionalMetadata?.airportInfo ?? {};
+
+            pnrData.travelerInfos.forEach((travelerInfo) => {
+                travelerInfo.tickets.forEach((ticket) => {
+                    const flightCoupons = ticket.flightCoupons;
+                    for (const flightDetails of flightCoupons) {
+                        const legIdx = flightDetails.legIdx;
+                        const flightIdx = flightDetails.flightIdx;
+                        const flightObject = pnrData.legs?.at(legIdx)?.flights.at(flightIdx);
+
+                        const airlineCode = flightObject?.marketing.airlineCode;
+                        const longAirlineName = airlineinfo.find((info) => info.airlineCode === airlineCode)?.airlineName ?? airlineCode;
+
+                        const company = {
+                            shortName: airlineCode,
+                            phone: '',
+                            longName: longAirlineName,
+                        };
+
+                        // Start location
+                        const origin = flightObject?.origin;
+                        const originLong = airports.find((airport) => airport.airportCode === origin)?.airportName ?? origin;
+                        const originCity = origin; // @todo
+                        const start = {
+                            date: flightObject?.departureDateTime?.iso8601,
+                            timezoneOffset: '',
+                            shortName: origin,
+                            longName: originLong,
+                            cityName: originCity,
+                        };
+
+                        // End location
+                        const dest = flightObject?.destination;
+                        const destLong = airports.find((airport) => airport.airportCode === dest)?.airportName ?? dest;
+                        const destCity = dest; // @todo
+                        const end = {
+                            date: flightObject?.arrivalDateTime?.iso8601,
+                            timezoneOffset: '',
+                            shortName: dest,
+                            longName: destLong,
+                            cityName: destCity,
+                        };
+
+                        const route = {
+                            number: flightObject?.marketing.num,
+                            airlineCode: `${flightObject?.marketing.airlineCode}${flightObject?.marketing.num}`,
+                            class: flightObject?.cabin,
+                        };
+
+                        const confirmations = [
+                            {
+                                name: 'Confirmation Number',
+                                value: flightObject?.vendorConfirmationNumber,
+                            },
+                        ];
+                        const traveler = travelers.find((travelerData) => travelerData.userId.id === travelerInfo.userId.id)?.personalInfo;
+                        const reservationObject: Reservation = {
+                            company,
+                            start,
+                            end,
+                            route,
+                            confirmations,
+                            arrivalGate: flightObject?.arrivalGate,
+                            seatNumber: getSeatByLegAndFlight(travelerInfo, legIdx, flightIdx),
+                            type: CONST.RESERVATION_TYPE.FLIGHT,
+                            duration: parseDurationToSeconds(flightObject?.duration.iso8601 ?? ''),
+                            reservationID: pnr.pnrId,
+                            travelerPersonalInfo: {
+                                name: `${traveler?.name?.family1 ?? ''} ${traveler?.name?.family2 ?? ''} ${traveler?.name?.middle ?? ''} ${traveler?.name?.given ?? ''}`.trim(),
+                                email: traveler?.email ?? '',
+                            },
+                        };
+
+                        reservationList.push(reservationObject);
+                    }
+                });
+            });
+        }
+
+        if (pnr.data.hotelPnr) {
+            const pnrData: HotelPnr = pnr.data.hotelPnr;
+
+            const confirmations = [
+                {
+                    name: 'Confirmation Number',
+                    value: pnrData.vendorConfirmationNumber,
+                },
+            ];
+            const travelerInfo = pnrData.travelerInfos.at(0);
+            const traveler = travelers.find((travelerData) => travelerData.userId.id === travelerInfo?.userId.id)?.personalInfo;
+
+            reservationList.push({
+                reservationID: pnr.pnrId,
+                start: {
+                    date: pnrData.checkInDateTime?.iso8601,
+                    address: `${pnrData.hotelInfo.address.addressLines?.join(', ') ?? ''}, ${pnrData.hotelInfo.address.locality}, ${pnrData.hotelInfo.address.administrativeArea}, ${pnrData.hotelInfo.address.regionCode}`,
+                    longName: pnrData.hotelInfo.name,
+                    shortName: pnrData.hotelInfo.chainCode,
+                    cityName: pnrData.hotelInfo.chainName,
+                },
+                end: {
+                    date: pnrData.checkOutDateTime?.iso8601,
+                    address: `${pnrData.hotelInfo.address.addressLines?.join(', ') ?? ''}, ${pnrData.hotelInfo.address.locality}, ${pnrData.hotelInfo.address.administrativeArea}, ${pnrData.hotelInfo.address.regionCode}`,
+                    longName: pnrData.hotelInfo.name,
+                    shortName: pnrData.hotelInfo.chainCode,
+                    cityName: pnrData.hotelInfo.chainName,
+                },
+                type: CONST.RESERVATION_TYPE.HOTEL,
+                company: {longName: pnrData.hotelInfo.chainName},
+                duration: 0,
+                numberOfRooms: pnrData.numberOfRooms,
+                roomClass: pnrData.room.roomName,
+                cancellationPolicy: pnrData.room.cancellationPolicy?.policy,
+                cancellationDeadline: pnrData.room.cancellationPolicy?.deadline?.iso8601,
+                confirmations,
+                travelerPersonalInfo: {
+                    name: `${traveler?.name?.family1 ?? ''} ${traveler?.name?.family2 ?? ''} ${traveler?.name?.middle ?? ''} ${traveler?.name?.given ?? ''}`.trim(),
+                    email: traveler?.email ?? '',
+                },
+            });
+        }
+
+        if (pnr.data.carPnr) {
+            const pnrData: CarPnr = pnr.data.carPnr;
+            const confirmations = [
+                {
+                    name: 'Confirmation Number',
+                    value: pnrData.vendorConfirmationNumber,
+                },
+            ];
+            const traveler = travelers.at(0)?.personalInfo;
+            const pickupLocation = pnrData.carInfo.pickupLocation;
+            const dropLocation = pnrData.carInfo.dropOffLocation;
+
+            reservationList.push({
+                reservationID: pnr.pnrId,
+                start: {
+                    date: pnrData.pickupDateTime?.iso8601,
+                    location: `${pickupLocation.addressLines?.join(', ') ?? ''}, ${pickupLocation.locality}, ${pickupLocation.administrativeArea}, ${pickupLocation.regionCode}`,
+                },
+                end: {
+                    date: pnrData.dropOffDateTime?.iso8601,
+                    location: `${dropLocation.addressLines?.join(', ') ?? ''}, ${dropLocation.locality}, ${dropLocation.administrativeArea}, ${dropLocation.regionCode}`,
+                },
+                type: CONST.RESERVATION_TYPE.CAR,
+                confirmations,
+                vendor: pnrData.carInfo.vendor.name,
+                carInfo: {name: pnrData.carInfo.carSpec.displayName, engine: pnrData.carInfo.carSpec.engineType},
+                cancellationPolicy: pnrData.cancellationPolicy?.policy,
+                cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601,
+                duration: 0,
+                travelerPersonalInfo: {
+                    name: `${traveler?.name?.family1 ?? ''} ${traveler?.name?.family2 ?? ''} ${traveler?.name?.middle ?? ''} ${traveler?.name?.given ?? ''}`.trim(),
+                    email: traveler?.email ?? '',
+                },
+            });
+        }
+
+        // if (pnr.data.railPnr) {
+        //     const pnrData: RailPnr = pnr.data.railPnr;
+        //     reservationList.push(
+        //         ...pnrData.legInfos.map((leg) => ({
+        //             reservationID: pnr.pnrId,
+        //             start: {date: leg.departureDateTime.iso8601, location: leg.departureStation},
+        //             end: {date: leg.arrivalDateTime.iso8601, location: leg.arrivalStation},
+        //             type: CONST.RESERVATION_TYPE.TRAIN,
+        //             coachNumber: leg.coachNumber,
+        //             seatNumber: leg.seatNumber,
+        //         })),
+        //     );
+        // }
+
+        return reservationList.map((reservation, reservationIndex) => ({
+            reservation,
+            transactionID: pnr.data.sourceInfo.sourcePnrId || '',
+            reportID: pnr.data.sourceInfo.bookingSource || undefined,
+            reservationIndex: reservationIndex + pnrIndex * 100,
+        }));
+    });
+
+    return reservations.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
 function getReservationsFromTrip(tripData?: TripData, transactions?: Transaction[]): ReservationData[] {
