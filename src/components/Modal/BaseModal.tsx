@@ -189,6 +189,9 @@ function BaseModal(
         ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
+    // Makes sure there are no jumps while keyboard is transitioning for bottom docked modals.
+    const isKeyboardOnScreen = keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive;
+
     const {
         modalStyle,
         modalContainerStyle,
@@ -212,8 +215,9 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
                 shouldUseModalPaddingStyle,
+                isKeyboardOnScreen,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle, isKeyboardOnScreen],
     );
 
     const modalPaddingStyles = useMemo(() => {
