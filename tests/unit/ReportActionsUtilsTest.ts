@@ -2,10 +2,10 @@ import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
-import {iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
+import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowOneTransactionThreadID, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Report, ReportAction} from '../../src/types/onyx';
 import createRandomReport from '../utils/collections/reports';
@@ -856,7 +856,68 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getOneTransactionThreadReportID', () => {});
+    describe('getSendMoneyFlowOneTransactionThreadID', () => {
+        const mockChatReportID = 'REPORT';
+        const mockDMChatReportID = 'REPORT_DM';
+        const childReportID = 'childReport123';
+
+        const mockedReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${mockChatReportID}`]: {...mockChatReport, reportID: mockChatReportID},
+            [`${ONYXKEYS.COLLECTION.REPORT}${mockDMChatReportID}`]: {
+                ...mockChatReport,
+                reportID: mockDMChatReportID,
+                chatType: undefined,
+                parentReportID: undefined,
+                parentReportActionID: undefined,
+            },
+        };
+
+        beforeEach(async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, mockedReports);
+        });
+
+        const createAction = {
+            ...mockIOUAction,
+            childReportID,
+            originalMessage: {...getOriginalMessage(mockIOUAction), type: CONST.IOU.TYPE.CREATE},
+        };
+
+        const nonIOUAction = {
+            ...mockIOUAction,
+            childReportID,
+            type: CONST.REPORT.ACTIONS.TYPE.CREATED,
+        };
+
+        const payAction = {
+            ...mockIOUAction,
+            childReportID,
+            originalMessage: {...getOriginalMessage(mockIOUAction), type: CONST.IOU.TYPE.PAY},
+        };
+
+        it('should return undefined for a single non-IOU action', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([nonIOUAction], mockDMChatReportID)).toBeUndefined();
+        });
+
+        it('should return undefined for multiple IOU actions regardless of type', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([payAction, payAction], mockDMChatReportID)).toBeUndefined();
+        });
+
+        it('should return undefined for a single IOU action that is not `Pay`', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([createAction], mockDMChatReportID)).toBeUndefined();
+        });
+
+        it('should return the appropriate childReportID for a valid single `Pay` IOU action in DM chat', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockDMChatReportID)).toEqual(childReportID);
+        });
+
+        it('should return undefined for a valid single `Pay` IOU action in a chat that is not DM', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockChatReportID)).toBeUndefined();
+        });
+
+        it('should return undefined for a valid `Pay` IOU action in DM chat that has also a create IOU action', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([payAction, createAction], mockDMChatReportID)).toBeUndefined();
+        });
+    });
 
     describe('shouldShowAddMissingDetails', () => {
         it('should return true if personal detail is not completed', async () => {
