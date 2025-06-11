@@ -12,6 +12,8 @@ import variables from '@styles/variables';
 import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
 
+const NOOP = () => {};
+
 function PopoverWithoutOverlay(
     {
         anchorPosition = {},
@@ -50,13 +52,12 @@ function PopoverWithoutOverlay(
         if (isVisible) {
             onModalShow();
 
-            const noop = () => {};
             onOpen?.({
                 ref: withoutOverlayRef,
-                close: onClose ?? noop,
+                close: onClose ?? NOOP,
                 anchorRef,
             });
-            removeOnClose = setCloseModal(onClose ?? (() => {}));
+            removeOnClose = setCloseModal(onClose ?? NOOP);
         } else {
             onModalHide();
             close(anchorRef);
