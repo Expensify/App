@@ -95,7 +95,17 @@ function SidebarOrderedReportsContextProvider({
 
         return reportsToUpdate;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reportUpdates, reportNameValuePairsUpdates, transactionsUpdates, transactionViolationsUpdates, reportsDraftsUpdates, policiesUpdates]);
+    }, [
+        reportUpdates,
+        reportNameValuePairsUpdates,
+        transactionsUpdates,
+        transactionViolationsUpdates,
+        reportsDraftsUpdates,
+        policiesUpdates,
+        chatReports,
+        transactions,
+        derivedCurrentReportID,
+    ]);
 
     /**
      * This useEffect is responsible for calculating the initial list of reports to display in the LHN.
