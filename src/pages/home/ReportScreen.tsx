@@ -493,7 +493,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const iouAction = getReportAction(iouReportID, moneyRequestReportActionID);
             const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportIDFromRoute);
             openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
-            return;
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
