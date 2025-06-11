@@ -48,5 +48,6 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         />
     );
 }
+ProfileAvatarModalContent.displayName = 'ProfileAvatarModalContent';
 
 export default ProfileAvatarModalContent;

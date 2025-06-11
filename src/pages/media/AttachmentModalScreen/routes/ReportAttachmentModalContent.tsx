@@ -233,5 +233,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         />
     );
 }
+ReportAttachmentModalContent.displayName = 'ReportAttachmentModalContent';
 
 export default ReportAttachmentModalContent;
