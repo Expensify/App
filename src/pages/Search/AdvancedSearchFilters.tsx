@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchDateFilterKeys, SearchFilterKey, SingularSearchStatus} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -28,7 +28,7 @@ import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
-import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
+import {getExpenseTypeTranslationKey, getStatusOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,6 +37,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report, WorkspaceCardsList} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SectionType = {
@@ -56,7 +57,7 @@ const baseFilterConfig = {
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
     },
     status: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getStatusFilterDisplayTitle,
         description: 'common.status' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
     },
@@ -440,22 +441,31 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
-        let filterValue = filters[nonDateFilterKey];
-
-        if (!filterValue?.length) {
-            return undefined;
-        }
-
-        if (typeof filterValue === 'string') {
-            filterValue = filterValue.split(',');
-        }
-
-        return filterValue.map((value) => translate(`search.filters.${value as SingularSearchStatus}`)).join(', ');
-    }
-
     const filterValue = filters[nonDateFilterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
+}
+
+function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, groupBy: SearchGroupBy | undefined, translate: LocaleContextProps['translate']) {
+    const statusOptions = getStatusOptions(type, groupBy);
+    let filterValue = filters?.status;
+
+    if (!filterValue?.length) {
+        return undefined;
+    }
+
+    if (typeof filterValue === 'string') {
+        filterValue = filterValue.split(',');
+    }
+
+    return filterValue
+        .reduce((acc, value) => {
+            const status = statusOptions.find((statusOption) => statusOption.value === value);
+            if (status) {
+                return acc.concat(translate(status.translation));
+            }
+            return acc;
+        }, [] as string[])
+        .join(', ');
 }
 
 function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string[]>) {
@@ -514,6 +524,7 @@ function AdvancedSearchFilters() {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
+    const groupBy = searchAdvancedFilters.groupBy;
     const policyID = searchAdvancedFilters.policyID;
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
@@ -660,12 +671,7 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
-                    } else if (
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
-                    ) {
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
                         if (!shouldDisplayWorkspaceFilter) {
@@ -673,6 +679,8 @@ function AdvancedSearchFilters() {
                         }
                         const workspacesData = workspaces.flatMap((value) => value.data);
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
                     }
                     return {
                         key,
