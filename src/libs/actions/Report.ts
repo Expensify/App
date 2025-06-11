@@ -3371,7 +3371,7 @@ function openReportFromDeepLink(url: string) {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (val) => {
-                    if (!val) {
+                    if (!val && !isAnonymousUser()) {
                         return;
                     }
 
