@@ -448,14 +448,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
             },
         });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                errors: null,
-            },
-        });
-
         if (report?.iouReportID) {
             const reportTransactions = ReportUtils.getReportTransactions(report.iouReportID);
             for (const transaction of reportTransactions) {
@@ -481,13 +473,18 @@ function deleteWorkspace(policyID: string, policyName: string) {
 
     const params: DeleteWorkspaceParams = {policyID};
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    if (NetworkStore.isOffline()) {
+        API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData});
+        return;
+    }
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-multiple-api-calls
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData}).then((response) => {
         if (!response || response.jsonCode !== CONST.JSON_CODE.EXP_ERROR || response.message !== CONST.ERROR_TITLE.CANNOT_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION) {
             return;
         }
-        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
         clearDeleteWorkspaceError(policyID);
+        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
     });
 }
 
