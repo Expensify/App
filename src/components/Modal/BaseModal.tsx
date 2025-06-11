@@ -1,5 +1,6 @@
-import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import ReactNativeModal from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
@@ -97,6 +98,8 @@ function BaseModal(
     const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
     const keyboardStateContextValue = useKeyboardState();
+    const [modalOverlapsWithTopSafeArea, setModalOverlapsWithTopSafeArea] = useState(false);
+    const [modalHeight, setModalHeight] = useState(0);
 
     const insets = useSafeAreaInsets();
 
@@ -189,8 +192,28 @@ function BaseModal(
         ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
-    // Makes sure there are no jumps while keyboard is transitioning for bottom docked modals.
-    const isKeyboardOnScreen = keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive;
+    // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
+    useEffect(() => {
+        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
+            return;
+        }
+        const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
+        const availableHeight = windowHeight - modalHeight - keyboardStateContextValue.keyboardActiveHeight - paddingTop;
+        setModalOverlapsWithTopSafeArea((keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive) && availableHeight <= 0);
+    }, [
+        StyleUtils,
+        insets,
+        keyboardStateContextValue.isKeyboardActive,
+        keyboardStateContextValue.isKeyboardAnimatingRef,
+        keyboardStateContextValue.keyboardActiveHeight,
+        modalHeight,
+        type,
+        windowHeight,
+    ]);
+
+    const onViewLayout = (e: LayoutChangeEvent) => {
+        setModalHeight(e.nativeEvent.layout.height);
+    };
 
     const {
         modalStyle,
@@ -215,9 +238,9 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
                 shouldUseModalPaddingStyle,
-                isKeyboardOnScreen,
+                modalOverlapsWithTopSafeArea,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle, isKeyboardOnScreen],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle, modalOverlapsWithTopSafeArea],
     );
 
     const modalPaddingStyles = useMemo(() => {
@@ -323,6 +346,7 @@ function BaseModal(
                                 shouldPreventScroll={shouldPreventScrollOnFocus}
                             >
                                 <View
+                                    onLayout={onViewLayout}
                                     style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                                     ref={ref}
                                 >

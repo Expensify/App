@@ -42,7 +42,7 @@ type GetModalStylesStyleUtil = {
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
         shouldUseModalPaddingStyle?: boolean,
-        isKeyboardOnScreen?: boolean,
+        modalOverlapsWithTopSafeArea?: boolean,
     ) => GetModalStyles;
 };
 
@@ -54,7 +54,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         innerContainerStyle = {},
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
-        isKeyboardOnScreen = false,
+        modalOverlapsWithTopSafeArea = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -233,7 +233,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 }
 
                 shouldAddBottomSafeAreaPadding = true;
-                shouldAddTopSafeAreaMargin = isKeyboardOnScreen;
+                shouldAddTopSafeAreaMargin = modalOverlapsWithTopSafeArea;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
                 animationOut = 'slideOutDown';
