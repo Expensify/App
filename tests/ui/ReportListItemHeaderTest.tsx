@@ -138,13 +138,13 @@ describe('ReportListItemHeader', () => {
                 expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
             });
 
-            it('should only display submitter if submitter and recipient are the same', async () => {
+            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', 'john');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdates();
 
-                expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toBeOnTheScreen();
+                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
             });
 
             it('should not render anything if neither submitter nor recipient is present', async () => {
@@ -184,13 +184,13 @@ describe('ReportListItemHeader', () => {
                 expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
             });
 
-            it('should only display submitter if submitter and recipient are the same', async () => {
+            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'john');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdates();
 
-                expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toBeOnTheScreen();
+                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
             });
 
             it('should not render anything if no participants are present', async () => {
