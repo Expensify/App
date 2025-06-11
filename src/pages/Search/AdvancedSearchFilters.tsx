@@ -711,10 +711,10 @@ function AdvancedSearchFilters() {
 
     sections.forEach((section) => {
         section.items.sort((a, b) => {
-            if (a.key === 'type') {
+            if (a.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
                 return -1;
             }
-            if (b.key === 'type') {
+            if (b.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
                 return 1;
             }
             return localeCompare(a.description, b.description);
