@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import type OnyxState from '@src/types/onyx/OnyxState';
 import {maskOnyxState} from './common';
 import type {ExportOnyxStateModule, ReadFromOnyxDatabase, ShareAsFile} from './types';
 
@@ -12,7 +13,7 @@ const readFromOnyxDatabase: ReadFromOnyxDatabase = () =>
             const objectStore = transaction.objectStore(CONST.DEFAULT_TABLE_NAME);
             const cursor = objectStore.openCursor();
 
-            const queryResult: Record<string, unknown> = {};
+            const queryResult: OnyxState = {};
 
             cursor.onerror = () => {
                 console.error('Error reading cursor');

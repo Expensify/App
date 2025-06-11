@@ -3,6 +3,7 @@ import {open} from 'react-native-nitro-sqlite';
 import type {OnyxSQLiteKeyValuePair} from 'react-native-onyx';
 import Share from 'react-native-share';
 import CONST from '@src/CONST';
+import type OnyxState from '@src/types/onyx/OnyxState';
 import {maskOnyxState} from './common';
 import type {ExportOnyxStateModule, ReadFromOnyxDatabase, ShareAsFile} from './types';
 
@@ -14,7 +15,7 @@ const readFromOnyxDatabase: ReadFromOnyxDatabase = () =>
         db.executeAsync<OnyxSQLiteKeyValuePair>(query, []).then(({rows}) => {
             const result =
                 // eslint-disable-next-line no-underscore-dangle
-                rows?._array.reduce<Record<string, unknown>>((acc, row) => {
+                rows?._array.reduce<OnyxState>((acc, row) => {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     acc[row?.record_key] = JSON.parse(row?.valueJSON) as unknown;
                     return acc;

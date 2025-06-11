@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
+import type OnyxState from '@src/types/onyx/OnyxState';
 import type {MaskOnyxState} from './types';
 
 const MASKING_PATTERN = '***';
@@ -54,9 +55,9 @@ function replaceEmailInString(text: string, emailReplacement: string) {
     return text.replace(emailRegex, emailReplacement);
 }
 
-const maskSessionDetails = (onyxState: Record<string, unknown>): Record<string, unknown> => {
+const maskSessionDetails = (onyxState: OnyxState): OnyxState => {
     const session = onyxState.session as Session;
-    const maskedData: Record<string, unknown> = {};
+    const maskedData: OnyxState = {};
 
     Object.keys(session).forEach((key) => {
         if (key !== 'authToken' && key !== 'encryptedAuthToken') {
@@ -84,7 +85,7 @@ const maskEmail = (email: string) => {
     return maskedEmail;
 };
 
-const maskFragileData = (data: Record<string, unknown> | unknown[] | null, parentKey?: string): Record<string, unknown> | unknown[] | null => {
+const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string): OnyxState | unknown[] | null => {
     if (data === null) {
         return data;
     }
@@ -94,11 +95,11 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
             if (typeof item === 'string' && Str.isValidEmail(item)) {
                 return maskEmail(item);
             }
-            return typeof item === 'object' ? maskFragileData(item as Record<string, unknown>, parentKey) : item;
+            return typeof item === 'object' ? maskFragileData(item as OnyxState, parentKey) : item;
         });
     }
 
-    const maskedData: Record<string, unknown> = {};
+    const maskedData: OnyxState = {};
 
     Object.keys(data).forEach((key) => {
         if (!Object.prototype.hasOwnProperty.call(data, key)) {
@@ -128,7 +129,7 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
         } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (propertyName === 'text' || propertyName === 'html')) {
             maskedData[key] = MASKING_PATTERN;
         } else if (typeof value === 'object') {
-            maskedData[propertyName] = maskFragileData(value as Record<string, unknown>, propertyName.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? propertyName : parentKey);
+            maskedData[propertyName] = maskFragileData(value as OnyxState, propertyName.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? propertyName : parentKey);
         } else {
             maskedData[propertyName] = value;
         }
@@ -137,8 +138,8 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
     return maskedData;
 };
 
-const removePrivateOnyxKeys = (onyxState: Record<string, unknown>): Record<string, unknown> => {
-    const newState: Record<string, unknown> = {};
+const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
+    const newState: OnyxState = {};
 
     Object.keys(onyxState).forEach((key) => {
         if (onyxKeysToRemove.includes(key as ValueOf<typeof ONYXKEYS>)) {
@@ -161,7 +162,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
 
     // Mask fragile data other than session details if the user has enabled the option
     if (isMaskingFragileDataEnabled) {
-        onyxState = maskFragileData(onyxState) as Record<string, unknown>;
+        onyxState = maskFragileData(onyxState) as OnyxState;
     }
 
     emailMap.clear();

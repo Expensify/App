@@ -1,5 +1,7 @@
-type MaskOnyxState = (data: Record<string, unknown>, isMaskingFragileDataEnabled?: boolean) => Record<string, unknown>;
-type ReadFromOnyxDatabase = () => Promise<Record<string, unknown>>;
+import type OnyxState from '@src/types/onyx/OnyxState';
+
+type MaskOnyxState = (data: OnyxState, isMaskingFragileDataEnabled?: boolean) => OnyxState;
+type ReadFromOnyxDatabase = () => Promise<OnyxState>;
 type ShareAsFile = (value: string) => void;
 
 type ExportOnyxStateModule = {
