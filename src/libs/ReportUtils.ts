@@ -4701,7 +4701,7 @@ function getReportName(
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
     }
-    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy}) ?? report?.reportName ?? '';
+    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
 }
 
 function getSearchReportName(props: GetReportNameParams): string {
@@ -5784,13 +5784,13 @@ function getDeletedTransactionMessage(action: ReportAction) {
 }
 
 function getReportUrl(reportID: string) {
-    return `${environmentURL}/r/${toReportID}`;
+    return `${environmentURL}/r/${reportID}`;
 }
 
 function getMovedTransactionMessage(action: ReportAction, parentReportAction: OnyxEntry<OnyxTypes.ReportAction>, report?: Report) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
     const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    const reportName = getReportName(report, undefined, parentReportAction);
+    const reportName = getReportName(report, undefined, parentReportAction) ?? report?.reportName ?? '';
     const reportUrl = getReportUrl(toReportID);
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
