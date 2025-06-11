@@ -4,9 +4,8 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
-import type {ReportsSplitNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
-import type SCREENS from './SCREENS';
+import type {AttachmentModalScreenParams} from './pages/media/AttachmentModalScreen/types';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
@@ -403,14 +402,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
-    REPORT_ADD_ATTACHMENT: {
-        route: 'r/:reportID/attachment/add',
-        getRoute: (reportID: string, params?: AttachmentRouteParams) => {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            const {reportID: _reportIDParam, ...restParams} = params ?? {};
-            return getAttachmentRoute(`r/${reportID}/attachment/add`, restParams);
-        },
-    },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
         getRoute: (reportID: string, policyID?: string) => {
@@ -447,7 +438,7 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (params?: AttachmentRouteParams) => getAttachmentRoute('attachment', params),
+        getRoute: (params?: AttachmentRouteParams) => getAttachmentModalScreenRoute('attachment', params),
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -2582,22 +2573,22 @@ export default ROUTES;
 type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
 type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
 type AttachmentRoutes = AttachmentsRoute | ReportAddAttachmentRoute;
-type AttachmentRouteParams = ReportsSplitNavigatorParamList[typeof SCREENS.ATTACHMENTS];
+type AttachmentRouteParams = AttachmentModalScreenParams;
 
-function getAttachmentRoute(url: AttachmentRoutes, params?: AttachmentRouteParams) {
+function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: AttachmentRouteParams) {
     if (!params?.source) {
         return url;
     }
 
-    const {source, attachmentID, type, reportID, accountID, isAuthTokenRequired, fileName, attachmentLink} = params;
+    const {source, attachmentID, type, reportID, accountID, isAuthTokenRequired, originalFileName, attachmentLink} = params;
 
-    const sourceParam = `?source=${encodeURIComponent(source)}`;
+    const sourceParam = `?source=${encodeURIComponent(source as string)}`;
     const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
     const typeParam = type ? `&type=${type as string}` : '';
     const reportIDParam = reportID ? `&reportID=${reportID}` : '';
     const accountIDParam = accountID ? `&accountID=${accountID}` : '';
     const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
-    const fileNameParam = fileName ? `&fileName=${fileName}` : '';
+    const fileNameParam = originalFileName ? `&originalFileName=${originalFileName}` : '';
     const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
 
     return `${url}${sourceParam}${typeParam}${reportIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;

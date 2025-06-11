@@ -94,7 +94,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
                 source: String(attachment.source),
                 accountID,
                 isAuthTokenRequired: attachment?.isAuthTokenRequired,
-                fileName: attachment?.file?.name,
+                originalFileName: attachment?.file?.name,
                 attachmentLink: attachment?.attachmentLink,
                 hashKey,
             });

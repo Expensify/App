@@ -57,7 +57,7 @@ import {areAllModalsHidden} from '@userActions/Modal';
 import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SyncSelection = {
@@ -99,7 +99,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     inputPlaceholder: string;
 
     /** Function to display a file in a modal */
-    onFilePasted: (file: FileObject) => void;
+    displayFileInModal: (file: FileObject) => void;
 
     /** Whether the user is blocked from concierge */
     isBlockedFromConcierge: boolean;
@@ -132,7 +132,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     isNextModalWillOpenRef: MutableRefObject<boolean | null>;
 
     /** The last report action */
-    lastReportAction?: OnyxEntry<ReportAction>;
+    lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Whether to include chronos */
     includeChronos?: boolean;
@@ -214,7 +214,7 @@ function ComposerWithSuggestions(
         setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
-        onFilePasted,
+        displayFileInModal,
         isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
@@ -812,7 +812,7 @@ function ComposerWithSuggestions(
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
                         textInputRef.current?.blur();
-                        onFilePasted(file);
+                        displayFileInModal(file);
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}

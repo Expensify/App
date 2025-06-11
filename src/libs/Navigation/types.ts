@@ -1757,17 +1757,7 @@ type ReportsSplitNavigatorParamList = {
         moneyRequestReportActionID?: string;
         transactionID?: string;
     };
-    [SCREENS.ATTACHMENTS]: {
-        attachmentID?: string | undefined;
-        source?: string;
-        type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-        reportID?: string | number;
-        accountID?: number;
-        isAuthTokenRequired?: boolean;
-        fileName?: string;
-        attachmentLink?: string;
-        hashKey?: number;
-    };
+    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
 
 type SettingsSplitNavigatorParamList = {
