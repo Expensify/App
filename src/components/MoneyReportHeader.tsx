@@ -4,6 +4,7 @@ import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -42,6 +43,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isProcessingReport,
     isReportOwner,
+    isTrackExpenseReport as isTrackExpenseReportUtil,
     navigateOnDeleteExpense,
     navigateToDetailsPage,
     reportTransactionsSelector,
@@ -152,6 +154,7 @@ function MoneyReportHeader({
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
     const route = useRoute();
+    const {getReportRHPActiveRoute} = useActiveRoute();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -246,6 +249,18 @@ function MoneyReportHeader({
     );
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
+    const isTrackExpenseReport = isTrackExpenseReportUtil(moneyRequestReport);
+
+    const iouType = useMemo(() => {
+        if (isTrackExpenseReport) {
+            return CONST.IOU.TYPE.TRACK;
+        }
+        if (isInvoiceReport) {
+            return CONST.IOU.TYPE.INVOICE;
+        }
+
+        return CONST.IOU.TYPE.SUBMIT;
+    }, [isTrackExpenseReport, isInvoiceReport]);
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
@@ -790,6 +805,20 @@ function MoneyReportHeader({
                     return;
                 }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID));
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE]: {
+            text: translate('iou.moveExpenses', {count: 1}),
+            icon: Expensicons.DocumentMerge,
+            value: CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE,
+            onSelected: () => {
+                if (!moneyRequestReport || !transaction) {
+                    return;
+                }
+
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, moneyRequestReport.reportID, getReportRHPActiveRoute()),
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
