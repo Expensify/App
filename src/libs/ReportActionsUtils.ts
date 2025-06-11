@@ -1119,8 +1119,8 @@ function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean
 
     return (
         (message?.isDeletedParentAction ?? false) ||
-        (originalMessage?.isDeletedParentAction ?? false) ||
         (message?.deleted !== undefined && message?.deleted !== '') ||
+        (originalMessage?.isDeletedParentAction ?? false) ||
         (originalMessage?.deleted !== undefined && originalMessage?.deleted !== '')
     );
 }
