@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -286,7 +286,7 @@ describe('Pagination', () => {
 
         const link = screen.getByText('Link 1');
         fireEvent(link, 'press');
-        await act(() => {
+        await waitFor(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
         // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
