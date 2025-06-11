@@ -59,6 +59,28 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpensifyNitroUtils (0.0.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Expo (53.0.7):
     - DoubleConversion
     - ExpoModulesCore
@@ -349,7 +371,7 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - NitroModules (0.24.1):
+  - NitroModules (0.25.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3219,6 +3241,7 @@ DEPENDENCIES:
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - "expensify-react-native-background-task (from `../node_modules/@expensify/react-native-background-task`)"
+  - "ExpensifyNitroUtils (from `../node_modules/@expensify/nitro-utils`)"
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
@@ -3408,6 +3431,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-image-loader/ios"
   expensify-react-native-background-task:
     :path: "../node_modules/@expensify/react-native-background-task"
+  ExpensifyNitroUtils:
+    :path: "../node_modules/@expensify/nitro-utils"
   Expo:
     :path: "../node_modules/expo"
   ExpoAsset:
@@ -3679,6 +3704,7 @@ SPEC CHECKSUMS:
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 47792ed07f5a1a6d1fe27eaff09148f033321f46
+  ExpensifyNitroUtils: 531df6f934e9cd9ef8ba4eb4cb51b47ebd32245f
   Expo: 28d2e49ab68e9823a8c452b2ad125b76a6209bac
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
@@ -3719,7 +3745,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  NitroModules: ac01454b4ac0c6f98290149e81ef1ecc3cbc6ef9
+  NitroModules: 6cad985fa4a6efaf567fe5c9aa464bce17e2d0cc
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 535b5c213516c2695877d26ec2789653927460e4
@@ -3845,6 +3871,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf
 
-PODFILE CHECKSUM: 3742d104d6ece80a980e5052f676b69f97405c55
+PODFILE CHECKSUM: 7259116b0f802ccccad12de2f41d2b5abec35add
 
 COCOAPODS: 1.15.2
