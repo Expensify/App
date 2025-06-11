@@ -45,12 +45,7 @@ function SplitListItem<TItem extends ListItem>({
             item={item}
             wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.p3, styles.br3]}
             isFocused={isFocused}
-            containerStyle={[
-                styles.mh4,
-                styles.mv1,
-                styles.reportPreviewBoxHoverBorder,
-                styles.br2,
-            ]}
+            containerStyle={[styles.mh4, styles.mv1, styles.reportPreviewBoxHoverBorder, styles.br2]}
             hoverStyle={[styles.br2]}
             pressableStyle={[styles.br2]}
             isDisabled={isDisabled}
