@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
-import type {CustomRendererProps, TNode} from 'react-native-render-html';
+import type {CustomBlockRenderer} from 'react-native-render-html';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -93,15 +93,12 @@ function RequestEarlyCancellationPage() {
                             p: {...styles.textNormalThemeText},
                         }}
                         renderers={{
-                            a: ({TDefaultRenderer, ...props}: CustomRendererProps<TNode>) => (
+                            a: (({TDefaultRenderer, ...props}) => (
                                 <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.route)}>
-                                    <TDefaultRenderer
-                                        /* eslint-disable-next-line react/jsx-props-no-spreading */
-                                        {...props}
-                                        /* eslint-enable react/jsx-props-no-spreading */
-                                    />
+                                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                                    <TDefaultRenderer {...props} />
                                 </TextLink>
-                            ),
+                            )) as CustomBlockRenderer,
                         }}
                     />
                 </View>
