@@ -628,19 +628,19 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(
-            moneyRequestReport,
+        return getSecondaryReportActions({
+            report: moneyRequestReport,
             chatReport,
-            transactions,
+            reportTransactions: transactions,
             violations,
             policy,
             reportNameValuePairs,
             reportActions,
             policies,
-            isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
-            isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
+            canUseRetractNewDot: isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
+            canUseNewDotSplits: isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
             isChatReportArchived,
-        );
+        });
     }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, chatReport, isChatReportArchived]);
 
     const secondaryActionsImplementation: Record<

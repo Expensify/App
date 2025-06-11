@@ -484,19 +484,31 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
     return true;
 }
 
-function getSecondaryReportActions(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportTransactions: Transaction[],
-    violations: OnyxCollection<TransactionViolation[]>,
-    policy?: Policy,
-    reportNameValuePairs?: ReportNameValuePairs,
-    reportActions?: ReportAction[],
-    policies?: OnyxCollection<Policy>,
-    canUseRetractNewDot?: boolean,
-    canUseNewDotSplits?: boolean,
+function getSecondaryReportActions({
+    report,
+    chatReport,
+    reportTransactions,
+    violations,
+    policy,
+    reportNameValuePairs,
+    reportActions,
+    policies,
+    canUseRetractNewDot,
+    canUseNewDotSplits,
     isChatReportArchived = false,
-): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
+}: {
+    report: Report;
+    chatReport: OnyxEntry<Report>;
+    reportTransactions: Transaction[];
+    violations: OnyxCollection<TransactionViolation[]>;
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    reportActions?: ReportAction[];
+    policies?: OnyxCollection<Policy>;
+    canUseRetractNewDot?: boolean;
+    canUseNewDotSplits?: boolean;
+    isChatReportArchived?: boolean;
+}): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
     if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
