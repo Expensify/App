@@ -4045,6 +4045,11 @@ const translations = {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
             },
+            emptyCategoriesWithAccounting: {
+                subtitle1: 'Your categories are currently importing from an accounting connection. Head over to ',
+                subtitle2: 'accounting',
+                subtitle3: ' to make any changes.',
+            },
             updateFailureMessage: 'An error occurred while updating the category, please try again',
             createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
@@ -4295,6 +4300,11 @@ const translations = {
                 subtitle1: 'Import a spreadsheet to add tags for tracking projects, locations, departments, and more.',
                 subtitle2: ' Learn more',
                 subtitle3: ' about formatting tag files.',
+            },
+            emptyTagsWithAccounting: {
+                subtitle1: 'Your tags are currently importing from an accounting connection. Head over to ',
+                subtitle2: 'accounting',
+                subtitle3: ' to make any changes.',
             },
             deleteTag: 'Delete tag',
             deleteTags: 'Delete tags',

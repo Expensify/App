@@ -435,7 +435,25 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             )}
         </>
     );
-
+    const subtitleText = useMemo(
+        () => (
+            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+                {!policyHasAccountingConnections ? translate('workspace.categories.emptyCategories.subtitle') : translate(`workspace.categories.emptyCategoriesWithAccounting.subtitle1`)}
+                {policyHasAccountingConnections && (
+                    <>
+                        <TextLink
+                            style={[styles.textAlignCenter]}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyId))}
+                        >
+                            {translate(`workspace.categories.emptyCategoriesWithAccounting.subtitle2`)}
+                        </TextLink>
+                        {translate(`workspace.categories.emptyCategoriesWithAccounting.subtitle3`)}{' '}
+                    </>
+                )}
+            </Text>
+        ),
+        [styles.textAlignCenter, styles.textSupporting, styles.textNormal, policyHasAccountingConnections, translate, policyId],
+    );
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -519,7 +537,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                             headerMedia={LottieAnimations.GenericEmptyState}
                             title={translate('workspace.categories.emptyCategories.title')}
-                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                            subtitleText={subtitleText}
                             headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                             headerContentStyles={styles.emptyStateFolderWebStyles}

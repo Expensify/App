@@ -533,17 +533,27 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </>
     );
 
+    const emptyTagsCopy = hasAccountingConnections ? 'emptyTagsWithAccounting' : 'emptyTags';
     const subtitleText = useMemo(
         () => (
             <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
-                {translate('workspace.tags.emptyTags.subtitle1')}
-                <TextLink
-                    style={[styles.textAlignCenter]}
-                    href={CONST.IMPORT_TAGS_EXPENSIFY_URL}
-                >
-                    {translate('workspace.tags.emptyTags.subtitle2')}
-                </TextLink>
-                {translate('workspace.tags.emptyTags.subtitle3')}
+                {translate(`workspace.tags.${emptyTagsCopy}.subtitle1`)}
+                {hasAccountingConnections ? (
+                    <TextLink
+                        style={[styles.textAlignCenter]}
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+                    >
+                        {translate(`workspace.tags.${emptyTagsCopy}.subtitle2`)}
+                    </TextLink>
+                ) : (
+                    <TextLink
+                        style={[styles.textAlignCenter]}
+                        href={CONST.IMPORT_TAGS_EXPENSIFY_URL}
+                    >
+                        {translate(`workspace.tags.${emptyTagsCopy}.subtitle2`)}
+                    </TextLink>
+                )}
+                {translate(`workspace.tags.${emptyTagsCopy}.subtitle3`)}
             </Text>
         ),
         [styles.textAlignCenter, styles.textNormal, styles.textSupporting, translate],

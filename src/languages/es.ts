@@ -4088,6 +4088,11 @@ const translations = {
                 title: 'No has creado ninguna categoría',
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
+            emptyCategoriesWithAccounting: {
+                subtitle1: 'Tus categorías se están importando actualmente desde una conexión de contabilidad. Dirígete a ',
+                subtitle2: 'contabilidad',
+                subtitle3: ' para hacer cualquier cambio.',
+            },
             updateFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
             addCategory: 'Añadir categoría',
@@ -4340,6 +4345,11 @@ const translations = {
                 subtitle1: 'Importa una hoja de cálculo para añadir etiquetas y organizar proyectos, ubicaciones, departamentos y más.',
                 subtitle2: ' Obtén más información',
                 subtitle3: ' sobre cómo dar formato a los archivos de etiquetas.',
+            },
+            emptyTagsWithAccounting: {
+                subtitle1: 'Tus etiquetas se están importando actualmente desde una conexión de contabilidad. Dirígete a ',
+                subtitle2: 'contabilidad',
+                subtitle3: ' para hacer cualquier cambio.',
             },
             deleteTag: 'Eliminar etiqueta',
             deleteTags: 'Eliminar etiquetas',
