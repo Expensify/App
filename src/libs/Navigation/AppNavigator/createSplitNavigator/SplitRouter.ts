@@ -102,10 +102,8 @@ function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.
 
 function SplitRouter(options: SplitNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
-
     return {
         ...stackRouter,
-
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
             if (isPushingSidebarOnCentralPane(state, action, options)) {
                 if (getIsNarrowLayout()) {
