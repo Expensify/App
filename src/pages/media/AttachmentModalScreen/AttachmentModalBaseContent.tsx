@@ -217,6 +217,8 @@ function AttachmentModalBaseContent({
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    // This logic is used to ensure that the source is updated when the source changes and
+    // that the initially provided source is always used as a fallback.
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const sourceForAttachmentView = sourceState || source;
     useEffect(() => {
@@ -428,20 +430,21 @@ function AttachmentModalBaseContent({
         isPDFLoadError.current = false;
     }, [isPDFLoadError]);
 
-    const nope = useSharedValue(false);
+    // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
+    const falseSV = useSharedValue(false);
     const context = useMemo(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
             activePage: 0,
             pagerRef: undefined,
-            isPagerScrolling: nope,
-            isScrollEnabled: nope,
+            isPagerScrolling: falseSV,
+            isScrollEnabled: falseSV,
             onTap: () => {},
             onScaleChanged: () => {},
             onSwipeDown: onClose,
             onAttachmentError: setAttachmentError,
         }),
-        [onClose, nope, sourceForAttachmentView, setAttachmentError],
+        [onClose, falseSV, sourceForAttachmentView, setAttachmentError],
     );
 
     return (
