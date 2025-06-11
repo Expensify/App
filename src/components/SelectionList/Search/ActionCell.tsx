@@ -125,13 +125,13 @@ function ActionCell({
                 shouldUseShortForm
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={iouReport?.currency}
-                policyID={policyID}
+                policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
                 onPress={confirmPayment}
                 style={[styles.w100]}
-                shouldShowPersonalBankAccountOption={!policyID}
+                shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
             />
         );
     }

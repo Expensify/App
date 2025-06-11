@@ -252,10 +252,9 @@ function SettlementButton({
         if (canUseWallet) {
             if (personalBankAccountList.length && canUsePersonalBankAccount) {
                 buttonOptions.push({
-                    text: personalBankAccountList.at(0)?.title ?? '',
-                    icon: personalBankAccountList.at(0)?.icon,
+                    text: translate('iou.settleWallet', {formattedAmount: ''}),
                     value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                    description: personalBankAccountList.at(0)?.description,
+                    icon: Expensicons.Wallet,
                 });
             } else if (canUsePersonalBankAccount) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
@@ -267,6 +266,7 @@ function SettlementButton({
         }
 
         const shouldShowBusinessBankAccountOptions = isExpenseReport && shouldShowPayWithExpensifyOption && !isPersonalOnlyOption;
+
         if (shouldShowBusinessBankAccountOptions) {
             if (!isEmpty(latestBankItem) && latestBankItem) {
                 buttonOptions.push({
@@ -364,6 +364,7 @@ function SettlementButton({
         chatReport,
         onPress,
         onlyShowPayElsewhere,
+        latestBankItem,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
@@ -465,9 +466,8 @@ function SettlementButton({
             return lastPaymentPolicy.name;
         }
 
+        const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReportUtil(iouReport))) {
-            const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
-
             if (bankAccountToDisplay && isInvoiceReportUtil(iouReport)) {
                 const translationKey = bankAccountToDisplay.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank';
                 return translate(translationKey, {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? ''});
@@ -481,7 +481,15 @@ function SettlementButton({
         }
 
         if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || hasIntentToPay) && !!policy?.achAccount) {
-            return translate('paymentMethodList.bankAccountLastFour', {lastFour: policy?.achAccount?.accountNumber?.slice(-4) ?? ''});
+            if (policy?.achAccount?.accountNumber) {
+                return translate('paymentMethodList.bankAccountLastFour', {lastFour: policy?.achAccount?.accountNumber?.slice(-4)});
+            }
+
+            if (!bankAccountToDisplay?.accountData?.accountNumber) {
+                return;
+            }
+
+            return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4)});
         }
 
         if (bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && isExpenseReportUtil(iouReport)) {
@@ -532,7 +540,7 @@ function SettlementButton({
         return false;
     });
 
-    const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || (!!bankAccount && isExpenseReportUtil(iouReport)) || (isInvoiceReport && hasIntentToPay);
+    const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || isInvoiceReport || (isExpenseReportUtil(iouReport) && hasIntentToPay);
 
     return (
         <KYCWall

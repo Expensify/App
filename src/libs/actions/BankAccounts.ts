@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {LastPaymentMethod, LastPaymentMethodType} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -327,12 +328,10 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
 }
 
-function deletePaymentBankAccount(bankAccountID: number) {
+function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?: LastPaymentMethod) {
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
 
     const personalPolicy = getPersonalPolicy();
-    const lastUsedPaymentMethod = getLastUsedPaymentMethod(personalPolicy?.id);
-    const shouldClearIOULastUsedPaymentMethod = personalPolicy?.id && lastUsedPaymentMethod?.iou?.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -361,15 +360,49 @@ function deletePaymentBankAccount(bankAccountID: number) {
         ],
     };
 
-    if (shouldClearIOULastUsedPaymentMethod) {
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-            value: {
-                [personalPolicy?.id]: null,
-            },
-        });
-    }
+    Object.keys(lastUsedPaymentMethods ?? {}).forEach((paymentMethodID) => {
+        const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;
+
+        if (personalPolicy?.id === paymentMethodID && lastUsedPaymentMethod.iou.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            const revertedLastUsedPaymentMethod = lastUsedPaymentMethod.lastUsed.name !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? lastUsedPaymentMethod.lastUsed.name : null;
+
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                value: {
+                    [personalPolicy?.id]: revertedLastUsedPaymentMethod,
+                },
+            });
+
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                value: {
+                    [personalPolicy?.id]: lastUsedPaymentMethod.iou.name,
+                },
+            });
+        }
+
+        if (lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA) {
+            const revertedLastUsedPaymentMethod = lastUsedPaymentMethod.lastUsed.name !== CONST.IOU.PAYMENT_TYPE.VBBA ? lastUsedPaymentMethod.lastUsed.name : null;
+
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                value: {
+                    [paymentMethodID]: revertedLastUsedPaymentMethod,
+                },
+            });
+
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                value: {
+                    [paymentMethodID]: lastUsedPaymentMethod.expense.name,
+                },
+            });
+        }
+    });
 
     API.write(WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT, parameters, onyxData);
 }
