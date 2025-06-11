@@ -47,6 +47,7 @@ import {
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReportWithID,
     isChatUsedForOnboarding,
+    isDeprecatedGroupDM,
     isPayer,
     isReportOutstanding,
     parseReportRouteParams,
@@ -3119,6 +3120,141 @@ describe('ReportUtils', () => {
 
             // Then it cannot be edited
             expect(result).toBeFalsy();
+        });
+    });
+
+    describe('isDeprecatedGroupDM', () => {
+        it('should return false if the report is a chat thread', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                parentReportActionID: '1',
+                parentReportID: '1',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: 'always',
+                    },
+                    1: {
+                        notificationPreference: 'always',
+                    },
+                    2: {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+        });
+
+        it('should return false if the report is a task report', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.TASK,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: 'always',
+                    },
+                    1: {
+                        notificationPreference: 'always',
+                    },
+                    2: {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+        });
+
+        it('should return false if the report is a money request report', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: 'always',
+                    },
+                    1: {
+                        notificationPreference: 'always',
+                    },
+                    2: {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+        });
+
+        it('should return false if the report is an archived room', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: 'always',
+                    },
+                    1: {
+                        notificationPreference: 'always',
+                    },
+                    2: {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            expect(isDeprecatedGroupDM(report, true)).toBeFalsy();
+        });
+
+        it('should return false if the report is a public / admin / announce chat room', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: 'always',
+                    },
+                    1: {
+                        notificationPreference: 'always',
+                    },
+                    2: {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+        });
+
+        it('should return false if the report has less than 2 participant', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: 'always',
+                    },
+                    1: {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+        });
+
+        it('should return true if the report has more than 2 participant', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: 'always',
+                    },
+                    1: {
+                        notificationPreference: 'always',
+                    },
+                    2: {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            expect(isDeprecatedGroupDM(report, false)).toBeTruthy();
         });
     });
 });
