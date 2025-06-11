@@ -26,7 +26,7 @@ function SearchFiltersStatusPage() {
     const currentType = (searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
     const currentGroupBy = searchAdvancedFiltersForm?.groupBy as SearchGroupBy | undefined;
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
-        if (!searchAdvancedFiltersForm?.status || searchAdvancedFiltersForm.status === 'all') {
+        if (!searchAdvancedFiltersForm?.status || searchAdvancedFiltersForm.status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
             return [];
         }
 
