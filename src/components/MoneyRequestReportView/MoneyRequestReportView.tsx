@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -97,6 +97,15 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
+    // ref used to not compute new transaction on the first full load to avoid highlighting transactions that belonged to the report but weren't present in Onyx
+    const firstFullLoadTime = useRef<number | undefined>(undefined);
+    useEffect(() => {
+        if (!reportMetadata?.hasOnceLoadedReportActions || firstFullLoadTime.current) {
+            return;
+        }
+        firstFullLoadTime.current = Date.now();
+    }, [reportMetadata?.hasOnceLoadedReportActions]);
+
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
         canBeMissing: true,
@@ -108,7 +117,12 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const prevTransactions = usePrevious(transactions);
 
     const newTransactions = useMemo(() => {
-        if (!prevTransactions || !transactions || transactions.length <= prevTransactions.length) {
+        if (
+            transactions === undefined ||
+            prevTransactions === undefined ||
+            transactions.length <= prevTransactions.length ||
+            (firstFullLoadTime.current && firstFullLoadTime.current + CONST.TIMING.UPDATE_PREV_TRANSACTION_TIMEOUT > Date.now())
+        ) {
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
