@@ -222,6 +222,17 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '\n' +
                 'And you’re done! Now wait for that sweet “Cha-ching!” when it’s complete.',
         },
+        {
+            type: 'reviewWorkspaceSettings',
+            autoCompleted: false,
+            mediaAttributes: {},
+            title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
+            description: ({workspaceSettingsLink}) =>
+                "Here's how to review and update your workspace settings:\n" +
+                '1. Click the settings tab.\n' +
+                '2. Click *Workspaces* > [Your workspace].\n' +
+                `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
+        },
     ],
 };
 
@@ -821,7 +832,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
         /**
-         * @deprecated
+         * Deprecated - do not use this beta in new code anymore.
          * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
          * */
         TABLE_REPORT_VIEW: 'tableReportView',
@@ -833,6 +844,7 @@ const CONST = {
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
         NEW_DOT_SPLITS: 'newDotSplits',
     },
@@ -1149,10 +1161,10 @@ const CONST = {
         COMPLETED: 'completed',
     },
     STORYLANE: {
-        ADMIN_TOUR_PRODUCTION: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
-        ADMIN_TOUR_MOBILE_PRODUCTION: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
-        ADMIN_TOUR_STAGING: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
-        ADMIN_TOUR_MOBILE_STAGING: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+        ADMIN_TOUR: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
+        TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1240,7 +1252,6 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
-            MOVE_EXPENSE: 'moveExpense',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1349,6 +1360,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
+                TRAVEL_UPDATE: 'TRAVEL_TRIP_ROOM_UPDATE',
                 TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
@@ -5614,7 +5626,8 @@ const CONST = {
             ],
         },
         [onboardingChoices.TRACK_WORKSPACE]: {
-            message: 'Here are some important tasks to help get your workspace set up.',
+            message:
+                '# Let’s get you set up\n👋 I’m here to help! To get you started, I’ve tailored your workspace settings for sole proprietors and similar businesses. You can adjust your workspace by clicking the link below!\n\nHere’s how to track your spend in a few clicks:',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
@@ -5624,26 +5637,21 @@ const CONST = {
             },
             tasks: [
                 createWorkspaceTask,
-                setupCategoriesTask,
+                testDriveAdminTask,
                 {
-                    type: 'inviteAccountant',
+                    type: 'createReport',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
-                    description: ({workspaceMembersLink}) =>
-                        '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
+                    title: 'Create your first report',
+                    description:
+                        'Here’s how to create a report:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Members* > Invite member.\n' +
-                        '5. Enter their email or phone number.\n' +
-                        '6. Add an invite message if you’d like.\n' +
-                        '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Create report*.\n' +
+                        '3. Click *Add expense*.\n' +
+                        '4. Add your first expense.\n' +
                         '\n' +
-                        'That’s it, happy expensing! 😄\n' +
-                        '\n' +
-                        `[View your workspace members](${workspaceMembersLink}).`,
+                        'And you’re done!',
                 },
             ],
         },
@@ -7126,6 +7134,7 @@ const CONST = {
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
+        MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -7149,6 +7158,28 @@ const CONST = {
         DEFAULT_DOMAIN: 'domain',
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
+        },
+        UPDATE_OPERATION_TYPE: {
+            BOOKING_TICKETED: 'BOOKING_TICKETED',
+            TICKET_VOIDED: 'TICKET_VOIDED',
+            TICKET_REFUNDED: 'TICKET_REFUNDED',
+            FLIGHT_CANCELLED: 'FLIGHT_CANCELLED',
+            FLIGHT_SCHEDULE_CHANGE_PENDING: 'FLIGHT_SCHEDULE_CHANGE_PENDING',
+            FLIGHT_SCHEDULE_CHANGE_CLOSED: 'FLIGHT_SCHEDULE_CHANGE_CLOSED',
+            FLIGHT_CHANGED: 'FLIGHT_CHANGED',
+            FLIGHT_CABIN_CHANGED: 'FLIGHT_CABIN_CHANGED',
+            FLIGHT_SEAT_CONFIRMED: 'FLIGHT_SEAT_CONFIRMED',
+            FLIGHT_SEAT_CHANGED: 'FLIGHT_SEAT_CHANGED',
+            FLIGHT_SEAT_CANCELLED: 'FLIGHT_SEAT_CANCELLED',
+            PAYMENT_DECLINED: 'PAYMENT_DECLINED',
+            BOOKING_CANCELED_BY_TRAVELER: 'BOOKING_CANCELED_BY_TRAVELER',
+            BOOKING_CANCELED_BY_VENDOR: 'BOOKING_CANCELED_BY_VENDOR',
+            BOOKING_REBOOKED: 'BOOKING_REBOOKED',
+            BOOKING_UPDATED: 'BOOKING_UPDATED',
+            TRIP_UPDATED: 'TRIP_UPDATED',
+            BOOKING_OTHER_UPDATE: 'BOOKING_OTHER_UPDATE',
+            REFUND: 'REFUND',
+            EXCHANGE: 'EXCHANGE',
         },
     },
     LAST_PAYMENT_METHOD: {

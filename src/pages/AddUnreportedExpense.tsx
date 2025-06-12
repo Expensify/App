@@ -133,7 +133,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                                 });
                             },
                             success: true,
-                            style: styles.unreportedExpenseCreateExpenseButton,
                         },
                     ]}
                 />
