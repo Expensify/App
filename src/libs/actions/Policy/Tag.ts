@@ -333,7 +333,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
 function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], requireTagList: boolean) {
     const parameters: SetPolicyTagListsRequired = {
         policyID,
-        tagListIndexes: JSON.stringify(tagListIndexes),
+        tagListIndexes,
         requireTagList,
     };
 

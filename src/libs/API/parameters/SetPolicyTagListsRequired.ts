@@ -1,6 +1,6 @@
 type SetPolicyTagListsRequired = {
     policyID: string;
-    tagListIndexes: string;
+    tagListIndexes: number[];
     requireTagList: boolean;
 };
 
