@@ -20,7 +20,6 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
-    canEditFieldOfMoneyRequest,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     getTransactionDetails,
@@ -179,7 +178,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
 
-    if (isExpenseReport && isReportApprover && isProcessingReport && reportHasDuplicatedTransactions) {
+    if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
     }
 
@@ -397,20 +396,6 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy);
 }
 
-function isMoveTransactionAction(reportTransactions: Transaction[], reportActions?: ReportAction[]) {
-    const transaction = reportTransactions.at(0);
-
-    if (reportTransactions.length !== 1 || !transaction || !reportActions) {
-        return false;
-    }
-
-    const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-
-    const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
-
-    return canMoveExpense;
-}
-
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
@@ -559,10 +544,6 @@ function getSecondaryReportActions(
 
     if (isChangeWorkspaceAction(report, policies)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
-    }
-
-    if (isMoveTransactionAction(reportTransactions, reportActions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
