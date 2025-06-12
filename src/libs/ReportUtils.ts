@@ -6127,7 +6127,7 @@ function buildOptimisticMovedReportAction(
             html: isIouReport
                 ? `moved this <a href='${CONST.NEW_EXPENSIFY_URL}r/${reportID}/${reportActionID}' target='_blank' rel='noreferrer noopener'>report</a> to the ${policyName} workspace`
                 : `moved this report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
-            text: `moved the report to the ${policyName} workspace`,
+            text: `moved this report to the ${policyName} workspace`,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
     ];
