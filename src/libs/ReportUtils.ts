@@ -5825,7 +5825,7 @@ function getReportUrl(reportID: string) {
     return `${environmentURL}/r/${reportID}`;
 }
 
-function getMovedTransactionMessage(action: ReportAction, parentReportAction: OnyxEntry<ReportAction>, report?: Report) {
+function getMovedTransactionMessage(action: ReportAction, parentReportAction?: OnyxEntry<ReportAction>, report?: Report) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
     const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
     const reportName = getReportName(report, undefined, parentReportAction);
