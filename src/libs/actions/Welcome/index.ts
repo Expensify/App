@@ -18,10 +18,6 @@ import {clearInitialPath} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 
-// Note: Previously used IS_LOADING_REPORT_DATA but now using queue-based detection
-// For simplicity, we'll resolve immediately since the queue-based approach 
-// handles loading states more effectively
-let isLoadingReportData = false;
 let tryNewDotData: TryNewDot | undefined;
 let onboarding: OnboardingData;
 
@@ -66,17 +62,6 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
 }
 
 /**
- * Check if report data are loaded
- */
-function checkServerDataReady() {
-    if (isLoadingReportData) {
-        return;
-    }
-
-    resolveIsReadyPromise?.();
-}
-
-/**
  * Check if user completed HybridApp onboarding
  */
 function checkTryNewDotDataReady() {
@@ -96,6 +81,7 @@ function checkOnboardingDataReady() {
     }
 
     resolveOnboardingFlowStatus();
+    resolveIsReadyPromise?.();
 }
 
 function setOnboardingPurposeSelected(value: OnboardingPurpose) {
@@ -187,7 +173,6 @@ function resetAllChecks() {
     isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
         resolveOnboardingFlowStatus = resolve;
     });
-    isLoadingReportData = false;
     isOnboardingInProgress = false;
     clearInitialPath();
 }

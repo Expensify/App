@@ -57,9 +57,7 @@ type ConnectionWithLastSyncData = {
 
 let allPolicies: OnyxCollection<Policy>;
 let activePolicyId: OnyxEntry<string>;
-// For library usage, we'll default to false since most policy operations
-// don't need to wait for report data loading
-let isLoadingReportData = false;
+let hasLoadedApp = false;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -70,6 +68,11 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyId = value),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.HAS_LOADED_APP,
+    callback: (value) => (hasLoadedApp = value ?? false),
 });
 
 /**
@@ -1292,7 +1295,7 @@ function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
         return false;
     }
 
-    return !isPolicyAccessible(policy) && !isLoadingReportData;
+    return !isPolicyAccessible(policy) && hasLoadedApp;
 }
 
 function hasOtherControlWorkspaces(currentPolicyID: string) {
