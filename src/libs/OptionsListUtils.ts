@@ -64,6 +64,7 @@ import {
     getReportActionMessageText,
     getRetractedMessage,
     getSortedReportActions,
+    getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
@@ -75,6 +76,7 @@ import {
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
     isReimbursementDeQueuedOrCanceledAction,
@@ -96,6 +98,7 @@ import {
     getDowngradeWorkspaceMessage,
     getIcons,
     getMoneyRequestSpendBreakdown,
+    getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
     getPolicyName,
@@ -774,6 +777,8 @@ function getLastMessageTextForReport(
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
+    } else if (isMovedTransactionAction(lastReportAction)) {
+        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -831,6 +836,8 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getReopenedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         lastMessageTextFromReport = getPolicyChangeMessage(lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
+        lastMessageTextFromReport = getTravelUpdateMessage(lastReportAction);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
