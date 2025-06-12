@@ -34,7 +34,7 @@ function TransactionStartDateSelectorPage({route}: TransactionStartDateSelectorM
         getFieldRequiredErrors(values, [INPUT_IDS.START_DATE]);
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, route.params.feed, route.params.backTo));
+        Navigation.goBack(ROUTES.WORKSPACE_ASSIGN_COMPANY_CARD_ASSIGNEE.getRoute(policyID, route.params.feed, route.params.backTo));
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ASSIGN_CARD_FORM>) => {

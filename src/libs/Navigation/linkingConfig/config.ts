@@ -1625,7 +1625,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.ASSIGN_COMPANY_CARD.CARD_NAME]: {
                             path:ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_CARD_NAME.route,
-                        }
+                        },
+                        [SCREENS.ASSIGN_COMPANY_CARD.CONFIRMATION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_CONFIRMATION.route,
+                        },
+
                         
                     }
                 }
