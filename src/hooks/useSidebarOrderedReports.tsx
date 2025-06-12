@@ -62,10 +62,12 @@ function SidebarOrderedReportsContextProvider({
     const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
+
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const reportsToDisplayRef = useRef<ReportsToDisplayInLHN>({});
     const prevBetas = usePrevious(betas);
@@ -121,10 +123,10 @@ function SidebarOrderedReportsContextProvider({
         const updatedReports = getUpdatedReports();
         // eslint-disable-next-line react-compiler/react-compiler
         const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(reportsToDisplayRef.current).length > 0;
-        let toDisplay = {};
+        let reportsToDisplay = {};
 
         if (shouldDoIncrementalUpdate) {
-            toDisplay = SidebarUtils.updateReportsToDisplayInLHN(
+            reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN(
                 // eslint-disable-next-line react-compiler/react-compiler
                 reportsToDisplayRef.current,
                 chatReports,
@@ -138,7 +140,7 @@ function SidebarOrderedReportsContextProvider({
                 reportAttributes,
             );
         } else {
-            toDisplay = SidebarUtils.getReportsToDisplayInLHN(
+            reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
                 derivedCurrentReportID,
                 chatReports,
                 betas,
@@ -149,7 +151,7 @@ function SidebarOrderedReportsContextProvider({
                 reportAttributes,
             );
         }
-        return toDisplay;
+        return reportsToDisplay;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [getUpdatedReports]);
 
