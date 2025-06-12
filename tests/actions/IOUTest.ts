@@ -33,10 +33,9 @@ import {
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import {addComment, deleteReport, notifyNewAction, openReport, createNewReport} from '@libs/actions/Report';
+import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
-import {changeTransactionsReport} from '../../src/libs/actions/Transaction';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiCommand} from '@libs/API/types';
 import {translateLocal} from '@libs/Localize';
@@ -72,6 +71,7 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {changeTransactionsReport} from '../../src/libs/actions/Transaction';
 import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
@@ -6180,8 +6180,12 @@ describe('actions/IOU', () => {
                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 waitForCollectionCallback: true,
                 callback: (allReportActions) => {
-                    iouReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find((r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
-                    trackExpenseActionableWhisper = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport?.reportID}`] ?? {}).find((r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER);
+                    iouReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
+                    );
+                    trackExpenseActionableWhisper = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport?.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    );
                 },
             });
 
@@ -6206,8 +6210,12 @@ describe('actions/IOU', () => {
                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 waitForCollectionCallback: true,
                 callback: (allReportActions) => {
-                    updatedIOUReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find((r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
-                    updatedTrackExpenseActionableWhisper = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport?.reportID}`] ?? {}).find((r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER);
+                    updatedIOUReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
+                    );
+                    updatedTrackExpenseActionableWhisper = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport?.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    );
                 },
             });
 

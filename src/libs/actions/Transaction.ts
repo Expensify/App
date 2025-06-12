@@ -616,7 +616,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
     transactions.forEach((transaction) => {
         const isUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        
+
         // We'll handle optimistically creating the selfDM as part of https://github.com/Expensify/App/issues/60288
         const selfDMReportID = findSelfDMReportID() ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
