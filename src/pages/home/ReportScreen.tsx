@@ -295,7 +295,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
     // ref used to not compute new transaction on the first full load to avoid highlighting transactions that belonged to the report but weren't present in Onyx
-    const firstFullLoadTime = useRef<number | undefined>(undefined);
+    const firstFullLoadTime = useRef<number | undefined>(reportMetadata?.hasOnceLoadedReportActions ? Date.now() : undefined);
     const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
         canBeMissing: false,

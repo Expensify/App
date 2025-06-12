@@ -98,7 +98,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     // ref used to not compute new transaction on the first full load to avoid highlighting transactions that belonged to the report but weren't present in Onyx
-    const firstFullLoadTime = useRef<number | undefined>(undefined);
+    const firstFullLoadTime = useRef<number | undefined>(reportMetadata?.hasOnceLoadedReportActions ? Date.now() : undefined);
     useEffect(() => {
         if (!reportMetadata?.hasOnceLoadedReportActions || firstFullLoadTime.current) {
             return;
