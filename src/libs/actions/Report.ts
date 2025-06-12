@@ -183,6 +183,7 @@ import type {
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
+    ReportNextStep,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
