@@ -2826,7 +2826,7 @@ describe('ReportUtils', () => {
 
             const result = getMoneyRequestReportName({report, policy: mockPolicy});
             expect(result).not.toBe('iou');
-            expect(result).toContain('$1.00'); // Should fall through to default formatting
+            expect(result).toContain('$1.00');
         });
 
         it('should not return report name when it equals IOU in uppercase', () => {
@@ -2841,7 +2841,7 @@ describe('ReportUtils', () => {
 
             const result = getMoneyRequestReportName({report, policy: mockPolicy});
             expect(result).not.toBe('IOU');
-            expect(result).toContain('$1.00'); // Should fall through to default formatting
+            expect(result).toContain('$1.00');
         });
 
         it('should not return report name when it equals IOU in mixed case', () => {
@@ -2856,7 +2856,7 @@ describe('ReportUtils', () => {
 
             const result = getMoneyRequestReportName({report, policy: mockPolicy});
             expect(result).not.toBe('IoU');
-            expect(result).toContain('$1.00'); // Should fall through to default formatting
+            expect(result).toContain('$1.00');
         });
 
         it('should not return report name when report is not an expense report', () => {
@@ -2871,7 +2871,7 @@ describe('ReportUtils', () => {
 
             const result = getMoneyRequestReportName({report, policy: mockPolicy});
             expect(result).not.toBe('Custom Report Name');
-            expect(result).toContain('$1.00'); // Should fall through to default formatting
+            expect(result).toContain('$1.00');
         });
 
         it('should not return report name when reportName is empty', () => {
@@ -2886,7 +2886,7 @@ describe('ReportUtils', () => {
 
             const result = getMoneyRequestReportName({report, policy: mockPolicy});
             expect(result).not.toBe('');
-            expect(result).toContain('$1.00'); // Should fall through to default formatting
+            expect(result).toContain('$1.00');
         });
 
         it('should not return report name when reportName is undefined', () => {
@@ -2900,11 +2900,11 @@ describe('ReportUtils', () => {
             delete report.reportName;
 
             const result = getMoneyRequestReportName({report, policy: mockPolicy});
-            expect(result).toContain('$1.00'); // Should fall through to default formatting
+            expect(result).toContain('$1.00');
         });
         it('should not return report name when report is null', () => {
             const result = getMoneyRequestReportName({report: null as unknown as Report, policy: mockPolicy});
-            expect(result).toContain('$0.00'); // Should fall through to default formatting
+            expect(result).toContain('$0.00');
         });
 
         it('should return report name for valid expense report with name containing "iou" as substring', () => {
