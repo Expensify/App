@@ -80,7 +80,7 @@ jobs:
     outputs:
       MOBILE_EXPENSIFY_PR: ${{ steps.mobileExpensifyPR.outputs.result }}
     steps:
-      - name: Check if author specifed Expensify/Mobile-Expensify PR
+      - name: Check if author specified Expensify/Mobile-Expensify PR
         id: mobileExpensifyPR
         # v7
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
