@@ -438,7 +438,7 @@ type MoneyRequestInformationParams = {
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
-    totalAmount?: number;
+    changedAmount?: number;
     testDriveCommentReportActionID?: string;
 };
 
@@ -3235,7 +3235,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         existingTransactionID,
         moneyRequestReportID = '',
         retryParams,
-        totalAmount,
+        changedAmount,
         testDriveCommentReportActionID,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
@@ -3303,19 +3303,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
-                if (totalAmount) {
-                    iouReport.total = totalAmount;
-                } else {
-                    iouReport.total -= amount;
-                }
+                iouReport.total -= changedAmount ?? amount;
             }
 
             if (typeof iouReport.unheldTotal === 'number') {
-                if (totalAmount) {
-                    iouReport.unheldTotal = totalAmount;
-                } else {
-                    iouReport.unheldTotal -= amount;
-                }
+                iouReport.unheldTotal -= changedAmount ?? amount;
             }
         }
     } else {
@@ -11610,11 +11602,11 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const isReverseSplitOperation = splitExpenses.length === 1 && !!childTransactions.length;
 
-    let totalAmount = 0;
+    let changedAmount = 0;
     const splits: SplitTransactionSplitsParam =
         splitExpenses.map((split) => {
             const currentDescription = getParsedComment(Parser.htmlToMarkdown(split.description ?? ''));
-            totalAmount -= split.amount;
+            changedAmount -= split.amount;
             return {
                 amount: split.amount,
                 category: split.category ?? '',
@@ -11688,6 +11680,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         const parsedComment = getParsedComment(transactionParams.comment ?? '');
         transactionParams.comment = parsedComment;
 
+        const originalAmount = (originalTransaction?.amount ?? 0) > 0 ? Math.abs(originalTransactionDetails?.amount ?? 0) : -Math.abs(originalTransactionDetails?.amount ?? 0);
         const {transactionThreadReportID, createdReportActionIDForThread, onyxData, iouAction} = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
@@ -11696,7 +11689,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             moneyRequestReportID: expenseReport?.reportID,
             existingTransaction,
             existingTransactionID,
-            totalAmount,
+            changedAmount: originalAmount - changedAmount,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
