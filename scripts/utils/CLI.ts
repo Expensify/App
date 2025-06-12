@@ -1,47 +1,86 @@
+import type {NonEmptyObject, NonEmptyTuple, ValueOf, Writable} from 'type-fest';
+
 /**
- * All "Flags" or "named args" start with -- (no short form for now)
- * - String flags must be followed by a value (separated either by a = or by whitespace)
- * - The presence of a default value make a flag optional. Otherwise they are required.
- * - Boolean flags must be required
+ * A base CLI arg has only a description, which we will use in the help/usage message (built-in to any CLI).
  */
-type Flag = BooleanFlag | StringFlag;
-
-type BooleanFlag = {
-    type: BooleanConstructor;
+type CLIArg = {
     description: string;
-    default: boolean;
-};
-
-type StringFlag = {
-    type: StringConstructor;
-    description: string;
-    default?: string;
-    validate?: (val: string) => string;
 };
 
 /**
- * "Params" are positional args. They must be strings, but can optional or required.
+ * A boolean arg is characterized only by its presence or absence so has no other fields,
+ * but we'll create a type alias to clearly distinguish it from other argument types.
  */
-type Param = {
-    type: StringConstructor;
-    description: string;
-    default?: string;
+type BooleanArg = CLIArg;
+
+/**
+ * Any other argument is provided raw in process.argv as a string.
+ * It can remain a string, or can be transformed into another type by a custom `parse` function.
+ * It can be optional (by providing a default) or required (no default value).
+ */
+type StringArg<T = unknown> = CLIArg & {
+    default?: T;
+    parse?: (val: string) => T;
 };
 
 /**
- * This config is passed to the constructor to define your CLI.
+ * A positional argument is just a string arg, but also must be assigned a name which we will eventually expose the CLI consumer.
  */
-type CLIConfig = {
-    flags?: Record<string, Flag>;
-    params?: Record<string, Param>;
+type PositionalArg<T = unknown> = StringArg<T> & {
+    name: string;
 };
 
-type ParsedFlags<Flags extends Record<string, Flag>> = {
-    [K in keyof Flags]: Flags[K] extends BooleanFlag ? boolean : string;
+/**
+ * This type represents the config for a CLI.
+ * Note: this utility does not yet support variadic args of any kind.
+ */
+type CLIConfig = NonEmptyObject<{
+    /**
+     * Record of named flags that are fully characterized by their presence or absence (present=true,absent=false).
+     * @example `--verbose`
+     */
+    flags?: Record<string, BooleanArg>;
+
+    /**
+     * Record of named arguments that are represented by a key and a value.
+     * @example `--threads=8`
+     * @example `--name Rory`
+     */
+    namedArgs?: Record<string, StringArg>;
+
+    /**
+     * Tuple of positional args.
+     * @example `myScript.ts arg1 arg2 arg3`
+     */
+    positionalArgs?: NonEmptyTuple<PositionalArg>;
+}>;
+
+/**
+ * Record of flags to boolean after parsing.
+ */
+type ParsedFlags<Flags extends CLIConfig['flags']> = {
+    [K in keyof NonNullable<Flags>]: boolean;
 };
 
-type ParsedParams<Params extends Record<string, Param>> = {
-    [K in keyof Params]: string;
+/**
+ * Utility type to infer the final value of a string param. Either:
+ * - it's a plain string, or
+ * - it has a parse function and the final value is inferred from the return type of that function
+ */
+type InferStringArgParsedValue<T extends StringArg> = T extends {parse: (val: string) => infer R} ? R : string;
+
+/**
+ * Record of named args after parsing.
+ */
+type ParsedNamedArgs<NamedArgs extends CLIConfig['namedArgs']> = {
+    [K in keyof NonNullable<NamedArgs>]: InferStringArgParsedValue<NonNullable<NamedArgs>[K]>;
+};
+
+/**
+ * Record of positional args after parsing.
+ */
+type ParsedPositionalArgs<PositionalArgs extends CLIConfig['positionalArgs']> = {
+    [K in NonNullable<PositionalArgs>[number] as K['name']]: InferStringArgParsedValue<K>;
 };
 
 /**
@@ -50,161 +89,205 @@ type ParsedParams<Params extends Record<string, Param>> = {
  * @example
  * ```
  * const cli = new CLI({
- *     parameters: {
- *         firstName: {
- *             type: String,
- *             description: 'First name to greet',
- *         },
- *         lastName: {
- *             type: String,
- *             description: 'Optional last name',
- *             default: '',
- *         },
- *     },
  *     flags: {
- *         time: {
- *             type: String,
- *             description: 'Time of day to greet (morning or evening)',
- *             default: 'morning',
- *             validate: (val) => {
- *                 if (val !== 'morning' && val !== 'evening') {
- *                     throw new Error('Must be "morning" or "evening"');
- *                 }
- *                 return val;
- *             },
- *         },
  *         verbose: {
- *             type: Boolean,
  *             description: 'Enable verbose logging',
  *         },
  *     },
+ *     namedArgs: {
+ *         time: {
+ *             description: 'Time of day to greet (morning or evening)',
+ *             default: 'morning',
+ *             parse: (val) => {
+ *                 if (val !== 'morning' && val !== 'evening') {
+ *                     throw new Error('Must be "morning" or "evening"');
+ *                 }
+ *                 return val as 'morning' | 'evening';
+ *             },
+ *         },
+ *     },
+ *     positionalArgs: [
+ *         {
+ *             name: 'firstName'
+ *             description: 'First name to greet',
+ *         },
+ *         {
+ *             name: 'lastName',
+ *             description: 'Last name to greet',
+ *             default: '',
+ *         },
+ *     ],
  * });
  *
- * console.log(cli.parameters.firstName);
+ * let fullName = cli.parameters.firstName;
  * if (cli.flags.verbose) {
- *     console.debug(cli.parameters.lastName)
+ *     fullName += cli.parameters.lastName;
  * }
+ * console.log(fullName);
  * console.log(cli.flags.time);
  * ```
  */
-class CLI<Flags extends Record<string, Flag> = Record<string, never>, Params extends Record<string, Param> = Record<string, never>> {
+class CLI<Flags extends CLIConfig['flags'], NamedArgs extends CLIConfig['namedArgs'], PositionalArgs extends CLIConfig['positionalArgs']> {
+    /**
+     * Flags after parsing.
+     */
     public readonly flags: ParsedFlags<Flags>;
 
-    public readonly params: ParsedParams<Params>;
+    /**
+     * Named args after parsing.
+     */
+    public readonly namedArgs: ParsedNamedArgs<NamedArgs>;
+
+    /**
+     * Positional args after parsing, collected into a record keyed by the name of each arg.
+     */
+    public readonly positionalArgs: ParsedPositionalArgs<PositionalArgs>;
 
     constructor(private readonly config: CLIConfig) {
         const rawArgs = process.argv.slice(2);
-        const parsedFlags: Record<string, string | boolean> = {};
-        const parsedParams: string[] = [];
 
-        // Parse raw args passed into the CLI
-        for (let i = 0; i < rawArgs.length; i++) {
-            const rawArg = rawArgs.at(i);
-            if (rawArg === undefined) {
-                continue;
-            }
+        // Handle help command
+        if (rawArgs.includes('help') || rawArgs.includes('--help')) {
+            this.printHelp();
+            process.exit(0);
+        }
 
-            if (rawArg.startsWith('--')) {
-                const [flagName, rawValue] = rawArg.slice(2).split('=');
-                const flagSpec = config.flags?.[flagName];
+        try {
+            // Initialize all flags to false by default
+            this.flags = Object.fromEntries(Object.keys(config.flags ?? {}).map((key) => [key, false])) as typeof this.flags;
 
-                if (flagSpec === undefined) {
-                    console.warn(`Unknown flag: --${flagName}`);
+            const parsedNamedArgs: Partial<Writable<typeof this.namedArgs>> = {};
+            const parsedPositionalArgs: Partial<Writable<typeof this.positionalArgs>> = {};
+            let positionalIndex = 0;
+            for (let i = 0; i < rawArgs.length; i++) {
+                const rawArg = rawArgs.at(i);
+                if (rawArg === undefined) {
                     continue;
                 }
 
-                if (flagSpec.type === Boolean) {
-                    parsedFlags[flagName] = true;
-                    continue;
-                }
+                if (rawArg.startsWith('--')) {
+                    // Either a flag or a named param
+                    const [rawArgName, rawArgValue] = rawArg.slice(2).split('=');
+                    if (rawArgName in this.flags) {
+                        // Arg is a flag
+                        this.flags[rawArgName as keyof typeof this.flags] = true;
+                    } else if (config.namedArgs && rawArgName in config.namedArgs) {
+                        // Arg is a named arg
+                        // Grab the value from the split token, otherwise go for the next token
+                        let argValueBeforeParse = '';
+                        if (rawArgValue) {
+                            argValueBeforeParse = rawArgValue;
+                        } else {
+                            argValueBeforeParse = rawArgs.at(++i) ?? '';
+                            if (!argValueBeforeParse || argValueBeforeParse.startsWith('--')) {
+                                throw new Error(`Missing value for --${rawArgName}`);
+                            }
+                        }
 
-                const value = rawValue ?? rawArgs.at(i + 1);
-                if (value === undefined || value.startsWith('--')) {
-                    console.error(`Missing value for --${flagName}`);
-                    process.exit(1);
-                }
-
-                if ('validate' in flagSpec && !!flagSpec.validate) {
-                    try {
-                        parsedFlags[flagName] = flagSpec.validate(value);
-                    } catch (error) {
-                        console.error(`Invalid value for --${flagName}: ${String(error)}`);
+                        const spec = config.namedArgs[rawArgName];
+                        parsedNamedArgs[rawArgName as keyof typeof parsedNamedArgs] = CLI.parseStringArg(argValueBeforeParse, rawArgName, spec) as ValueOf<typeof parsedNamedArgs>;
+                    } else {
+                        console.error(`Unknown flag: --${rawArgName}`);
                         process.exit(1);
                     }
                 } else {
-                    parsedFlags[flagName] = value;
+                    // Arg is a positional arg
+                    const spec = config.positionalArgs?.at(positionalIndex);
+                    if (spec === undefined) {
+                        throw new Error(`Unexpected arg: ${rawArg}`);
+                    }
+                    parsedPositionalArgs[spec.name as keyof typeof parsedPositionalArgs] = CLI.parseStringArg(rawArg, spec.name, spec) as ValueOf<typeof parsedPositionalArgs>;
+                    positionalIndex++;
                 }
-
-                // rawValue is only NOT undefined when the flag and value are passed like --flag=value
-                if (rawValue === undefined) {
-                    i++;
-                }
-            } else {
-                parsedParams.push(rawArg);
-            }
-        }
-
-        // Validate that required flags are present
-        this.flags = {} as ParsedFlags<Flags>;
-        for (const [flagName, flagSpec] of Object.entries(config.flags ?? {})) {
-            if (flagSpec.type === Boolean) {
-                this.flags[flagName as keyof Flags] = !!parsedFlags[flagName] as ParsedFlags<Flags>[typeof flagName];
-            } else {
-                const val = parsedFlags[flagName] ?? flagSpec.default;
-                if (val === undefined) {
-                    console.error(`Missing required flag: --${flagName}`);
-                    this.printHelp();
-                    process.exit(1);
-                }
-                this.flags[flagName as keyof Flags] = val as ParsedFlags<Flags>[typeof flagName];
-            }
-        }
-
-        // Validate that required params are present
-        this.params = {} as ParsedParams<Params>;
-        const paramEntries = Object.entries(config.params ?? {});
-        for (let i = 0; i < paramEntries.length; i++) {
-            const paramEntry = paramEntries.at(i);
-            if (!paramEntry) {
-                continue;
             }
 
-            const [name, spec] = paramEntry;
-            const val = parsedParams.at(i) ?? spec.default;
+            // Validate that all required args are present, assign defaults where values are not parsed
+            for (const [name, spec] of Object.entries(config.namedArgs ?? {})) {
+                if (!(name in parsedNamedArgs)) {
+                    if (spec.default) {
+                        parsedNamedArgs[name as keyof typeof parsedNamedArgs] = spec.default as ValueOf<typeof parsedNamedArgs>;
+                    } else {
+                        throw new Error(`Missing required named argument --${name}`);
+                    }
+                }
+            }
+            for (const spec of config.positionalArgs ?? []) {
+                if (!(spec.name in parsedPositionalArgs)) {
+                    if (spec.default) {
+                        parsedPositionalArgs[spec.name as keyof typeof parsedPositionalArgs] = spec.default as ValueOf<typeof parsedPositionalArgs>;
+                    } else {
+                        throw new Error(`Missing required positional argument --${spec.name}`);
+                    }
+                }
+            }
 
-            if (val === undefined) {
-                console.error(`Missing required parameter: <${name}>`);
+            this.namedArgs = parsedNamedArgs as typeof this.namedArgs;
+            this.positionalArgs = parsedPositionalArgs as unknown as typeof this.positionalArgs;
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
                 this.printHelp();
-                process.exit(1);
+            } else {
+                console.error('An unexpected error occurred initializing the CLI.');
             }
-
-            this.params[name as keyof Params] = val;
-        }
-
-        // print help if the help flag is provided
-        if ('help' in this.flags && this.flags.help === true) {
-            this.printHelp();
-            process.exit(0);
+            process.exit(1);
         }
     }
 
     private printHelp(): void {
-        const paramUsage = Object.entries(this.config.params ?? {})
-            .map(([name, spec]) => (spec.default === undefined ? `<${name}>` : `[${name}]`))
+        const {flags = {}, namedArgs = {}, positionalArgs = []} = this.config;
+        const scriptName = process.argv.at(1) ?? 'script.ts';
+        const positionalUsage = positionalArgs.map((arg) => (arg.default === undefined ? `<${arg.name}>` : `[${arg.name}]`)).join(' ');
+        const namedArgUsage = Object.keys(namedArgs)
+            .map((key) => `[--${key} <value>]`)
+            .join(' ');
+        const flagUsage = Object.keys(flags)
+            .map((key) => `[--${key}]`)
             .join(' ');
 
-        console.log(`\nUsage: npx ts-node ${process.argv.at(1) ?? ''} [options] ${paramUsage}\n`);
-        console.log('Options:');
+        console.log(`\nUsage: npx ts-node ${scriptName} ${flagUsage} ${namedArgUsage} ${positionalUsage}\n`);
 
-        for (const [name, spec] of Object.entries(this.config.flags ?? {})) {
-            const typeLabel = spec.type === Boolean ? 'boolean' : 'string';
-            const defaultLabel = 'default' in spec && spec.default !== undefined ? ` (default: ${spec.default})` : '';
-            console.log(`  --${name.padEnd(20)} ${spec.description} [${typeLabel}]${defaultLabel}`);
+        if (Object.keys(flags).length > 0) {
+            console.log('Flags:');
+            for (const [name, spec] of Object.entries(flags)) {
+                console.log(`  --${name.padEnd(20)} ${spec.description}`);
+            }
+            console.log('');
         }
 
-        for (const [name, spec] of Object.entries(this.config.params ?? {})) {
-            const defaultLabel = spec.default !== undefined ? ` (default: ${spec.default})` : '';
-            console.log(`  <${name.padEnd(18)}> ${spec.description}${defaultLabel}`);
+        if (Object.keys(namedArgs).length > 0) {
+            console.log('Named Arguments:');
+            for (const [name, spec] of Object.entries(namedArgs)) {
+                const defaultLabel = spec.default !== undefined ? ` (default: ${String(spec.default)})` : '';
+                console.log(`  --${name.padEnd(20)} ${spec.description}${defaultLabel}`);
+            }
+            console.log('');
+        }
+
+        if (positionalArgs.length > 0) {
+            console.log('Positional Arguments:');
+            for (const arg of positionalArgs) {
+                const defaultLabel = arg.default !== undefined ? ` (default: ${String(arg.default)})` : '';
+                console.log(`  ${arg.name.padEnd(22)} ${arg.description}${defaultLabel}`);
+            }
+            console.log('');
+        }
+    }
+
+    private static parseStringArg<T extends StringArg>(rawString: string, paramName: string, spec: T): InferStringArgParsedValue<T> {
+        if ('parse' in spec && !!spec.parse) {
+            try {
+                return spec.parse(rawString) as InferStringArgParsedValue<T>;
+            } catch (error) {
+                let errorMessage = '';
+                if (error instanceof Error) {
+                    errorMessage = error.message;
+                }
+                console.error(`Invalid value for --${paramName}: ${errorMessage}`);
+                process.exit(1);
+            }
+        } else {
+            return rawString as InferStringArgParsedValue<T>;
         }
     }
 }

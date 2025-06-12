@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 import CLI from '../../scripts/utils/CLI';
+import StringUtils from '../../src/libs/StringUtils';
 
 function withProcessArgs<T>(args: string[], fn: () => T): T {
     const originalArgs = process.argv;
@@ -30,13 +31,13 @@ describe('CLI', () => {
         jest.resetAllMocks();
     });
 
-    it('parses boolean flags with defaults', () => {
+    it('parses boolean flags with default false', () => {
         const cli = withProcessArgs(
             [],
             () =>
                 new CLI({
                     flags: {
-                        verbose: {type: Boolean, description: 'Enable verbose', default: false},
+                        verbose: {description: 'Enable verbose mode'},
                     },
                 }),
         );
@@ -50,7 +51,7 @@ describe('CLI', () => {
             () =>
                 new CLI({
                     flags: {
-                        verbose: {type: Boolean, description: 'Enable verbose', default: false},
+                        verbose: {description: 'Enable verbose mode'},
                     },
                 }),
         );
@@ -58,150 +59,198 @@ describe('CLI', () => {
         expect(cli.flags.verbose).toBe(true);
     });
 
-    it('parses string flags with default', () => {
+    it('parses named arg with default', () => {
         const cli = withProcessArgs(
             [],
             () =>
                 new CLI({
-                    flags: {
-                        name: {type: String, description: 'Your name', default: 'Guest'},
+                    namedArgs: {
+                        name: {description: 'Your name', default: 'Guest'},
                     },
                 }),
         );
 
-        expect(cli.flags.name).toBe('Guest');
+        expect(cli.namedArgs.name).toBe('Guest');
     });
 
-    it('uses string flag value from command line', () => {
+    it('uses named arg value from command line', () => {
         const cli = withProcessArgs(
             ['--name=Alice'],
             () =>
                 new CLI({
-                    flags: {
-                        name: {type: String, description: 'Your name', default: 'Guest'},
+                    namedArgs: {
+                        name: {description: 'Your name', default: 'Guest'},
                     },
                 }),
         );
 
-        expect(cli.flags.name).toBe('Alice');
+        expect(cli.namedArgs.name).toBe('Alice');
     });
 
-    it('supports "--flag value" syntax for strings', () => {
+    it('supports "--arg value" syntax', () => {
         const cli = withProcessArgs(
             ['--name', 'Bob'],
             () =>
                 new CLI({
-                    flags: {
-                        name: {type: String, description: 'Your name', default: 'Guest'},
+                    namedArgs: {
+                        name: {description: 'Your name'},
                     },
                 }),
         );
 
-        expect(cli.flags.name).toBe('Bob');
+        expect(cli.namedArgs.name).toBe('Bob');
     });
 
-    it('throws if required string flag is missing', () => {
+    it('throws if required named arg is missing', () => {
         expect(() =>
             withProcessArgs(
                 [],
                 () =>
                     new CLI({
-                        flags: {
-                            name: {type: String, description: 'Your name'},
+                        namedArgs: {
+                            name: {description: 'Required arg'},
                         },
                     }),
             ),
         ).toThrow();
-        expect(mockError).toHaveBeenCalledWith('Missing required flag: --name');
+        expect(mockError).toHaveBeenCalledWith('Missing required named argument --name');
     });
 
-    it('throws on invalid value if validator fails', () => {
+    it('throws on invalid named arg value from parse function', () => {
         expect(() =>
             withProcessArgs(
-                ['--name', '123'],
+                ['--count', 'abc'],
                 () =>
                     new CLI({
-                        flags: {
-                            name: {
-                                type: String,
-                                description: 'Your name',
-                                validate: (val) => {
-                                    if (!val.match(/^[A-Za-z]+$/)) {
-                                        throw new Error('invalid name');
+                        namedArgs: {
+                            count: {
+                                description: 'Numeric value',
+                                parse: (val) => {
+                                    const num = Number(val);
+                                    if (Number.isNaN(num)) {
+                                        throw new Error('Must be a number');
                                     }
-                                    return val;
+                                    return num;
                                 },
                             },
                         },
                     }),
             ),
         ).toThrow();
-        expect(mockError).toHaveBeenCalledWith('Invalid value for --name: Error: invalid name');
+        expect(mockError).toHaveBeenCalledWith('Invalid value for --count: Must be a number');
     });
 
-    it('parses required positional parameter', () => {
+    it('parses required positional arg', () => {
         const cli = withProcessArgs(
             ['Hello'],
             () =>
                 new CLI({
-                    params: {
-                        greeting: {type: String, description: 'Greeting'},
-                    },
+                    positionalArgs: [{name: 'greeting', description: 'Greeting'}],
                 }),
         );
 
-        expect(cli.params.greeting).toBe('Hello');
+        expect(cli.positionalArgs.greeting).toBe('Hello');
     });
 
-    it('uses default for optional positional param', () => {
+    it('uses default for optional positional arg', () => {
         const cli = withProcessArgs(
             [],
             () =>
                 new CLI({
-                    params: {
-                        greeting: {type: String, description: 'Greeting', default: 'Hi'},
-                    },
+                    positionalArgs: [{name: 'greeting', description: 'Greeting', default: 'Hi'}],
                 }),
         );
 
-        expect(cli.params.greeting).toBe('Hi');
+        expect(cli.positionalArgs.greeting).toBe('Hi');
     });
 
-    it('throws for missing required positional param', () => {
+    it('throws for missing required positional arg', () => {
         expect(() =>
             withProcessArgs(
                 [],
                 () =>
                     new CLI({
-                        params: {
-                            greeting: {type: String, description: 'Greeting'},
-                        },
+                        positionalArgs: [{name: 'greeting', description: 'Greeting'}],
                     }),
             ),
         ).toThrow();
-        expect(mockError).toHaveBeenCalledWith('Missing required parameter: <greeting>');
+        expect(mockError).toHaveBeenCalledWith('Missing required positional argument --greeting');
     });
 
-    it('prints help and exits with --help flag', () => {
+    it('parses custom type with parse function', () => {
+        const cli = withProcessArgs(
+            ['--langs', 'en,fr,es'],
+            () =>
+                new CLI({
+                    namedArgs: {
+                        langs: {
+                            description: 'Languages',
+                            parse: (val) => val.split(','),
+                        },
+                    },
+                }),
+        );
+
+        expect(cli.namedArgs.langs).toEqual(['en', 'fr', 'es']);
+    });
+
+    it('prints help message and exits with --help flag', () => {
         expect(() =>
             withProcessArgs(
                 ['--help'],
                 () =>
                     new CLI({
                         flags: {
-                            help: {type: Boolean, description: 'Show help', default: false},
-                            verbose: {type: Boolean, description: 'Verbose', default: false},
+                            verbose: {description: 'Enable verbose logging'},
                         },
-                        params: {
-                            greeting: {type: String, description: 'Greeting', default: 'Hi'},
+                        namedArgs: {
+                            time: {
+                                description: 'Time of day to greet (morning or evening)',
+                                default: 'morning',
+                                parse: (val) => {
+                                    if (val !== 'morning' && val !== 'evening') {
+                                        throw new Error('Must be "morning" or "evening"');
+                                    }
+                                    return val;
+                                },
+                            },
                         },
+                        positionalArgs: [
+                            {
+                                name: 'firstName',
+                                description: 'First name to greet',
+                            },
+                            {
+                                name: 'lastName',
+                                description: 'Last name to greet',
+                                default: '',
+                            },
+                        ],
                     }),
             ),
         ).toThrow('exit');
 
-        const calls = mockLog.mock.calls.flat();
+        const scriptName = 'script.ts'; // Adjust if your tests override process.argv[1]
+        const expectedOutput = StringUtils.dedent(
+            `
+            Usage: npx ts-node ${scriptName} [--verbose] [--time <value>] <firstName> [lastName]
 
-        expect(calls.some((line) => typeof line === 'string' && line.includes('Usage'))).toBe(true);
+            Flags:
+              --verbose              Enable verbose logging
+
+            Named Arguments:
+              --time                 Time of day to greet (morning or evening) (default: morning)
+
+            Positional Arguments:
+              firstName              First name to greet
+              lastName               Last name to greet (default: )
+        `,
+        ).trim();
+
+        // Join lines and strip indentation before comparison
+        const actualOutput = mockLog.mock.calls.flat().join('\n').trim();
+
+        expect(actualOutput).toBe(expectedOutput);
         expect(mockExit).toHaveBeenCalledWith(0);
     });
 });
