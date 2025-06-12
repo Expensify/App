@@ -2894,7 +2894,6 @@ function getInvoiceReceiverIcons(
     report: OnyxInputOrEntry<Report>,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     invoiceReceiverPolicy: OnyxInputOrEntry<Policy>,
-    allReports: OnyxCollection<Report>,
 ): Icon[] {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
         return getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails);
@@ -2922,7 +2921,6 @@ function getIconsForExpenseRequest(
     report: OnyxInputOrEntry<Report>,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
-    allReportActions: OnyxCollection<ReportActions>,
 ): Icon[] {
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
     const workspaceIcon = getWorkspaceIcon(report, policy);
@@ -2937,7 +2935,6 @@ function getIconsForChatThread(
     report: OnyxInputOrEntry<Report>,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
-    allReportActions: OnyxCollection<ReportActions>,
 ): Icon[] {
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
     const actorAccountID = getReportActionActorAccountID(parentReportAction, report, report);
@@ -2957,10 +2954,9 @@ function getIconsForTaskReport(
     report: OnyxInputOrEntry<Report>,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
-    allReports: OnyxCollection<Report>,
 ): Icon[] {
     const ownerIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, true);
-    if (isWorkspaceTaskReport(report, allReports)) {
+    if (isWorkspaceTaskReport(report)) {
         const workspaceIcon = getWorkspaceIcon(report, policy);
         return [ownerIcon, workspaceIcon];
     }
@@ -2990,11 +2986,10 @@ function getIconsForPolicyRoom(
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
     invoiceReceiverPolicy: OnyxInputOrEntry<Policy>,
-    allReports: OnyxCollection<Report>,
 ): Icon[] {
     const icons = [getWorkspaceIcon(report, policy)];
     if (isInvoiceRoom(report)) {
-        icons.push(...getInvoiceReceiverIcons(report, personalDetails, invoiceReceiverPolicy, allReports));
+        icons.push(...getInvoiceReceiverIcons(report, personalDetails, invoiceReceiverPolicy));
     }
     return icons;
 }
@@ -3020,8 +3015,8 @@ function getIconsForExpenseReport(report: OnyxInputOrEntry<Report>, personalDeta
 /**
  * Helper function to get the icons for an IOU report. Only to be used in getIcons().
  */
-function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, allReportActions: OnyxCollection<ReportActions>): Icon[] {
-    if (isOneTransactionReport(report?.reportID, allReportActions)) {
+function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>,): Icon[] {
+    if (isOneTransactionReport(report?.reportID)) {
         return [getParticipantIcon(report?.ownerAccountID, personalDetails, true)];
     }
 
@@ -3053,12 +3048,11 @@ function getIconsForInvoiceReport(
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
     invoiceReceiverPolicy: OnyxInputOrEntry<Policy>,
-    allReports: OnyxCollection<Report>,
 ): Icon[] {
     const invoiceRoomReport = getReportOrDraftReport(report.chatReportID);
     const icons = [getWorkspaceIcon(invoiceRoomReport, policy)];
     if (invoiceRoomReport) {
-        icons.push(...getInvoiceReceiverIcons(invoiceRoomReport, personalDetails, invoiceReceiverPolicy, allReports));
+        icons.push(...getInvoiceReceiverIcons(invoiceRoomReport, personalDetails, invoiceReceiverPolicy));
     }
     return icons;
 }
@@ -3071,8 +3065,6 @@ function getIcons(
     defaultAccountID = -1,
     policy?: OnyxInputOrEntry<Policy>,
     invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>,
-    allReportActionsParam: OnyxCollection<ReportActions> = allReportActions,
-    allReportsParam: OnyxCollection<Report> = allReports,
 ): Icon[] {
     if (isEmptyObject(report)) {
         return [
@@ -3085,19 +3077,19 @@ function getIcons(
         ];
     }
     if (isExpenseRequest(report)) {
-        return getIconsForExpenseRequest(report, personalDetails, policy, allReportActionsParam);
+        return getIconsForExpenseRequest(report, personalDetails, policy);
     }
     if (isChatThread(report)) {
-        return getIconsForChatThread(report, personalDetails, policy, allReportActionsParam);
+        return getIconsForChatThread(report, personalDetails, policy);
     }
     if (isTaskReport(report)) {
-        return getIconsForTaskReport(report, personalDetails, policy, allReportsParam);
+        return getIconsForTaskReport(report, personalDetails, policy);
     }
     if (isDomainRoom(report)) {
         return getIconsForDomainRoom(report);
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
-        return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy, allReportsParam);
+        return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy);
     }
     if (isPolicyExpenseChat(report)) {
         return getIconsForPolicyExpenseChat(report, personalDetails, policy);
@@ -3106,7 +3098,7 @@ function getIcons(
         return getIconsForExpenseReport(report, personalDetails, policy);
     }
     if (isIOUReport(report)) {
-        return getIconsForIOUReport(report, personalDetails, allReportActionsParam);
+        return getIconsForIOUReport(report, personalDetails);
     }
     if (isSelfDM(report)) {
         return getIconsForParticipants([currentUserAccountID ?? -1], personalDetails);
@@ -3118,7 +3110,7 @@ function getIcons(
         return getIconsForGroupChat(report);
     }
     if (isInvoiceReport(report)) {
-        return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy, allReportsParam);
+        return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy);
     }
     if (isOneOnOneChat(report)) {
         const otherParticipantsAccountIDs = Object.keys(report.participants ?? {})
