@@ -149,6 +149,7 @@ import {
     isUnread,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
+    getNextApproverAccountID,
 } from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -191,7 +192,6 @@ import type {NotificationPreference, Participants, Participant as ReportParticip
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey} from './CachedPDFPaths';
-import {getNextApproverAccountID} from './IOU';
 import {setDownload} from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
@@ -5419,7 +5419,7 @@ function updatePolicyIdForReportAndThreads(
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
-function changeReportPolicy(reportID: string, policyID: string, reportNextStep: ReportNextStep) {
+function changeReportPolicy(reportID: string, policyID: string, reportNextStep?: ReportNextStep) {
     if (!reportID || !policyID) {
         return;
     }

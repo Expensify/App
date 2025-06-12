@@ -45,6 +45,7 @@ import {
     navigateOnDeleteExpense,
     navigateToDetailsPage,
     reportTransactionsSelector,
+    getNextApproverAccountID,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
@@ -67,7 +68,6 @@ import {
     canIOUBePaid as canIOUBePaidAction,
     deleteMoneyRequest,
     getNavigationUrlOnMoneyRequestDelete,
-    getNextApproverAccountID,
     initSplitExpense,
     payInvoice,
     payMoneyRequest,
