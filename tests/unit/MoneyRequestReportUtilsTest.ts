@@ -23,14 +23,14 @@ describe('MoneyRequestReportUtils', () => {
             expect(resultID).toBe('thread123');
         });
 
-        it('returns reportID if its from one transaction report from self DM, ', () => {
+        it('returns expense reportID if its from one transaction report', () => {
             const transactionItem = {...transactionItemBaseMock, isFromOneTransactionReport: true};
             const resultID = getReportIDForTransaction(transactionItem);
 
             expect(resultID).toBe('report123');
         });
 
-        it('returns reportID if transaction thread ID is an unreported report', () => {
+        it('returns reportID if transaction thread ID is 0 - unreported', () => {
             const transactionItem = {...transactionItemBaseMock, transactionThreadReportID: CONST.REPORT.UNREPORTED_REPORT_ID};
             const resultID = getReportIDForTransaction(transactionItem);
 
