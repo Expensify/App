@@ -432,15 +432,30 @@ function WorkspacesListPage() {
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                     action: () => navigateToWorkspace(policy.id),
-                    brickRoadIndicator: !isPolicyAdmin(policy)
-                        ? undefined
-                        : reimbursementAccountBrickRoadIndicator ??
-                          getPolicyBrickRoadIndicatorStatus(
-                              policy,
-                              isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                          ),
+                    brickRoadIndicator: (() => {
+                        if (!isPolicyAdmin(policy)) {
+                            const hasEmployeeErrors = Object.keys(policy.employeeList?.[session?.email ?? '']?.errors ?? {}).length > 0;
+                            return hasEmployeeErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+                        }
+
+                        if (reimbursementAccountBrickRoadIndicator) {
+                            return reimbursementAccountBrickRoadIndicator;
+                        }
+
+                        const isSyncInProgress = isConnectionInProgress(
+                            allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`],
+                            policy,
+                        );
+                        return getPolicyBrickRoadIndicatorStatus(policy, isSyncInProgress);
+                    })(),
                     pendingAction: policy.pendingAction,
-                    errors: policy.errors,
+                    errors: (() => {
+                        const mergedErrors = {
+                            ...(policy.errors ?? {}),
+                            ...(policy.employeeList?.[session?.email ?? '']?.errors ?? {}),
+                        };
+                        return Object.keys(mergedErrors).length > 0 ? mergedErrors : null;
+                    })(),
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
