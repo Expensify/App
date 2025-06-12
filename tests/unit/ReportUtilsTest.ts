@@ -1181,6 +1181,51 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
             });
         });
+
+        describe('Teachers Unite policy logic', () => {
+            const teachersUniteTestPolicyID = CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+            const otherPolicyID = 'normal-policy-id';
+
+            it('should hide Create Expense option and show Split Expense for Teachers Unite policy', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    policyID: teachersUniteTestPolicyID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+
+                // Should not include SUBMIT (Create Expense)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+
+                // Should include SPLIT (Split Expense)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+
+                // Should include other options like TRACK
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+            });
+
+            it('should show Create Expense option and hide Split Expense for non-Teachers Unite policy', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    policyID: otherPolicyID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+
+                // Should include SUBMIT (Create Expense)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
+
+                // Should not include SPLIT (Split Expense)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+
+                // Should include other options like TRACK
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+            });
+        });
     });
 
     describe('getReportIDFromLink', () => {
