@@ -276,7 +276,7 @@ function isAmountTooLong(amount: number, maxLength = 8): boolean {
 
 function isTransactionAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const amount = Math.abs(transactionItem.modifiedAmount || transactionItem.amount);
+    const amount = Math.abs(transactionItem.modifiedAmount ?? transactionItem.amount);
     return isAmountTooLong(amount);
 }
 
@@ -304,10 +304,10 @@ function getWideAmountIndicators(data: TransactionListItemType[] | ReportListIte
             if (isReportListItemType(item)) {
                 const transactions = item.transactions ?? [];
                 for (const transaction of transactions) {
+                    processTransaction(transaction);
                     if (isAmountWide && isTaxAmountWide) {
                         break;
                     }
-                    processTransaction(transaction);
                 }
             } else if (isTransactionListItemType(item)) {
                 processTransaction(item);
@@ -315,23 +315,10 @@ function getWideAmountIndicators(data: TransactionListItemType[] | ReportListIte
             return isAmountWide && isTaxAmountWide;
         });
     } else {
-        Object.entries(data).some(([key, value]) => {
+        Object.keys(data).some((key) => {
             if (isTransactionEntry(key)) {
-                processTransaction(value as TransactionListItemType);
-            } else if (isReportEntry(key)) {
-                const report = getReportFromKey(data, key);
-
-                if (!report) {
-                    return isAmountWide && isTaxAmountWide;
-                }
-
-                const transactions = getTransactionsForReport(data, report.reportID);
-                for (const transaction of transactions) {
-                    if (isAmountWide && isTaxAmountWide) {
-                        break;
-                    }
-                    processTransaction(transaction);
-                }
+                const item = data[key];
+                processTransaction(item);
             }
             return isAmountWide && isTaxAmountWide;
         });
