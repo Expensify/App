@@ -85,7 +85,6 @@ describe('SidebarLinks', () => {
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
             ...mockedResponseMap,
         });
 
@@ -108,7 +107,6 @@ describe('SidebarLinks', () => {
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
             ...mockedResponseMap,
         });
 

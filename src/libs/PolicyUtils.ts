@@ -57,7 +57,9 @@ type ConnectionWithLastSyncData = {
 
 let allPolicies: OnyxCollection<Policy>;
 let activePolicyId: OnyxEntry<string>;
-let isLoadingReportData = true;
+// For library usage, we'll default to false since most policy operations
+// don't need to wait for report data loading
+let isLoadingReportData = false;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -68,12 +70,6 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyId = value),
-});
-
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
-    callback: (value) => (isLoadingReportData = value ?? false),
 });
 
 /**

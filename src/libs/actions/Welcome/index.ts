@@ -18,7 +18,10 @@ import {clearInitialPath} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 
-let isLoadingReportData = true;
+// Note: Previously used IS_LOADING_REPORT_DATA but now using queue-based detection
+// For simplicity, we'll resolve immediately since the queue-based approach 
+// handles loading states more effectively
+let isLoadingReportData = false;
 let tryNewDotData: TryNewDot | undefined;
 let onboarding: OnboardingData;
 
@@ -170,15 +173,6 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
-    callback: (value) => {
-        isLoadingReportData = value ?? false;
-        checkServerDataReady();
-    },
-});
-
-Onyx.connect({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         tryNewDotData = value;
@@ -193,7 +187,7 @@ function resetAllChecks() {
     isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
         resolveOnboardingFlowStatus = resolve;
     });
-    isLoadingReportData = true;
+    isLoadingReportData = false;
     isOnboardingInProgress = false;
     clearInitialPath();
 }

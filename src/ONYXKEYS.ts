@@ -297,9 +297,6 @@ const ONYXKEYS = {
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
     /** Is report data loading? */
-    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
-
-    /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
     /** Is the app loaded? */
@@ -1085,7 +1082,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.FREQUENTLY_USED_EMOJIS]: OnyxTypes.FrequentlyUsedEmoji[];
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
-    [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;

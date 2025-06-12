@@ -5,6 +5,7 @@ import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useReportDataLoading from '@hooks/useReportDataLoading';
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -66,7 +67,7 @@ export default function (
             const [betas] = useOnyx(ONYXKEYS.BETAS);
             const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
-            const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+            const isLoadingReportData = useReportDataLoading(false);
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
@@ -89,7 +90,7 @@ export default function (
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
-                const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
+                const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData || shouldFetchReport);
                 const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, policies, betas);
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
