@@ -367,7 +367,7 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        shouldUseDefaultLineHeight={Object.keys(StyleSheet.flatten(prefixStyle)).includes('lineHeight')}
+                                        shouldUseDefaultLineHeight={!Object.keys(StyleSheet.flatten(prefixStyle)).includes('lineHeight')}
                                     >
                                         {prefixCharacter}
                                     </Text>
