@@ -29,6 +29,15 @@ const transactionID2 = '2';
 const transactionID3 = '3';
 const transactionID4 = '4';
 
+const allViolations = {
+    [`transactionViolations_${transactionID2}`]: [
+        {
+            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        },
+    ],
+};
+
 // Given search data results consisting of involved users' personal details, policyID, reportID and transactionID
 const searchResults: OnyxTypes.SearchResults = {
     data: {
@@ -232,6 +241,7 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             policyID,
             reportID,
             reportType: 'expense',
@@ -239,6 +249,13 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID,
             transactionThreadReportID: '456',
             transactionType: 'cash',
+            receipt: undefined,
+            taxAmount: undefined,
+            mccGroup: undefined,
+            modifiedMCCGroup: undefined,
+            moneyRequestReportActionID: undefined,
+            errors: undefined,
+            isActionLoading: false,
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
@@ -271,13 +288,16 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID: transactionID2,
             transactionThreadReportID: '456',
             transactionType: 'cash',
+            receipt: undefined,
+            taxAmount: undefined,
+            mccGroup: undefined,
+            modifiedMCCGroup: undefined,
+            moneyRequestReportActionID: undefined,
+            pendingAction: undefined,
+            errors: undefined,
+            isActionLoading: false,
         },
-        [`transactionViolations_${transactionID2}`]: [
-            {
-                name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-        ],
+        ...allViolations,
         [`transactions_${transactionID3}`]: {
             accountID: adminAccountID,
             amount: 1200,
@@ -307,6 +327,16 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID: transactionID3,
             transactionThreadReportID: '8287398995021380',
             transactionType: 'cash',
+            receipt: undefined,
+            taxAmount: undefined,
+            description: '',
+            mccGroup: undefined,
+            modifiedMCCGroup: undefined,
+            moneyRequestReportActionID: undefined,
+            pendingAction: undefined,
+            errors: undefined,
+            isActionLoading: false,
+            hasViolation: undefined,
         },
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
@@ -337,6 +367,16 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID: transactionID3,
             transactionThreadReportID: '1014872441234902',
             transactionType: 'cash',
+            description: '',
+            receipt: undefined,
+            taxAmount: undefined,
+            mccGroup: undefined,
+            modifiedMCCGroup: undefined,
+            moneyRequestReportActionID: undefined,
+            pendingAction: undefined,
+            errors: undefined,
+            isActionLoading: false,
+            hasViolation: undefined,
         },
     },
     search: {
@@ -420,6 +460,7 @@ const transactionsListItems = [
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         policyID: 'A1B2C3',
         reportID: '123456789',
         reportType: 'expense',
@@ -438,6 +479,16 @@ const transactionsListItems = [
         transactionID: '1',
         transactionThreadReportID: '456',
         transactionType: 'cash',
+        receipt: undefined,
+        taxAmount: undefined,
+        description: '',
+        mccGroup: undefined,
+        modifiedMCCGroup: undefined,
+        moneyRequestReportActionID: undefined,
+        errors: undefined,
+        isActionLoading: false,
+        hasViolation: false,
+        violations: [],
     },
     {
         accountID: 18439984,
@@ -489,6 +540,22 @@ const transactionsListItems = [
         transactionID: '2',
         transactionThreadReportID: '456',
         transactionType: 'cash',
+        receipt: undefined,
+        taxAmount: undefined,
+        description: '',
+        mccGroup: undefined,
+        modifiedMCCGroup: undefined,
+        moneyRequestReportActionID: undefined,
+        pendingAction: undefined,
+        errors: undefined,
+        isActionLoading: false,
+        hasViolation: true,
+        violations: [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ],
     },
     {
         accountID: 18439984,
@@ -540,6 +607,17 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        receipt: undefined,
+        taxAmount: undefined,
+        description: '',
+        mccGroup: undefined,
+        modifiedMCCGroup: undefined,
+        moneyRequestReportActionID: undefined,
+        pendingAction: undefined,
+        errors: undefined,
+        isActionLoading: false,
+        hasViolation: undefined,
+        violations: [],
     },
     {
         accountID: 18439984,
@@ -591,6 +669,17 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        receipt: undefined,
+        taxAmount: undefined,
+        description: '',
+        mccGroup: undefined,
+        modifiedMCCGroup: undefined,
+        moneyRequestReportActionID: undefined,
+        pendingAction: undefined,
+        errors: undefined,
+        isActionLoading: false,
+        hasViolation: undefined,
+        violations: [],
     },
 ] as TransactionListItemType[];
 
@@ -661,6 +750,7 @@ const reportsListItems = [
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 policyID: 'A1B2C3',
                 reportID: '123456789',
                 reportType: 'expense',
@@ -679,6 +769,14 @@ const reportsListItems = [
                 transactionID: '1',
                 transactionThreadReportID: '456',
                 transactionType: 'cash',
+                receipt: undefined,
+                taxAmount: undefined,
+                mccGroup: undefined,
+                modifiedMCCGroup: undefined,
+                moneyRequestReportActionID: undefined,
+                errors: undefined,
+                isActionLoading: false,
+                violations: [],
             },
         ],
         type: 'expense',
@@ -741,6 +839,12 @@ const reportsListItems = [
                 },
                 hasEReceipt: false,
                 hasViolation: true,
+                violations: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
                 isFromOneTransactionReport: true,
                 keyForList: '2',
                 managerID: 18439984,
@@ -768,6 +872,14 @@ const reportsListItems = [
                 transactionID: '2',
                 transactionThreadReportID: '456',
                 transactionType: 'cash',
+                receipt: undefined,
+                taxAmount: undefined,
+                mccGroup: undefined,
+                modifiedMCCGroup: undefined,
+                moneyRequestReportActionID: undefined,
+                pendingAction: undefined,
+                errors: undefined,
+                isActionLoading: false,
             },
         ],
         type: 'expense',
@@ -816,20 +928,186 @@ const reportsListItems = [
 
 describe('SearchUIUtils', () => {
     describe('Test getAction', () => {
+        test('Should return `View` action for an invalid key', () => {
+            const action = SearchUIUtils.getAction(searchResults.data, {}, 'invalid_key');
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID}`);
+            let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
-            action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID}`);
+            action = SearchUIUtils.getAction(searchResults.data, {}, `transactions_${transactionID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
         test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
-            let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID2}`);
+            let action = SearchUIUtils.getAction(searchResults.data, allViolations, `report_${reportID2}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
 
-            action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID2}`);
+            action = SearchUIUtils.getAction(searchResults.data, allViolations, `transactions_${transactionID2}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+
+        test('Should return `Paid` action for a manually settled report', () => {
+            const paidReportID = 'report_paid';
+            const localSearchResults = {
+                ...searchResults.data,
+                [paidReportID]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: paidReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                },
+                [`reportNameValuePairs_${paidReportID}`]: {
+                    manualReimbursed: '2024-01-01',
+                },
+            };
+
+            const action = SearchUIUtils.getAction(localSearchResults, {}, paidReportID);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
+        });
+
+        test('Should return `Paid` action for a settled report on an auto-reimbursement policy', () => {
+            const paidReportID = 'report_paid_auto';
+            const policyIDAuto = 'policy_auto';
+
+            const localSearchResults = {
+                ...searchResults.data,
+                [`policy_${policyIDAuto}`]: {
+                    ...searchResults.data[`policy_${policyID}`],
+                    id: policyIDAuto,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                },
+                [paidReportID]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: paidReportID,
+                    policyID: policyIDAuto,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                },
+            };
+
+            const action = SearchUIUtils.getAction(localSearchResults, {}, paidReportID);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
+        });
+
+        test('Should return `Pay` action for a closed IOU report with an outstanding balance', () => {
+            const closedReportID = 'report_closed_with_balance';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${closedReportID}`]: {
+                    ...searchResults.data[`report_${reportID3}`],
+                    reportID: closedReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                },
+            };
+
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${closedReportID}`);
+
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+        });
+
+        test('Should return `Done` action for a closed report with a zero balance', () => {
+            const closedReportID = 'report_closed';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${closedReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: closedReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    total: 0,
+                },
+            };
+
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${closedReportID}`);
+
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
+        });
+
+        test('Should return `Review` action if report has errors', () => {
+            const errorReportID = 'report_error';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${errorReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: errorReportID,
+                    errors: {error: 'An error'},
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${errorReportID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+
+        test('Should return `View` action for non-money request reports', () => {
+            const action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID4}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
+        test('Should return `View` action for an orphaned transaction', () => {
+            const orphanedTransactionID = 'transaction_orphaned';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`transactions_${orphanedTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: orphanedTransactionID,
+                    reportID: 'non_existent_report',
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${orphanedTransactionID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+        test('Should return `View` action for a transaction in a multi-transaction report', () => {
+            const multiTransactionID = 'transaction_multi';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`transactions_${multiTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: multiTransactionID,
+                    isFromOneTransactionReport: false,
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${multiTransactionID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+        test('Should return `Review` action if report export has failed', () => {
+            const failedExportReportID = 'report_failed_export';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${failedExportReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: failedExportReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+                [`reportNameValuePairs_${failedExportReportID}`]: {
+                    exportFailedTime: '2024-01-01',
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${failedExportReportID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+        test('Should return `Review` action if transaction has errors', () => {
+            const errorTransactionID = 'transaction_error';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`transactions_${errorTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: errorTransactionID,
+                    errors: {error: 'An error'},
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${errorTransactionID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+        test('Should return `Pay` action for an IOU report ready to be paid', async () => {
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            await waitForBatchedUpdates();
+            const iouReportKey = `report_${reportID3}`;
+            const action = SearchUIUtils.getAction(searchResults.data, {}, iouReportKey);
+            expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
     });
 
@@ -979,10 +1257,10 @@ describe('SearchUIUtils', () => {
         Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
-            let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID2}`);
+            let action = SearchUIUtils.getAction(searchResults.data, allViolations, `report_${reportID2}`);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
-            action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID2}`);
+            action = SearchUIUtils.getAction(searchResults.data, allViolations, `transactions_${transactionID2}`);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -1084,7 +1362,7 @@ describe('SearchUIUtils', () => {
                     policyID: '137DA25D273F2423',
                     receipt: {
                         source: 'https://www.expensify.com/receipts/fake.jpg',
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                     },
                     reportID: '6523565988285061',
                     reportType: 'expense',
@@ -1109,7 +1387,7 @@ describe('SearchUIUtils', () => {
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getAction(result.data, 'report_6523565988285061');
+            const action = SearchUIUtils.getAction(result.data, allViolations, 'report_6523565988285061');
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });

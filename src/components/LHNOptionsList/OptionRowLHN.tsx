@@ -58,7 +58,7 @@ function OptionRowLHN({
     onLayout = () => {},
     hasDraftComment,
     shouldShowRBRorGBRTooltip,
-    isScreenFocused,
+    isScreenFocused = false,
 }: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();

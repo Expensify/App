@@ -15,7 +15,6 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,11 +24,9 @@ import variables from '@styles/variables';
 import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
-import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -38,7 +35,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseTableReportView} = usePermissions();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
@@ -57,32 +53,17 @@ function Confirmation() {
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
-        const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
-
         if (!reportAction?.childReportID) {
-            transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
-        }
-
-        IOU.mergeDuplicates(transactionsMergeParams);
-        if (canUseTableReportView) {
-            Navigation.dismissModal();
             return;
         }
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(transactionThreadReportID), {compareParams: false});
-    }, [reportAction?.childReportID, transactionsMergeParams, canUseTableReportView]);
+        IOU.mergeDuplicates(transactionsMergeParams);
+        Navigation.dismissModal();
+    }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        if (canUseTableReportView) {
-            Navigation.dismissModal();
-            return;
-        }
-        if (!reportAction?.childReportID) {
-            Navigation.dismissModal();
-            return;
-        }
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID), {compareParams: false});
-    }, [transactionsMergeParams, reportAction?.childReportID, canUseTableReportView]);
+        Navigation.dismissModal();
+    }, [transactionsMergeParams]);
 
     const contextValue = useMemo(
         () => ({
