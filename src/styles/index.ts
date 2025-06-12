@@ -1297,6 +1297,10 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        selectedTextInputContainer: {
+            borderColor: theme.buttonHoveredBG,
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,

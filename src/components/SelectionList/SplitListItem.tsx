@@ -155,7 +155,7 @@ function SplitListItem<TItem extends ListItem>({
                                 onAmountChange={onSplitExpenseAmountChange}
                                 prefixContainerStyle={[styles.pv0]}
                                 inputStyle={[styles.optionRowAmountInput]}
-                                containerStyle={[styles.textInputContainer]}
+                                containerStyle={[styles.textInputContainer, item.isSelected && styles.selectedTextInputContainer]}
                                 touchableInputWrapperStyle={[styles.ml3]}
                                 maxLength={formattedOriginalAmount.length}
                                 contentWidth={contentWidth}
