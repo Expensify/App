@@ -76,7 +76,6 @@ import {
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
-    isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
     isReimbursementDeQueuedOrCanceledAction,
@@ -98,7 +97,6 @@ import {
     getDowngradeWorkspaceMessage,
     getIcons,
     getMoneyRequestSpendBreakdown,
-    getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
     getPolicyName,
@@ -400,7 +398,7 @@ Onyx.connect({
             const transactionThreadReportID = getOneTransactionThreadReportID(reportID, actions[reportActions[0]]);
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID, false);
+                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
             }
 
             const firstReportAction = sortedReportActions.at(0);
@@ -777,8 +775,6 @@ function getLastMessageTextForReport(
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
-    } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
