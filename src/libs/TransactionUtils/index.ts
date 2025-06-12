@@ -1601,6 +1601,23 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
     return getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
+ */
+function createUnreportedExpenseSections<T extends Transaction>(transactions: Array<T | undefined>): Array<{shouldShow: boolean; data: Array<T & {isDisabled: boolean}>}> {
+    return [
+        {
+            shouldShow: true,
+            data: transactions
+                .filter((t): t is T => t !== undefined)
+                .map((transaction) => ({
+                    ...transaction,
+                    isDisabled: isTransactionPendingDelete(transaction),
+                })),
+        },
+    ];
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1705,6 +1722,7 @@ export {
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
     isTransactionPendingDelete,
+    createUnreportedExpenseSections,
 };
 
 export type {TransactionChanges};

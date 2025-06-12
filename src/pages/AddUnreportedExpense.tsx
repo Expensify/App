@@ -16,7 +16,7 @@ import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {createUnreportedExpenseSections} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {startMoneyRequest} from '@userActions/IOU';
@@ -70,17 +70,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(
-        () => [
-            {
-                shouldShow: true,
-                data: transactions
-                    .filter((t): t is Transaction & ListItem => t !== undefined)
-                    .map((transaction) => ({
-                        ...transaction,
-                        isDisabled: isTransactionPendingDelete(transaction),
-                    })),
-            },
-        ],
+        () => createUnreportedExpenseSections(transactions as Array<(Transaction & ListItem) | undefined>),
         [transactions],
     );
 
