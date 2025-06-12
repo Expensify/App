@@ -11,7 +11,15 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils, isExpenseReport, isInvoiceReport, isPayer, getNextApproverAccountID} from './ReportUtils';
+import {
+    getDisplayNameForParticipant,
+    getNextApproverAccountID,
+    getPersonalDetailsForAccountID,
+    hasViolations as hasViolationsReportUtils,
+    isExpenseReport,
+    isInvoiceReport,
+    isPayer,
+} from './ReportUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';

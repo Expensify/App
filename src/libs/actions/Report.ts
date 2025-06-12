@@ -121,6 +121,7 @@ import {
     getDefaultNotificationPreferenceForReport,
     getFieldViolation,
     getLastVisibleMessage,
+    getNextApproverAccountID,
     getOptimisticDataForParentReportAction,
     getOriginalReportID,
     getParsedComment,
@@ -139,17 +140,16 @@ import {
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
     isExpenseReport,
-    isOpenExpenseReport,
-    isProcessingReport,
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
     isIOUReportUsingReport,
     isMoneyRequestReport,
+    isOpenExpenseReport,
+    isProcessingReport,
     isSelfDM,
     isUnread,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
-    getNextApproverAccountID,
 } from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -181,10 +181,10 @@ import type {
     Report,
     ReportAction,
     ReportActionReactions,
+    ReportNextStep,
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
-    ReportNextStep,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -5444,33 +5444,39 @@ function changeReportPolicy(reportID: string, policyID: string, reportNextStep?:
     const isOpenOrSubmitted = isOpenExpenseReport(reportToMove) || isProcessingReport(reportToMove);
     const managerLogin = PersonalDetailsUtils.getLoginByAccountID(reportToMove.managerID ?? CONST.DEFAULT_NUMBER_ID);
     if (isOpenOrSubmitted && managerLogin && !isPolicyMember(managerLogin, policyID)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                managerID: getNextApproverAccountID(reportToMove, true),
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    managerID: getNextApproverAccountID(reportToMove, true),
+                },
             },
-        }, {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: buildNextStep(reportToMove, CONST.REPORT.STATUS_NUM.OPEN),
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+                value: buildNextStep(reportToMove, CONST.REPORT.STATUS_NUM.OPEN),
+            },
+        );
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum: reportToMove.stateNum,
-                statusNum: reportToMove.statusNum,
-                managerID: reportToMove.managerID,
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: reportToMove.stateNum,
+                    statusNum: reportToMove.statusNum,
+                    managerID: reportToMove.managerID,
+                },
             },
-        }, {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: reportNextStep,
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+                value: reportNextStep,
+            },
+        );
     }
 
     // 2. If the old workspace had a expense chat, mark the report preview action as deleted
