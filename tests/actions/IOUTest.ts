@@ -6192,7 +6192,11 @@ describe('actions/IOU', () => {
             expect(isMoneyRequestAction(iouReportActionOnSelfDMReport) ? getOriginalMessage(iouReportActionOnSelfDMReport)?.IOUTransactionID : undefined).toBe(transaction?.transactionID);
             expect(trackExpenseActionableWhisper).toBeDefined();
 
-            changeTransactionsReport([transaction?.transactionID ?? ''], expenseReport?.reportID ?? '');
+            if (!transaction || !expenseReport) {
+                return;
+            }
+
+            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID);
 
             let updatedTransaction: OnyxEntry<Transaction>;
             let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
