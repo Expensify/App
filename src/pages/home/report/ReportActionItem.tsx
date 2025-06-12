@@ -54,6 +54,7 @@ function ReportActionItem({action, report, shouldShowDraftMessage = true, ...pro
         },
     });
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: false});
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID}`, {
@@ -79,6 +80,7 @@ function ReportActionItem({action, report, shouldShowDraftMessage = true, ...pro
             {...props}
             action={action}
             report={report}
+            policy={policy}
             draftMessage={draftMessage}
             iouReport={iouReport}
             emojiReactions={emojiReactions}

@@ -440,7 +440,7 @@ const ROUTES = {
         getRoute: (
             reportID: string | undefined,
             attachmentID: string | undefined,
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
+            type: ValueOf<typeof CONST.ATTACHMENT_TYPE> | undefined,
             url: string,
             accountID?: number,
             isAuthTokenRequired?: boolean,
@@ -448,6 +448,7 @@ const ROUTES = {
             attachmentLink?: string,
             hashKey?: number,
         ) => {
+            const typeParam = type ? `&type=${type}` : '';
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
@@ -456,9 +457,7 @@ const ROUTES = {
             const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
             const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${
-                type as string
-            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}${typeParam}${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
@@ -2007,6 +2006,22 @@ const ROUTES = {
         route: 'onboarding/work-email-validation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
     },
+    ONBOARDING_WORKSPACE: {
+        route: 'onboarding/create-workspace',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/create-workspace`, backTo),
+    },
+    ONBOARDING_WORKSPACE_CONFIRMATION: {
+        route: 'onboarding/workspace-confirmation',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-confirmation`, backTo),
+    },
+    ONBOARDING_WORKSPACE_CURRENCY: {
+        route: 'onboarding/workspace-currency',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
+    },
+    ONBOARDING_WORKSPACE_INVITE: {
+        route: 'onboarding/workspace-invite',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
+    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {
@@ -2574,6 +2589,8 @@ const ROUTES = {
         route: 'r/:reportID/schedule-call/confirmation',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
+
+    TEST_TOOLS_MODAL: 'test-tools',
 } as const;
 
 /**
