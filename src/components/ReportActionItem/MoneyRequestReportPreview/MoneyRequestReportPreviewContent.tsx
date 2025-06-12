@@ -6,7 +6,7 @@ import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes'
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -74,7 +74,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
-import { DelegateNoAccessContext } from '@components/DelegateNoAccessModalProvider';
 
 type WebLayoutNativeEvent = {
     layout: LayoutRectangle;
@@ -212,7 +211,7 @@ function MoneyRequestReportPreviewContent({
                 }
             }
         },
-        [chatReport, iouReport, isDelegateAccessRestricted, startAnimation],
+        [chatReport, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal, startAnimation],
     );
 
     const confirmApproval = () => {

@@ -1,10 +1,9 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -107,7 +106,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
         }
 
         Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
-    }, [navigateBackTo, isActingAsDelegate, isAccountLocked, isUserValidated, showLockedAccountModal]);
+    }, [navigateBackTo, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, isUserValidated, showLockedAccountModal]);
 
     return (
         <ScreenWrapper

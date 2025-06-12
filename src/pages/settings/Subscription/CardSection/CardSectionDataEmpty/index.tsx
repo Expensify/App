@@ -1,11 +1,9 @@
 import React, {useCallback, useContext} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function CardSectionDataEmpty() {
@@ -24,15 +22,13 @@ function CardSectionDataEmpty() {
         openAddPaymentCardScreen();
     };
     return (
-        <>
-            <Button
-                text={translate('subscription.cardSection.addCardButton')}
-                onPress={handleAddPaymentCardPress}
-                style={styles.w100}
-                success
-                large
-            />
-        </>
+        <Button
+            text={translate('subscription.cardSection.addCardButton')}
+            onPress={handleAddPaymentCardPress}
+            style={styles.w100}
+            success
+            large
+        />
     );
 }
 

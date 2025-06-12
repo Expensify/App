@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -6,7 +6,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';

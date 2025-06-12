@@ -1,8 +1,7 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';

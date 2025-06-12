@@ -79,7 +79,6 @@ import {
 } from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
-import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -94,7 +93,7 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
-import DelegateNoAccessModal from './DelegateNoAccessModal';
+import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -113,7 +112,6 @@ import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
-import { DelegateNoAccessContext } from './DelegateNoAccessModalProvider';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -321,7 +319,7 @@ function MoneyReportHeader({
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, isInvoiceReport, moneyRequestReport, startAnimation],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
     );
 
     const confirmApproval = () => {

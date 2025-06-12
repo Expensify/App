@@ -1,17 +1,17 @@
 import React, {createContext, useMemo, useState} from 'react';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import AccountUtils from '@libs/AccountUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
 import Text from './Text';
 import TextLink from './TextLink';
-import AccountUtils from '@libs/AccountUtils';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 type DelegateNoAccessContextType = {
     isActingAsDelegate: boolean;
-    isDelegateAccessRestricted: boolean,
+    isDelegateAccessRestricted: boolean;
     showDelegateNoAccessModal: () => void;
 };
 
@@ -43,7 +43,7 @@ function DelegateNoAccessModalProvider({children}: React.PropsWithChildren) {
             isDelegateAccessRestricted,
             showDelegateNoAccessModal: () => setIsModalOpen(true),
         }),
-        [isActingAsDelegate],
+        [isActingAsDelegate, isDelegateAccessRestricted],
     );
 
     return (

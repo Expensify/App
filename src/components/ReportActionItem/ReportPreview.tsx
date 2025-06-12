@@ -7,7 +7,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withT
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
@@ -19,7 +19,6 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
@@ -100,7 +99,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
-import { DelegateNoAccessContext } from '@components/DelegateNoAccessModalProvider';
 
 type ReportPreviewProps = {
     /** All the data of the action */
@@ -290,7 +288,7 @@ function ReportPreview({
                 }
             }
         },
-        [chatReport, iouReport, isDelegateAccessRestricted, startAnimation],
+        [chatReport, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal, startAnimation],
     );
 
     const confirmApproval = () => {

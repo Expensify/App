@@ -1,7 +1,6 @@
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
@@ -59,7 +58,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
         }
         clearAddNewCardFlow();
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy.id));
-    }, [policy, isActingAsDelegate]);
+    }, [policy, isActingAsDelegate, showDelegateNoAccessModal]);
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
