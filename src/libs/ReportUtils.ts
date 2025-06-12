@@ -8325,6 +8325,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false): IOUType[] {
     const teacherUnitePolicyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+    const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
 
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
@@ -8366,7 +8367,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 
     if (canRequestMoney(report, policy, otherParticipants)) {
         // For Teachers Unite policy, don't show Create Expense option
-        if (report?.policyID !== teacherUnitePolicyID) {
+        if (!isTeachersUniteReport) {
             options = [...options, CONST.IOU.TYPE.SUBMIT];
             if (!filterDeprecatedTypes) {
                 options = [...options, CONST.IOU.TYPE.REQUEST];
@@ -8374,14 +8375,14 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         }
 
         // If the user can request money from the workspace report, they can also track expenses
-        if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
+        if ((isPolicyExpenseChat(report) || isExpenseReport(report)) && !isTeachersUniteReport) {
             options = [...options, CONST.IOU.TYPE.TRACK];
         }
     }
 
     // For expense reports on Teachers Unite workspace, disable "Create report" option
     if (isExpenseReport(report) && report?.policyID === teacherUnitePolicyID) {
-        options = options.filter(option => option !== CONST.IOU.TYPE.SUBMIT);
+        options = options.filter((option) => option !== CONST.IOU.TYPE.SUBMIT);
     }
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
@@ -8389,9 +8390,8 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // DM chats will have the Split Expense option.
     // Your own expense chats will have the split expense option.
     // Only show Split Expense for TU policy
-    const shouldShowSplitExpense = report?.policyID === teacherUnitePolicyID;
     if (
-        shouldShowSplitExpense &&
+        isTeachersUniteReport &&
         ((isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
             (isDM(report) && otherParticipants.length > 0) ||
             (isGroupChat(report) && otherParticipants.length > 0) ||
