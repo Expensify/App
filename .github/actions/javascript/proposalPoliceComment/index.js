@@ -18641,6 +18641,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const openai_1 = __importDefault(__nccwpck_require__(47));
+const retryWithBackoff_1 = __importDefault(__nccwpck_require__(4583));
 class OpenAIUtils {
     /**
      * How frequently to poll a thread to wait for it to be done.
@@ -18669,11 +18670,11 @@ class OpenAIUtils {
         if (systemPrompt) {
             messages.unshift({ role: 'system', content: systemPrompt });
         }
-        const response = await this.client.chat.completions.create({
+        const response = await (0, retryWithBackoff_1.default)(() => this.client.chat.completions.create({
             model,
             messages,
             temperature: 0.3,
-        });
+        }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
         const result = response.choices.at(0)?.message?.content?.trim();
         if (!result) {
             throw new Error('Error getting chat completion response from OpenAI');
@@ -18685,13 +18686,13 @@ class OpenAIUtils {
      */
     async promptAssistant(assistantID, userMessage) {
         // start a thread run
-        let threadRun = await this.client.beta.threads.createAndRun({
+        let threadRun = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.createAndRun({
             /* eslint-disable @typescript-eslint/naming-convention */
             assistant_id: assistantID,
             thread: {
                 messages: [{ role: 'user', content: userMessage }],
             },
-        });
+        }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
         // poll for completion
         let response = '';
         let count = 0;
@@ -18724,8 +18725,68 @@ class OpenAIUtils {
     static isTextContentBlock(block) {
         return block.type === 'text';
     }
+    static isRetryableError(error) {
+        // Handle known/predictable API errors
+        if (error instanceof openai_1.default.APIError) {
+            // Only retry 429 (rate limit) or 5xx errors
+            const status = error.status;
+            return !!status && (status === 429 || status >= 500);
+        }
+        // Handle random/unpredictable network errors
+        if (error instanceof Error) {
+            const msg = error.message.toLowerCase();
+            return (msg.includes('timeout') ||
+                msg.includes('socket hang up') ||
+                msg.includes('fetch failed') ||
+                msg.includes('network error') ||
+                msg.includes('connection reset') ||
+                msg.includes('connection aborted') ||
+                msg.includes('ecconnrefused') || // Node-fetch errors
+                msg.includes('dns') ||
+                msg.includes('econn') ||
+                msg.includes('request to') // node-fetch errors often include this
+            );
+        }
+        return false;
+    }
 }
 exports["default"] = OpenAIUtils;
+
+
+/***/ }),
+
+/***/ 4583:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+async function retryWithBackoff(fn, { maxRetries = 5, initialDelayMs = 1000, factor = 2, isRetryable = () => true } = {}) {
+    let attempt = 0;
+    let delay = initialDelayMs;
+    let lastError;
+    do {
+        try {
+            return await fn();
+        }
+        catch (err) {
+            lastError = err;
+            attempt++;
+            if (!isRetryable(err)) {
+                break;
+            }
+            await sleep(delay);
+            delay *= factor;
+        }
+    } while (attempt <= maxRetries);
+    throw lastError;
+}
+exports["default"] = retryWithBackoff;
 
 
 /***/ }),
