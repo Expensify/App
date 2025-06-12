@@ -54,7 +54,6 @@ function MoneyRequestReportPreview({
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
-    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const [currentWidth, setCurrentWidth] = useState<number>(0);
@@ -125,7 +124,6 @@ function MoneyRequestReportPreview({
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
-            isDelegateAccessRestricted={isDelegateAccessRestricted}
             renderTransactionItem={renderItem}
             onCarouselLayout={(e: LayoutChangeEvent) => {
                 setCurrentWidth(e.nativeEvent.layout.width);
