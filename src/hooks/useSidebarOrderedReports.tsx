@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useMemo, useRef} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
@@ -119,6 +119,7 @@ function SidebarOrderedReportsContextProvider({
 
     const reportsToDisplayInLHN = useMemo(() => {
         const updatedReports = getUpdatedReports();
+        // eslint-disable-next-line react-compiler/react-compiler
         const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(reportsToDisplayRef.current).length > 0;
         let toDisplay = {};
 
@@ -152,7 +153,9 @@ function SidebarOrderedReportsContextProvider({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [getUpdatedReports]);
 
-    reportsToDisplayRef.current = reportsToDisplayInLHN;
+    useEffect(() => {
+        reportsToDisplayRef.current = reportsToDisplayInLHN;
+    }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
         () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, reportNameValuePairs, reportAttributes),
