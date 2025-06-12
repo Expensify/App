@@ -314,7 +314,9 @@ type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: s
 
 type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
-type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
+type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean | string | number; newValue?: boolean | string | number};
+
+type UpdatedPolicyCategoryDescriptionHintTypeParams = {categoryName: string; oldValue?: string; newValue?: string};
 
 type UpdatedPolicyCategoryGLCodeParams = {categoryName: string; oldValue?: string; newValue?: string};
 
@@ -740,6 +742,31 @@ type EmployeeInviteMessageParams = {
     name: string;
 };
 
+type FlightParams = {
+    startDate: string;
+    airlineCode: string;
+    origin: string;
+    destination: string;
+    confirmationID?: string;
+};
+
+type AirlineParams = {
+    airlineCode: string;
+    startDate?: string;
+    cabinClass?: string;
+};
+
+type RailTicketParams = {
+    origin: string;
+    destination: string;
+    startDate: string;
+};
+
+type TravelTypeParams = {
+    type: string;
+    id?: string;
+};
+
 export type {
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
@@ -963,6 +990,7 @@ export type {
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyCategoryParams,
+    UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
@@ -1005,4 +1033,8 @@ export type {
     CreateExpensesParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
+    FlightParams,
+    AirlineParams,
+    RailTicketParams,
+    TravelTypeParams,
 };
