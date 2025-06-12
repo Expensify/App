@@ -1,4 +1,4 @@
-import React, {useContext, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -32,62 +32,64 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const searchRouterDisplayedRef = useRef(false);
     const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
 
-    const routerContext = useMemo(() => {
-        const openSearchRouter = () => {
-            close(
-                () => {
-                    setIsSearchRouterDisplayed(true);
-                    searchRouterDisplayedRef.current = true;
-                },
-                false,
-                true,
-            );
-        };
-        const closeSearchRouter = () => {
-            setIsSearchRouterDisplayed(false);
-            searchRouterDisplayedRef.current = false;
-        };
+    const openSearchRouter = useCallback(() => {
+        close(
+            () => {
+                setIsSearchRouterDisplayed(true);
+                searchRouterDisplayedRef.current = true;
+            },
+            false,
+            true,
+        );
+    }, []);
 
-        // There are callbacks that live outside of React render-loop and interact with SearchRouter
-        // So we need a function that is based on ref to correctly open/close it
-        // When user is on `/search` page we focus the Input instead of showing router
-        const toggleSearch = () => {
-            const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-            const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
-            const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
+    const closeSearchRouter = useCallback(() => {
+        setIsSearchRouterDisplayed(false);
+        searchRouterDisplayedRef.current = false;
+    }, []);
 
-            if (isUserOnSearchPage && searchPageInputRef.current) {
-                if (searchPageInputRef.current.isFocused()) {
-                    searchPageInputRef.current.blur();
-                } else {
-                    searchPageInputRef.current.focus();
-                }
-            } else if (searchRouterDisplayedRef.current) {
-                closeSearchRouter();
+    // There are callbacks that live outside of React render-loop and interact with SearchRouter
+    // So we need a function that is based on ref to correctly open/close it
+    // When user is on `/search` page we focus the Input instead of showing router
+    const toggleSearch = useCallback(() => {
+        const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+        const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
+        const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
+
+        if (isUserOnSearchPage && searchPageInputRef.current) {
+            if (searchPageInputRef.current.isFocused()) {
+                searchPageInputRef.current.blur();
             } else {
-                openSearchRouter();
+                searchPageInputRef.current.focus();
             }
-        };
+        } else if (searchRouterDisplayedRef.current) {
+            closeSearchRouter();
+        } else {
+            openSearchRouter();
+        }
+    }, [closeSearchRouter, openSearchRouter]);
 
-        const registerSearchPageInput = (ref: AnimatedTextInputRef) => {
-            searchPageInputRef.current = ref;
-        };
+    const registerSearchPageInput = useCallback((ref: AnimatedTextInputRef) => {
+        searchPageInputRef.current = ref;
+    }, []);
 
-        const unregisterSearchPageInput = () => {
-            searchPageInputRef.current = undefined;
-        };
+    const unregisterSearchPageInput = useCallback(() => {
+        searchPageInputRef.current = undefined;
+    }, []);
 
-        return {
+    const contextValue = useMemo(
+        () => ({
             isSearchRouterDisplayed,
             openSearchRouter,
             closeSearchRouter,
             toggleSearch,
             registerSearchPageInput,
             unregisterSearchPageInput,
-        };
-    }, [isSearchRouterDisplayed, setIsSearchRouterDisplayed]);
+        }),
+        [isSearchRouterDisplayed, openSearchRouter, closeSearchRouter, toggleSearch, registerSearchPageInput, unregisterSearchPageInput],
+    );
 
-    return <Context.Provider value={routerContext}>{children}</Context.Provider>;
+    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
 function useSearchRouterContext() {
