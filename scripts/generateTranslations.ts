@@ -6,8 +6,10 @@ import fs from 'fs';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
+import LocaleUtils from '@libs/LocaleUtils';
 import StringUtils from '@libs/StringUtils';
 import type Locale from '@src/types/onyx/Locale';
+import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
@@ -22,6 +24,11 @@ type StringWithContext = {
     text: string;
     context?: string;
 };
+
+/**
+ * Default locales to translate. Can be overridden with the --locales flag
+ */
+const DEFAULT_LOCALES_TO_TRANSLATE = ['pr-BR', 'it', 'de', 'fr', 'nl', 'ja', 'zh-hans'];
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
@@ -385,9 +392,35 @@ class TranslationGenerator {
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
 async function main(): Promise<void> {
+    const config = {
+        flags: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'dry-run': {
+                description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
+            },
+        },
+        namedArgs: {
+            locales: {
+                description: 'Locales to generate translations for.',
+                default: DEFAULT_LOCALES_TO_TRANSLATE.join(','),
+                parse: (val: string) => {
+                    const locales = val.split(',');
+                    for (const locale of locales) {
+                        // Note: we are making a temporary exception for `it` for the sake of testing this script.
+                        // We can remove that check once we add `it` and other locales to CONST.LOCALES.
+                        if (!LocaleUtils.isValidLocale(locale) && locale !== 'it') {
+                            throw new Error(`Invalid locale ${locale}`);
+                        }
+                    }
+                    return locales as Locale[];
+                },
+            },
+        },
+    } as const;
+    const cli = new CLI<(typeof config)['flags'], (typeof config)['namedArgs'], undefined>(config);
+
     let translator: Translator;
-    const isDryRun = process.argv.includes('--dry-run');
-    if (isDryRun) {
+    if (cli.flags['dry-run']) {
         console.log('🍸 Dry run enabled');
         translator = new DummyTranslator();
     } else {
@@ -406,7 +439,7 @@ async function main(): Promise<void> {
     const enSourceFile = path.join(languagesDir, 'en.ts');
 
     const generator = new TranslationGenerator({
-        targetLanguages: ['pr-BR', 'it', 'de', 'fr', 'nl', 'ja', 'zh-hans'] as unknown as Locale[],
+        targetLanguages: cli.namedArgs.locales,
         languagesDir,
         sourceFile: enSourceFile,
         translator,
