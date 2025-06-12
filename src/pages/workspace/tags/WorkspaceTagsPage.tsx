@@ -519,7 +519,35 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
                     </Text>
                 ) : (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                    <Text>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                        {hasDependentTags && (
+                            <>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase1')}</Text>
+                                <TextLink
+                                    style={[styles.textNormal, styles.link]}
+                                    // TODO: Add a actual link to the help article https://github.com/Expensify/App/issues/63612
+                                    href={CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}
+                                >
+                                    {translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase2')}
+                                </TextLink>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase3')}</Text>
+                                <TextLink
+                                    style={[styles.textNormal, styles.link]}
+                                    onPress={() => {
+                                        Navigation.navigate(
+                                            isQuickSettingsFlow
+                                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                                : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
+                                        );
+                                    }}
+                                >
+                                    {translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase4')}
+                                </TextLink>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase5')}</Text>
+                            </>
+                        )}
+                    </Text>
                 )}
             </View>
             {tagList.length > CONST.SEARCH_ITEM_LIMIT && (

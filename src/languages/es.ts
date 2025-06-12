@@ -4371,6 +4371,13 @@ const translations = {
             editTags: 'Editar etiquetas',
             findTag: 'Encontrar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: 'Estás usando ',
+                phrase2: 'etiquetas dependientes',
+                phrase3: '. Puedes ',
+                phrase4: 'reimportar una hoja de cálculo',
+                phrase5: ' para actualizar tus etiquetas.',
+            },
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
