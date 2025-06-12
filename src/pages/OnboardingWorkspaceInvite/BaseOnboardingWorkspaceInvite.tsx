@@ -239,7 +239,16 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             // See https://github.com/Expensify/App/issues/57167 for more details
             (session?.email ?? '').includes('+'),
         );
-    }, [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, isBetaEnabled, session?.email]);
+    }, [
+        currentUserPersonalDetails.firstName,
+        onboardingMessages,
+        currentUserPersonalDetails.lastName,
+        onboardingAdminsChatReportID,
+        onboardingPolicyID,
+        isSmallScreenWidth,
+        isBetaEnabled,
+        session?.email,
+    ]);
 
     const inviteUser = useCallback(() => {
         let isValid = true;
@@ -264,7 +273,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, onboardingPolicyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER);
         completeOnboarding();
-    }, [completeOnboarding, onboardingMessages, onboardingPolicyID, policy?.employeeList, selectedOptions, welcomeNote, welcomeNoteSubject]);
+    }, [completeOnboarding, onboardingPolicyID, policy?.employeeList, selectedOptions, welcomeNote, welcomeNoteSubject]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
