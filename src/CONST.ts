@@ -7197,6 +7197,8 @@ const CONST = {
         RESCHEDULED: 'rescheduled',
         CANCELLED: 'cancelled',
     },
+
+    SIGNIN_ROUTE: '/signin',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

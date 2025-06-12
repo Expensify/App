@@ -7,13 +7,13 @@ import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createS
 import {config} from '@libs/Navigation/linkingConfig/config';
 import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
-import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
 
 let allReports: OnyxCollection<Report>;
@@ -225,13 +225,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  */
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-    
+
     // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
-    
-        if (normalizedPath === CONST.SIGNIN_ROUTE) {
+    if (normalizedPath === CONST.SIGNIN_ROUTE) {
         normalizedPath = '/';
     }
-    
 
     const state = getStateFromPath(normalizedPath, options) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
