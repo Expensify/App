@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -35,11 +35,13 @@ function AutoSubmitModal() {
     const StyleUtils = useStyleUtils();
 
     const onClose = useCallback((willShowAgain: boolean) => {
-        if (!willShowAgain) {
-            dismissInstantSubmitExplanation(true);
-        } else {
-            dismissInstantSubmitExplanation(false);
-        }
+        InteractionManager.runAfterInteractions(() => {
+            if (!willShowAgain) {
+                dismissInstantSubmitExplanation(true);
+            } else {
+                dismissInstantSubmitExplanation(false);
+            }
+        });
     }, []);
 
     return (
