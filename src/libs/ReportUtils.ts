@@ -8379,7 +8379,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         }
 
         // If the user can request money from the workspace report, they can also track expenses
-        if ((isPolicyExpenseChat(report) || isExpenseReport(report)) && !isTeachersUniteReport) {
+        if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
             options = [...options, CONST.IOU.TYPE.TRACK];
         }
     }
@@ -8395,11 +8395,10 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // Your own expense chats will have the split expense option.
     // Only show Split Expense for TU policy
     if (
-        isTeachersUniteReport &&
-        ((isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
-            (isDM(report) && otherParticipants.length > 0) ||
-            (isGroupChat(report) && otherParticipants.length > 0) ||
-            (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat))
+        (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
+        (isDM(report) && otherParticipants.length > 0) ||
+        (isGroupChat(report) && otherParticipants.length > 0) ||
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && isTeachersUniteReport)
     ) {
         options = [...options, CONST.IOU.TYPE.SPLIT];
     }

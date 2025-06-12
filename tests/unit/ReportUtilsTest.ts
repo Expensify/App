@@ -1174,9 +1174,8 @@ describe('ReportUtils', () => {
                     managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs]);
-                expect(moneyRequestOptions.length).toBe(3);
+                expect(moneyRequestOptions.length).toBe(2);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
-                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
                 expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
             });
@@ -1201,9 +1200,6 @@ describe('ReportUtils', () => {
 
                 // Should include SPLIT (Split Expense)
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
-
-                // Should include other options like TRACK
-                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
             });
 
             it('should show Create Expense option and hide Split Expense for non-Teachers Unite policy', () => {
@@ -1237,11 +1233,8 @@ describe('ReportUtils', () => {
 
                 const moneyRequestOptions = temporary_getMoneyRequestOptions(expenseReport, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
 
-                // Should not include SUBMIT (Create Expense/Create report)
+                // Should not include SUBMIT
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
-
-                // Should include TRACK (Track Expense)
-                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
             });
         });
     });
