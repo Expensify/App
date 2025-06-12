@@ -5827,7 +5827,7 @@ function getReportUrl(reportID: string) {
 
 function getMovedTransactionMessage(parentReportAction: OnyxEntry<ReportAction>, parentReport?: Report) {
     const reportName = getReportName(parentReport, undefined, parentReportAction) ?? parentReport?.reportName ?? '';
-    const reportUrl = getReportUrl(parentReport?.reportID);
+    const reportUrl = getReportUrl(parentReport?.reportID ?? '');
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
