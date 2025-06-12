@@ -122,6 +122,9 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
     getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
         hash: 12345,
         query: 'test',
+        type: 'invoice',
+        status: 'all',
+        flatFilters: [],
     })),
 }));
 
@@ -785,6 +788,22 @@ describe('actions/IOU', () => {
 
                                     expect(transaction?.merchant).toBe(merchant);
 
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.SNAPSHOT,
+                                waitForCollectionCallback: true,
+                                callback: (snapshotData) => {
+                                    Onyx.disconnect(connection);
+
+                                    // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
+                                    expect(snapshotData).toBeUndefined();
                                     resolve();
                                 },
                             });
