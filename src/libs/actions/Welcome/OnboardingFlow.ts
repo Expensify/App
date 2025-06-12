@@ -152,7 +152,13 @@ const getOnboardingMessages = () => {
             MERCHANT: "Tommy's Tires",
         },
     };
-
+    const createReportTask: OnboardingTask = {
+        type: 'createReport',
+        autoCompleted: false,
+        mediaAttributes: {},
+        title: translateLocal('onboarding.tasks.createReportTask.title'),
+        description: translateLocal('onboarding.tasks.createReportTask.description'),
+    };
     const testDriveAdminTask: OnboardingTask = {
         type: 'viewTour',
         autoCompleted: false,
@@ -266,14 +272,6 @@ const getOnboardingMessages = () => {
         },
     };
 
-    const inviteAccountantTask: OnboardingTask = {
-        type: 'inviteAccountant',
-        autoCompleted: false,
-        mediaAttributes: {},
-        title: ({workspaceMembersLink}) => translateLocal('onboarding.tasks.inviteAccountantTask.title', {workspaceMembersLink}),
-        description: ({workspaceMembersLink}) => translateLocal('onboarding.tasks.inviteAccountantTask.description', {workspaceMembersLink}),
-    };
-
     const startChatTask: OnboardingTask = {
         type: 'startChat',
         autoCompleted: false,
@@ -305,7 +303,7 @@ const getOnboardingMessages = () => {
 
     const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
         ...onboardingEmployerOrSubmitMessage,
-        tasks: [testDriveEmployeeTask, combinedTrackSubmitExpenseTask],
+        tasks: [testDriveEmployeeTask, combinedTrackSubmitExpenseTask, reviewWorkspaceSettingsTask],
     };
 
     const onboardingPersonalSpendMessage: OnboardingMessage = {
@@ -331,7 +329,7 @@ const getOnboardingMessages = () => {
             width: 1280,
             height: 960,
         },
-        tasks: [createWorkspaceTask, setupCategoriesTask, inviteAccountantTask],
+        tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask],
     };
 
     const onboardingChatSplitMessage: OnboardingMessage = {
