@@ -701,6 +701,7 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
 
 /**
  * Returns the policy of the report
+ * @deprecated Get the data straight from Onyx - This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
  */
 function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy> = allPolicies): OnyxEntry<Policy> {
     if (!policies || !policyID) {
@@ -738,6 +739,8 @@ function hasPolicyWithXeroConnection(currentUserLogin: string | undefined) {
 
 /** Whether the user can send invoice from the workspace */
 function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     return policy?.areInvoicesEnabled ?? false;
 }
@@ -1196,6 +1199,8 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
 }
 
 function getWorkspaceAccountID(policyID?: string) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     if (!policy) {
@@ -1205,6 +1210,8 @@ function getWorkspaceAccountID(policyID?: string) {
 }
 
 function hasVBBA(policyID: string | undefined) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     return !!policy?.achAccount?.bankAccountID;
 }
@@ -1213,7 +1220,8 @@ function getTagApproverRule(policyOrID: string | SearchPolicy | OnyxEntry<Policy
     if (!policyOrID) {
         return;
     }
-
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
 
     const approvalRules = policy?.rules?.approvalRules ?? [];
@@ -1241,6 +1249,8 @@ function getAllPoliciesLength() {
 }
 
 function getActivePolicy(): OnyxEntry<Policy> {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     return getPolicy(activePolicyId);
 }
 
@@ -1278,6 +1288,8 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     if (!policy) {
@@ -1306,6 +1318,8 @@ function canModifyPlan(policyID?: string) {
     if (!policyID) {
         return ownerPolicies.length > 1;
     }
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     return !!policy && isPolicyAdmin(policy);
@@ -1374,6 +1388,8 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     // A domain name containing a policyID indicates that this is a workspace feed
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
     if (policyID) {
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(policyID.toUpperCase());
         return policy?.name ?? domainName;
     }
@@ -1418,6 +1434,8 @@ export {
     getNumericValue,
     isMultiLevelTags,
     getPersonalPolicy,
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     getPolicy,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
