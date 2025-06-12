@@ -94,7 +94,13 @@ function SidebarOrderedReportsContextProvider({
         } else if (policiesUpdates) {
             const updatedPolicies = Object.keys(policiesUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
             reportsToUpdate = Object.entries(chatReports ?? {})
-                .filter(([, value]) => updatedPolicies.includes(value?.policyID ?? ''))
+                .filter(([, value]) => {
+                    if (!value?.policyID) {
+                        return;
+                    }
+
+                    return updatedPolicies.includes(value?.policyID);
+                })
                 .map(([key]) => key);
             // if betas or priorityMode changes, we need to recompute all reports
         } else if (betas !== prevBetas || priorityMode !== prevPriorityMode) {
