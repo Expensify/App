@@ -928,6 +928,11 @@ const reportsListItems = [
 
 describe('SearchUIUtils', () => {
     describe('Test getAction', () => {
+        test('Should return `View` action for an invalid key', () => {
+            const action = SearchUIUtils.getAction(searchResults.data, {}, 'invalid_key');
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
             let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -942,6 +947,167 @@ describe('SearchUIUtils', () => {
 
             action = SearchUIUtils.getAction(searchResults.data, allViolations, `transactions_${transactionID2}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+
+        test('Should return `Paid` action for a manually settled report', () => {
+            const paidReportID = 'report_paid';
+            const localSearchResults = {
+                ...searchResults.data,
+                [paidReportID]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: paidReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                },
+                [`reportNameValuePairs_${paidReportID}`]: {
+                    manualReimbursed: '2024-01-01',
+                },
+            };
+
+            const action = SearchUIUtils.getAction(localSearchResults, {}, paidReportID);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
+        });
+
+        test('Should return `Paid` action for a settled report on an auto-reimbursement policy', () => {
+            const paidReportID = 'report_paid_auto';
+            const policyIDAuto = 'policy_auto';
+
+            const localSearchResults = {
+                ...searchResults.data,
+                [`policy_${policyIDAuto}`]: {
+                    ...searchResults.data[`policy_${policyID}`],
+                    id: policyIDAuto,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                },
+                [paidReportID]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: paidReportID,
+                    policyID: policyIDAuto,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                },
+            };
+
+            const action = SearchUIUtils.getAction(localSearchResults, {}, paidReportID);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
+        });
+
+        test('Should return `Pay` action for a closed IOU report with an outstanding balance', () => {
+            const closedReportID = 'report_closed_with_balance';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${closedReportID}`]: {
+                    ...searchResults.data[`report_${reportID3}`],
+                    reportID: closedReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                },
+            };
+
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${closedReportID}`);
+
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+        });
+
+        test('Should return `Done` action for a closed report with a zero balance', () => {
+            const closedReportID = 'report_closed';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${closedReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: closedReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    total: 0,
+                },
+            };
+
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${closedReportID}`);
+
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
+        });
+
+        test('Should return `Review` action if report has errors', () => {
+            const errorReportID = 'report_error';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${errorReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: errorReportID,
+                    errors: {error: 'An error'},
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${errorReportID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+
+        test('Should return `View` action for non-money request reports', () => {
+            const action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID4}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
+        test('Should return `View` action for an orphaned transaction', () => {
+            const orphanedTransactionID = 'transaction_orphaned';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`transactions_${orphanedTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: orphanedTransactionID,
+                    reportID: 'non_existent_report',
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${orphanedTransactionID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+        test('Should return `View` action for a transaction in a multi-transaction report', () => {
+            const multiTransactionID = 'transaction_multi';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`transactions_${multiTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: multiTransactionID,
+                    isFromOneTransactionReport: false,
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${multiTransactionID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+        test('Should return `Review` action if report export has failed', () => {
+            const failedExportReportID = 'report_failed_export';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${failedExportReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: failedExportReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+                [`reportNameValuePairs_${failedExportReportID}`]: {
+                    exportFailedTime: '2024-01-01',
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${failedExportReportID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+        test('Should return `Review` action if transaction has errors', () => {
+            const errorTransactionID = 'transaction_error';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`transactions_${errorTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: errorTransactionID,
+                    errors: {error: 'An error'},
+                },
+            };
+            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${errorTransactionID}`);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+        test('Should return `Pay` action for an IOU report ready to be paid', async () => {
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            await waitForBatchedUpdates();
+            const iouReportKey = `report_${reportID3}`;
+            const action = SearchUIUtils.getAction(searchResults.data, {}, iouReportKey);
+            expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
     });
 
