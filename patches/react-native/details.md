@@ -14,7 +14,7 @@
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/46247
 - E/App issue: 🛑
-- PR Introducing Patch: https://github.com/Expensify/App/pull/46315, https://github.com/Expensify/App/pull/45289 
+- PR Introducing Patch: https://github.com/Expensify/App/pull/46315, https://github.com/Expensify/App/pull/45289
 
 ### [react-native+0.79.2+003+disableTextInputRecycling.patch](react-native+0.79.2+003+disableTextInputRecycling.patch)
 
@@ -25,7 +25,7 @@
 
 ### [react-native+0.79.2+004+iOSFontResolution.patch](react-native+0.79.2+004+iOSFontResolution.patch)
 
-- Reason: Fixes font resolution issues on iOS
+- Reason: Fixes font resolution issues on iOS by properly preserving font properties when loading fonts by name. When a font is loaded by its name, the patch now correctly extracts and uses its actual weight and style properties instead of ignoring them.
 - Upstream PR/issue:
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/13767
