@@ -8,9 +8,7 @@ import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as Console from '@libs/actions/Console';
 import toggleProfileTool from '@libs/actions/ProfilingTool';
 import * as Troubleshoot from '@libs/actions/Troubleshoot';
@@ -43,14 +41,14 @@ type BaseRecordTroubleshootDataToolMenuProps = {
     onEnableLogging?: () => void;
     /** Path used to save the file */
     pathToBeUsed: string;
-    /** Path used to display location of saved file */
-    displayPath: string;
     /** Whether to show the share button */
     showShareButton?: boolean;
     /** Zip ref */
     zipRef: MutableRefObject<InstanceType<typeof JSZip>>;
     /** A method to download the zip archive */
     onDownloadZip?: () => void;
+    /** It's a desktop-only prop, as it's impossible to download two files simultaneously */
+    showDownloadButton?: boolean;
 };
 
 function formatBytes(bytes: number, decimals = 2) {
@@ -76,12 +74,11 @@ function BaseRecordTroubleshootDataToolMenu({
     onEnableLogging,
     showShareButton = false,
     pathToBeUsed,
-    displayPath,
     zipRef,
     onDownloadZip,
+    showDownloadButton = false,
 }: BaseRecordTroubleshootDataToolMenuProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const [shouldRecordTroubleshootData] = useOnyx(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, {canBeMissing: true});
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: true});
     const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
@@ -162,10 +159,12 @@ function BaseRecordTroubleshootDataToolMenu({
     const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
 
     const onDisableSwitch = useCallback(() => {
-        if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
+        if (getPlatform() === CONST.PLATFORM.WEB) {
             onStopProfiling(true, newFileName).then(() => {
                 onDownloadZip?.();
             });
+        } else if (getPlatform() === CONST.PLATFORM.DESKTOP) {
+            onDownloadZip?.();
         } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
             onStopProfiling(true, newFileName).then((path) => {
                 if (!path) {
@@ -228,6 +227,10 @@ function BaseRecordTroubleshootDataToolMenu({
         });
     };
 
+    const onDownloadProfiling = () => {
+        onStopProfiling(true, newFileName);
+    };
+
     return (
         <>
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.recordTroubleshootData')}>
@@ -239,16 +242,22 @@ function BaseRecordTroubleshootDataToolMenu({
                 />
             </TestToolRow>
             {(shareUrls?.length ?? 0) > 0 && showShareButton && (
-                <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}/${newFileName}`}</Text>
-                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
-                        <Button
-                            small
-                            text={translate('common.share')}
-                            onPress={onShare}
-                        />
-                    </TestToolRow>
-                </>
+                <TestToolRow title={translate('initialSettingsPage.troubleshoot.results')}>
+                    <Button
+                        small
+                        text={translate('common.share')}
+                        onPress={onShare}
+                    />
+                </TestToolRow>
+            )}
+            {showDownloadButton && !!file?.path && (
+                <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
+                    <Button
+                        small
+                        text={translate('common.download')}
+                        onPress={onDownloadProfiling}
+                    />
+                </TestToolRow>
             )}
         </>
     );

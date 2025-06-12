@@ -61,6 +61,7 @@ function RecordTroubleshootDataToolMenu() {
             onEnableLogging={hideShareButton}
             pathToBeUsed=""
             onDownloadZip={onDownloadZip}
+            showDownloadButton
         />
     );
 }
