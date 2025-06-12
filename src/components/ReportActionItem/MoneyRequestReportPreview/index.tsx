@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
@@ -9,16 +10,23 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
-import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
-import {isIOUReport} from '@libs/ReportUtils';
+import {
+    getIOUActionForReportID,
+    getSortedReportActionsForDisplay,
+    isMoneyRequestAction,
+    isSplitBillAction as isSplitBillActionReportActionsUtils,
+    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
+} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Transaction} from '@src/types/onyx';
+import type {ReportActions, Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
 
@@ -64,14 +72,16 @@ function MoneyRequestReportPreview({
         [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
 
-    const shouldShowIOUData = useMemo(() => {
-        if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
-            return false;
-        }
+    const [visibleIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>) => {
+            const visibleReportAction = getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(iouReport), false);
+            return visibleReportAction.filter((reportAction) => isMoneyRequestAction(reportAction));
+        },
+        canBeMissing: true,
+    });
+    const actorAccountIDsFromReportActions = [...new Set(visibleIOUReportActions?.map((reportAction) => reportAction.actorAccountID).filter((accountID) => !!accountID))];
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
-    }, [transactions, action.childType, iouReport]);
+    const shouldShowIOUData = actorAccountIDsFromReportActions.length > 1;
 
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
