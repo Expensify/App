@@ -224,12 +224,14 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  * @throws Error if unable to get state from path
  */
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
-    // Redirect /signin to root path to prevent NotFound page
-    if (normalizePath(path) === '/signin') {
-        return getAdaptedStateFromPath('', options, shouldReplacePathInNestedState);
+    let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    
+    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
+    
+        if (normalizedPath === CONST.SIGNIN_ROUTE) {
+        normalizedPath = '/';
     }
-
-    const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    
 
     const state = getStateFromPath(normalizedPath, options) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
