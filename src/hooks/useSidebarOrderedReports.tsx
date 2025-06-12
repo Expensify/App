@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
@@ -61,12 +61,12 @@ function SidebarOrderedReportsContextProvider({
     const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
-    const [reportsToDisplayInLHN, setReportsToDisplayInLHN] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
+    const reportsToDisplayRef = useRef<ReportsToDisplayInLHN>({});
 
     /**
      * Find the reports that need to be updated in the LHN
@@ -91,6 +91,10 @@ function SidebarOrderedReportsContextProvider({
             reportsToUpdate = Object.entries(chatReports ?? {})
                 .filter(([, value]) => updatedPolicies.includes(value?.policyID ?? ''))
                 .map(([key]) => key);
+            // if betas or priorityMode changes, we need to recompute all reports
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        } else if (betas || priorityMode) {
+            reportsToUpdate = Object.keys(chatReports ?? {});
         }
 
         return reportsToUpdate;
@@ -107,76 +111,38 @@ function SidebarOrderedReportsContextProvider({
         derivedCurrentReportID,
     ]);
 
-    /**
-     * This useEffect is responsible for calculating the initial list of reports to display in the LHN.
-     */
-    useEffect(() => {
-        // if reportsToDisplayInLHN is already set, we don't need to re-calculate entirely
-        if (Object.keys(reportsToDisplayInLHN ?? {}).length > 0) {
-            return;
+    const reportsToDisplayInLHN = useMemo(() => {
+        const updatedReports = getUpdatedReports();
+        const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(reportsToDisplayRef.current).length > 0;
+        let toDisplay = {};
+
+        if (shouldDoIncrementalUpdate) {
+            toDisplay = SidebarUtils.updateReportsToDisplayInLHN(
+                reportsToDisplayRef.current,
+                chatReports,
+                updatedReports,
+                derivedCurrentReportID,
+                priorityMode === CONST.PRIORITY_MODE.GSD,
+                betas,
+                policies,
+                transactionViolations,
+                reportNameValuePairs,
+                reportAttributes,
+            );
+        } else {
+            toDisplay = SidebarUtils.getReportsToDisplayInLHN(
+                derivedCurrentReportID,
+                chatReports,
+                betas,
+                policies,
+                priorityMode,
+                transactionViolations,
+                reportNameValuePairs,
+                reportAttributes,
+            );
         }
-
-        const reports = SidebarUtils.getReportsToDisplayInLHN(
-            derivedCurrentReportID,
-            chatReports,
-            betas,
-            policies,
-            priorityMode,
-            transactionViolations,
-            reportNameValuePairs,
-            reportAttributes,
-        );
-
-        setReportsToDisplayInLHN(reports);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes, derivedCurrentReportID]);
-
-    /**
-     * This useEffect is responsible for updating the entire list when the priority mode or betas are updated.
-     */
-    useEffect(() => {
-        if (!betas || !priorityMode) {
-            return;
-        }
-
-        const reports = SidebarUtils.getReportsToDisplayInLHN(
-            derivedCurrentReportID,
-            chatReports,
-            betas,
-            policies,
-            priorityMode,
-            transactionViolations,
-            reportNameValuePairs,
-            reportAttributes,
-        );
-
-        setReportsToDisplayInLHN(reports);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [priorityMode, betas]);
-
-    /**
-     * This useEffect is responsible for updating the list of reports to display in the LHN when the reports are updated.
-     */
-    useEffect(() => {
-        const reportsToUpdate = getUpdatedReports();
-
-        if (reportsToUpdate.length === 0) {
-            return;
-        }
-
-        const updatedReportsToDisplayInLHN = SidebarUtils.updateReportsToDisplayInLHN(
-            reportsToDisplayInLHN,
-            chatReports,
-            reportsToUpdate,
-            derivedCurrentReportID,
-            priorityMode === CONST.PRIORITY_MODE.GSD,
-            betas,
-            policies,
-            transactionViolations,
-            reportNameValuePairs,
-            reportAttributes,
-        );
-        setReportsToDisplayInLHN(updatedReportsToDisplayInLHN);
+        reportsToDisplayRef.current = toDisplay;
+        return toDisplay;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [getUpdatedReports]);
 
