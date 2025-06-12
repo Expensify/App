@@ -22,15 +22,18 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {shallowCompare} from '@libs/ObjectUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ColumnsToShow} from '@src/types/onyx/SearchResults';
 
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
@@ -45,6 +48,12 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Default renderer for every item in the list */
     ListItem: SearchListItemComponentType;
+
+    /** The columns to show in the list */
+    columnsToShow?: ColumnsToShow;
+
+    /** Callback to fire when columns change */
+    onColumnsChange?: (columnsToShow: ColumnsToShow) => void;
 
     SearchTableHeader?: React.JSX.Element;
 
@@ -87,6 +96,8 @@ const onScrollToIndexFailed = () => {};
 function SearchList(
     {
         data,
+        columnsToShow,
+        onColumnsChange,
         ListItem,
         SearchTableHeader,
         onSelectRow,
@@ -137,6 +148,13 @@ function SearchList(
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
     });
+
+    const previousColumns = usePrevious(columnsToShow);
+    useEffect(() => {
+        if (previousColumns && columnsToShow && !shallowCompare(previousColumns, columnsToShow)) {
+            onColumnsChange?.(columnsToShow);
+        }
+    }, [previousColumns, columnsToShow, onColumnsChange]);
 
     useEffect(() => {
         selectionRef.current = selectedItemsLength;

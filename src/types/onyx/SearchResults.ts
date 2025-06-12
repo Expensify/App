@@ -494,4 +494,5 @@ export type {
     SearchReport,
     SearchReportAction,
     SearchPolicy,
+    ColumnsToShow,
 };
