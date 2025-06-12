@@ -98,4 +98,19 @@ Yes, but each workspace must have its **own settlement account**. For example, u
 - **Yes**: Employees can have unlimited **virtual cards** (e.g. for trips or subscriptions).
 - **No**: Only **one active, physical card** is allowed per employee. 
 
+## How is the Expensify Card limit determined?
+
+The limit is the maximum combined spending limit for all Expensify Cards in your domain. It’s calculated using:
+
+- **Available balance** in the verified bank account set as your **settlement account**
+- **Pending expenses** and **unsettled transactions**
+- **Funds availability** tracked via **Plaid**
+- **Settlement cycle timing**, which usually takes **three business days**
+
+## What affects the Expensify Card limit?
+
+- **Available funds:** A sudden drop in your linked bank account can reduce your Domain Limit.
+- **Pending expenses:** Large, unprocessed purchases temporarily reduce your spending capacity.
+- **Processing settlements:** Until the previous cycle settles, your limit adjusts dynamically.
+  
 </div>

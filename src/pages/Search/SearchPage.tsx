@@ -489,12 +489,35 @@ function SearchPage({route}: SearchPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <>
-                <SearchPageNarrow
-                    queryJSON={queryJSON}
-                    headerButtonsOptions={headerButtonsOptions}
-                    lastNonEmptySearchResults={lastNonEmptySearchResults}
-                    currentSearchResults={currentSearchResults}
-                />
+                {isLoadingReceipt && <FullScreenLoadingIndicator />}
+                <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                    {PDFThumbnailView}
+                    <SearchPageNarrow
+                        queryJSON={queryJSON}
+                        headerButtonsOptions={headerButtonsOptions}
+                        lastNonEmptySearchResults={lastNonEmptySearchResults}
+                        currentSearchResults={currentSearchResults}
+                    />
+                    <DragAndDropConsumer onDrop={initScanRequest}>
+                        <DropZoneUI
+                            icon={Expensicons.SmartScan}
+                            dropTitle={translate('dropzone.scanReceipts')}
+                            dropStyles={styles.receiptDropOverlay(true)}
+                            dropTextStyles={styles.receiptDropText}
+                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                        />
+                    </DragAndDropConsumer>
+                    <ConfirmModal
+                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                        onConfirm={hideReceiptModal}
+                        onCancel={hideReceiptModal}
+                        isVisible={isAttachmentInvalid}
+                        prompt={getConfirmModalPrompt(attachmentInvalidReason)}
+                        confirmText={translate('common.close')}
+                        shouldShowCancelButton={false}
+                    />
+                </DragAndDropProvider>
                 {!!selectionMode && selectionMode?.isEnabled && (
                     <View>
                         <ConfirmModal
