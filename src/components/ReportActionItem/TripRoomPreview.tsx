@@ -85,15 +85,35 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
         const endName = reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? reservation.end.shortName : reservation.end.longName;
 
         titleComponent = (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                <Text style={[styles.labelStrong, styles.flexShrink1]}>{startName}</Text>
-                <Icon
-                    src={Expensicons.ArrowRightLong}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
-                    fill={theme.icon}
-                />
-                <Text style={[styles.labelStrong, styles.flexShrink1]}>{endName}</Text>
+            <View style={[styles.flexRow, styles.alignItemsStart]}>
+                <View style={styles.tripReservationRow}>
+                    <View style={styles.flexShrink1}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.labelStrong, styles.mr2]}
+                            ellipsizeMode="tail"
+                        >
+                            {startName}
+                        </Text>
+                    </View>
+                    <View style={styles.iconWrapper}>
+                        <Icon
+                            src={Expensicons.ArrowRightLong}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </View>
+                <View style={[styles.flex1, styles.ml2]}>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.labelStrong]}
+                        ellipsizeMode="tail"
+                    >
+                        {endName}
+                    </Text>
+                </View>
             </View>
         );
     }

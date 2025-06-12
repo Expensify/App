@@ -58,6 +58,9 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getAddedApprovalRuleMessage,
+    getAddedConnectionMessage,
+    getDeletedApprovalRuleMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getIntegrationSyncFailedMessage,
@@ -77,10 +80,18 @@ import {
     getReopenedMessage,
     getReportActionMessage,
     getReportActionText,
+    getTagListNameUpdatedMessage,
+    getTravelUpdateMessage,
+    getUpdatedApprovalRuleMessage,
+    getUpdatedAuditRateMessage,
+    getUpdatedManualApprovalThresholdMessage,
     getWhisperedTo,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
+    getWorkspaceCustomUnitRateDeletedMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
+    getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
@@ -93,6 +104,7 @@ import {
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isActionOfType,
+    isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
     isCreatedTaskReportAction,
@@ -176,6 +188,9 @@ import TripSummary from './TripSummary';
 type PureReportActionItemProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** Policy for this action */
+    policy?: OnyxEntry<OnyxTypes.Policy>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -360,6 +375,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     action,
     report,
+    policy,
     transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
@@ -409,7 +425,7 @@ function PureReportActionItem({
     shouldShowBorder,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate} = useLocalize();
+    const {translate, datetimeToCalendarTime} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
@@ -821,6 +837,8 @@ function PureReportActionItem({
         // Show the MoneyRequestPreview for when expense is present
         if (isIOURequestReportAction(action)) {
             const isSplitInGroupChat = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && report?.chatType === CONST.REPORT.CHAT_TYPE.GROUP;
+            const isSplitScanWithNoAmount = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && moneyRequestOriginalMessage?.amount === 0;
+            const shouldShowSplitPreview = isSplitInGroupChat || isSplitScanWithNoAmount;
             const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = moneyRequestOriginalMessage?.IOUReportID?.toString();
@@ -843,7 +861,7 @@ function PureReportActionItem({
 
             // Table Report View does not display these components as separate messages, except for self-DM
             if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && report?.type === CONST.REPORT.TYPE.CHAT) {
-                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || isSplitInGroupChat) {
+                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
@@ -853,11 +871,11 @@ function PureReportActionItem({
                                 action={action}
                                 shouldDisplayContextMenu={shouldDisplayContextMenu}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
-                                transactionID={isSplitInGroupChat ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
+                                transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
                                 containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
                                 transactionPreviewWidth={shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width}
                                 onPreviewPressed={() => {
-                                    if (isSplitInGroupChat) {
+                                    if (shouldShowSplitPreview) {
                                         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
                                         return;
                                     }
@@ -1069,6 +1087,12 @@ function PureReportActionItem({
                     <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(action, datetimeToCalendarTime)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('iou.unreportedTransaction')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
@@ -1089,11 +1113,19 @@ function PureReportActionItem({
             action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY ||
             action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
         ) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceCategoryUpdateMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getWorkspaceCategoryUpdateMessage(action, policy)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
+            children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListNameUpdatedMessage(action))} />;
         } else if (isTagModificationAction(action.actionName)) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getWorkspaceTagUpdateMessage(action))} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateAddedMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateUpdatedMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateDeletedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReportFieldAddMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD) {
@@ -1116,6 +1148,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogUpdateEmployee(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDeleteMemberMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE)) {
+            children = <ReportActionItemBasicMessage message={getAddedApprovalRuleMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE)) {
+            children = <ReportActionItemBasicMessage message={getDeletedApprovalRuleMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedApprovalRuleMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
         } else if (isActionableJoinRequest(action)) {
@@ -1133,15 +1171,7 @@ function PureReportActionItem({
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE)) {
             children = <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(action)} />;
-        } else if (
-            isActionOfType(
-                action,
-                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-                CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-                CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
-            )
-        ) {
+        } else if (isCardIssuedAction(action)) {
             children = (
                 <IssueCardMessage
                     action={action}
@@ -1155,8 +1185,14 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={message} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             children = <ReportActionItemBasicMessage message={getIntegrationSyncFailedMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
+            children = <ReportActionItemBasicMessage message={getAddedConnectionMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
             children = <ReportActionItemBasicMessage message={getRemovedConnectionMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
