@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -10,6 +10,7 @@ import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffl
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -99,6 +100,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
@@ -230,6 +232,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     const handleIssueNewCard = useCallback(() => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+
         if (hasMultipleFeeds) {
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_NEW_CARD.getRoute(policyID, accountID));
             return;
@@ -245,7 +252,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             policyID,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    }, [accountID, hasMultipleFeeds, memberLogin, policyID]);
+    }, [accountID, hasMultipleFeeds, memberLogin, policyID, isAccountLocked, showLockedAccountModal]);
 
     const openRoleSelectionModal = useCallback(() => {
         setIsRoleSelectionModalVisible(true);
@@ -322,7 +329,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             ) : (
                                 <Button
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
-                                    onPress={askForConfirmationToRemove}
+                                    onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
                                     isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                     icon={Expensicons.RemoveMembers}
                                     style={styles.mb5}
