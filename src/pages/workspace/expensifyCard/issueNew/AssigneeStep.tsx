@@ -22,6 +22,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
+import usePermissions from "@hooks/usePermissions";
+import {isCurrencySupportECards} from "@libs/CardUtils";
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
@@ -36,6 +38,8 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
+    const isEuCurrencySupported = isCurrencySupportECards(policy?.outputCurrency) && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK);
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -44,6 +48,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const submit = (assignee: ListItem) => {
         const data: Partial<IssueNewCardData> = {
             assigneeEmail: assignee?.login ?? '',
+            currency: isEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD,
         };
 
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(getUserNameByEmail(issueNewCard?.data?.assigneeEmail, 'firstName'))) {

@@ -78,7 +78,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false);
+    const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(
+        policyCurrency as CurrencyType,
+        isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND),
+        isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK),
+    );
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
