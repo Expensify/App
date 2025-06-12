@@ -1225,6 +1225,24 @@ describe('ReportUtils', () => {
                 // Should include other options like TRACK
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
             });
+
+            it('should disable Create report option for expense chats on Teachers Unite workspace', () => {
+                const expenseReport = {
+                    ...LHNTestUtils.getFakeReport(),
+                    policyID: teachersUniteTestPolicyID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(expenseReport, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+
+                // Should not include SUBMIT (Create Expense/Create report)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+
+                // Should include TRACK (Track Expense)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+            });
         });
     });
 
