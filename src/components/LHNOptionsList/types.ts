@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Locale, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
@@ -17,7 +17,7 @@ type CustomLHNOptionsListProps = {
     /** Extra styles for the section list container */
     contentContainerStyles?: StyleProp<ContentStyle>;
 
-    /** Sections for the section list */
+    /** List of reports */
     data: Report[];
 
     /** Callback to fire when a row is selected */
@@ -44,6 +44,18 @@ type OptionRowLHNDataProps = {
 
     /** The preferred language for the app */
     preferredLocale?: OnyxEntry<Locale>;
+
+    /** The active policy ID */
+    activePolicyID?: string;
+
+    /** The onboarding purpose */
+    onboardingPurpose?: OnboardingPurpose;
+
+    /** Whether the fullscreen is visible */
+    isFullscreenVisible?: boolean;
+
+    /** Whether the reports split navigator is last */
+    isReportsSplitNavigatorLast: boolean;
 
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
@@ -115,6 +127,9 @@ type OptionRowLHNProps = {
     /** The ID of the report that the option is for */
     reportID: string;
 
+    /** The report for this option */
+    report?: Report;
+
     /** Whether this option is currently in focus so we can modify its style */
     isFocused?: boolean;
 
@@ -129,6 +144,18 @@ type OptionRowLHNProps = {
 
     /** The item that should be rendered */
     optionItem?: OptionData;
+
+    /** The active policy ID */
+    activePolicyID?: string;
+
+    /** The onboarding purpose */
+    onboardingPurpose?: OnboardingPurpose;
+
+    /** Whether the fullscreen is visible */
+    isFullscreenVisible?: boolean;
+
+    /** Whether the reports split navigator is last */
+    isReportsSplitNavigatorLast: boolean;
 
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
