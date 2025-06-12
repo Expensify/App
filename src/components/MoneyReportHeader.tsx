@@ -627,8 +627,18 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT));
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled]);
+        return getSecondaryReportActions(
+            moneyRequestReport,
+            transactions,
+            violations,
+            policy,
+            reportNameValuePairs,
+            reportActions,
+            policies,
+            isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
+            isChatReportArchived,
+        );
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, isChatReportArchived]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
