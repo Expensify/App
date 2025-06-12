@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -16,6 +16,7 @@ import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {startMoneyRequest} from '@userActions/IOU';
@@ -68,12 +69,20 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
-    const sections: Array<SectionListDataType<Transaction & ListItem>> = [
-        {
-            shouldShow: true,
-            data: transactions.filter((t): t is Transaction & ListItem => t !== undefined),
-        },
-    ];
+    const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(
+        () => [
+            {
+                shouldShow: true,
+                data: transactions
+                    .filter((t): t is Transaction & ListItem => t !== undefined)
+                    .map((transaction) => ({
+                        ...transaction,
+                        isDisabled: isTransactionPendingDelete(transaction),
+                    })),
+            },
+        ],
+        [transactions],
+    );
 
     const thereIsNoUnreportedTransaction = !((sections.at(0)?.data.length ?? 0) > 0);
 
