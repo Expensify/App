@@ -2,6 +2,7 @@ import type {LinkingOptions} from '@react-navigation/native';
 import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
 import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
 import type {RootNavigatorParamList} from '@navigation/types';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
@@ -137,6 +138,22 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_CURRENCY.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
+                    exact: true,
+                },
             },
         },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
@@ -194,6 +211,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
                             },
+                        },
+                        [SCREENS.SETTINGS.LOCK.LOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_LOCK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_UNLOCK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT,
+                            exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
@@ -825,8 +854,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_IMPORT]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORT.route,
                         },
+                        [SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_MULTI_LEVEL_TAGS_IMPORT_SETTINGS.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORTED.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.route,
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
@@ -1741,7 +1779,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: {
             initialRouteName: SCREENS.SHARE.ROOT,
             screens: {
-                [SCREENS.SHARE.ROOT]: {path: ROUTES.SHARE_ROOT},
+                [SCREENS.SHARE.ROOT]: {
+                    path: ROUTES.SHARE_ROOT,
+                    screens: {
+                        [CONST.TAB.SHARE.SHARE]: {
+                            path: ROUTES.SHARE_ROOT_SHARE,
+                            exact: true,
+                        },
+                        [CONST.TAB.SHARE.SUBMIT]: {
+                            path: ROUTES.SHARE_ROOT_SUBMIT,
+                            exact: true,
+                        },
+                    },
+                },
                 [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
                 [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
             },

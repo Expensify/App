@@ -2,10 +2,10 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZoneUI';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -36,6 +36,7 @@ import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, isScanRequest} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     checkIfScanFileCanBeRead,
@@ -182,8 +183,12 @@ function IOURequestStepConfirmation({
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
-    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    // TODO: remove beta check after the feature is enabled
+    const {isBetaEnabled} = usePermissions();
+
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -478,7 +483,7 @@ function IOURequestStepConfirmation({
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
 
                 if (isTestDriveReceipt) {
-                    completeTestDriveTask();
+                    completeTestDriveTask(viewTourReport, viewTourReportID);
                 }
 
                 requestMoneyIOUActions({
@@ -534,6 +539,8 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             customUnitRateID,
             backToReport,
+            viewTourReport,
+            viewTourReportID,
         ],
     );
 
@@ -1010,7 +1017,7 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
-            headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.isDraggingOver] : []}
+            headerGapStyles={isDraggingOver ? [isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? styles.dropWrapper : styles.isDraggingOver] : []}
         >
             <DragAndDropProvider
                 setIsDraggingOver={setIsDraggingOver}
@@ -1032,9 +1039,9 @@ function IOURequestStepConfirmation({
                     />
                     {(isLoading || isLoadingReceipt || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFThumbnailView}
-                    {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
-                    {canUseMultiFilesDragAndDrop ? (
-                        <DropZoneUI
+                    {/* TODO: remove beta check after the feature is enabled */}
+                    {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
+                        <DragAndDropConsumer
                             onDrop={(e) => {
                                 const file = e?.dataTransfer?.files[0];
                                 if (file) {
@@ -1042,12 +1049,15 @@ function IOURequestStepConfirmation({
                                     setReceiptOnDrop(file);
                                 }
                             }}
-                            icon={Expensicons.ReplaceReceipt}
-                            dropStyles={styles.receiptDropOverlay}
-                            dropTitle={translate('dropzone.replaceReceipt')}
-                            dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
-                        />
+                        >
+                            <DropZoneUI
+                                icon={Expensicons.ReplaceReceipt}
+                                dropStyles={styles.receiptDropOverlay(true)}
+                                dropTitle={translate('dropzone.replaceReceipt')}
+                                dropTextStyles={styles.receiptDropText}
+                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                            />
+                        </DragAndDropConsumer>
                     ) : (
                         <ReceiptDropUI
                             onDrop={(e) => {

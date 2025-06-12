@@ -42,6 +42,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashList<Report>>(null);
     const route = useRoute();
+    const isScreenFocused = useIsFocused();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
@@ -58,8 +59,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
-    const isScreenFocused = useIsFocused();
-
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
@@ -275,6 +274,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             preferredLocale,
             transactions,
             isOffline,
+            isScreenFocused,
         ],
         [
             reportActions,
@@ -290,6 +290,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             preferredLocale,
             transactions,
             isOffline,
+            isScreenFocused,
         ],
     );
 

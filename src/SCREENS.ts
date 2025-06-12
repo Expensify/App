@@ -147,6 +147,11 @@ const SCREENS = {
             ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
             MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
         },
+        LOCK: {
+            LOCK_ACCOUNT: 'Settings_Lock_LockAccount',
+            UNLOCK_ACCOUNT: 'Settings_Lock_UnlockAccount',
+            FAILED_TO_LOCK_ACCOUNT: 'Settings_Lock_FailedToLockAccount',
+        },
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
             SIZE: 'Settings_Subscription_Size',
@@ -533,7 +538,10 @@ const SCREENS = {
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
         TAGS_IMPORT: 'Tags_Import',
+        TAGS_IMPORT_MULTI_LEVEL_SETTINGS: 'Tags_Import_Multi_Level_Settings',
+        TAGS_IMPORT_OPTIONS: 'Tags_Import_Options',
         TAGS_IMPORTED: 'Tags_Imported',
+        TAGS_IMPORTED_MULTI_LEVEL: 'Tags_Imported_Multi_Level',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         REPORT_FIELDS: 'Workspace_ReportFields',
@@ -652,6 +660,10 @@ const SCREENS = {
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
+        WORKSPACE_OPTIONAL: 'Onboarding_Workspace_Optional',
+        WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
+        WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
+        WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
     WELCOME_VIDEO: {
