@@ -850,9 +850,9 @@ function MoneyReportHeader({
             subMenuItems: Object.values(paymentButtonOptions),
         },
     };
-
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false);
-
+    const applicableSecondaryActions = secondaryActions
+        .map((action) => secondaryActionsImplementation[action])
+        .filter((action) => action?.shouldShow !== false && action?.value !== primaryAction);
     useEffect(() => {
         if (!transactionThreadReportID) {
             return;
