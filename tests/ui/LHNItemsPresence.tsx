@@ -24,8 +24,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
@@ -151,7 +149,7 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(0);
 
             // When the SidebarLinks are rendered again with the current active report ID.
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
+            await LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
             await waitForBatchedUpdatesWithAct();
             // Then the active report should be displayed as part of LHN,

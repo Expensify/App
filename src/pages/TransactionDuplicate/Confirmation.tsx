@@ -15,7 +15,6 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,7 +35,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseTableReportView} = usePermissions();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
@@ -59,28 +57,13 @@ function Confirmation() {
             return;
         }
         IOU.mergeDuplicates(transactionsMergeParams);
-        if (canUseTableReportView) {
-            Navigation.dismissModal();
-            return;
-        }
-        if (!reportAction?.childReportID) {
-            return;
-        }
-        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
-    }, [reportAction?.childReportID, transactionsMergeParams, canUseTableReportView]);
+        Navigation.dismissModal();
+    }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        if (canUseTableReportView) {
-            Navigation.dismissModal();
-            return;
-        }
-        if (!reportAction?.childReportID) {
-            Navigation.dismissModal();
-            return;
-        }
-        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
-    }, [transactionsMergeParams, reportAction?.childReportID, canUseTableReportView]);
+        Navigation.dismissModal();
+    }, [transactionsMergeParams]);
 
     const contextValue = useMemo(
         () => ({
@@ -88,6 +71,7 @@ function Confirmation() {
             action: reportAction,
             report,
             checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
             reportNameValuePairs: undefined,
             anchor: null,
             isDisabled: false,

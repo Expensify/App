@@ -24,6 +24,7 @@ const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
+const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
@@ -37,6 +38,7 @@ const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
+const keyModifierShift = KeyCommand?.constants?.keyModifierShift ?? 'keyModifierShift';
 const keyModifierShiftControl = KeyCommand?.constants?.keyModifierShiftControl ?? 'keyModifierShiftControl';
 const keyModifierShiftCommand = KeyCommand?.constants?.keyModifierShiftCommand ?? 'keyModifierShiftCommand';
 const keyInputEscape = KeyCommand?.constants?.keyInputEscape ?? 'keyInputEscape';
@@ -150,8 +152,6 @@ const createWorkspaceTask: OnboardingTask = {
     description: ({workspaceSettingsLink}) =>
         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
         '\n' +
-        'Here’s how to create a workspace:\n' +
-        '\n' +
         '1. Click *Settings*.\n' +
         '2. Click *Workspaces* > *New workspace*.\n' +
         '\n' +
@@ -167,8 +167,6 @@ const setupCategoriesTask: OnboardingTask = {
     title: ({workspaceCategoriesLink}) => `Set up [categories](${workspaceCategoriesLink})`,
     description: ({workspaceCategoriesLink}) =>
         '*Set up categories* so your team can code expenses for easy reporting.\n' +
-        '\n' +
-        'Here’s how to set up categories:\n' +
         '\n' +
         '1. Click *Settings*.\n' +
         '2. Go to *Workspaces*.\n' +
@@ -194,8 +192,6 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
             description:
                 '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                 '\n' +
-                'Here’s how to submit an expense:\n' +
-                '\n' +
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
@@ -218,8 +214,6 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
             description:
                 '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                 '\n' +
-                'Here’s how to submit an expense:\n' +
-                '\n' +
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
@@ -227,6 +221,17 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '5. Click *Submit*.\n' +
                 '\n' +
                 'And you’re done! Now wait for that sweet “Cha-ching!” when it’s complete.',
+        },
+        {
+            type: 'reviewWorkspaceSettings',
+            autoCompleted: false,
+            mediaAttributes: {},
+            title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
+            description: ({workspaceSettingsLink}) =>
+                "Here's how to review and update your workspace settings:\n" +
+                '1. Click the settings tab.\n' +
+                '2. Click *Workspaces* > [Your workspace].\n' +
+                `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
         },
     ],
 };
@@ -242,8 +247,6 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
             title: 'Track an expense',
             description:
                 '*Track an expense* in any currency, whether you have a receipt or not.\n' +
-                '\n' +
-                'Here’s how to track an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
@@ -266,8 +269,6 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
             title: 'Track an expense',
             description:
                 '*Track an expense* in any currency, whether you have a receipt or not.\n' +
-                '\n' +
-                'Here’s how to track an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
@@ -418,7 +419,7 @@ const CONST = {
     },
     POPOVER_DROPDOWN_WIDTH: 336,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
-    POPOVER_DROPDOWN_MAX_HEIGHT: 476,
+    POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -448,11 +449,14 @@ const CONST = {
         MIN_SIZE: 240,
 
         // Allowed extensions for receipts
-        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
+        ALLOWED_RECEIPT_EXTENSIONS: ['heif', 'heic', 'jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
+
+    // Allowed extensions for text files that are used as spreadsheets
+    TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
 
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
@@ -569,6 +573,7 @@ const CONST = {
         RIGHT: 'right',
     },
 
+    ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -825,19 +830,23 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
-        NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
+        /**
+         * Deprecated - do not use this beta in new code anymore.
+         * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
+         * */
         TABLE_REPORT_VIEW: 'tableReportView',
-        RECEIPT_LINE_ITEMS: 'receiptLineItems',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         RETRACT_NEWDOT: 'retractNewDot',
-        PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        NATIVE_CONTACT_IMPORT: 'nativeContactImport',
+        TRACK_FLOWS: 'trackFlows',
+        NEW_DOT_SPLITS: 'newDotSplits',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -893,6 +902,14 @@ const CONST = {
         },
     },
     KEYBOARD_SHORTCUTS: {
+        MARK_ALL_MESSAGES_AS_READ: {
+            descriptionKey: 'markAllMessagesAsRead',
+            shortcutKey: 'Escape',
+            modifiers: ['SHIFT'],
+            trigger: {
+                DEFAULT: {input: keyInputEscape, modifierFlags: keyModifierShift},
+            },
+        },
         SEARCH: {
             descriptionKey: 'search',
             shortcutKey: 'K',
@@ -1063,6 +1080,7 @@ const CONST = {
     DEFAULT_NUMBER_ID,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
+    EXPENSIFY_MOBILE_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
@@ -1072,6 +1090,7 @@ const CONST = {
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
+    COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
@@ -1087,8 +1106,10 @@ const CONST = {
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+    PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
+    IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
         'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20for%20a%20website%20on%20mobile%20browsers%3F',
@@ -1121,12 +1142,14 @@ const CONST = {
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
+    CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
+    SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
-    DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
+    REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1225,9 +1248,11 @@ const CONST = {
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            RETRACT: 'retract',
             ADD_EXPENSE: 'addExpense',
+            SPLIT: 'split',
             REOPEN: 'reopen',
-            MOVE_EXPENSE: 'moveExpense',
+            PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1255,6 +1280,7 @@ const CONST = {
         },
         TRANSACTION_SECONDARY_ACTIONS: {
             HOLD: 'hold',
+            SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
         },
@@ -1321,6 +1347,7 @@ const CONST = {
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
+                RETRACTED: 'RETRACTED',
                 REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -1333,6 +1360,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
+                TRAVEL_UPDATE: 'TRAVEL_TRIP_ROOM_UPDATE',
                 TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
@@ -1405,6 +1433,7 @@ const CONST = {
                     UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
                     UPDATE_TAG_LIST: 'POLICYCHANGELOG_UPDATE_TAG_LIST',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
+                    UPDATE_TAG_LIST_REQUIRED: 'POLICYCHANGELOG_UPDATE_TAG_LIST_REQUIRED',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
@@ -1534,7 +1563,16 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
-        TRANSACTION_PREVIEW_WIDTH_WIDE: 303,
+        TRANSACTION_PREVIEW: {
+            CAROUSEL: {
+                WIDE_WIDTH: 303,
+                WIDE_HEIGHT: 269,
+            },
+            DUPLICATE: {
+                WIDE_HEIGHT: 347,
+            },
+        },
+        CAROUSEL_MAX_WIDTH_WIDE: 680,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
@@ -1567,6 +1605,7 @@ const CONST = {
             STOPWATCH: 'stopwatch',
         },
     },
+    UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
@@ -1613,6 +1652,8 @@ const CONST = {
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
+        OPEN_APP: 'open_app',
+        SPLASH_SCREEN: 'splash_screen',
         OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
@@ -1647,6 +1688,7 @@ const CONST = {
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         SKELETON_ANIMATION_SPEED: 3,
+        SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1788,11 +1830,6 @@ const CONST = {
             UNKNOWN: 'unknown',
         },
     },
-    OPEN_AI_REALTIME_API: 'https://api.openai.com/v1/realtime',
-    OPEN_AI_TOOL_NAMES: {
-        END_CALL: 'EndCall',
-        SEND_RECAP_IN_ADMINS_ROOM: 'SendRecapInAdminsRoom',
-    },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
     WEEK_STARTS_ON: 1, // Monday
@@ -1825,6 +1862,11 @@ const CONST = {
 
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags.
     VALIDATE_FOR_HTML_TAG_REGEX: /<\/?\w*((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g,
+
+    // Matches any content enclosed in angle brackets, including non-standard or symbolic tags like <✓>, <123>, etc.
+    // This is a stricter version of VALIDATE_FOR_HTML_TAG_REGEX, used to detect and block inputs that resemble HTML-like tags,
+    // even if they are not valid HTML, to match backend validation behavior.
+    STRICT_VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
@@ -1871,7 +1913,7 @@ const CONST = {
     DISPLAY_PARTICIPANTS_LIMIT: 5,
 
     // Amount of emojis to render ahead at the end of the update cycle
-    EMOJI_DRAW_AMOUNT: 250,
+    EMOJI_DRAW_AMOUNT: 100,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -2665,6 +2707,11 @@ const CONST = {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
             BANCORP_BANK: 'The Bancorp Bank, N.A.',
         },
+        STATEMENT_ACTIONS: {
+            SUBMIT_EXPENSE: 'start/submit/manual',
+            PAY_SOMEONE: 'start/pay/manual',
+            SPLIT_EXPENSE: 'start/split/manual',
+        },
     },
 
     PLAID: {
@@ -2765,6 +2812,7 @@ const CONST = {
             SEND: 'send',
             PAY: 'pay',
             SPLIT: 'split',
+            SPLIT_EXPENSE: 'split-expense',
             REQUEST: 'request',
             INVOICE: 'invoice',
             SUBMIT: 'submit',
@@ -2959,6 +3007,11 @@ const CONST = {
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
+        SECONDARY_ACTIONS: {
+            IMPORT_SPREADSHEET: 'importSpreadsheet',
+            DOWNLOAD_CSV: 'downloadCSV',
+            SETTINGS: 'settings',
+        },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
@@ -3196,9 +3249,14 @@ const CONST = {
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
+    ICON_TYPE_PLAID: 'plaid',
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
+    },
+
+    QR_CODE_SIZE: {
+        APP_DOWNLOAD_LINKS: 172,
     },
 
     AVATAR_SIZE: {
@@ -3235,6 +3293,7 @@ const CONST = {
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
+            PLAID_CONNECTION: 'PlaidConnection',
             ASSIGNEE: 'Assignee',
             CARD: 'Card',
             CARD_NAME: 'CardName',
@@ -3579,8 +3638,6 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
-        PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
-        POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
         SHORT_MENTION: new RegExp(
             // We are ensuring that the short mention is not inside a code block. So we check that the short mention
             // is either not preceded by an open code block or not followed by a backtick on the same line.
@@ -3609,11 +3666,14 @@ const CONST = {
         SELF_SELECT: '__predefined_selfSelect',
     },
 
-    EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce((prev, [, email]) => {
-        // eslint-disable-next-line no-param-reassign
-        prev[email] = true;
-        return prev;
-    }, {} as Record<string, boolean>),
+    EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce(
+        (prev, [, email]) => {
+            // eslint-disable-next-line no-param-reassign
+            prev[email] = true;
+            return prev;
+        },
+        {} as Record<string, boolean>,
+    ),
     EXPENSIFY_EMAILS: [
         EMAIL.ACCOUNTING,
         EMAIL.ACCOUNTS_PAYABLE,
@@ -3710,6 +3770,10 @@ const CONST = {
         // This const defines the initial container size, before layout measurement.
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
+
+        // This constant sets a margin equal to the rotate button's height (medium-sized Button (40px)), which is the tallest element in the controls row.
+        // It ensures the controls row isn't cropped if the browser height is reduced too much.
+        CONTAINER_VERTICAL_MARGIN: variables.componentSizeNormal,
     },
     MICROSECONDS_PER_MS: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
@@ -5114,6 +5178,7 @@ const CONST = {
         ERR_SAML_DOMAIN_CONTROL: 'err_saml_domain_control',
         ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
         ERR_ACCOUNT_LOCKED: 'err_account_locked',
+        ERR_MERGE_SELF: 'err_merge_self',
         TOO_MANY_ATTEMPTS: 'too_many_attempts',
         ACCOUNT_UNVALIDATED: 'account_unvalidated',
     },
@@ -5167,11 +5232,12 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            SET_PARAMS: 'SET_PARAMS',
 
             /** These action types are custom for RootNavigator */
-            SWITCH_POLICY_ID: 'SWITCH_POLICY_ID',
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
+            SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
         },
     },
     TIME_PERIOD: {
@@ -5443,10 +5509,7 @@ const CONST = {
 
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 
-    WORKSPACE_SWITCHER: {
-        NAME: 'Expensify',
-        SUBSCRIPT_ICON_SIZE: 8,
-    },
+    EXPENSIFY_ICON_NAME: 'Expensify',
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
@@ -5470,21 +5533,13 @@ const CONST = {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
                     title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
                     description: ({integrationName, workspaceAccountingLink}) =>
                         `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
-                        '\n' +
-                        `Here’s how to connect to ${integrationName}:\n` +
                         '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
@@ -5505,8 +5560,6 @@ const CONST = {
                     description: ({corporateCardLink}) =>
                         `Connect your corporate card to automatically import and code expenses.\n` +
                         '\n' +
-                        'Here’s how to invite your team:\n' +
-                        '\n' +
                         '1. Click *Workspaces*.\n' +
                         '2. Select your workspace.\n' +
                         '3. Click *Corporate cards*.\n' +
@@ -5525,8 +5578,6 @@ const CONST = {
                     title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
                     description: ({workspaceMembersLink}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
-                        '\n' +
-                        'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
@@ -5559,8 +5610,6 @@ const CONST = {
                     },
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
-                        '\n' +
-                        '*Here’s how to set up tags:*\n' +
                         '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
@@ -5596,8 +5645,6 @@ const CONST = {
                     description: ({workspaceMembersLink}) =>
                         '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
                         '\n' +
-                        'Here’s how to invite your accountant:\n' +
-                        '\n' +
                         '1. Click your profile picture.\n' +
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
@@ -5625,8 +5672,6 @@ const CONST = {
                     description:
                         '*Start a chat* with a friend or group using their email or phone number.\n' +
                         '\n' +
-                        'Here’s how to start a chat:\n' +
-                        '\n' +
                         '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter emails or phone numbers.\n' +
@@ -5642,8 +5687,6 @@ const CONST = {
                     title: 'Split an expense',
                     description:
                         '*Split an expense* right in your chat with one or more friends.\n' +
-                        '\n' +
-                        'Here’s how to request money:\n' +
                         '\n' +
                         '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
@@ -5676,8 +5719,6 @@ const CONST = {
                     title: 'Submit an expense',
                     description:
                         '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                        '\n' +
-                        'Here’s how to submit an expense:\n' +
                         '\n' +
                         '1. Click the green *+* button.\n' +
                         '2. Choose *Create expense*.\n' +
@@ -6449,9 +6490,9 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
-        LAST_VISITED_TAB_PATH: {
-            WORKSPACES: 'LAST_VISITED_WORKSPACES_TAB_PATH',
-            SETTINGS: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        LAST_VISITED_PATH: {
+            WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
+            SETTINGS_TAB: 'LAST_VISITED_PATH_SETTINGS_TAB',
         },
     },
 
@@ -6652,7 +6693,8 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
         },
-        EMPTY_VALUE: 'none',
+        TAG_EMPTY_VALUE: 'none',
+        CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
@@ -6804,6 +6846,15 @@ const CONST = {
                 description: 'workspace.upgrade.categories.description' as const,
                 icon: 'FolderOpen',
             },
+            multiLevelTags: {
+                id: 'multiLevelTags' as const,
+                alias: 'multiLevelTags',
+                name: 'multiLevelTags',
+                title: 'workspace.upgrade.multiLevelTags.title' as const,
+                description: 'workspace.upgrade.multiLevelTags.description' as const,
+                icon: 'Tag',
+            },
+
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
                 alias: 'netsuite',
@@ -7087,6 +7138,7 @@ const CONST = {
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
+        MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -7110,6 +7162,28 @@ const CONST = {
         DEFAULT_DOMAIN: 'domain',
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
+        },
+        UPDATE_OPERATION_TYPE: {
+            BOOKING_TICKETED: 'BOOKING_TICKETED',
+            TICKET_VOIDED: 'TICKET_VOIDED',
+            TICKET_REFUNDED: 'TICKET_REFUNDED',
+            FLIGHT_CANCELLED: 'FLIGHT_CANCELLED',
+            FLIGHT_SCHEDULE_CHANGE_PENDING: 'FLIGHT_SCHEDULE_CHANGE_PENDING',
+            FLIGHT_SCHEDULE_CHANGE_CLOSED: 'FLIGHT_SCHEDULE_CHANGE_CLOSED',
+            FLIGHT_CHANGED: 'FLIGHT_CHANGED',
+            FLIGHT_CABIN_CHANGED: 'FLIGHT_CABIN_CHANGED',
+            FLIGHT_SEAT_CONFIRMED: 'FLIGHT_SEAT_CONFIRMED',
+            FLIGHT_SEAT_CHANGED: 'FLIGHT_SEAT_CHANGED',
+            FLIGHT_SEAT_CANCELLED: 'FLIGHT_SEAT_CANCELLED',
+            PAYMENT_DECLINED: 'PAYMENT_DECLINED',
+            BOOKING_CANCELED_BY_TRAVELER: 'BOOKING_CANCELED_BY_TRAVELER',
+            BOOKING_CANCELED_BY_VENDOR: 'BOOKING_CANCELED_BY_VENDOR',
+            BOOKING_REBOOKED: 'BOOKING_REBOOKED',
+            BOOKING_UPDATED: 'BOOKING_UPDATED',
+            TRIP_UPDATED: 'TRIP_UPDATED',
+            BOOKING_OTHER_UPDATE: 'BOOKING_OTHER_UPDATE',
+            REFUND: 'REFUND',
+            EXCHANGE: 'EXCHANGE',
         },
     },
     LAST_PAYMENT_METHOD: {
@@ -7142,6 +7216,14 @@ const CONST = {
             DESCRIPTION: 'My test drive receipt!',
             MERCHANT: "Tommy's Tires",
         },
+    },
+
+    ONBOARDING_HELP: {
+        SCHEDULE_CALL: 'scheduleCall',
+        EVENT_TIME: 'eventTime',
+        RESCHEDULE: 'reschedule',
+        CANCEL: 'cancel',
+        REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
 
     SCHEDULE_CALL_STATUS: {

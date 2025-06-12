@@ -126,6 +126,7 @@ function BaseEmojiPickerMenu(
                             scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT,
                         },
                     }}
+                    scrollEnabled={data.length > 0}
                 />
             </View>
             <EmojiSkinToneList />
