@@ -25,7 +25,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 
 function CloseAccountPage() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {
+        canBeMissing: false,
+    });
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
