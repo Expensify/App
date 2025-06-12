@@ -1,3 +1,4 @@
+import {Buffer} from 'buffer';
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {PUBLIC_DOMAINS_SET, Str, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -657,6 +658,27 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
     }
 }
 
+/**
+ * Checks if the character length of an input string exceeds the specified length,
+ * returning `isValid` (boolean) and `byteLength` (number) to be used in dynamic error copy.
+ *
+ * @remarks
+ * This function uses `Buffer.from(inputValue).length` to calculate the byte size of the input string in UTF-8 encoding.
+ * Unlike JavaScript's `string.length` which counts UTF-16 code units (where some characters, like emojis or certain non-Latin characters, may use two code units),
+ * `Buffer` measures the actual byte size in UTF-8. This is important for non-Latin alphabets (e.g., Sanskrit, Chinese, or emojis) where characters often require more than one byte.
+ *
+ * For example:
+ * - Latin characters (e.g., 'a', 'b') use 1 byte each in UTF-8.
+ * - Sanskrit characters (e.g., 'क', 'ष') typically use 3 bytes each in UTF-8.
+ * - Emojis (e.g., '😊') may use 4 bytes in UTF-8.
+ *
+ * This distinction is critical when validating input for systems with byte-based size constraints, such as database fields or network protocols.
+ */
+function isValidInputLength(inputValue: string, length: number) {
+    const inputValueLength = Buffer.from(inputValue).length;
+    return {isValid: inputValueLength > length, byteLength: inputValueLength};
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -708,4 +730,5 @@ export {
     isValidZipCodeInternational,
     isValidOwnershipPercentage,
     isValidRegistrationNumber,
+    isValidInputLength,
 };

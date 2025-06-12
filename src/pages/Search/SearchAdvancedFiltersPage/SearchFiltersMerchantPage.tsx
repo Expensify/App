@@ -12,11 +12,11 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import {Buffer} from 'buffer/';
 
 function SearchFiltersMerchantPage() {
     const styles = useThemeStyles();
@@ -34,10 +34,10 @@ function SearchFiltersMerchantPage() {
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM> = {};
         const merchantValue = values.merchant.trim();
-        const merchantByteLength = Buffer.from(merchantValue).length;
+        const {isValid, byteLength} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
 
-        if (merchantByteLength > CONST.MERCHANT_NAME_MAX_BYTES) {
-            errors.merchant = translate('common.error.characterLimitExceedCounter', {length: merchantByteLength, limit: CONST.MERCHANT_NAME_MAX_BYTES});
+        if (isValid) {
+            errors.merchant = translate('common.error.characterLimitExceedCounter', {length: byteLength, limit: CONST.MERCHANT_NAME_MAX_BYTES});
         }
 
         return errors;
