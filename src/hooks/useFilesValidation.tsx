@@ -5,9 +5,9 @@ import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
 import PDFThumbnail from '@components/PDFThumbnail';
-import useLocalize from '@hooks/useLocalize';
-import {getFileValidationErrorText, resizeImageIfNeeded, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {getFileValidationErrorText, resizeImageIfNeeded, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
+import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
 // TODO: merge with useFilesValidation later to prevent code duplication
@@ -21,6 +21,7 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
     const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
+    const [invalidFileExtension, setInvalidFileExtension] = useState('');
 
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
@@ -32,6 +33,7 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
         setIsValidatingMultipleFiles(false);
         setFileError(null);
         setValidFilesToUpload([]);
+        setInvalidFileExtension('');
         validatedPDFs.current = [];
         validFiles.current = [];
     };
@@ -44,6 +46,7 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
             setIsValidatingMultipleFiles(false);
             setFileError(null);
             setValidFilesToUpload([]);
+            setInvalidFileExtension('');
             validatedPDFs.current = [];
             validFiles.current = [];
         });
@@ -81,6 +84,9 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
                 if (error) {
                     setIsAttachmentInvalid(true);
                     setFileError(error);
+                    if (error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE) {
+                        setInvalidFileExtension(splitExtensionFromFileName(originalFile.name ?? '').fileExtension);
+                    }
                     return false;
                 }
                 return true;
@@ -167,11 +173,11 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
 
     const ErrorModal = (
         <ConfirmModal
-            title={getFileValidationErrorText(fileError).title}
+            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}).title}
             onConfirm={onConfirm}
             onCancel={hideModalAndReset}
             isVisible={isAttachmentInvalid}
-            prompt={getFileValidationErrorText(fileError).reason}
+            prompt={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}).reason}
             confirmText={translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close')}
             cancelText={translate('common.cancel')}
             shouldShowCancelButton={isValidatingMultipleFiles}

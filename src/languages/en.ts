@@ -82,6 +82,7 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
+    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -650,8 +651,8 @@ const translations = {
         someFilesCantBeUploaded: "Some files can't be uploaded",
         sizeLimitExceeded: "Files must be under 10 MB. Any larger files won't be uploaded.",
         maxFileLimitExceeded: "You can upload up to 30 receipts at a time. Any extras won't be uploaded.",
-        unsupportedFileType: "files aren't supported. Only supported file types will be uploaded. Learn more about supported formats.",
-        passwordProtected: "Password-protected PDFs aren't supported. Only supported files will be uploaded."
+        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} files aren't supported. Only supported file types will be uploaded. Learn more about supported formats.`,
+        passwordProtected: "Password-protected PDFs aren't supported. Only supported files will be uploaded.",
     },
     dropzone: {
         addAttachments: 'Add attachments',
@@ -983,7 +984,11 @@ const translations = {
         amount: 'Amount',
         taxAmount: 'Tax amount',
         taxRate: 'Tax rate',
-        approve: ({formattedAmount}: {formattedAmount?: string} = {}) => (formattedAmount ? `Approve ${formattedAmount}` : 'Approve'),
+        approve: ({
+            formattedAmount,
+        }: {
+            formattedAmount?: string;
+        } = {}) => (formattedAmount ? `Approve ${formattedAmount}` : 'Approve'),
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',

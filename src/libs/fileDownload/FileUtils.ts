@@ -400,8 +400,15 @@ const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean,
     return '';
 };
 
+type TranslationAdditionalData = {
+    maxUploadSizeInMB?: number;
+    fileLimit?: number;
+    fileType?: string;
+};
+
 const getFileValidationErrorText = (
     validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
+    additionalData: TranslationAdditionalData = {},
 ): {
     title: string;
     reason: string;
@@ -421,7 +428,7 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE:
             return {
                 title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translateLocal('attachmentPicker.unsupportedFileType'),
+                reason: translateLocal('attachmentPicker.unsupportedFileType', {fileType: additionalData.fileType ?? ''}),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
