@@ -26,7 +26,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}, canBeMissing: true});
-    const isLoadingReportData = useLoadingBarVisibility();
+    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const isAnonymousUser = isAnonymousUserUtil(session);
 
     const displaySignIn = isAnonymousUser;
@@ -64,7 +64,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 {shouldDisplayHelpButton && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
-            <LoadingBar shouldShow={(isLoadingReportData ?? false) || shouldShowLoadingBar} />
+            <LoadingBar shouldShow={(shouldShowLoadingBarForReports ?? false) || shouldShowLoadingBar} />
         </View>
     );
 }
