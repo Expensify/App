@@ -4894,15 +4894,15 @@ function getReportNameInternal({
             if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID, reportNameValuePairs))) {
                 formattedName += ` (${translateLocal('common.archived')})`;
             }
-            return formatReportLastMessageText(formattedName) ?? report?.reportName ?? '';
+            return formatReportLastMessageText(formattedName);
         }
 
         if (!isEmptyObject(parentReportAction) && isOldDotReportAction(parentReportAction)) {
-            return getMessageOfOldDotReportAction(parentReportAction) ?? report?.reportName ?? '';
+            return getMessageOfOldDotReportAction(parentReportAction);
         }
 
         if (isRenamedAction(parentReportAction)) {
-            return getRenamedAction(parentReportAction, isExpenseReport(getReport(report.parentReportID, allReports))) ?? report?.reportName ?? '';
+            return getRenamedAction(parentReportAction, isExpenseReport(getReport(report.parentReportID, allReports)));
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
@@ -4932,7 +4932,7 @@ function getReportNameInternal({
             return translateLocal('parentReportAction.hiddenMessage');
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
-            return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage) ?? report?.reportName ?? '';
+            return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage);
         }
 
         // This will get removed as part of https://github.com/Expensify/App/issues/59961
@@ -4942,15 +4942,15 @@ function getReportNameInternal({
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
             const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
-            return formatReportLastMessageText(modifiedMessage) ?? report?.reportName ?? '';
+            return formatReportLastMessageText(modifiedMessage);
         }
         if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
             return report?.reportName ?? '';
         }
         if (isCardIssuedAction(parentReportAction)) {
-            return getCardIssuedMessage({reportAction: parentReportAction}) ?? report?.reportName ?? '';
+            return getCardIssuedMessage({reportAction: parentReportAction});
         }
-        return reportActionMessage ?? report?.reportName ?? '';
+        return reportActionMessage;
     }
 
     if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
@@ -4958,7 +4958,7 @@ function getReportNameInternal({
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(undefined, true, report) ?? report?.reportName ?? '';
+        return getGroupChatName(undefined, true, report) ?? '';
     }
 
     if (isChatRoom(report)) {
@@ -4992,13 +4992,13 @@ function getReportNameInternal({
     }
 
     if (formattedName) {
-        return formatReportLastMessageText(formattedName) ?? report?.reportName ?? '';
+        return formatReportLastMessageText(formattedName);
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
     formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
-    return formattedName ?? report?.reportName ?? '';
+    return formattedName;
 }
 
 /**
@@ -5821,15 +5821,18 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getReportUrl(reportID: string) {
-    return `${environmentURL}/r/${reportID}`;
+function getReportDetails(reportID: string): {reportName: string; reportUrl: string} {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return {
+        reportName: getReportName(report) ?? report?.reportName ?? '',
+        reportUrl: `${environmentURL}/r/${reportID}`,
+    };
 }
 
-function getMovedTransactionMessage(action: ReportAction, parentReportAction: OnyxEntry<ReportAction>, report?: Report) {
+function getMovedTransactionMessage(action: ReportAction) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
     const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    const reportName = getReportName(report, undefined, parentReportAction);
-    const reportUrl = getReportUrl(toReportID);
+    const {reportName, reportUrl} = getReportDetails(toReportID);
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
