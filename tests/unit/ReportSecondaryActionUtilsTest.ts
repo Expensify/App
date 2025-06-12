@@ -72,7 +72,7 @@ describe('getSecondaryAction', () => {
             transactionID: TRANSACTION_ID,
         } as unknown as Transaction;
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy, canUseRetractNewDot: true, canUseNewDotSplits: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy, canUseRetractNewDot: true});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
 
@@ -463,12 +463,12 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
-    it('includes CHANGE_WORKSPACE option for submitted IOU report and submitter being a member of the new policy', async () => {
+    it('includes CHANGE_WORKSPACE option for submitted IOU report and manager being the payer of the new policy', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.IOU,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            managerID: MANAGER_ACCOUNT_ID,
+            ownerAccountID: MANAGER_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         } as unknown as Report;
@@ -479,8 +479,9 @@ describe('getSecondaryAction', () => {
         const policy = {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             employeeList: {
-                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
                 [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
             },
         } as unknown as Policy;
@@ -490,38 +491,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true, canUseNewDotSplits: true});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
-    });
-
-    it('includes CHANGE_WORKSPACE option for IOU and the submitter is not a member but current user is admin', async () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.IOU,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            managerID: MANAGER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-        } as unknown as Report;
-        const personalDetails = {
-            [ADMIN_ACCOUNT_ID]: {login: ADMIN_EMAIL},
-            [MANAGER_ACCOUNT_ID]: {login: MANAGER_EMAIL},
-        };
-        const policy = {
-            id: POLICY_ID,
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            employeeList: {
-                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-            },
-        } as unknown as Policy;
-        const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy};
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true, canUseNewDotSplits: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -554,7 +524,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true, canUseNewDotSplits: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -608,7 +578,6 @@ describe('getSecondaryAction', () => {
             policy: oldPolicy,
             policies,
             canUseRetractNewDot: true,
-            canUseNewDotSplits: true,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -655,7 +624,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: APPROVER_EMAIL, accountID: APPROVER_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true, canUseNewDotSplits: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -703,7 +672,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true, canUseNewDotSplits: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
