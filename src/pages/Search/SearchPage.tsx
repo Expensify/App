@@ -392,11 +392,7 @@ function SearchPage({route}: SearchPageProps) {
         navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
     };
 
-    const {validateFiles, setIsAttachmentInvalid, isAttachmentInvalid, isLoadingReceipt, fileError, PDFValidationComponent} = useFilesValidation(saveFileAndInitMoneyRequest);
-
-    const hideReceiptModal = () => {
-        setIsAttachmentInvalid(false);
-    };
+    const {validateFiles, isLoadingReceipt, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
 
     const initScanRequest = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);
@@ -556,15 +552,7 @@ function SearchPage({route}: SearchPageProps) {
                                 </DragAndDropConsumer>
                             </DragAndDropProvider>
                         </ScreenWrapper>
-                        <ConfirmModal
-                            title={fileError ? translate(getFileValidationErrorText(fileError).title) : ''}
-                            onConfirm={hideReceiptModal}
-                            onCancel={hideReceiptModal}
-                            isVisible={isAttachmentInvalid}
-                            prompt={fileError ? translate(getFileValidationErrorText(fileError).reason) : ''}
-                            confirmText={translate('common.close')}
-                            shouldShowCancelButton={false}
-                        />
+                        {ErrorModal}
                     </View>
                 )}
                 <ConfirmModal

@@ -1,9 +1,12 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
+import ConfirmModal from '@components/ConfirmModal';
 import PDFThumbnail from '@components/PDFThumbnail';
-import {resizeImageIfNeeded, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import useLocalize from '@hooks/useLocalize';
+import {getFileValidationErrorText, resizeImageIfNeeded, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import useThemeStyles from './useThemeStyles';
 
@@ -11,19 +14,19 @@ import useThemeStyles from './useThemeStyles';
 
 function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [pdfFiles, setPdfFiles] = useState<FileObject[]>([]);
-    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null>(null);
+    const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
 
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
 
-
     const resetValidationState = () => {
         setIsAttachmentInvalid(false);
-        setPdfFiles([]);
+        setPdfFilesToRender([]);
         setIsLoadingReceipt(false);
         setFileError(null);
         setValidFilesToUpload([]);
@@ -66,57 +69,54 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
             });
     };
 
-    const checkIfAllValidatedAndProceed = (error: boolean) => {
+    const checkIfAllValidatedAndProceed = (shouldProceed: boolean) => {
         if (!validatedPDFs.current || !validFiles.current) {
             return;
         }
 
-        if (validatedPDFs.current.length !== pdfFiles.length) {
+        if (validatedPDFs.current.length !== pdfFilesToRender.length) {
             return;
         }
 
-        if (!error) {
+        if (!shouldProceed) {
             setValidFilesToUpload(validFiles.current);
         }
     };
 
     const validateFiles = (files: FileObject[]) => {
-        if (!files.length) {
-            return;
-        }
+        Promise.all(files.map((file) => isValidFile(file, true).then((isValid) => (isValid ? file : null))))
+            .then((validationResults) => {
+                const filteredResults = validationResults.filter((result): result is FileObject => result !== null);
+                const validImages = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
+                const pdfsToLoad = filteredResults.filter((file) => Str.isPDF(file.name ?? ''));
 
-        let validImages = [] as FileObject[];
-        let pdfsToLoad = [] as FileObject[];
-        Promise.all(files.map((file) => isValidFile(file, true).then((isValid) => (isValid ? file : null)))).then((results) => {
-            const filteredResults = results.filter((result): result is FileObject => result !== null);
-            validImages = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
-            pdfsToLoad = filteredResults.filter((file) => Str.isPDF(file.name ?? ''));
+                // Check if we need to resize images
+                if (validImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
+                    // Only set loading when we actually need to resize
+                    setIsLoadingReceipt(true);
 
-            if (validImages.length && validImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                setIsLoadingReceipt(true);
-                Promise.all(validImages.map((file) => resizeImageIfNeeded(file))).then((resizedFiles) => {
-                    validImages = resizedFiles;
-                    setIsLoadingReceipt(false);
-                });
-            }
+                    // Resize images
+                    return Promise.all(validImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
+                        setIsLoadingReceipt(false);
+                        return {processedImages, pdfsToLoad};
+                    });
+                }
 
-            if (validImages.length === 1 && !pdfsToLoad.length) {
-                // eslint-disable-next-line
-                proceedWithFileAction(validImages[0]);
-                resetValidationState();
-            }
-
-            if (pdfsToLoad.length) {
-                validFiles.current = validImages;
-                setPdfFiles(pdfsToLoad);
-            } else {
-                setValidFilesToUpload(validImages);
-            }
-        });
+                // No resizing needed, just return the valid images
+                return Promise.resolve({processedImages: validImages, pdfsToLoad});
+            })
+            .then(({processedImages, pdfsToLoad}) => {
+                if (pdfsToLoad.length) {
+                    validFiles.current = processedImages;
+                    setPdfFilesToRender(pdfsToLoad);
+                } else {
+                    setValidFilesToUpload(processedImages);
+                }
+            });
     };
 
-    const PDFValidationComponent = pdfFiles.length
-        ? pdfFiles.map((file) => (
+    const PDFValidationComponent = pdfFilesToRender.length
+        ? pdfFilesToRender.map((file) => (
               <PDFThumbnail
                   key={file.uri}
                   style={styles.invisiblePDF}
@@ -140,13 +140,25 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
           ))
         : undefined;
 
+    const ErrorModal = (
+        <ConfirmModal
+            title={fileError ? translate(getFileValidationErrorText(fileError).title) : ''}
+            onConfirm={resetValidationState}
+            onCancel={resetValidationState}
+            isVisible={isAttachmentInvalid}
+            prompt={fileError ? translate(getFileValidationErrorText(fileError).reason) : ''}
+            confirmText={translate('common.close')}
+            cancelText={translate('common.cancel')}
+            shouldShowCancelButton={false}
+        />
+    );
+
     return {
         isAttachmentInvalid,
-        setIsAttachmentInvalid,
         isLoadingReceipt,
-        fileError,
         PDFValidationComponent,
         validateFiles,
+        ErrorModal,
     };
 }
 
