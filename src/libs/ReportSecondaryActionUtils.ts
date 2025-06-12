@@ -558,15 +558,15 @@ function getSecondaryReportActions(
 function getSecondaryExportReportActions(report: Report, policy?: Policy, reportActions?: ReportAction[]): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
 
-    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
+    if (isExportAction(report, policy, reportActions)) {
+        options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+    }
 
     if (isMarkAsExportedAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 
-    if (isExportAction(report, policy, reportActions)) {
-        options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
-    }
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     return options;
 }

@@ -555,6 +555,8 @@ function MoneyReportHeader({
                     }
                     markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
                 },
+                additionalIconStyles: styles.integrationIcon,
+                displayInDefaultIconColor: true,
             },
         }),
         [translate, connectedIntegration, styles.integrationIcon, moneyRequestReport, isOffline, transactionIDs, isExported],
