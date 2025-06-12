@@ -22,7 +22,7 @@ function SearchFiltersMerchantPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const merchant = searchAdvancedFiltersForm?.[FILTER_KEYS.MERCHANT];
     const {inputCallbackRef} = useAutoFocusInput();
 
