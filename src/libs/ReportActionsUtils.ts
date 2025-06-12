@@ -220,10 +220,6 @@ function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): 
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
 }
 
-function isMovedTransactionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION);
-}
-
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
     return isActionOfType(reportAction, ...POLICY_CHANGE_LOG_ARRAY);
 }
@@ -3014,7 +3010,6 @@ export {
     isMessageDeleted,
     useNewTableReportViewActionRenderConditionals,
     isModifiedExpenseAction,
-    isMovedTransactionAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isOldDotReportAction,
