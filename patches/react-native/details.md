@@ -18,7 +18,7 @@
 
 ### [react-native+0.79.2+003+disableTextInputRecycling.patch](react-native+0.79.2+003+disableTextInputRecycling.patch)
 
-- Reason: Disables text input recycling to prevent issues with input state
+- Reason: Disables text input recycling to prevent issues with state of recycled component
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/13767
@@ -28,7 +28,7 @@
 - Reason: Fixes font resolution issues on iOS
 - Upstream PR/issue:
 - E/App issue: 🛑
-- PR Introducing Patch:
+- PR Introducing Patch: https://github.com/Expensify/App/pull/13767
 
 ### [react-native+0.79.2+005+resetAutoresizingOnView.patch](react-native+0.79.2+005+resetAutoresizingOnView.patch)
 
