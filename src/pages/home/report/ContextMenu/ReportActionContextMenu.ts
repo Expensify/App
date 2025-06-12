@@ -51,7 +51,6 @@ type HideContextMenuParams = {
     callbacks?: {
         onHide?: () => void;
     };
-    isOpeningEmojiPicker?: boolean;
 };
 type HideContextMenu = (params?: HideContextMenuParams) => void;
 

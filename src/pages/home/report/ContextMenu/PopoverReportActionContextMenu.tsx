@@ -275,7 +275,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
      * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
     const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
-        const {callbacks = {}, isOpeningEmojiPicker = false} = hideContextMenuParams ?? {};
+        const {callbacks = {}} = hideContextMenuParams ?? {};
 
         if (typeof callbacks.onHide === 'function') {
             onPopoverHideActionCallback.current = callbacks.onHide;
@@ -284,13 +284,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         selectionRef.current = '';
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
-
-        if (isOpeningEmojiPicker) {
-            actionSheetAwareScrollViewContext.transitionActionSheetState({
-                type: Actions.OPEN_NEXT_POPOVER,
-            });
-            return;
-        }
 
         actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: Actions.CLOSE_POPOVER,
