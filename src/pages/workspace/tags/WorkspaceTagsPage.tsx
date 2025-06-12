@@ -490,23 +490,20 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         let requiredTagCount = 0;
-        const tagListIndexesToMarkRequired: string[] = [];
+        const tagListIndexesToMarkRequired: number[] = [];
 
         let optionalTagCount = 0;
-        const tagListIndexesToMarkOptional: string[] = [];
+        const tagListIndexesToMarkOptional: number[] = [];
 
         for (const tagName of selectedTags) {
             if (filteredTagListKeyedByName[tagName]?.required) {
                 requiredTagCount++;
-                tagListIndexesToMarkOptional.push(String(filteredTagListKeyedByName[tagName]?.orderWeight ?? 0));
+                tagListIndexesToMarkOptional.push(filteredTagListKeyedByName[tagName]?.orderWeight ?? 0);
             } else {
                 optionalTagCount++;
-                tagListIndexesToMarkRequired.push(String(filteredTagListKeyedByName[tagName]?.orderWeight ?? 0));
+                tagListIndexesToMarkRequired.push(filteredTagListKeyedByName[tagName]?.orderWeight ?? 0);
             }
         }
-
-        console.log('tagListIndexesToMarkRequired ', tagListIndexesToMarkRequired);
-        console.log('tagListIndexesToMarkOptional ', tagListIndexesToMarkOptional);
 
         if (requiredTagCount > 0 && !hasDependentTags) {
             options.push({
