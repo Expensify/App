@@ -21,6 +21,33 @@ const emptyResult = {
     currentUserOption: undefined,
 };
 
+const personalDetailToSearchString = (option: OptionData) => {
+    const displayName = option.participantsList?.[0]?.displayName ?? '';
+    return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
+};
+
+const recentReportToSearchString = (option: OptionData) => {
+    const searchStringForTree = [option.text ?? '', option.login ?? ''];
+
+    if (option.isThread) {
+        searchStringForTree.push(option.alternateText ?? '');
+    } else if (option.isChatRoom) {
+        searchStringForTree.push(option.subtitle ?? '');
+    } else if (option.isPolicyExpenseChat) {
+        searchStringForTree.push(...[option.subtitle ?? '', option.policyName ?? '']);
+    }
+
+    return deburr(searchStringForTree.join());
+};
+
+const getPersonalDetailUniqueId = (option: OptionData) => {
+    return option.login ? `personalDetail-${option.login}` : undefined;
+};
+
+const getRecentReportUniqueId = (option: OptionData) => {
+    return option.reportID ? `recentReport-${option.reportID}` : undefined;
+};
+
 // You can either use this to search within report and personal details options
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions,
@@ -56,34 +83,22 @@ function useFastSearchFromOptions(
         InteractionManager.runAfterInteractions(() => {
             prevOptionsRef.current = options;
             prevFastSearchRef.current?.dispose();
-            newFastSearch = FastSearch.createFastSearch([
-                {
-                    data: options.personalDetails,
-                    toSearchableString: (option) => {
-                        const displayName = option.participantsList?.[0]?.displayName ?? '';
-                        return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
-                    },
-                    uniqueId: (option) => option.login,
+            newFastSearch = FastSearch.createFastSearch(
+                [
+                    {data: options.personalDetails,
+                    toSearchableString: personalDetailToSearchString,
+                    uniqueId: getPersonalDetailUniqueId,
                 },
                 {
                     data: options.recentReports,
-                    toSearchableString: (option) => {
-                        const searchStringForTree = [option.text ?? '', option.login ?? ''];
+                    toSearchableString: recentReportToSearchString,
+                                uniqueId: getRecentReportUniqueId,
+                            },
+                        ],
 
-                        if (option.isThread) {
-                            if (option.alternateText) {
-                                searchStringForTree.push(option.alternateText);
-                            }
-                        } else if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
-                            if (option.subtitle) {
-                                searchStringForTree.push(option.subtitle);
-                            }
-                        }
-
-                        return deburr(searchStringForTree.join());
-                    },
+                        {shouldStoreSearchableStrings: true
                 },
-            ]);
+            );
             setFastSearch(newFastSearch);
             prevFastSearchRef.current = newFastSearch;
             setIsInitialized(true);
@@ -107,14 +122,22 @@ function useFastSearchFromOptions(
                 return emptyResult;
             }
 
-            // The user might separated words with spaces to do a search such as: "jo d" -> "john doe"
+            // The user might have separated words with spaces to do a search such as: "jo d" -> "john doe"
             // With the suffix search tree you can only search for one word at a time. Its most efficient to search for the longest word,
             // (as this will limit the results the most) and then afterwards run a quick filter on the results to see if the other words are present.
             let [personalDetails, recentReports] = fastSearch.search(longestSearchWord);
 
             if (searchWords.length > 1) {
-                personalDetails = personalDetails.filter((pd) => isSearchStringMatch(deburredInput, deburr(pd.text)));
-                recentReports = recentReports.filter((rr) => isSearchStringMatch(deburredInput, deburr(rr.text)));
+                personalDetails = personalDetails.filter((pd) => {
+                    const id = getPersonalDetailUniqueId(pd);
+                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(pd.text);
+                    return isSearchStringMatch(deburredInput, searchableString);
+                });
+                recentReports = recentReports.filter((rr) => {
+                    const id = getRecentReportUniqueId(rr);
+                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(rr.text);
+                    return isSearchStringMatch(deburredInput, searchableString);
+                });
             }
 
             if (includeUserToInvite && 'currentUserOption' in options) {
