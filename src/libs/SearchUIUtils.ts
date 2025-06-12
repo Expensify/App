@@ -547,9 +547,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     if (isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
-    if (isClosedReport(report)) {
-        return CONST.SEARCH.ACTION_TYPES.DONE;
-    }
 
     const transaction = isTransaction ? data[key] : undefined;
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
@@ -583,7 +580,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
-    const invoiceReceiverPolicy =
+    const invoiceReceiverPolicy: SearchPolicy | undefined =
         isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
             ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
             : undefined;
@@ -594,6 +591,10 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
 
     if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
+    }
+
+    if (isClosedReport(report)) {
+        return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);
