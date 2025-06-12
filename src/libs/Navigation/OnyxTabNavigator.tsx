@@ -50,6 +50,12 @@ type OnyxTabNavigatorProps = ChildrenProps & {
     /** Disable swipe between tabs */
     disableSwipe?: boolean;
 
+    /** Determines whether the product training tooltip should be displayed to the user. */
+    shouldShowProductTrainingTooltip?: boolean;
+
+    /** Function to render the content of the product training tooltip. */
+    renderProductTrainingTooltip?: () => React.JSX.Element;
+
     /** Whether to lazy load the tab screens */
     lazyLoadEnabled?: boolean;
 
@@ -78,6 +84,8 @@ function OnyxTabNavigator({
     screenListeners,
     shouldShowLabelWhenInactive = true,
     disableSwipe = false,
+    shouldShowProductTrainingTooltip,
+    renderProductTrainingTooltip,
     lazyLoadEnabled = false,
     onTabSelect,
     ...rest
@@ -114,12 +122,14 @@ function OnyxTabNavigator({
                 <TabBar
                     onFocusTrapContainerElementChanged={onTabBarFocusTrapContainerElementChanged}
                     shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
+                    shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
+                    renderProductTrainingTooltip={renderProductTrainingTooltip}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             );
         },
-        [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive],
+        [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive, shouldShowProductTrainingTooltip, renderProductTrainingTooltip],
     );
 
     // If the selected tab changes, we need to update the focus trap container element of the active tab

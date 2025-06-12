@@ -91,7 +91,7 @@ function ScheduleCallPage() {
             return allSlots;
         }, [] as TimeSlot[]);
 
-        // Group timeslots by date to render per day slots on calendar
+        // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         allTimeSlots.forEach((timeSlot) => {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
