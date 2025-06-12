@@ -400,7 +400,7 @@ Onyx.connect({
             const transactionThreadReportID = getOneTransactionThreadReportID(reportID, actions[reportActions[0]]);
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID, false);
+                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
             }
 
             const firstReportAction = sortedReportActions.at(0);
@@ -939,6 +939,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         result.keyForList = String(report.reportID);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
+        result.policyName = getPolicyName({report, returnEmptyIfNotFound: true});
         result.isSelfDM = reportUtilsIsSelfDM(report);
         result.notificationPreference = getReportNotificationPreference(report);
         result.lastVisibleActionCreated = report.lastVisibleActionCreated;

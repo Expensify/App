@@ -485,7 +485,6 @@ function getCombinedReportActions(
     transactionThreadReportID: string | null,
     transactionThreadReportActions: ReportAction[],
     reportID?: string,
-    shouldFilterIOUAction = true,
 ): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
@@ -513,7 +512,7 @@ function getCombinedReportActions(
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-        if (!isMoneyRequestAction(action) || !shouldFilterIOUAction) {
+        if (!isMoneyRequestAction(action)) {
             return true;
         }
         const actionType = getOriginalMessage(action)?.type ?? '';
