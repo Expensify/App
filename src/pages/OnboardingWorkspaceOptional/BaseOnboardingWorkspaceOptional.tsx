@@ -93,6 +93,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         currentUserPersonalDetails.firstName,
         currentUserPersonalDetails.lastName,
         onboardingAdminsChatReportID,
+        onboardingMessages,
         onboardingPolicyID,
         isSmallScreenWidth,
         isBetaEnabled,

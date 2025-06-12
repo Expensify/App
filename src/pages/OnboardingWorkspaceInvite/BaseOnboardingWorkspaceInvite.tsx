@@ -264,7 +264,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, onboardingPolicyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER);
         completeOnboarding();
-    }, [completeOnboarding, onboardingPolicyID, policy?.employeeList, selectedOptions, welcomeNote, welcomeNoteSubject]);
+    }, [completeOnboarding, onboardingMessages, onboardingPolicyID, policy?.employeeList, selectedOptions, welcomeNote, welcomeNoteSubject]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
