@@ -163,6 +163,7 @@ function MoneyRequestAction({
     }
 
     // Condition extracted from MoneyRequestPreview
+    // eslint-disable-next-line deprecation/deprecation
     const renderCondition = !(lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction)) && isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && isReviewDuplicateTransactionPage;
     const isLayoutWidthInvalid = (layoutWidth: number) => {
         return (shouldUseNarrowLayout && layoutWidth > variables.mobileResponsiveWidthBreakpoint) || (!shouldUseNarrowLayout && layoutWidth > variables.sideBarWidth);
