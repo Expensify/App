@@ -24,25 +24,22 @@ const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootS
     ExtraContent: RootNavigatorExtraContent,
 });
 
-function createRootStackNavigator<const ParamList extends ParamListBase,
-  const NavigatorID extends string | undefined = undefined,
-  const TypeBag extends NavigatorTypeBagBase = {
-    ParamList: ParamList;
-    NavigatorID: NavigatorID;
-    State: PlatformStackNavigationState<ParamList>;
-    ScreenOptions: PlatformStackNavigationOptions;
-    EventMap: PlatformStackNavigationEventMap;
-    NavigationList: {
-      [RouteName in keyof ParamList]: NavigationProp<
-        ParamList,
-        RouteName,
-        NavigatorID
-      >;
-    };
-    Navigator: typeof RootStackNavigatorComponent;
-  },
-  const Config extends StaticConfig<TypeBag> = StaticConfig<TypeBag>,
-  >(config?: Config): TypedNavigator<TypeBag, Config> {
+function createRootStackNavigator<
+    const ParamList extends ParamListBase,
+    const NavigatorID extends string | undefined = undefined,
+    const TypeBag extends NavigatorTypeBagBase = {
+        ParamList: ParamList;
+        NavigatorID: NavigatorID;
+        State: PlatformStackNavigationState<ParamList>;
+        ScreenOptions: PlatformStackNavigationOptions;
+        EventMap: PlatformStackNavigationEventMap;
+        NavigationList: {
+            [RouteName in keyof ParamList]: NavigationProp<ParamList, RouteName, NavigatorID>;
+        };
+        Navigator: typeof RootStackNavigatorComponent;
+    },
+    const Config extends StaticConfig<TypeBag> = StaticConfig<TypeBag>,
+>(config?: Config): TypedNavigator<TypeBag, Config> {
     // In React Navigation 7 createNavigatorFactory returns any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return createNavigatorFactory(RootStackNavigatorComponent)(config);

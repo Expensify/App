@@ -6,25 +6,22 @@ import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, Pl
 
 const PlatformStackNavigatorComponent = createPlatformStackNavigatorComponent('PlatformStackNavigator', {defaultScreenOptions: defaultPlatformStackScreenOptions});
 
-function createPlatformStackNavigator<const ParamList extends ParamListBase,
-  const NavigatorID extends string | undefined = undefined,
-  const TypeBag extends NavigatorTypeBagBase = {
-    ParamList: ParamList;
-    NavigatorID: NavigatorID;
-    State: PlatformStackNavigationState<ParamList>;
-    ScreenOptions: PlatformStackNavigationOptions;
-    EventMap: PlatformStackNavigationEventMap;
-    NavigationList: {
-      [RouteName in keyof ParamList]: NavigationProp<
-        ParamList,
-        RouteName,
-        NavigatorID
-      >;
-    };
-    Navigator: typeof PlatformStackNavigatorComponent;
-  },
-  const Config extends StaticConfig<TypeBag> = StaticConfig<TypeBag>,
-  >(config?: Config): TypedNavigator<TypeBag, Config> {
+function createPlatformStackNavigator<
+    const ParamList extends ParamListBase,
+    const NavigatorID extends string | undefined = undefined,
+    const TypeBag extends NavigatorTypeBagBase = {
+        ParamList: ParamList;
+        NavigatorID: NavigatorID;
+        State: PlatformStackNavigationState<ParamList>;
+        ScreenOptions: PlatformStackNavigationOptions;
+        EventMap: PlatformStackNavigationEventMap;
+        NavigationList: {
+            [RouteName in keyof ParamList]: NavigationProp<ParamList, RouteName, NavigatorID>;
+        };
+        Navigator: typeof PlatformStackNavigatorComponent;
+    },
+    const Config extends StaticConfig<TypeBag> = StaticConfig<TypeBag>,
+>(config?: Config): TypedNavigator<TypeBag, Config> {
     // In React Navigation 7 createNavigatorFactory returns any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return createNavigatorFactory(PlatformStackNavigatorComponent)(config);

@@ -5216,7 +5216,7 @@ const CONST = {
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
-            PRELOAD: 'PRELOAD'
+            PRELOAD: 'PRELOAD',
         },
     },
     TIME_PERIOD: {

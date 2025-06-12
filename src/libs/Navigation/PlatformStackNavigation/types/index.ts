@@ -64,10 +64,7 @@ type PlatformStackScreenProps<
 };
 
 // Props to configure the the PlatformStackNavigator
-type PlatformStackNavigatorProps<
-    ParamList extends ParamListBase,
-    RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<
+type PlatformStackNavigatorProps<ParamList extends ParamListBase, RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = DefaultNavigatorOptions<
     ParamList,
     string | undefined,
     PlatformStackNavigationState<ParamList>,
