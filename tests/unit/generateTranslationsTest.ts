@@ -16,6 +16,8 @@ let EN_PATH: string;
 let IT_PATH: string;
 
 describe('generateTranslations', () => {
+    const ORIGINAL_ARGV = process.argv;
+
     beforeEach(() => {
         tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-test-'));
         LANGUAGES_DIR = path.join(tempDir, 'src/languages');
@@ -26,15 +28,18 @@ describe('generateTranslations', () => {
         // Patch env to redirect script to temp path
         process.env.LANGUAGES_DIR = LANGUAGES_DIR;
 
-        // Set --dry-run flag
-        process.argv.push('--dry-run');
+        // Set dry-run flag for tests
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run'];
     });
 
     afterEach(() => {
         fs.rmSync(LANGUAGES_DIR, {recursive: true, force: true});
         delete process.env.LANGUAGES_DIR;
-        process.argv = process.argv.filter((arg) => arg !== '--dry-run');
         jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        process.argv = ORIGINAL_ARGV;
     });
 
     it('translates nested structures', async () => {
