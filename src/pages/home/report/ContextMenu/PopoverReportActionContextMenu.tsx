@@ -270,29 +270,35 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
     };
 
-    const handleModalHide = () => {
-        runAndResetOnPopoverHide();
-
-        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
-            setComposerToRefocusOnClose(undefined);
-        });
-    };
-
     /**
      * Hide the ReportActionContextMenu modal popover.
      * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
-    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (onHideActionCallback) => {
-        if (typeof onHideActionCallback === 'function') {
-            onPopoverHideActionCallback.current = onHideActionCallback;
+    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
+        const {callbacks = {}, isOpeningEmojiPicker = false} = hideContextMenuParams ?? {};
+
+        if (typeof callbacks.onHide === 'function') {
+            onPopoverHideActionCallback.current = callbacks.onHide;
+        }
+
+        selectionRef.current = '';
+        reportActionDraftMessageRef.current = undefined;
+        setIsPopoverVisible(false);
+
+        if (isOpeningEmojiPicker) {
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: Actions.OPEN_NEXT_POPOVER,
+            });
+            return;
         }
 
         actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: Actions.CLOSE_POPOVER,
         });
-        selectionRef.current = '';
-        reportActionDraftMessageRef.current = undefined;
-        setIsPopoverVisible(false);
+
+        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
+            setComposerToRefocusOnClose(undefined);
+        });
     };
 
     const confirmDeleteAndHideModal = useCallback(() => {
@@ -355,9 +361,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         <>
             <PopoverWithMeasuredContent
                 isVisible={isPopoverVisible}
-                onClose={hideContextMenu}
+                onClose={() => hideContextMenu()}
                 onModalShow={runAndResetOnPopoverShow}
-                onModalHide={handleModalHide}
+                onModalHide={runAndResetOnPopoverHide}
                 anchorPosition={popoverAnchorPosition.current}
                 animationIn="fadeIn"
                 disableAnimation={false}

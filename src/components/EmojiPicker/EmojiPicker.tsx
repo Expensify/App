@@ -1,8 +1,9 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -33,6 +34,8 @@ type EmojiPickerProps = {
 function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
+
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
         horizontal: 0,
@@ -134,6 +137,9 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             emojiPopoverAnchorRef.current = null;
         };
         setIsEmojiPickerVisible(false);
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: Actions.CLOSE_POPOVER,
+        });
     };
 
     const handleModalHide = () => {

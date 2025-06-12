@@ -9,8 +9,6 @@ import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {ContextMenuAction} from './ContextMenuActions';
 
-type OnHideCallback = () => void;
-
 type OnConfirm = () => void;
 
 type OnCancel = () => void;
@@ -49,9 +47,17 @@ type ShowContextMenuParams = {
 
 type ShowContextMenu = (params: ShowContextMenuParams) => void;
 
+type HideContextMenuParams = {
+    callbacks?: {
+        onHide?: () => void;
+    };
+    isOpeningEmojiPicker?: boolean;
+};
+type HideContextMenu = (params?: HideContextMenuParams) => void;
+
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
-    hideContextMenu: (callback?: OnHideCallback) => void;
+    hideContextMenu: HideContextMenu;
     showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
@@ -71,12 +77,21 @@ const contextMenuRef = React.createRef<ReportActionContextMenu>();
  * @param [shouldDelay] - whether the menu should close after a delay
  * @param [onHideCallback] - Callback to be called after Context Menu is completely hidden
  */
-function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
+function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, params?: HideContextMenuParams) {
     if (!contextMenuRef.current) {
         return;
     }
+
+    const paramsWithCallback = {
+        callbacks: {
+            ...params?.callbacks,
+            onHide: onHideCallback,
+        },
+        ...params,
+    };
+
     if (!shouldDelay) {
-        contextMenuRef.current.hideContextMenu(onHideCallback);
+        contextMenuRef.current.hideContextMenu(paramsWithCallback);
         return;
     }
 
@@ -89,7 +104,7 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
             return;
         }
 
-        contextMenuRef.current.hideContextMenu(onHideCallback);
+        contextMenuRef.current.hideContextMenu(paramsWithCallback);
     }, 800);
 }
 
