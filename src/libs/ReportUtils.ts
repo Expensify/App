@@ -5825,11 +5825,9 @@ function getReportUrl(reportID: string) {
     return `${environmentURL}/r/${reportID}`;
 }
 
-function getMovedTransactionMessage(action: ReportAction, parentReportAction: OnyxEntry<ReportAction>, report?: Report) {
-    const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-    const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    const reportName = getReportName(report, undefined, parentReportAction) ?? report?.reportName ?? '';
-    const reportUrl = getReportUrl(toReportID);
+function getMovedTransactionMessage(parentReportAction: OnyxEntry<ReportAction>, parentReport?: Report) {
+    const reportName = getReportName(parentReport, undefined, parentReportAction) ?? parentReport?.reportName ?? '';
+    const reportUrl = getReportUrl(parentReport?.reportID);
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
