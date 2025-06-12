@@ -392,7 +392,7 @@ class TranslationGenerator {
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
 async function main(): Promise<void> {
-    const config = {
+    const cli = new CLI({
         flags: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'dry-run': {
@@ -416,8 +416,7 @@ async function main(): Promise<void> {
                 },
             },
         },
-    } as const;
-    const cli = new CLI<(typeof config)['flags'], (typeof config)['namedArgs'], undefined>(config);
+    } as const);
 
     let translator: Translator;
     if (cli.flags['dry-run']) {

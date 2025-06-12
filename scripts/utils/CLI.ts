@@ -131,23 +131,23 @@ type ParsedPositionalArgs<PositionalArgs extends CLIConfig['positionalArgs']> = 
  * console.log(cli.flags.time);
  * ```
  */
-class CLI<Flags extends CLIConfig['flags'], NamedArgs extends CLIConfig['namedArgs'], PositionalArgs extends CLIConfig['positionalArgs']> {
+class CLI<TConfig extends CLIConfig> {
     /**
      * Flags after parsing.
      */
-    public readonly flags: ParsedFlags<Flags>;
+    public readonly flags: ParsedFlags<TConfig['flags']>;
 
     /**
      * Named args after parsing.
      */
-    public readonly namedArgs: ParsedNamedArgs<NamedArgs>;
+    public readonly namedArgs: ParsedNamedArgs<TConfig['namedArgs']>;
 
     /**
      * Positional args after parsing, collected into a record keyed by the name of each arg.
      */
-    public readonly positionalArgs: ParsedPositionalArgs<PositionalArgs>;
+    public readonly positionalArgs: ParsedPositionalArgs<TConfig['positionalArgs']>;
 
-    constructor(private readonly config: CLIConfig) {
+    constructor(private readonly config: TConfig) {
         const rawArgs = process.argv.slice(2);
 
         // Handle help command
