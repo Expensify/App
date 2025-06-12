@@ -87,7 +87,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     return;
                 }
 
-                if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
+                if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
                     completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: onboardingMessages[choice],

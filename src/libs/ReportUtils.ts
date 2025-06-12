@@ -13,11 +13,11 @@ import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -158,6 +158,7 @@ import {
     getReportActionMessageText,
     getReportActionText,
     getRetractedMessage,
+    getTravelUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -3958,10 +3959,9 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         const isUnreported = !moneyRequestReport || isEmptyObject(moneyRequestReport);
-        const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
         return isUnreported
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) => getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, allReports ?? {})).length > 0
-            : getOutstandingReportsForUser(moneyRequestReport?.policyID, moneyRequestReport?.ownerAccountID, allReports ?? {}).length > 1 || isOwner;
+            : getOutstandingReportsForUser(moneyRequestReport?.policyID, moneyRequestReport?.ownerAccountID, allReports ?? {}).length > 1;
     }
 
     return true;
@@ -4375,7 +4375,7 @@ function getReportPreviewMessage(
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport}) : '';
-        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.submittedAmount', {formattedAmount: amountToDisplay, comment})}`;
+        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.expenseAmount', {formattedAmount: amountToDisplay, comment})}`;
     }
 
     if (containsNonReimbursable) {
@@ -4881,6 +4881,10 @@ function getReportNameInternal({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
         return getIntegrationSyncFailedMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
+        return getTravelUpdateMessage(parentReportAction);
     }
 
     if (isChatThread(report)) {
@@ -5902,7 +5906,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
-            iouMessage = translateLocal('iou.submittedAmount', {formattedAmount: amount});
+            iouMessage = translateLocal('iou.expenseAmount', {formattedAmount: amount});
             break;
         default:
             break;
@@ -8886,7 +8890,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     } else if (isTrackExpenseAction(reportAction)) {
         translationKey = 'iou.trackedAmount';
     } else {
-        translationKey = 'iou.submittedAmount';
+        translationKey = 'iou.expenseAmount';
     }
     return translateLocal(translationKey, {
         formattedAmount,
@@ -9671,7 +9675,12 @@ function getOutstandingReportsForUser(
         return [];
     }
     return Object.values(reports)
-        .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
+        .filter(
+            (report) =>
+                report?.ownerAccountID === reportOwnerAccountID &&
+                report?.policyID === policyID &&
+                canAddTransaction(report, !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived),
+        )
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
@@ -9781,7 +9790,7 @@ function prepareOnboardingOnyxData(
         workspaceConfirmationLink: `${environmentURL}/${ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)}`,
         navatticURL: getNavatticURL(environment, engagementChoice),
         testDriveURL: `${environmentURL}/${
-            engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || engagementChoice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER
+            ([CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE] as OnboardingPurpose[]).includes(engagementChoice)
                 ? ROUTES.TEST_DRIVE_DEMO_ROOT
                 : ROUTES.TEST_DRIVE_MODAL_ROOT.route
         }`,
