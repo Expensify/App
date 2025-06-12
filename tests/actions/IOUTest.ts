@@ -36,6 +36,7 @@ import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApproval
 import {addComment, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
+import {changeTransactionsReport} from '../../src/libs/actions/Transaction';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiCommand} from '@libs/API/types';
 import {translateLocal} from '@libs/Localize';
@@ -6114,6 +6115,81 @@ describe('actions/IOU', () => {
             });
 
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+        });
+    });
+
+    describe('changeTransactionsReport', () => {
+        it('should set the correct optimistic onyx data for moving transactions between expense reports', async () => {
+            const submitterEmail = 'submitter@test.com';
+            const submitterAccountID = 1;
+            const payeeEmail = 'payer@test.com';
+            const payeeAccountID = 2;
+            const reportID1 = '123';
+            const reportID2 = '456';
+
+            requestMoney({
+                report: {reportID: reportID1},
+                participantParams: {
+                    payeeEmail,
+                    payeeAccountID,
+                    participant: {login: submitterEmail, accountID: submitterAccountID},
+                },
+                transactionParams: {
+                    amount: 100,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'Merchant',
+                    comment: 'Comment',
+                },
+            });
+
+            requestMoney({
+                report: {reportID: reportID2},
+                participantParams: {
+                    payeeEmail,
+                    payeeAccountID,
+                    participant: {login: submitterEmail, accountID: submitterAccountID},
+                },
+                transactionParams: {
+                    amount: 200,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'Merchant',
+                    comment: 'Comment',
+                },
+            });
+
+            let transactions: OnyxCollection<Transaction>;
+            let connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    Onyx.disconnect(connection);
+                    transactions = allTransactions;
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const transactionID = Object.values(transactions ?? []).find((t) => !isEmptyObject(t) && t.reportID === reportID1)?.transactionID ?? '';
+            changeTransactionsReport([transactionID], reportID2);
+
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (allTransactions) => {
+                        Onyx.disconnect(connection);
+                        const newTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                        resolve(newTransaction);
+                    },
+                });
+            });
+            expect(updatedTransaction?.reportID).toBe(reportID2);
+
         });
     });
 });

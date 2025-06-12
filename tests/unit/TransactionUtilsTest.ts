@@ -4,7 +4,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
-import {requestMoney} from '@libs/actions/IOU';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
@@ -516,34 +515,6 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({pendingAction});
             const result = TransactionUtils.isTransactionPendingDelete(transaction);
             expect(result).toEqual(expected);
-        });
-    });
-
-    describe('changeTransactionsReport', () => {
-        it('should set the correct onyx data for moving transactions between expense reports', async () => {
-            const submitterEmail = 'submitter@test.com';
-            const submitterAccountID = 1;
-            const payeeEmail = 'payer@test.com';
-            const payeeAccountID = 2;
-            const reportID = '123';
-
-            requestMoney({
-                report: {reportID},
-                participantParams: {
-                    payeeEmail,
-                    payeeAccountID,
-                    participant: {login: submitterEmail, accountID: submitterAccountID},
-                },
-                transactionParams: {
-                    amount: 100,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: 'Merchant',
-                    comment: 'Comment',
-                },
-            });
-            await waitForBatchedUpdates();
         });
     });
 });
