@@ -30,7 +30,7 @@ type AttachmentCarouselPagerProps = {
     initialPage: number;
 
     /** A callback to be called when the page is changed. */
-    onPageSelected: (
+    onPageSelected?: (
         event: NativeSyntheticEvent<
             Readonly<{
                 position: number;
@@ -39,10 +39,10 @@ type AttachmentCarouselPagerProps = {
     ) => void;
 
     /** A callback that is called when swipe-down-to-close gesture happens */
-    onClose: () => void;
+    onClose?: () => void;
 
     /** Sets the visibility of the arrows. */
-    setShouldShowArrows: (show?: SetStateAction<boolean>) => void;
+    setShouldShowArrows?: (show?: SetStateAction<boolean>) => void;
 
     /** The reportID related to the attachment */
     reportID?: string;

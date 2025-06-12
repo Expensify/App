@@ -15,6 +15,7 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
+import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -1917,6 +1918,18 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {
+        backTo?: string;
+    };
 };
 
 type WelcomeVideoModalNavigatorParamList = {
@@ -1987,17 +2000,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.TRACK_EXPENSE]: undefined;
     [SCREENS.SUBMIT_EXPENSE]: undefined;
-    [SCREENS.ATTACHMENTS]: {
-        reportID: string;
-        attachmentID?: string;
-        source: string;
-        type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-        accountID: string;
-        isAuthTokenRequired?: string;
-        fileName?: string;
-        attachmentLink?: string;
-        hashKey?: number;
-    };
+    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
     };
