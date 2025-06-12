@@ -2,17 +2,17 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
-import {ActivityIndicator, PanResponder, PixelRatio, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, PanResponder, PixelRatio, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type Webcam from 'react-webcam';
+import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
-import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -21,6 +21,7 @@ import DownloadAppBanner from '@components/DownloadAppBanner';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
+import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -38,6 +39,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
@@ -54,6 +56,7 @@ import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     checkIfScanFileCanBeRead,
@@ -119,6 +122,7 @@ function IOURequestStepScan({
     const cameraRef = useRef<Webcam>(null);
     const trackRef = useRef<MediaStreamTrack | null>(null);
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
+    const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -127,6 +131,7 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // TODO: use correct canUseMultiScan value when all multi-scan functionality is implemented
@@ -754,6 +759,9 @@ function IOURequestStepScan({
     ]);
 
     const toggleMultiScan = () => {
+        if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
+            setShouldShowMultiScanEducationalPopup(true);
+        }
         if (isMultiScanEnabled) {
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
@@ -829,6 +837,13 @@ function IOURequestStepScan({
             return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
         }
         return translate(attachmentInvalidReason);
+    };
+
+    const dismissMultiScanEducationalPopup = () => {
+        InteractionManager.runAfterInteractions(() => {
+            dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
+            setShouldShowMultiScanEducationalPopup(false);
+        });
     };
 
     const mobileCameraView = () => (
@@ -977,7 +992,22 @@ function IOURequestStepScan({
                     </PressableWithFeedback>
                 )}
             </View>
-
+            {canUseMultiScan && isMobile() && shouldShowMultiScanEducationalPopup && (
+                <FeatureTrainingModal
+                    title={translate('iou.scanMultipleReceipts')}
+                    image={MultiScan}
+                    shouldRenderSVG
+                    imageHeight="auto"
+                    imageWidth="auto"
+                    modalInnerContainerStyle={styles.pt0}
+                    illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
+                    onConfirm={dismissMultiScanEducationalPopup}
+                    titleStyles={styles.mb2}
+                    confirmText={translate('common.buttonConfirm')}
+                    description={translate('iou.scanMultipleReceiptsDescription')}
+                    shouldGoBack={false}
+                />
+            )}
             <ReceiptPreviews
                 isMultiScanEnabled={isMultiScanEnabled}
                 submit={submitReceipts}

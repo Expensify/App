@@ -7,7 +7,6 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
-import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
@@ -153,6 +152,7 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {addTrailingForwardSlash} from '@libs/Url';
 import Visibility from '@libs/Visibility';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -5440,7 +5440,7 @@ function changeReportPolicy(reportID: string, policyID: string) {
     if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
         const workspaceChatReportID = reportToMove.parentReportID;
         const reportPreviewActionID = reportToMove.parentReportActionID;
-        const oldReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`]?.[reportPreviewActionID];
+        const oldReportPreviewAction = allReportActions?.[workspaceChatReportID]?.[reportPreviewActionID];
         const deletedTime = DateUtils.getDBTime();
         const firstMessage = Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.at(0) : null;
         const updatedReportPreviewAction = {
@@ -5472,7 +5472,14 @@ function changeReportPolicy(reportID: string, policyID: string) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
-            value: {[reportPreviewActionID]: oldReportPreviewAction},
+            value: {
+                [reportPreviewActionID]: {
+                    ...oldReportPreviewAction,
+                    originalMessage: {
+                        deleted: null,
+                    },
+                },
+            },
         });
 
         // Update the expense chat report
