@@ -7,10 +7,10 @@ const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMAN
 
 /**
  * Hook that determines if report data is currently being loaded
- * 
+ *
  * Monitors persisted requests queue for OpenApp, ReconnectApp, and OpenReport commands
  * that trigger report data fetching from the server.
- * 
+ *
  * @param respectOfflineState - If true (default), won't show loading when offline (for loading bars).
  *                            If false, shows loading regardless of offline state (for full-screen loading).
  */
@@ -18,9 +18,7 @@ export default function useReportDataLoading(respectOfflineState = true): boolea
     const [req] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: false});
 
-    const hasRelevantRequests = req?.some((request) => 
-        RELEVANT_COMMANDS.has(request.command) && !request.initiatedOffline
-    ) ?? false;
+    const hasRelevantRequests = req?.some((request) => RELEVANT_COMMANDS.has(request.command) && !request.initiatedOffline) ?? false;
 
     // For loading bars, respect offline state (don't show when offline)
     // For full-screen loading, ignore offline state

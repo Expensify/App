@@ -37,7 +37,7 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
         ref: ForwardedRef<TRef>,
     ) {
         const isLoadingReportData = useReportDataLoading(false);
-        const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
         if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {
             return <FullscreenLoadingIndicator />;

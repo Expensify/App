@@ -1,12 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import useReportDataLoading from '@hooks/useReportDataLoading';
 import {updateChatPriorityMode} from '@libs/actions/User';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
-import useReportDataLoading from '@hooks/useReportDataLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
