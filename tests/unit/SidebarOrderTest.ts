@@ -817,8 +817,8 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             ...reportDraftCommentCollectionDataSet,
                             [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
-                            ...reportCollectionDataSet,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
