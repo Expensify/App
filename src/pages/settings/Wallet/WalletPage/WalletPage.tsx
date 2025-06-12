@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,6 +15,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -65,6 +66,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const isActingAsDelegate = !!userAccount?.delegatedAccess?.delegate || false;
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
@@ -190,6 +192,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         }
         if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
             return;
         }
         setShouldShowAddPaymentMenu(true);
@@ -575,6 +581,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                                 setIsNoDelegateAccessMenuVisible(true);
                                                                 return;
                                                             }
+                                                            if (isAccountLocked) {
+                                                                showLockedAccountModal();
+                                                                return;
+                                                            }
 
                                                             if (!isUserValidated) {
                                                                 Navigation.navigate(
@@ -644,6 +654,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                             });
                                             return;
                                         }
+                                        if (isAccountLocked) {
+                                            closeModal(() => showLockedAccountModal());
+                                            return;
+                                        }
                                         makeDefaultPaymentMethod();
                                         setShouldShowDefaultDeleteMenu(false);
                                     }}
@@ -659,6 +673,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         closeModal(() => {
                                             setIsNoDelegateAccessMenuVisible(true);
                                         });
+                                        return;
+                                    }
+                                    if (isAccountLocked) {
+                                        closeModal(() => showLockedAccountModal());
                                         return;
                                     }
                                     closeModal(() => setShowConfirmDeleteModal(true));
