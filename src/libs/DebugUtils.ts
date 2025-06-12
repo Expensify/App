@@ -582,6 +582,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 eventURI: 'string',
                 inserted: 'string',
             });
+        case 'agentZeroProcessingRequestIndicator':
+            return validateString(value);
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
@@ -648,6 +650,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
