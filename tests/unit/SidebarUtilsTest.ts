@@ -19,6 +19,9 @@ import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+const ACCOUNT_ID = 12345;
+
 describe('SidebarUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -97,7 +100,6 @@ describe('SidebarUtils', () => {
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
                     MOCK_REPORT_ACTIONS,
-                    false,
                     {},
                     MOCK_TRANSACTIONS,
                     MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
@@ -126,7 +128,6 @@ describe('SidebarUtils', () => {
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
                     MOCK_REPORT_ACTIONS,
-                    false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     MOCK_TRANSACTION_VIOLATIONS,
@@ -136,26 +137,37 @@ describe('SidebarUtils', () => {
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
 
-        it('returns correct reason when report has violations', () => {
+        it('returns correct reason when report has violations', async () => {
             const MOCK_REPORT: Report = {
                 reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: ACCOUNT_ID,
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
+                    accountID: ACCOUNT_ID,
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [ACCOUNT_ID]: {
+                        accountID: ACCOUNT_ID,
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}1` as const]: {
+                    fieldRequired: {
+                        name: {},
+                    },
+                },
+            });
+
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    MOCK_REPORT_ACTIONS,
-                    true,
-                    {},
-                    MOCK_TRANSACTIONS,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current) ??
+                {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_VIOLATIONS);
         });
@@ -192,7 +204,6 @@ describe('SidebarUtils', () => {
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
                     MOCK_REPORT_ACTIONS,
-                    false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     MOCK_TRANSACTION_VIOLATIONS,
@@ -221,7 +232,6 @@ describe('SidebarUtils', () => {
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
                     MOCK_REPORT_ACTIONS,
-                    false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     MOCK_TRANSACTION_VIOLATIONS,
@@ -263,7 +273,6 @@ describe('SidebarUtils', () => {
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
                     MOCK_REPORT_ACTIONS,
-                    false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     MOCK_TRANSACTION_VIOLATIONS,
@@ -286,7 +295,6 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                 MOCK_REPORT,
                 MOCK_REPORT_ACTIONS,
-                false,
                 {},
                 MOCK_TRANSACTIONS,
                 MOCK_TRANSACTION_VIOLATIONS,
@@ -369,7 +377,6 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                 MOCK_REPORT,
                 MOCK_REPORT_ACTIONS,
-                false,
                 {},
                 MOCK_TRANSACTIONS,
                 MOCK_TRANSACTION_VIOLATIONS,
@@ -441,7 +448,6 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.shouldShowRedBrickRoad(
                 MOCK_REPORT,
                 MOCK_REPORT_ACTIONS,
-                false,
                 {},
                 MOCK_TRANSACTIONS,
                 MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
@@ -510,7 +516,6 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.shouldShowRedBrickRoad(
                 MOCK_REPORT,
                 MOCK_REPORT_ACTIONS,
-                false,
                 {},
                 MOCK_TRANSACTIONS,
                 MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
@@ -534,29 +539,39 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                MOCK_REPORT_ACTIONS,
-                false,
-                reportErrors,
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, reportErrors, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(true);
         });
 
-        it('returns true when report has violations', () => {
+        it('returns true when report has violations', async () => {
             const MOCK_REPORT: Report = {
                 reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: ACCOUNT_ID,
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
+                    accountID: ACCOUNT_ID,
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [ACCOUNT_ID]: {
+                        accountID: ACCOUNT_ID,
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}1` as const]: {
+                    fieldRequired: {
+                        name: {},
+                    },
+                },
+            });
+
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, true, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(true);
         });
@@ -587,15 +602,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                MOCK_REPORT_ACTIONS,
-                false,
-                reportErrors,
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, reportErrors, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(true);
         });
@@ -614,15 +621,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                MOCK_REPORT_ACTIONS,
-                false,
-                reportErrors,
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, reportErrors, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(true);
         });
@@ -636,7 +635,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(false);
         });
@@ -658,7 +657,7 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(false);
         });

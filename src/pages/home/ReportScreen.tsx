@@ -253,6 +253,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
+                hasOutstandingChildRequest: reportOnyx.hasOutstandingChildRequest,
+                hasOutstandingChildTask: reportOnyx.hasOutstandingChildTask,
+                hasParentAccess: reportOnyx.hasParentAccess,
             },
         [reportOnyx, reportNameValuePairsOnyx, permissions],
     );
