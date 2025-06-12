@@ -1423,7 +1423,7 @@ describe('SearchUIUtils', () => {
         // `isTaxAmountLengthLong` should be false if current symbol + tax amount length does not exceed 11 characters
         const {shouldShowAmountInWideColumn: isAmountLengthLong2, shouldShowTaxAmountInWideColumn} = SearchUIUtils.getWideAmountIndicators([
             ...transactionsListItems,
-            {...transaction, amount: 99999999.99, taxAmount: 2332.77},
+            {...transaction, amount: 99999999.99, taxAmount: 2332.77, modifiedAmount: undefined},
         ] as TransactionListItemType[]);
         expect(isAmountLengthLong2).toBe(true);
         expect(shouldShowTaxAmountInWideColumn).toBe(false);
@@ -1432,7 +1432,7 @@ describe('SearchUIUtils', () => {
         // when the current symbol + amount and current symbol + tax amount lengths exceed 11 characters
         const {shouldShowAmountInWideColumn: isAmountLengthLong3, shouldShowTaxAmountInWideColumn: isTaxAmountLengthLong2} = SearchUIUtils.getWideAmountIndicators([
             ...transactionsListItems,
-            {...transaction, amount: 99999999.99, taxAmount: 45555555.55},
+            {...transaction, amount: 99999999.99, taxAmount: 45555555.55, modifiedAmount: undefined},
         ] as TransactionListItemType[]);
         expect(isAmountLengthLong3).toBe(true);
         expect(isTaxAmountLengthLong2).toBe(true);
