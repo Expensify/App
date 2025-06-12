@@ -1,5 +1,4 @@
 import React, {createContext, useMemo, useState} from 'react';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
@@ -7,34 +6,41 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
 import Text from './Text';
 import TextLink from './TextLink';
+import AccountUtils from '@libs/AccountUtils';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 type DelegateNoAccessContextType = {
-    showDelegateNoAccessModal: () => void;
     isActingAsDelegate: boolean;
+    isDelegateAccessRestricted: boolean,
+    showDelegateNoAccessModal: () => void;
 };
 
 const DelegateNoAccessContext = createContext<DelegateNoAccessContextType>({
-    showDelegateNoAccessModal: () => {},
     isActingAsDelegate: false,
+    isDelegateAccessRestricted: false,
+    showDelegateNoAccessModal: () => {},
 });
 
 function DelegateNoAccessModalProvider({children}: React.PropsWithChildren) {
     const {translate} = useLocalize();
-    const {delegatorEmail} = useDelegateUserDetails();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const currentUserDetails = useCurrentUserPersonalDetails();
+    const delegatorEmail = currentUserDetails?.login ?? '';
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const isDelegateAccessRestricted = isActingAsDelegate && AccountUtils.isDelegateOnlySubmitter(account);
 
     const delegateNoAccessPrompt = (
         <Text>
             {translate('delegate.notAllowedMessageStart')}
             <TextLink href={CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}>{translate('delegate.notAllowedMessageHyperLinked')}</TextLink>
-            {translate('delegate.notAllowedMessageEnd', {accountOwnerEmail: delegatorEmail ?? ''})}
+            {translate('delegate.notAllowedMessageEnd', {accountOwnerEmail: delegatorEmail})}
         </Text>
     );
     const contextValue = useMemo(
         () => ({
             isActingAsDelegate,
+            isDelegateAccessRestricted,
             showDelegateNoAccessModal: () => setIsModalOpen(true),
         }),
         [isActingAsDelegate],
