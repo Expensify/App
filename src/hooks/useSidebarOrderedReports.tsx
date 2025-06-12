@@ -79,7 +79,9 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         let reportsToUpdate: string[] = [];
 
-        if (reportUpdates) {
+        if (betas !== prevBetas || priorityMode !== prevPriorityMode) {
+            reportsToUpdate = Object.keys(chatReports ?? {});
+        } else if (reportUpdates) {
             reportsToUpdate = Object.keys(reportUpdates ?? {});
         } else if (reportNameValuePairsUpdates) {
             reportsToUpdate = Object.keys(reportNameValuePairsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT));
@@ -102,9 +104,6 @@ function SidebarOrderedReportsContextProvider({
                     return updatedPolicies.includes(value?.policyID);
                 })
                 .map(([key]) => key);
-            // if betas or priorityMode changes, we need to recompute all reports
-        } else if (betas !== prevBetas || priorityMode !== prevPriorityMode) {
-            reportsToUpdate = Object.keys(chatReports ?? {});
         }
 
         return reportsToUpdate;
