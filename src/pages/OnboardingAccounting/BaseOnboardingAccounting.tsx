@@ -276,7 +276,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 accessibilityLabel={item.text}
                 accessible={false}
                 hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
-                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
+                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100, item.isSelected && styles.activeComponentBG]}
             >
                 <RadioButtonWithLabel
                     isChecked={!!item.isSelected}
@@ -304,6 +304,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             styles.onboardingAccountingItem,
             styles.textStrong,
             styles.hoveredComponentBG,
+            styles.activeComponentBG,
         ],
     );
 
