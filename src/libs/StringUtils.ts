@@ -137,6 +137,14 @@ function removePreCodeBlock(text = '') {
     return text.replace(/<pre[^>]*>|<\/pre>/g, '');
 }
 
+/**
+ * Remove white spaces length from the string
+ */
+function countWhiteSpaces(str: string): number {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return (str.match(/ /g) || []).length;
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -149,4 +157,5 @@ export default {
     removeDoubleQuotes,
     removePreCodeBlock,
     sortStringArrayByLength,
+    countWhiteSpaces,
 };

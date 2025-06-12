@@ -19,6 +19,7 @@ import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, getDisplayNameForParticipant, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 import {searchInServer} from '@userActions/Report';
@@ -190,12 +191,15 @@ function SuggestionMention(
         [formatLoginPrivateDomain],
     );
 
-    function getOriginalMentionText(inputValue: string, atSignIndex: number) {
+    function getOriginalMentionText(inputValue: string, atSignIndex: number, whiteSpacesLength = 0) {
         const rest = inputValue.slice(atSignIndex);
 
-        const breakerIndex = rest.search(CONST.REGEX.MENTION_BREAKER);
+        if (whiteSpacesLength) {
+            const str = rest.split(' ', whiteSpacesLength + 1).join(' ');
+            return rest.slice(0, str.length);
+        }
 
-        // If no breaker is found, return the entire rest of the string
+        const breakerIndex = rest.search(CONST.REGEX.MENTION_BREAKER);
         return breakerIndex === -1 ? rest : rest.slice(0, breakerIndex);
     }
 
@@ -209,8 +213,10 @@ function SuggestionMention(
             if (!mentionObject || highlightedMentionIndexInner === -1) {
                 return;
             }
+
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
-            const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex);
+            const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex, StringUtils.countWhiteSpaces(suggestionValues.mentionPrefix));
+
             const commentAfterMention = value.slice(
                 suggestionValues.atSignIndex + Math.max(originalMention.length, suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length),
             );
