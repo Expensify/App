@@ -295,24 +295,23 @@ function getWideAmountIndicators(data: TransactionListItemType[] | ReportListIte
     let isTaxAmountWide = false;
 
     const processTransaction = (transaction: TransactionListItemType | SearchTransaction) => {
-        isAmountWide = isAmountWide || isTransactionAmountTooLong(transaction);
-        isTaxAmountWide = isTaxAmountWide || isTransactionTaxAmountTooLong(transaction);
-    };
-
-    const processItem = (item: TransactionListItemType | ReportListItemType | TaskListItemType) => {
-        if ((isAmountWide && isTaxAmountWide) || isTaskListItemType(item)) {
-            return;
-        }
-        if (isReportListItemType(item)) {
-            item.transactions?.forEach(processTransaction);
-        } else if (isTransactionListItemType(item)) {
-            processTransaction(item);
-        }
+        isAmountWide ||= isTransactionAmountTooLong(transaction);
+        isTaxAmountWide ||= isTransactionTaxAmountTooLong(transaction);
     };
 
     if (Array.isArray(data)) {
         data.some((item) => {
-            processItem(item);
+            if (isReportListItemType(item)) {
+                const transactions = item.transactions ?? [];
+                for (const transaction of transactions) {
+                    if (isAmountWide && isTaxAmountWide) {
+                        break;
+                    }
+                    processTransaction(transaction);
+                }
+            } else if (isTransactionListItemType(item)) {
+                processTransaction(item);
+            }
             return isAmountWide && isTaxAmountWide;
         });
     } else {
@@ -320,10 +319,20 @@ function getWideAmountIndicators(data: TransactionListItemType[] | ReportListIte
             if (isTransactionEntry(key)) {
                 processTransaction(value as TransactionListItemType);
             } else if (isReportEntry(key)) {
-                processItem(value as ReportListItemType);
-            }
+                const report = getReportFromKey(data, key);
 
-            // This breaks the loop early if both flags are set
+                if (!report) {
+                    return isAmountWide && isTaxAmountWide;
+                }
+
+                const transactions = getTransactionsForReport(data, report.reportID);
+                for (const transaction of transactions) {
+                    if (isAmountWide && isTaxAmountWide) {
+                        break;
+                    }
+                    processTransaction(transaction);
+                }
+            }
             return isAmountWide && isTaxAmountWide;
         });
     }
