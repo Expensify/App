@@ -9,6 +9,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 
 type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
@@ -67,6 +68,8 @@ function SidebarOrderedReportsContextProvider({
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const reportsToDisplayRef = useRef<ReportsToDisplayInLHN>({});
+    const prevBetas = usePrevious(betas);
+    const prevPriorityMode = usePrevious(priorityMode);
 
     /**
      * Find the reports that need to be updated in the LHN
@@ -92,8 +95,7 @@ function SidebarOrderedReportsContextProvider({
                 .filter(([, value]) => updatedPolicies.includes(value?.policyID ?? ''))
                 .map(([key]) => key);
             // if betas or priorityMode changes, we need to recompute all reports
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        } else if (betas || priorityMode) {
+        } else if (betas !== prevBetas || priorityMode !== prevPriorityMode) {
             reportsToUpdate = Object.keys(chatReports ?? {});
         }
 
@@ -109,6 +111,10 @@ function SidebarOrderedReportsContextProvider({
         chatReports,
         transactions,
         derivedCurrentReportID,
+        betas,
+        priorityMode,
+        prevBetas,
+        prevPriorityMode,
     ]);
 
     const reportsToDisplayInLHN = useMemo(() => {
@@ -118,6 +124,7 @@ function SidebarOrderedReportsContextProvider({
 
         if (shouldDoIncrementalUpdate) {
             toDisplay = SidebarUtils.updateReportsToDisplayInLHN(
+                // eslint-disable-next-line react-compiler/react-compiler
                 reportsToDisplayRef.current,
                 chatReports,
                 updatedReports,
@@ -141,10 +148,11 @@ function SidebarOrderedReportsContextProvider({
                 reportAttributes,
             );
         }
-        reportsToDisplayRef.current = toDisplay;
         return toDisplay;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [getUpdatedReports]);
+
+    reportsToDisplayRef.current = reportsToDisplayInLHN;
 
     const getOrderedReportIDs = useCallback(
         () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, reportNameValuePairs, reportAttributes),
