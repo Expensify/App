@@ -1,7 +1,7 @@
 type SetPolicyTagListsRequired = {
     policyID: string;
     tagListIndexes: number[];
-    requireTagList: boolean;
+    isRequired: boolean;
 };
 
 export default SetPolicyTagListsRequired;
