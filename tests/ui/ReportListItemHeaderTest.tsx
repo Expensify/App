@@ -143,7 +143,7 @@ describe('ReportListItemHeader', () => {
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdates();
 
-                expect(screen.getAllByText('John Doe')).toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(2);
                 expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
             });
 
@@ -189,7 +189,7 @@ describe('ReportListItemHeader', () => {
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdates();
 
-                expect(screen.getAllByText('John Doe')).toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(2);
                 expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
             });
 
