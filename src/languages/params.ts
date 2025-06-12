@@ -740,6 +740,31 @@ type EmployeeInviteMessageParams = {
     name: string;
 };
 
+type FlightParams = {
+    startDate: string;
+    airlineCode: string;
+    origin: string;
+    destination: string;
+    confirmationID?: string;
+};
+
+type AirlineParams = {
+    airlineCode: string;
+    startDate?: string;
+    cabinClass?: string;
+};
+
+type RailTicketParams = {
+    origin: string;
+    destination: string;
+    startDate: string;
+};
+
+type TravelTypeParams = {
+    type: string;
+    id?: string;
+};
+
 export type {
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
@@ -1005,4 +1030,8 @@ export type {
     ReviewParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
+    FlightParams,
+    AirlineParams,
+    RailTicketParams,
+    TravelTypeParams,
 };

@@ -1927,6 +1927,18 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {
+        backTo?: string;
+    };
 };
 
 type WelcomeVideoModalNavigatorParamList = {
