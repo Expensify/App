@@ -85,6 +85,7 @@ import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptySquare from '@assets/images/empty-square.svg';
 import EmptyStateAttachReceipt from '@assets/images/empty-state__attach-receipt.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
+import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -219,6 +220,7 @@ import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
+import UserLock from '@assets/images/user-lock.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
@@ -466,4 +468,6 @@ export {
     EmptySquare,
     CheckSquare,
     Minus,
+    UserLock,
+    EmptyStateSpyPigeon,
 };
