@@ -5,6 +5,8 @@ import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
 import PDFThumbnail from '@components/PDFThumbnail';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import {getFileValidationErrorText, resizeImageIfNeeded, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import useLocalize from './useLocalize';
@@ -171,13 +173,29 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
           ))
         : undefined;
 
+    const getModalPrompt = () => {
+        if (!fileError) {
+            return '';
+        }
+        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}).reason;
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE) {
+            return (
+                <Text>
+                    {prompt}
+                    <TextLink href={''}> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
+                </Text>
+            );
+        }
+        return prompt;
+    };
+
     const ErrorModal = (
         <ConfirmModal
             title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}).title}
             onConfirm={onConfirm}
             onCancel={hideModalAndReset}
             isVisible={isAttachmentInvalid}
-            prompt={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}).reason}
+            prompt={getModalPrompt()}
             confirmText={translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close')}
             cancelText={translate('common.cancel')}
             shouldShowCancelButton={isValidatingMultipleFiles}
