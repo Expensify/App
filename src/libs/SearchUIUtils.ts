@@ -1156,13 +1156,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 return false;
             }
 
-            const isIntacctExporter = policy.connections?.intacct?.config?.export?.exporter === email;
-            const isNetSuiteExporter = policy.connections?.netsuite?.options?.config?.exporter === email;
-            const isQuickbooksDesktopExporter = policy.connections?.quickbooksDesktop?.config?.export?.exporter === email;
-            const isQuickbooksOnlineExporter = policy.connections?.quickbooksOnline?.config?.export?.exporter === email;
-            const isXeroExporter = policy.connections?.xero?.config?.export?.exporter === email;
-
-            return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
+            return policy.exporter === email;
         }).length > 0;
 
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
