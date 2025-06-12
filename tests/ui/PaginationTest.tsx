@@ -4,16 +4,18 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {setSidebarLoaded} from '@libs/actions/App';
+import {subscribeToUserEvents} from '@libs/actions/User';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {translateLocal} from '@libs/Localize';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
-import {setSidebarLoaded} from '@userActions/App';
-import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
+import {getReportScreen, LIST_CONTENT_SIZE, navigateToSidebarOption, REPORT_ID, scrollToOffset, triggerListLayout} from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -29,55 +31,13 @@ jest.mock('../../src/components/ConfirmedRoute.tsx');
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
 
-const LIST_SIZE = {
-    width: 300,
-    height: 400,
-};
-const LIST_CONTENT_SIZE = {
-    width: 300,
-    height: 600,
-};
 const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
 
-const REPORT_ID = '1';
 const COMMENT_LINKING_REPORT_ID = '2';
 const USER_A_ACCOUNT_ID = 1;
 const USER_A_EMAIL = 'user_a@test.com';
 const USER_B_ACCOUNT_ID = 2;
 const USER_B_EMAIL = 'user_b@test.com';
-
-function getReportScreen(reportID = REPORT_ID) {
-    return screen.getByTestId(`report-screen-${reportID}`);
-}
-
-function scrollToOffset(offset: number) {
-    const hintText = translateLocal('sidebarScreen.listOfChatMessages');
-    fireEvent.scroll(within(getReportScreen()).getByLabelText(hintText), {
-        nativeEvent: {
-            contentOffset: {
-                y: offset,
-            },
-            contentSize: LIST_CONTENT_SIZE,
-            layoutMeasurement: LIST_SIZE,
-        },
-    });
-}
-
-function triggerListLayout(reportID?: string) {
-    const report = getReportScreen(reportID);
-    fireEvent(within(report).getByTestId('report-actions-view-wrapper'), 'onLayout', {
-        nativeEvent: {
-            layout: {
-                x: 0,
-                y: 0,
-                ...LIST_SIZE,
-            },
-        },
-        persist: () => {},
-    });
-
-    fireEvent(within(report).getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
-}
 
 function getReportActions(reportID?: string) {
     const report = getReportScreen(reportID);
@@ -86,17 +46,6 @@ function getReportActions(reportID?: string) {
         // Created action has a different accessibility label.
         ...within(report).queryAllByLabelText(translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];
-}
-
-async function navigateToSidebarOption(reportID: string): Promise<void> {
-    const optionRow = screen.getByTestId(reportID);
-    fireEvent(optionRow, 'press');
-    await waitFor(() => {
-        (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
-    });
-    // ReportScreen relies on the onLayout event to receive updates from onyx.
-    triggerListLayout(reportID);
-    await waitForBatchedUpdatesWithAct();
 }
 
 function buildCreatedAction(reportActionID: string, created: string) {
@@ -129,7 +78,7 @@ function buildReportComments(count: number, initialID: string, reverse = false) 
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+    fetchMock.mockAPICommand(WRITE_COMMANDS.OPEN_REPORT, ({reportID, reportActionID}) => {
         const comments = buildReportComments(messageCount, initialID);
         return {
             onyxData:
@@ -143,13 +92,13 @@ function mockOpenReport(messageCount: number, initialID: string) {
                       ]
                     : [],
             hasOlderActions: !comments['1'],
-            hasNewerActions: !!reportID,
+            hasNewerActions: !!reportActionID,
         };
     });
 }
 
 function mockGetOlderActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) => {
+    fetchMock.mockAPICommand(READ_COMMANDS.GET_OLDER_ACTIONS, ({reportID, reportActionID}) => {
         // The API also returns the action that was requested with the reportActionID.
         const comments = buildReportComments(messageCount + 1, reportActionID);
         return {
@@ -169,7 +118,7 @@ function mockGetOlderActions(messageCount: number) {
 }
 
 function mockGetNewerActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => ({
+    fetchMock.mockAPICommand(READ_COMMANDS.GET_NEWER_ACTIONS, ({reportID, reportActionID}) => ({
         onyxData:
             reportID === REPORT_ID
                 ? [
@@ -207,11 +156,12 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdates();
 
     await act(async () => {
-        // Simulate setting an unread report and personal details
+        // Simulate setting a report and personal details
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
             reportID: REPORT_ID,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastMessageText: 'Test',
+            lastReadTime: format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING),
             participants: {
                 [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
@@ -229,6 +179,7 @@ async function signInAndGetApp(): Promise<void> {
             reportID: COMMENT_LINKING_REPORT_ID,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastMessageText: 'Test',
+            lastReadTime: format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING),
             participants: {[USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             lastActorAccountID: USER_A_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.CHAT,
@@ -281,10 +232,10 @@ describe('Pagination', () => {
         await navigateToSidebarOption(REPORT_ID);
 
         expect(getReportActions()).toHaveLength(5);
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {reportID: REPORT_ID});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_OLDER_ACTIONS, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_NEWER_ACTIONS, 0);
 
         // Scrolling here should not trigger a new network request.
         scrollToOffset(LIST_CONTENT_SIZE.height);
@@ -292,9 +243,9 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_OLDER_ACTIONS, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_NEWER_ACTIONS, 0);
     });
 
     it('opens a chat and load older messages', async () => {
@@ -305,19 +256,19 @@ describe('Pagination', () => {
         await navigateToSidebarOption(REPORT_ID);
 
         expect(getReportActions()).toHaveLength(CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT);
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {reportID: REPORT_ID});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_OLDER_ACTIONS, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_NEWER_ACTIONS, 0);
 
         // Scrolling here should trigger a new network request.
         scrollToOffset(LIST_CONTENT_SIZE.height);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 1);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('GetOlderActions', 0, {reportID: REPORT_ID, reportActionID: '4'});
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_OLDER_ACTIONS, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_OLDER_ACTIONS, 0, {reportID: REPORT_ID, reportActionID: '4'});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_NEWER_ACTIONS, 0);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -349,10 +300,13 @@ describe('Pagination', () => {
         expect(getReportActions()).toHaveLength(10);
 
         // There is 1 extra call here because of the comment linking report.
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 3);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 1, {reportID: REPORT_ID, reportActionID: '5'});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_OLDER_ACTIONS, 0);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_NEWER_ACTIONS, 0, {reportID: REPORT_ID, reportActionID: '5'});
+
+        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
+        mockGetNewerActions(0);
 
         // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
         scrollToOffset(500);
@@ -360,26 +314,24 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
-
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
 
-        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
-        mockGetNewerActions(0);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 3);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_OLDER_ACTIONS, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_NEWER_ACTIONS, 2);
 
         scrollToOffset(500);
         await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        // When there are no newer actions, we don't want to trigger GetNewerActions again.
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 3);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_OLDER_ACTIONS, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.GET_NEWER_ACTIONS, 2);
 
-        // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
+        // We still have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
     });
 });
