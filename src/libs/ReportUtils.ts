@@ -11,7 +11,7 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
@@ -5821,13 +5821,13 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getReportUrl(reportID: string) {
+function getReportUrl(reportID?: string) {
     return `${environmentURL}/r/${reportID}`;
 }
 
 function getMovedTransactionMessage(parentReportAction: OnyxEntry<ReportAction>, parentReport?: Report) {
     const reportName = getReportName(parentReport, undefined, parentReportAction) ?? parentReport?.reportName ?? '';
-    const reportUrl = getReportUrl(parentReport?.reportID ?? '');
+    const reportUrl = getReportUrl(parentReport?.reportID);
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
