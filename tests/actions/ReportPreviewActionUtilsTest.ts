@@ -11,6 +11,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
+import * as InvoiceData from '../data/Invoice';
+import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
 
@@ -151,6 +153,32 @@ describe('getReportPreviewAction', () => {
         });
     });
 
+    it("canApprove should return true for the current report manager regardless of whether they're in the current approval workflow", async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.approver = `another+${CURRENT_USER_EMAIL}`;
+        policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+        policy.preventSelfApproval = false;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+    });
+
     it('canPay should return true for expense report with payments enabled', async () => {
         const report = {
             ...createRandomReport(REPORT_ID),
@@ -231,6 +259,34 @@ describe('getReportPreviewAction', () => {
         } as unknown as Transaction;
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('getReportPreviewAction should return VIEW action for invoice when the chat report is archived', async () => {
+        // Given the invoice data
+        const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+        const report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            chatReportID: chatReport.chatReportID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`, {
+            private_isArchived: new Date().toString(),
+        });
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        // Simulate how components determined if a chat report is archived by using this hook
+        const {result: isChatReportArchived} = renderHook(() => useReportIsArchived(report?.chatReportID));
+
+        // Then the getReportPreviewAction should return the View action
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isChatReportArchived.current, undefined)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canExport should return true for finished reports', async () => {
