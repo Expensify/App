@@ -81,6 +81,7 @@ import {
     getReportActionMessage,
     getReportActionText,
     getTagListNameUpdatedMessage,
+    getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -408,7 +409,7 @@ function PureReportActionItem({
     shouldShowBorder,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate} = useLocalize();
+    const {translate, datetimeToCalendarTime} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
@@ -820,6 +821,8 @@ function PureReportActionItem({
         // Show the MoneyRequestPreview for when expense is present
         if (isIOURequestReportAction(action)) {
             const isSplitInGroupChat = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && report?.chatType === CONST.REPORT.CHAT_TYPE.GROUP;
+            const isSplitScanWithNoAmount = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && moneyRequestOriginalMessage?.amount === 0;
+            const shouldShowSplitPreview = isSplitInGroupChat || isSplitScanWithNoAmount;
             const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = moneyRequestOriginalMessage?.IOUReportID?.toString();
@@ -842,7 +845,7 @@ function PureReportActionItem({
 
             // Table Report View does not display these components as separate messages, except for self-DM
             if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && report?.type === CONST.REPORT.TYPE.CHAT) {
-                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || isSplitInGroupChat) {
+                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
@@ -852,11 +855,11 @@ function PureReportActionItem({
                                 action={action}
                                 shouldDisplayContextMenu={shouldDisplayContextMenu}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
-                                transactionID={isSplitInGroupChat ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
+                                transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
                                 containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
                                 transactionPreviewWidth={shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width}
                                 onPreviewPressed={() => {
-                                    if (isSplitInGroupChat) {
+                                    if (shouldShowSplitPreview) {
                                         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
                                         return;
                                     }
@@ -1064,7 +1067,13 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action, parentReportAction, report)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(action, datetimeToCalendarTime)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
