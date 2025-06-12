@@ -7134,7 +7134,7 @@ const translations = {
         submittedExpensesTitle: 'Estos gastos han sido enviados',
         submittedExpensesDescription: 'Estos gastos se han enviado a tu aprobador pero aún se pueden editar hasta que sean aprobados.',
         pendingExpensesTitle: 'Los gastos pendientes se han movido',
-        pendingExpensesDescription: 'Cualquier gasto pendiente de tarjeta se ha movido a un informe separado hasta que se contabilicen.',
+        pendingExpensesDescription: 'Todo gasto de tarjeta pendiente se ha movido a un informe separado hasta que sea contabilizado.',
     },
     testDrive: {
         quickAction: {
