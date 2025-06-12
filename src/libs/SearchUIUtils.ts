@@ -556,16 +556,13 @@ function getAction(
     }
 
     const policy = getPolicyFromKey(data, report) as OnyxTypes.Policy;
+    const isExportAvailable = isExportAction(report, policy, reportActions);
 
-    if (isExportAction(report, policy, reportActions)) {
-        return CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING;
-    }
-
-    if (isSettled(report)) {
+    if (isSettled(report) && !isExportAvailable) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
-    if (isClosedReport(report)) {
+    if (isClosedReport(report) && !isExportAvailable) {
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
@@ -611,6 +608,10 @@ function getAction(
 
     if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
+    }
+
+    if (isExportAvailable) {
+        return CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING;
     }
 
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);

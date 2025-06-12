@@ -12,16 +12,17 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
-import {getSubmitToAccountID} from '@libs/PolicyUtils';
+import {getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {hasHeldExpenses} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, Policy, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import {exportToIntegration} from './Report';
 
 let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
 Onyx.connect({
@@ -62,6 +63,17 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             const policy = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as SearchPolicy;
             submitMoneyRequestOnSearch(hash, [item], [policy], transactionID);
+            return;
+        }
+        case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
+            const policy = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as Policy;
+            const connectedIntegration = getValidConnectedIntegration(policy);
+
+            if (!connectedIntegration || !item) {
+                return;
+            }
+
+            exportToIntegration(item.reportID, connectedIntegration);
             return;
         }
         default:
