@@ -194,38 +194,8 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxReque
 }
 
 function resolveReadNewestActionConflicts(persistedRequests: OnyxRequest[], parameters: ReadNewestActionParams): ConflictActionData {
-    const reportID = parameters.reportID;
-    const newLastReadTime = parameters.lastReadTime;
-
-    const existingRequestIndex = persistedRequests.findIndex((request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === reportID);
-
-    if (existingRequestIndex === -1) {
-        return {
-            conflictAction: {
-                type: 'push',
-            },
-        };
-    }
-
-    const existingRequest = persistedRequests.at(existingRequestIndex);
-    const existingLastReadTime = existingRequest?.data?.lastReadTime;
-
-    // Keep the request with the latest lastReadTime
-    if (!existingLastReadTime || newLastReadTime > existingLastReadTime) {
-        return {
-            conflictAction: {
-                type: 'replace',
-                index: existingRequestIndex,
-            },
-        };
-    }
-
-    // Existing request has newer or equal lastReadTime, ignore the new request
-    return {
-        conflictAction: {
-            type: 'noAction',
-        },
-    };
+    const requestMatcher = (request: OnyxRequest) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === parameters.reportID;
+    return resolveDuplicationConflictAction(persistedRequests, requestMatcher);
 }
 
 function resolveEnableFeatureConflicts(
