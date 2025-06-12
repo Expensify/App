@@ -3361,7 +3361,7 @@ function openReportFromDeepLink(url: string) {
 
     let route = getRouteFromLink(url);
 
-    // Redirect /signin to root path to prevent NotFound page
+    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
     if (normalizePath(route) === CONST.SIGNIN_ROUTE) {
         route = '';
     }
