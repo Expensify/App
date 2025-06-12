@@ -4632,7 +4632,7 @@ function getReportActionMessage({
             personalDetails,
         });
     }
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPTSCANFAILED) {
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
         return translateLocal('receipt.scanFailed');
     }
 
