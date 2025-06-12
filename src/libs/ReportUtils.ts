@@ -354,6 +354,7 @@ type BuildOptimisticIOUReportActionParams = {
     comment: string;
     participants: Participant[];
     transactionID: string;
+    optimisticReportActionID?: string;
     paymentType?: PaymentMethodType;
     iouReportID?: string;
     isSettlingUp?: boolean;
@@ -5952,6 +5953,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         created = DateUtils.getDBTime(),
         linkedExpenseReportAction,
         isPersonalTrackingExpense = false,
+        optimisticReportActionID,
     } = params;
 
     const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
@@ -6011,7 +6013,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         automatic: false,
         isAttachmentOnly: false,
         originalMessage,
-        reportActionID: rand64(),
+        reportActionID: optimisticReportActionID ?? rand64(),
         shouldShow: true,
         created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
