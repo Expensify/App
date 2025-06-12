@@ -29,10 +29,9 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             Navigation.dismissModal();
             return;
         }
-        if (item.value !== transactionReport?.reportID) {
-            changeTransactionsReport(selectedTransactionIDs, item.value);
-            clearSelectedTransactions(true);
-        }
+
+        changeTransactionsReport(selectedTransactionIDs, item.value);
+        clearSelectedTransactions(true);
         Navigation.dismissModalWithReport({reportID: item.value});
     };
 
