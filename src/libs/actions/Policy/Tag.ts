@@ -733,6 +733,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfulTitle'), prompt: translateLocal('spreadsheet.importMultiLevelTagsSuccessfulDescription')},
                 },
             },
         ],
@@ -749,6 +750,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
                 },
             },
         ],
