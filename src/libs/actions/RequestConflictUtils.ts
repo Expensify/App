@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import type {OpenReportParams, ReadNewestActionParams, UpdateCommentParams} from '@libs/API/parameters';
+import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -193,11 +193,6 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxReque
     } as ConflictActionData;
 }
 
-function resolveReadNewestActionConflicts(persistedRequests: OnyxRequest[], parameters: ReadNewestActionParams): ConflictActionData {
-    const requestMatcher = (request: OnyxRequest) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === parameters.reportID;
-    return resolveDuplicationConflictAction(persistedRequests, requestMatcher);
-}
-
 function resolveEnableFeatureConflicts(
     command: EnablePolicyFeatureCommand,
     persistedRequests: OnyxRequest[],
@@ -229,7 +224,6 @@ export {
     resolveOpenReportDuplicationConflictAction,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
-    resolveReadNewestActionConflicts,
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,

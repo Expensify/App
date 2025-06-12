@@ -199,7 +199,6 @@ import {
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveOpenReportDuplicationConflictAction,
-    resolveReadNewestActionConflicts,
 } from './RequestConflictUtils';
 import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
@@ -1603,7 +1602,8 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         parameters,
         {optimisticData},
         {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveReadNewestActionConflicts(persistedRequests, parameters),
+            checkAndFixConflictingRequest: (persistedRequests) =>
+                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === parameters.reportID),
         },
     );
 
