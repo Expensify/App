@@ -98,6 +98,7 @@ type TransactionItemRowProps = {
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInReportTableView?: boolean;
+    isInSingleTransactionReport?: boolean;
 };
 
 /** If merchant name is empty or (none), then it falls back to description if screen is narrow */
@@ -134,6 +135,7 @@ function TransactionItemRow({
     isReportItemChild = false,
     isActionLoading,
     isInReportTableView = false,
+    isInSingleTransactionReport = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -290,7 +292,10 @@ function TransactionItemRow({
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
-                    <ChatBubbleCell transaction={transactionItem} />
+                    <ChatBubbleCell
+                        transaction={transactionItem}
+                        isInSingleTransactionReport={isInSingleTransactionReport}
+                    />
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: (
@@ -317,6 +322,7 @@ function TransactionItemRow({
             isActionLoading,
             isReportItemChild,
             isDateColumnWide,
+            isInSingleTransactionReport,
             isSelected,
             merchantOrDescriptionName,
             onButtonPress,
@@ -420,6 +426,7 @@ function TransactionItemRow({
                                 <ChatBubbleCell
                                     transaction={transactionItem}
                                     containerStyles={[styles.mt2]}
+                                    isInSingleTransactionReport={isInSingleTransactionReport}
                                 />
                             </View>
                         </View>
