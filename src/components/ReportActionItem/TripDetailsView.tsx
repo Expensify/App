@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {getReservationsFromTrip, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {getReservationsFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
@@ -141,7 +141,11 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
             secondaryIconFill={theme.icon}
-            onPress={() => Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, reservationIndex, Navigation.getReportRHPActiveRoute()))}
+            onPress={() =>
+                Navigation.navigate(
+                    ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), reservationIndex, Navigation.getReportRHPActiveRoute()),
+                )
+            }
         />
     );
 }
@@ -165,7 +169,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
         return null;
     }
 
-    const reservationsData: ReservationData[] = getReservationsFromTrip(tripRoomReport?.tripData?.payload, tripTransactions);
+    const reservationsData: ReservationData[] = getReservationsFromTripReport(tripRoomReport, tripTransactions);
 
     return (
         <View>

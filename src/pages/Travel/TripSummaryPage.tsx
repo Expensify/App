@@ -21,7 +21,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`, {canBeMissing: true});
-    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTrip(report?.tripData?.payload, transaction ? [transaction] : []);
+    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripReport(report, transaction ? [transaction] : []);
 
     return (
         <ScreenWrapper

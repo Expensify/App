@@ -16,7 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
-import {getTripReservationIcon} from '@libs/TripReservationUtils';
+import {getReservationsFromTripReport, getTripReservationIcon} from '@libs/TripReservationUtils';
 import {openTravelDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -49,14 +49,19 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? route.params.reportID}`, {canBeMissing: true});
     console.debug('[TripDetailsPage] Rendering', parentReport?.tripData);
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.reportID);
-    const reservationType = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0)?.type;
-    const reservation = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0);
+    const tripReservations = getReservationsFromTripReport(parentReport, transaction ? [transaction] : []);
+
+    const reservationData = tripReservations?.find((reservation) => reservation.reservationIndex === Number(route.params.reservationIndex));
+    const reservation = reservationData?.reservation;
+    const reservationType = reservation?.type;
     const reservationIcon = getTripReservationIcon(reservation?.type);
     const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation), canBeMissing: true});
+
+    console.debug('[TripDetailsPage] reservation', reservation, !CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel);
 
     return (
         <ScreenWrapper

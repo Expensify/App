@@ -1,6 +1,7 @@
 import type {ArrayValues} from 'type-fest';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, PnrData, RailPnr, TripData} from '@src/types/onyx/TripData';
@@ -116,7 +117,7 @@ function getAddressFromLocation(location: {addressLines?: string[]; postalCode?:
 
     return address.trim();
 }
-function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationData[] {
+function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripData): ReservationData[] {
     if (!tripData?.pnrs) {
         return [];
     }
@@ -338,18 +339,18 @@ function getReservationsFromSpotnanaPayload(tripData?: TripData): ReservationDat
 
         return reservationList.map((reservation, reservationIndex) => ({
             reservation,
-            transactionID: '',
-            reportID: '',
-            reservationIndex: reservationIndex + pnrIndex * 100,
+            reportID,
+            transactionID: '0',
+            reservationIndex: reservationIndex + pnrIndex * 100, // Ensure unique index across multiple PNRS
         }));
     });
 
     return reservations.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
-function getReservationsFromTrip(tripData?: TripData, transactions?: Transaction[]): ReservationData[] {
-    if (tripData) {
-        return getReservationsFromSpotnanaPayload(tripData);
+function getReservationsFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationData[] {
+    if (tripReport?.tripData?.payload) {
+        return getReservationsFromSpotnanaPayload(tripReport?.reportID, tripReport?.tripData?.payload);
     }
     if (transactions) {
         return getReservationsFromTripTransactions(transactions);
@@ -357,5 +358,5 @@ function getReservationsFromTrip(tripData?: TripData, transactions?: Transaction
     return [];
 }
 
-export {getTripReservationIcon, getTripEReceiptIcon, getTripReservationCode, getReservationsFromTrip};
+export {getTripReservationIcon, getTripEReceiptIcon, getTripReservationCode, getReservationsFromTripReport};
 export type {ReservationData};
