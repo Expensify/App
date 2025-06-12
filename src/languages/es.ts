@@ -4383,6 +4383,9 @@ const translations = {
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
             enableTags: 'Habilitar etiquetas',
+            requireTag: 'Requerir etiqueta',
+            requireTags: 'Requerir etiquetas',
+            notRequireTags: 'No requerir etiquetas',
             disableTag: 'Desactivar etiqueta',
             disableTags: 'Desactivar etiquetas',
             addTag: 'Añadir etiqueta',
@@ -4391,7 +4394,7 @@ const translations = {
             findTag: 'Encontrar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Estás usando ',
+                phrase1: ' Estás usando ',
                 phrase2: 'etiquetas dependientes',
                 phrase3: '. Puedes ',
                 phrase4: 'reimportar una hoja de cálculo',

@@ -45,6 +45,7 @@ import {
     openPolicyTagsPage,
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
+    setWorkspaceTagRequired,
 } from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -106,7 +107,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
-    const canSelectMultiple = !isMultiLevelTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -184,7 +185,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     value: policyTagList.name,
                     orderWeight: policyTagList.orderWeight,
                     text: getCleanedTagName(policyTagList.name),
-                    keyForList: String(policyTagList.orderWeight),
+                    alternateText: translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length}),
+                    keyForList: getCleanedTagName(policyTagList.name),
                     pendingAction: getPendingAction(policyTagList),
                     enabled: true,
                     required: policyTagList.required,
@@ -423,7 +425,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
-        if (!hasAccountingConnections) {
+        if (!hasAccountingConnections && !isMultiLevelTags) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
@@ -459,7 +461,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
         }
 
-        if (enabledTagCount > 0) {
+        if (enabledTagCount > 0 && !isMultiLevelTags) {
             options.push({
                 icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
@@ -475,7 +477,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        if (disabledTagCount > 0) {
+        if (disabledTagCount > 0 && !isMultiLevelTags) {
             options.push({
                 icon: Expensicons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
@@ -483,6 +485,49 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 onSelected: () => {
                     setSelectedTags([]);
                     setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
+                },
+            });
+        }
+
+        let requiredTagCount = 0;
+        const tagListIndexesToMarkRequired: string[] = [];
+
+        let optionalTagCount = 0;
+        const tagListIndexesToMarkOptional: string[] = [];
+
+        for (const tagName of selectedTags) {
+            if (filteredTagListKeyedByName[tagName]?.required) {
+                requiredTagCount++;
+                tagListIndexesToMarkOptional.push(String(filteredTagListKeyedByName[tagName]?.orderWeight ?? 0));
+            } else {
+                optionalTagCount++;
+                tagListIndexesToMarkRequired.push(String(filteredTagListKeyedByName[tagName]?.orderWeight ?? 0));
+            }
+        }
+
+        console.log('tagListIndexesToMarkRequired ', tagListIndexesToMarkRequired);
+        console.log('tagListIndexesToMarkOptional ', tagListIndexesToMarkOptional);
+
+        if (requiredTagCount > 0 && !hasDependentTags) {
+            options.push({
+                icon: Expensicons.Checkmark,
+                text: translate('workspace.tags.notRequireTags'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
+                onSelected: () => {
+                    setSelectedTags([]);
+                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkOptional, false);
+                },
+            });
+        }
+
+        if (optionalTagCount > 0 && !hasDependentTags) {
+            options.push({
+                icon: Expensicons.Checkmark,
+                text: translate(requiredTagCount === 1 ? 'workspace.tags.requireTag' : 'workspace.tags.requireTags'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.NOT_REQUIRED,
+                onSelected: () => {
+                    setSelectedTags([]);
+                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkRequired, true);
                 },
             });
         }
@@ -506,7 +551,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const headerContent = (
         <>
-            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>
                 {!hasSyncError && isConnectionVerified ? (
                     <Text>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
@@ -519,8 +564,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
                     </Text>
                 ) : (
-                    <Text>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>
+                        {translate('workspace.tags.subtitle')}
                         {hasDependentTags && (
                             <>
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase1')}</Text>
@@ -635,7 +680,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     {hasVisibleTags && !isLoading && (
                         <SelectionListWithModal
                             canSelectMultiple={canSelectMultiple}
-                            turnOnSelectionModeOnLongPress={!isMultiLevelTags}
+                            turnOnSelectionModeOnLongPress={!hasDependentTags}
                             onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                             sections={[{data: filteredTagList, isDisabled: false}]}
                             shouldUseDefaultRightHandSideCheckmark={false}
@@ -651,7 +696,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             listHeaderContent={headerContent}
                             shouldShowListEmptyContent={false}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
+                            onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors(policyID, item.value, 0)}
                             showScrollIndicator={false}
                             addBottomSafeAreaPadding
                         />

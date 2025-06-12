@@ -4337,6 +4337,9 @@ const translations = {
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
             enableTags: 'Enable tags',
+            requireTag: 'Require tag',
+            requireTags: 'Require tags',
+            notRequireTags: 'Don’t require',
             disableTag: 'Disable tag',
             disableTags: 'Disable tags',
             addTag: 'Add tag',
@@ -4345,7 +4348,7 @@ const translations = {
             findTag: 'Find tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             dependentMultiLevelTagsSubtitle: {
-                phrase1: 'You are using ',
+                phrase1: ' You are using ',
                 phrase2: 'dependent tags',
                 phrase3: '. You can ',
                 phrase4: 'reimport a spreadsheet',

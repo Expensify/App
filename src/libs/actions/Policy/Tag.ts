@@ -9,6 +9,7 @@ import type {
     RenamePolicyTagListParams,
     RenamePolicyTagsParams,
     SetPolicyTagApproverParams,
+    SetPolicyTagListsRequired,
     SetPolicyTagsEnabled,
     SetPolicyTagsRequired,
     UpdatePolicyTagGLCodeParams,
@@ -327,6 +328,16 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
+}
+
+function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], requireTagList: boolean) {
+    const parameters: SetPolicyTagListsRequired = {
+        policyID,
+        tagListIndexes: JSON.stringify(tagListIndexes),
+        requireTagList,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters);
 }
 
 function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
@@ -1140,6 +1151,7 @@ export {
     clearPolicyTagListErrorField,
     deletePolicyTags,
     enablePolicyTags,
+    setWorkspaceTagRequired,
     openPolicyTagsPage,
     renamePolicyTag,
     renamePolicyTagList,

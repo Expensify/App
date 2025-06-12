@@ -3023,6 +3023,8 @@ const CONST = {
             DELETE: 'delete',
             DISABLE: 'disable',
             ENABLE: 'enable',
+            REQUIRE: 'require',
+            NOT_REQUIRED: 'notRequired',
         },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',

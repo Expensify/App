@@ -8,6 +8,7 @@ type TagListItem = ListItem & {
     rules?: {
         parentTagsFilter?: string;
     };
+    required?: boolean;
 };
 
 type PolicyTag = {
