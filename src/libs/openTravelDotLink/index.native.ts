@@ -12,7 +12,7 @@ const openTravelDotLink = (activePolicyID?: string) => {
             Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
         })
         ?.catch((error) => {
-            console.error('Failed to get travel dot link:', error.message);
+            console.error('Failed to get travel dot link:', error);
             Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
         });
 };
