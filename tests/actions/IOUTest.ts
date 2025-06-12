@@ -6119,7 +6119,7 @@ describe('actions/IOU', () => {
     });
 
     describe('changeTransactionsReport', () => {
-        it('should set the correct optimistic onyx data for moving transactions between expense reports', async () => {
+        it('should set the correct optimistic onyx data for reporting a tracked expense', async () => {
             let personalDetailsList: OnyxEntry<PersonalDetailsList>;
             let expenseReport: OnyxEntry<Report>;
             let transaction: OnyxEntry<Transaction>;
