@@ -28,6 +28,8 @@ jest.mock('react-native-blob-util', () => ({
 }));
 
 describe('AttachmentStorage', () => {
+    const reportID = rand64();
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -38,15 +40,14 @@ describe('AttachmentStorage', () => {
     });
 
     it('should store for file in Onyx', async () => {
-        // Mock file data
-        const reportID = rand64();
+        // Given the attachment data consisting of name, type and uri
         const fileData = {
-            name: `test.jpg`,
-            source: 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxfHx8ZW58MHx8fHx8',
+            name: `TEST_ATTACHMENT_FILE`,
+            type: 'image/jpeg',
             uri: 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxfHx8ZW58MHx8fHx8',
         };
 
-        // Execute file upload
+        // Then upload the attachment
         addAttachment(reportID, fileData);
 
         await waitForBatchedUpdates();
@@ -62,15 +63,12 @@ describe('AttachmentStorage', () => {
             });
         });
 
-        // const cacheAPIAttachment = await CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID);
-
         const attachmentLists = Object.values(attachments ?? {});
         const attachment = attachmentLists.at(0);
         const attachmentID = attachment?.attachmentID;
 
+        // Then the attachmentID and attachment value should be defined
         expect(attachmentID).toBeDefined();
-
-        // Verify Onyx storage
         expect(attachment).toEqual({
             attachmentID,
             source: 'file:///mocked/path/to/file',
@@ -78,13 +76,12 @@ describe('AttachmentStorage', () => {
         });
     });
     it('should store markdown text link attachments in Onyx', async () => {
-        // Mock file data
-        const reportID = rand64();
+        // Given the attachment data consisting of sourceURL and markdown comment text
         const sourceURL =
             'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxfHx8ZW58MHx8fHx8';
         const markdownTextLinkAttachment = `![](${sourceURL})`;
 
-        // Execute file upload
+        // Then send the comment
         addComment(reportID, markdownTextLinkAttachment);
 
         await waitForBatchedUpdates();
@@ -104,9 +101,8 @@ describe('AttachmentStorage', () => {
         const attachment = attachmentLists.at(0);
         const attachmentID = attachment?.attachmentID;
 
+        // Then the attachmentID and attachment value should be defined
         expect(attachmentID).toBeDefined();
-
-        // Verify Onyx storage
         expect(attachment).toEqual({
             attachmentID,
             source: 'file:///mocked/path/to/file',
