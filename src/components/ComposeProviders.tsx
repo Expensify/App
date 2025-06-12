@@ -8,7 +8,7 @@ type ComposeProvidersProps = ChildrenProps & {
 };
 
 function ComposeProviders(props: ComposeProvidersProps): ReactNode {
-    return props.components.reduceRight((children, Provider) => <Provider>{children}</Provider>, props.children as ReactNode);
+    return props.components.reduceRight((children, Provider) => <Provider>{children}</Provider>, props.children);
 }
 
 ComposeProviders.displayName = 'ComposeProviders';
