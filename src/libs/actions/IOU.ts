@@ -3307,10 +3307,12 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+                // We can use changedAmount in cases when we expected that the amount will depend, for example, on several transactions and not on the current one
                 iouReport.total -= changedAmount ?? amount;
             }
 
             if (typeof iouReport.unheldTotal === 'number') {
+                // We can use changedAmount in cases when we expected that the amount will depend, for example, on several transactions and not on the current one
                 iouReport.unheldTotal -= changedAmount ?? amount;
             }
         }
