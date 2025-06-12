@@ -102,8 +102,15 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     return isSubmitter || isAdmin || isManager;
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]): boolean {
-    if (isArchivedReport(reportNameValuePairs)) {
+function isSubmitAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+    reportActions?: ReportAction[],
+    isChatReportArchived = false,
+): boolean {
+    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
 
@@ -487,6 +494,7 @@ function getSecondaryReportActions(
     policies?: OnyxCollection<Policy>,
     canUseRetractNewDot?: boolean,
     canUseNewDotSplits?: boolean,
+    isChatReportArchived = false,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -494,11 +502,11 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
-    if (isAddExpenseAction(report, reportTransactions, isArchivedReport(reportNameValuePairs))) {
+    if (isAddExpenseAction(report, reportTransactions, isChatReportArchived || isArchivedReport(reportNameValuePairs))) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
