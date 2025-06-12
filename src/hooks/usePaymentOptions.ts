@@ -73,7 +73,7 @@ function usePaymentOptions({
                 return paymentMethod?.[policyIDKey];
             }
             if (typeof (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed === 'string') {
-                return (paymentMethod?.[policyIDKey] as LastPaymentMethodType).lastUsed
+                return (paymentMethod?.[policyIDKey] as LastPaymentMethodType).lastUsed;
             }
             return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed.name;
         },
