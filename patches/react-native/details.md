@@ -9,7 +9,7 @@
 
 ### [react-native+0.79.2+002+fixMVCPAndroid.patch](react-native+0.79.2+002+fixMVCPAndroid.patch)
 
-- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes several key improvements:
+- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes two key improvements:
   1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/46247
@@ -19,9 +19,9 @@
 ### [react-native+0.79.2+003+disableTextInputRecycling.patch](react-native+0.79.2+003+disableTextInputRecycling.patch)
 
 - Reason: Disables text input recycling to prevent issues with input state
-- Upstream PR/issue:
+- Upstream PR/issue: 🛑
 - E/App issue: 🛑
-- PR Introducing Patch:
+- PR Introducing Patch: https://github.com/Expensify/App/pull/13767
 
 ### [react-native+0.79.2+004+iOSFontResolution.patch](react-native+0.79.2+004+iOSFontResolution.patch)
 
