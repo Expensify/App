@@ -1,7 +1,7 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
@@ -11,15 +11,14 @@ import ROUTES from '@src/ROUTES';
 function CardSectionDataEmpty() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.delegatedAccess?.delegate});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const openAddPaymentCardScreen = useCallback(() => {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
     }, []);
     const handleAddPaymentCardPress = () => {
         if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
             return;
         }
         openAddPaymentCardScreen();
@@ -32,10 +31,6 @@ function CardSectionDataEmpty() {
                 style={styles.w100}
                 success
                 large
-            />
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
         </>
     );

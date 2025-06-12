@@ -167,7 +167,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         close(() => {
-                            setIsNoDelegateAccessMenuVisible(true);
+                            showDelegateNoAccessModal();
                         });
                         return;
                     }
@@ -407,10 +407,6 @@ function AttachmentPickerWithMenuItems({
                             menuItems={menuItems}
                             withoutOverlay
                             anchorRef={actionButtonRef}
-                        />
-                        <DelegateNoAccessModal
-                            isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                            onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                         />
                     </>
                 );
