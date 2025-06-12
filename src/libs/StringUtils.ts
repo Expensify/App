@@ -145,6 +145,7 @@ function countWhiteSpaces(str: string): number {
     return (str.match(/ /g) || []).length;
 }
 
+/**
  * Hash a string, plus some logic to increase entropy and reduce collisions.
  *
  * @param str - the string to generate a whole number hash from
