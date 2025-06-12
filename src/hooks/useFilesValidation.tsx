@@ -20,6 +20,7 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
+    const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
 
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
@@ -28,11 +29,32 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
         setIsAttachmentInvalid(false);
         setPdfFilesToRender([]);
         setIsLoadingReceipt(false);
+        setIsValidatingMultipleFiles(false);
         setFileError(null);
         setValidFilesToUpload([]);
         validatedPDFs.current = [];
         validFiles.current = [];
-    }
+    };
+
+    const hideModalAndReset = () => {
+        setIsAttachmentInvalid(false);
+        InteractionManager.runAfterInteractions(() => {
+            setPdfFilesToRender([]);
+            setIsLoadingReceipt(false);
+            setIsValidatingMultipleFiles(false);
+            setFileError(null);
+            setValidFilesToUpload([]);
+            validatedPDFs.current = [];
+            validFiles.current = [];
+        });
+    };
+
+    const onConfirm = () => {
+        if (validFilesToUpload.length) {
+            proceedWithFileAction(validFilesToUpload[0]);
+        }
+        hideModalAndReset();
+    };
 
     useEffect(() => {
         if (fileError) {
@@ -84,7 +106,10 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
     };
 
     const validateFiles = (files: FileObject[]) => {
-        Promise.all(files.map((file) => isValidFile(file, true).then((isValid) => (isValid ? file : null))))
+        if (files.length > 1) {
+            setIsValidatingMultipleFiles(true);
+        }
+        Promise.all(files.map((file) => isValidFile(file, files.length > 1).then((isValid) => (isValid ? file : null))))
             .then((validationResults) => {
                 const filteredResults = validationResults.filter((result): result is FileObject => result !== null);
                 const validImages = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
@@ -142,14 +167,14 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
 
     const ErrorModal = (
         <ConfirmModal
-            title={fileError ? translate(getFileValidationErrorText(fileError).title) : ''}
-            onConfirm={resetValidationState}
-            onCancel={resetValidationState}
+            title={getFileValidationErrorText(fileError).title}
+            onConfirm={onConfirm}
+            onCancel={hideModalAndReset}
             isVisible={isAttachmentInvalid}
-            prompt={fileError ? translate(getFileValidationErrorText(fileError).reason) : ''}
-            confirmText={translate('common.close')}
+            prompt={getFileValidationErrorText(fileError).reason}
+            confirmText={translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close')}
             cancelText={translate('common.cancel')}
-            shouldShowCancelButton={false}
+            shouldShowCancelButton={isValidatingMultipleFiles}
         />
     );
 

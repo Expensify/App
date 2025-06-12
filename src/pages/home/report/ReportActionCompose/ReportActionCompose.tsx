@@ -706,11 +706,11 @@ function ReportActionCompose({
                         />
                     </View>
                     <ConfirmModal
-                        title={fileError ? translate(getFileValidationErrorText(fileError).title) : ''}
+                        title={getFileValidationErrorText(fileError).title}
                         onConfirm={hideReceiptModal}
                         onCancel={hideReceiptModal}
                         isVisible={isAttachmentInvalid}
-                        prompt={fileError ? translate(getFileValidationErrorText(fileError).reason) : ''}
+                        prompt={getFileValidationErrorText(fileError).reason}
                         confirmText={translate('common.close')}
                         shouldShowCancelButton={false}
                     />

@@ -645,7 +645,8 @@ const translations = {
         someFilesCantBeUploaded: "Algunos archivos no se pueden subir",
         sizeLimitExceeded: "Los archivos deben ser menores a 10 MB. Los archivos más grandes no se subirán.",
         maxFileLimitExceeded: "Puedes subir hasta 30 recibos a la vez. Los extras no se subirán.",
-        unsupportedFileType: "archivos no son compatibles. Solo se subirán los archivos compatibles. Obtén más información sobre los formatos compatibles."
+        unsupportedFileType: "archivos no son compatibles. Solo se subirán los archivos compatibles. Obtén más información sobre los formatos compatibles.",
+        passwordProtected: "Los PDFs con contraseña no son compatibles. Solo se subirán los archivos compatibles"
     },
     dropzone: {
         addAttachments: 'Añadir archivos adjuntos',

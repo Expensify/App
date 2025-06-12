@@ -401,40 +401,67 @@ const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean,
 };
 
 const getFileValidationErrorText = (
-    validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>,
+    validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
 ): {
-    title: TranslationPaths;
-    reason: TranslationPaths;
+    title: string;
+    reason: string;
 } => {
+    if (!validationError) {
+        return {
+            title: '',
+            reason: '',
+        };
+    }
     switch (validationError) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
-            return {title: 'attachmentPicker.wrongFileType', reason: 'attachmentPicker.notAllowedExtension'};
+            return {
+                title: translateLocal('attachmentPicker.wrongFileType'),
+                reason: translateLocal('attachmentPicker.notAllowedExtension'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE:
-            return {title: 'attachmentPicker.someFilesCantBeUploaded', reason: 'attachmentPicker.unsupportedFileType'};
+            return {
+                title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
+                reason: translateLocal('attachmentPicker.unsupportedFileType'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
-            return {title: 'attachmentPicker.attachmentTooLarge', reason: 'attachmentPicker.sizeExceeded'};
+            return {
+                title: translateLocal('attachmentPicker.attachmentTooLarge'),
+                reason: translateLocal('attachmentPicker.sizeExceeded'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
-            return {title: 'attachmentPicker.someFilesCantBeUploaded', reason: 'attachmentPicker.sizeLimitExceeded'};
+            return {
+                title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
+                reason: translateLocal('attachmentPicker.sizeLimitExceeded'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
-            return {title: 'attachmentPicker.attachmentTooSmall', reason: 'attachmentPicker.sizeNotMet'};
+            return {
+                title: translateLocal('attachmentPicker.attachmentTooSmall'),
+                reason: translateLocal('attachmentPicker.sizeNotMet'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
-            return {title: 'attachmentPicker.attachmentError', reason: 'attachmentPicker.folderNotAllowedMessage'};
+            return {
+                title: translateLocal('attachmentPicker.attachmentError'),
+                reason: translateLocal('attachmentPicker.folderNotAllowedMessage'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
-            return {title: 'attachmentPicker.someFilesCantBeUploaded', reason: 'attachmentPicker.maxFileLimitExceeded'};
+            return {
+                title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
+                reason: translateLocal('attachmentPicker.maxFileLimitExceeded'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
             return {
-                title: 'attachmentPicker.attachmentError',
-                reason: 'attachmentPicker.errorWhileSelectingCorruptedAttachment',
+                title: translateLocal('attachmentPicker.attachmentError'),
+                reason: translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
         case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {
-                title: 'attachmentPicker.attachmentError',
-                reason: 'attachmentPicker.protectedPDFNotSupported',
+                title: translateLocal('attachmentPicker.attachmentError'),
+                reason: translateLocal('attachmentPicker.protectedPDFNotSupported'),
             };
         default:
             return {
-                title: 'attachmentPicker.attachmentError',
-                reason: 'attachmentPicker.errorWhileSelectingCorruptedAttachment',
+                title: translateLocal('attachmentPicker.attachmentError'),
+                reason: translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
     }
 };

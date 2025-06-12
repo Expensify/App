@@ -197,7 +197,7 @@ function AttachmentModal({
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
-    const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | undefined>(undefined);
+    const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null>(null);
     const [isFileErrorModalVisible, setIsFileErrorModalVisible] = useState(false);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
@@ -327,7 +327,7 @@ function AttachmentModal({
         setIsFileErrorModalVisible(false);
         setIsDeleteReceiptConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
-            setFileError(undefined);
+            setFileError(null);
         });
     }, []);
 
@@ -728,11 +728,11 @@ function AttachmentModal({
             </Modal>
             {!isReceiptAttachment && (
                 <ConfirmModal
-                    title={fileError ? translate(getFileValidationErrorText(fileError).title) : ''}
+                    title={getFileValidationErrorText(fileError).title}
                     onConfirm={confirmAndContinue}
                     onCancel={closeConfirmModal}
                     isVisible={isFileErrorModalVisible}
-                    prompt={fileError ? translate(getFileValidationErrorText(fileError).reason) : ''}
+                    prompt={getFileValidationErrorText(fileError).reason}
                     confirmText={translate(validFilesToUpload.length ? 'common.continue' : 'common.close')}
                     shouldShowCancelButton={!!validFilesToUpload.length}
                     cancelText={translate('common.cancel')}

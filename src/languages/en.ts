@@ -650,7 +650,8 @@ const translations = {
         someFilesCantBeUploaded: "Some files can't be uploaded",
         sizeLimitExceeded: "Files must be under 10 MB. Any larger files won't be uploaded.",
         maxFileLimitExceeded: "You can upload up to 30 receipts at a time. Any extras won't be uploaded.",
-        unsupportedFileType: "files aren't supported. Only supported file types will be uploaded. Learn more about supported formats."
+        unsupportedFileType: "files aren't supported. Only supported file types will be uploaded. Learn more about supported formats.",
+        passwordProtected: "Password-protected PDFs aren't supported. Only supported files will be uploaded."
     },
     dropzone: {
         addAttachments: 'Add attachments',
