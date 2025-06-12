@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -148,6 +148,27 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     // that react calculates diffs (it doesn't know how to compare objects).
     const filterFormValuesKey = JSON.stringify(filterFormValues);
 
+    // Performance fix, delay the popover first render to speed up the initial render of the component
+    const [delayPopoverFirstRender, setDelayPopoverFirstRender] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDelayPopoverFirstRender(false);
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    const getDelayedPopoverComponent = useCallback(
+        (Component: React.FC<PopoverComponentProps>) => {
+            if (delayPopoverFirstRender) {
+                return () => null;
+            }
+            return Component;
+        },
+        [delayPopoverFirstRender],
+    );
+
     const openAdvancedFilters = useCallback(() => {
         updateAdvancedFilters(filterFormValues);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
@@ -292,22 +313,22 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         const filterList = [
             {
                 label: translate('common.type'),
-                PopoverComponent: typeComponent,
+                PopoverComponent: getDelayedPopoverComponent(typeComponent),
                 value: typeValue?.translation ? translate(typeValue.translation) : null,
             },
             {
                 label: translate('common.status'),
-                PopoverComponent: statusComponent,
+                PopoverComponent: getDelayedPopoverComponent(statusComponent),
                 value: statusValue.map((option) => translate(option.translation)),
             },
             {
                 label: translate('common.date'),
-                PopoverComponent: datePickerComponent,
+                PopoverComponent: getDelayedPopoverComponent(datePickerComponent),
                 value: dateValue,
             },
             {
                 label: translate('common.from'),
-                PopoverComponent: userPickerComponent,
+                PopoverComponent: getDelayedPopoverComponent(userPickerComponent),
                 value: fromValue,
             },
         ];
@@ -321,6 +342,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         filterFormValues.dateBefore,
         filterFormValues.dateOn,
         translate,
+        getDelayedPopoverComponent,
         typeComponent,
         statusComponent,
         datePickerComponent,
