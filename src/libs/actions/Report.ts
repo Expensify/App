@@ -3362,7 +3362,7 @@ function openReportFromDeepLink(url: string) {
     let route = getRouteFromLink(url);
 
     // Redirect /signin to root path to prevent NotFound page
-    if (normalizePath(route) === '/signin') {
+    if (normalizePath(route) === CONST.SIGNIN_ROUTE) {
         route = '';
     }
 
