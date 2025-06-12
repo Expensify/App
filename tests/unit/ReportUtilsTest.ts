@@ -23,6 +23,7 @@ import {
     canDeleteTransaction,
     canEditReportDescription,
     canEditWriteCapability,
+    canEditRoomVisibility,
     canHoldUnholdReportAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
@@ -2284,6 +2285,29 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
+        });
+    });
+
+     describe('canEditRoomVisibility', () => {
+        it('should return true for policy admins', () => {
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(canEditRoomVisibility(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(true);
+            expect(canEditRoomVisibility(workspaceChat, {...policy, role: CONST.POLICY.ROLE.AUDITOR})).toBe(false);
+            expect(canEditRoomVisibility(workspaceChat, {...policy, role: CONST.POLICY.ROLE.USER})).toBe(false);
+        });
+
+        it('should return false if policy expense chat is archived', () => {
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(canEditRoomVisibility(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN}, true)).toBe(false);
+            expect(canEditRoomVisibility(workspaceChat, {...policy, role: CONST.POLICY.ROLE.AUDITOR}, true)).toBe(false);
+            expect(canEditRoomVisibility(workspaceChat, {...policy, role: CONST.POLICY.ROLE.USER}, true)).toBe(false);
+
         });
     });
 

@@ -8702,10 +8702,9 @@ function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function canEditRoomVisibility(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function canEditRoomVisibility(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean = false): boolean {
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    return isPolicyAdminPolicyUtils(policy) && !isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID));
+    return !isReportArchived && isPolicyAdminPolicyUtils(policy)
 }
 
 /**
