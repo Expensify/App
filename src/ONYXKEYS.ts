@@ -163,10 +163,11 @@ const ONYXKEYS = {
     /** This NVP contains the referral banners the user dismissed */
     NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
 
-    /** This NVP contains if user has ever seen the instant submit explanation  modal and user intent to not show the instant submit explanation modal again
-     *  undefined : user has never seen the modal
-     *  true : user has seen the modal and does not want to see it again
-     *  false : user has seen the modal but does not choose "do not show again"
+    /**
+     * This NVP contains if user has ever seen the instant submit explanation modal and user intent to not show the instant submit explanation modal again
+     * undefined : user has never seen the modal
+     * false : user has seen the modal but has not chosen "do not show again"
+     * true : user has seen the modal and does not want to see it again
      */
     NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION: 'nvp_dismissedInstantSubmitExplanation',
 
