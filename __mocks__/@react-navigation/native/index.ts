@@ -8,9 +8,7 @@ const realReactNavigation = isJestEnv ? jest.requireActual<typeof ReactNavigatio
 
 const useIsFocused = isJestEnv ? realReactNavigation.useIsFocused : () => true;
 const useTheme = isJestEnv ? realReactNavigation.useTheme : () => ({});
-const useLocale = () => ({
-    direction: 'mocked direction',
-});
+const useLocale = isJestEnv ? realReactNavigation.useTheme : () => ({});
 
 const {triggerTransitionEnd, addListener} = isJestEnv
     ? createAddListenerMock()
