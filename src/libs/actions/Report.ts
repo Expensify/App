@@ -72,6 +72,7 @@ import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import {getNextApproverAccountID} from './IOU';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
@@ -139,6 +140,8 @@ import {
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
     isExpenseReport,
+    isOpenExpenseReport,
+    isProcessingReport,
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
     isIOUReportUsingReport,
@@ -5435,6 +5438,31 @@ function changeReportPolicy(reportID: string, policyID: string) {
 
     // Recursively update the policyID of the report and all its child reports
     updatePolicyIdForReportAndThreads(reportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
+
+    // We reopen and reassign the report if the report is open/submitted and the manager is not a member of the new policy. This is to prevent the old manager from seeing a report that they can't action on.
+    const isOpenOrSubmitted = isOpenExpenseReport(reportToMove) || isProcessingReport(reportToMove);
+    const managerLogin = PersonalDetailsUtils.getLoginByAccountID(reportToMove.managerID ?? CONST.DEFAULT_NUMBER_ID);
+    if (isOpenOrSubmitted && managerLogin && !isPolicyMember(managerLogin, policyID)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                managerID: getNextApproverAccountID(reportToMove, true),
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: reportToMove.stateNum,
+                statusNum: reportToMove.statusNum,
+                managerID: reportToMove.managerID,
+            },
+        });
+    }
 
     // 2. If the old workspace had a expense chat, mark the report preview action as deleted
     if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
