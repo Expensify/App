@@ -93,7 +93,9 @@ function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFie
             const message = ViolationsUtils.getViolationTranslation(violation, translate);
             return message.endsWith('.') ? message : `${message}.`;
         }),
-    ].join(' ');
+    ]
+        .filter(Boolean)
+        .join(' ');
     return (
         RBRMessages.length > 0 && (
             <View
