@@ -14,7 +14,7 @@
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/46247
 - E/App issue: 🛑
-- PR Introducing Patch: https://github.com/Expensify/App/pull/46315, https://github.com/Expensify/App/pull/45289
+- PR Introducing Patch: https://github.com/Expensify/App/pull/46315 (introduced), https://github.com/Expensify/App/pull/45289 (refactored)
 
 ### [react-native+0.79.2+003+disableTextInputRecycling.patch](react-native+0.79.2+003+disableTextInputRecycling.patch)
 
@@ -32,10 +32,10 @@
 
 ### [react-native+0.79.2+005+resetAutoresizingOnView.patch](react-native+0.79.2+005+resetAutoresizingOnView.patch)
 
-- Reason: Resets autoresizing mask on view to prevent layout issues
-- Upstream PR/issue:
+- Reason: This is a workaround fix for an issue with `UIPageViewController` and Fabric's view recycling system. The problem occurs because pager-view was incorrectly using a Fabric-provided view as its content-view. This is problematic because `UIPageViewController` modifies its content view, and when Fabric later recycles this modified view, it can lead to unexpected layout issues. The patch addresses this by resetting the autoresizing mask on the view to prevent layout corruption when views are recycled. The root cause should be addressed in react-native-pager-view: https://github.com/callstack/react-native-pager-view/issues/819
+- Upstream PR/issue: https://github.com/facebook/react-native/issues/42732
 - E/App issue: 🛑
-- PR Introducing Patch:
+- PR Introducing Patch: https://github.com/Expensify/App/pull/13767
 
 ### [react-native+0.79.2+006+disableNonTranslucentStatusBar.patch](react-native+0.79.2+006+disableNonTranslucentStatusBar.patch)
 
