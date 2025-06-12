@@ -1091,7 +1091,7 @@ const translations = {
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
-        submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: `enviado`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -2176,6 +2176,25 @@ const translations = {
             title: 'No se pudo añadir el correo electrónico de trabajo',
             subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
                 `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
+        },
+        workspace: {
+            title: 'Stay organized with a workspace',
+            subtitle: 'Unlock powerful tools to simplify your expense management, all in one place. With a workspace, you can:',
+            explanationModal: {
+                descriptionOne: 'Track and organize receipts',
+                descriptionTwo: 'Categorize and tag expenses',
+                descriptionThree: 'Create and share reports',
+            },
+            price: 'Try it free for 30 days, then upgrade for just <strong>$5/month</strong>.',
+            createWorkspace: 'Create workspace',
+        },
+        confirmWorkspace: {
+            title: 'Confirm workspace',
+            subtitle: 'Create a workspace to track receipts, reimburse expenses, manage travel, create reports, and more — all at the speed of chat.',
+        },
+        inviteMembers: {
+            title: 'Invite members',
+            subtitle: 'Manage and share your expenses with an accountant or start a travel group with friends.',
         },
     },
     featureTraining: {
