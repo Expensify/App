@@ -79,7 +79,12 @@ describe('ReportPreview', () => {
                         policyID=""
                         checkIfContextMenuActive={emptyFunction}
                         onShowContextMenu={emptyFunction}
-                        transactionsAndViolationsByReport={{}}
+                        transactionsAndViolationsByReport={{
+                            [chatReportID]: {
+                                transactions: {},
+                                violations: {},
+                            },
+                        }}
                     />
                 </LocaleContextProvider>
             </OnyxProvider>,
