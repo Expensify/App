@@ -3120,6 +3120,7 @@ const translations = {
             companyCards: 'Unternehmenskarten',
             workflows: 'Workflows',
             workspace: 'Arbeitsbereich',
+            findWorkspace: 'Arbeitsbereich finden',
             edit: 'Arbeitsbereich bearbeiten',
             enabled: 'Aktiviert',
             disabled: 'Deaktiviert',

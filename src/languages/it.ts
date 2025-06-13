@@ -3092,6 +3092,7 @@ const translations = {
             companyCards: 'Carte aziendali',
             workflows: 'Flussi di lavoro',
             workspace: 'Workspace',
+            findWorkspace: 'Trova spazio di lavoro',
             edit: 'Modifica spazio di lavoro',
             enabled: 'Abilitato',
             disabled: 'Disabilitato',

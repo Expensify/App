@@ -3445,6 +3445,7 @@ const translations = {
             companyCards: '\u4F1A\u793E\u30AB\u30FC\u30C9',
             workflows: '\u30EF\u30FC\u30AF\u30D5\u30ED\u30FC',
             workspace: '\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9',
+            findWorkspace: 'ワークスペースを探す',
             edit: '\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u7DE8\u96C6',
             enabled: '\u6709\u52B9',
             disabled: '\u7121\u52B9',

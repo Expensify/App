@@ -3211,6 +3211,7 @@ const translations = {
             companyCards: '\u516C\u53F8\u5361\u7247',
             workflows: '\u5DE5\u4F5C\u6D41\u7A0B',
             workspace: '\u5DE5\u4F5C\u533A',
+            findWorkspace: '查找工作区',
             edit: '\u7F16\u8F91\u5DE5\u4F5C\u533A',
             enabled: '\u542F\u7528',
             disabled: '\u7981\u7528',

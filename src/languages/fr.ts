@@ -3135,6 +3135,7 @@ const translations = {
             companyCards: "Cartes d'entreprise",
             workflows: 'Flux de travail',
             workspace: 'Espace de travail',
+            findWorkspace: 'Trouver un espace de travail',
             edit: "Modifier l'espace de travail",
             enabled: 'Activ\u00E9',
             disabled: 'D\u00E9sactiv\u00E9',

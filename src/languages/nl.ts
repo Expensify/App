@@ -3085,6 +3085,7 @@ const translations = {
             companyCards: 'Bedrijfskaarten',
             workflows: 'Workflows',
             workspace: 'Werkruimte',
+            findWorkspace: 'Werkruimte zoeken',
             edit: 'Werkruimte bewerken',
             enabled: 'Ingeschakeld',
             disabled: 'Uitgeschakeld',
