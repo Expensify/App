@@ -127,6 +127,7 @@ function MoneyRequestReportTransactionList({
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
+    const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
 
     const pendingActionsOpacity = useMemo(() => {
         const pendingAction = transactions.some(getTransactionPendingAction);
@@ -241,125 +242,150 @@ function MoneyRequestReportTransactionList({
     }, [transactions]);
 
     const pressableStyle = [styles.overflowHidden];
+    const isEmptyTransactions = isEmpty(transactions);
 
     const listHorizontalPadding = styles.ph5;
-    return !isEmpty(transactions) ? (
+    return (
         <>
-            {!shouldUseNarrowLayout && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.alignItemsCenter]}>
-                    <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
-                        <Checkbox
-                            onPress={() => {
-                                if (selectedTransactionIDs.length !== 0) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
-                                }
-                            }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactions.length}
-                            isChecked={selectedTransactionIDs.length === transactions.length}
-                        />
-                        {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
-                    </View>
-                    {!isMediumScreenWidth && (
-                        <MoneyRequestReportTableHeader
-                            shouldShowSorting
-                            sortBy={sortBy}
-                            sortOrder={sortOrder}
-                            dateColumnSize={dateColumnSize}
-                            onSortPress={(selectedSortBy, selectedSortOrder) => {
-                                if (!isSortableColumnName(selectedSortBy)) {
-                                    return;
-                                }
+            {!isEmptyTransactions ? (
+                <>
+                    {!shouldUseNarrowLayout && (
+                        <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.alignItemsCenter]}>
+                            <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
+                                <Checkbox
+                                    onPress={() => {
+                                        if (selectedTransactionIDs.length !== 0) {
+                                            clearSelectedTransactions(true);
+                                        } else {
+                                            setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                                        }
+                                    }}
+                                    accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                    isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                                    isChecked={selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
+                                />
+                                {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
+                            </View>
+                            {!isMediumScreenWidth && (
+                                <MoneyRequestReportTableHeader
+                                    shouldShowSorting
+                                    sortBy={sortBy}
+                                    sortOrder={sortOrder}
+                                    dateColumnSize={dateColumnSize}
+                                    onSortPress={(selectedSortBy, selectedSortOrder) => {
+                                        if (!isSortableColumnName(selectedSortBy)) {
+                                            return;
+                                        }
 
-                                setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
-                            }}
-                            isIOUReport={isIOUReport(report)}
-                        />
-                    )}
-                </View>
-            )}
-            <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
-                {sortedTransactions.map((transaction) => {
-                    return (
-                        <PressableWithFeedback
-                            key={transaction.transactionID}
-                            onPress={(e) => {
-                                if (isMouseDownOnInput) {
-                                    e?.stopPropagation();
-                                    return;
-                                }
-
-                                if (selectionMode?.isEnabled) {
-                                    toggleTransaction(transaction.transactionID);
-                                    return;
-                                }
-
-                                navigateToTransaction(transaction);
-                            }}
-                            accessibilityLabel={translate('iou.viewDetails')}
-                            role={getButtonRole(true)}
-                            isNested
-                            hoverDimmingValue={1}
-                            onMouseDown={(e) => e.preventDefault()}
-                            id={transaction.transactionID}
-                            style={[pressableStyle, styles.userSelectNone]}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            onMouseLeave={handleMouseLeave}
-                            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
-                            onPressOut={() => ControlSelection.unblock()}
-                            onLongPress={() => {
-                                if (!isSmallScreenWidth) {
-                                    return;
-                                }
-                                if (selectionMode?.isEnabled) {
-                                    toggleTransaction(transaction.transactionID);
-                                    return;
-                                }
-                                setSelectedTransactionID(transaction.transactionID);
-                                setIsModalVisible(true);
-                            }}
-                            disabled={isTransactionPendingDelete(transaction)}
-                        >
-                            <TransactionItemRow
-                                transactionItem={transaction}
-                                isSelected={isTransactionSelected(transaction.transactionID)}
-                                dateColumnSize={dateColumnSize}
-                                shouldShowTooltip
-                                shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                                shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
-                                onCheckboxPress={toggleTransaction}
-                                columns={allReportColumns}
-                                scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                                isInReportTableView
-                            />
-                        </PressableWithFeedback>
-                    );
-                })}
-            </View>
-            {shouldShowBreakdown && (
-                <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding, styles.gap2, styles.mb2]}>
-                    {[
-                        {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount},
-                        {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount},
-                    ].map(({text, value}) => (
-                        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mr3]}
-                                numberOfLines={1}
-                            >
-                                {text}
-                            </Text>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
-                            >
-                                {value}
-                            </Text>
+                                        setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
+                                    }}
+                                    isIOUReport={isIOUReport(report)}
+                                />
+                            )}
                         </View>
-                    ))}
-                </View>
+                    )}
+                    <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
+                        {sortedTransactions.map((transaction) => {
+                            return (
+                                <PressableWithFeedback
+                                    key={transaction.transactionID}
+                                    onPress={(e) => {
+                                        if (isMouseDownOnInput) {
+                                            e?.stopPropagation();
+                                            return;
+                                        }
+
+                                        if (selectionMode?.isEnabled) {
+                                            toggleTransaction(transaction.transactionID);
+                                            return;
+                                        }
+
+                                        navigateToTransaction(transaction);
+                                    }}
+                                    accessibilityLabel={translate('iou.viewDetails')}
+                                    role={getButtonRole(true)}
+                                    isNested
+                                    hoverDimmingValue={1}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    id={transaction.transactionID}
+                                    style={[pressableStyle, styles.userSelectNone]}
+                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    onMouseLeave={handleMouseLeave}
+                                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                                    onPressOut={() => ControlSelection.unblock()}
+                                    onLongPress={() => {
+                                        if (!isSmallScreenWidth) {
+                                            return;
+                                        }
+                                        if (selectionMode?.isEnabled) {
+                                            toggleTransaction(transaction.transactionID);
+                                            return;
+                                        }
+                                        setSelectedTransactionID(transaction.transactionID);
+                                        setIsModalVisible(true);
+                                    }}
+                                    disabled={isTransactionPendingDelete(transaction)}
+                                >
+                                    <TransactionItemRow
+                                        transactionItem={transaction}
+                                        isSelected={isTransactionSelected(transaction.transactionID)}
+                                        dateColumnSize={dateColumnSize}
+                                        shouldShowTooltip
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
+                                        shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
+                                        onCheckboxPress={toggleTransaction}
+                                        columns={allReportColumns}
+                                        scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                                        isInReportTableView
+                                    />
+                                </PressableWithFeedback>
+                            );
+                        })}
+                    </View>
+                    {shouldShowBreakdown && (
+                        <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding, styles.gap2, styles.mb2]}>
+                            {[
+                                {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount},
+                                {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount},
+                            ].map(({text, value}) => (
+                                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mr3]}
+                                        numberOfLines={1}
+                                    >
+                                        {text}
+                                    </Text>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
+                                    >
+                                        {value}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+                    <Modal
+                        isVisible={isModalVisible}
+                        type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                        onClose={() => setIsModalVisible(false)}
+                        shouldPreventScrollOnFocus
+                    >
+                        <MenuItem
+                            title={translate('common.select')}
+                            icon={Expensicons.CheckSquare}
+                            onPress={() => {
+                                if (!selectionMode?.isEnabled) {
+                                    turnOnMobileSelectionMode();
+                                }
+                                toggleTransaction(selectedTransactionID);
+                                setIsModalVisible(false);
+                            }}
+                        />
+                    </Modal>
+                </>
+            ) : (
+                <SearchMoneyRequestReportEmptyState />
             )}
             <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
                 <Animated.Text
@@ -369,34 +395,16 @@ function MoneyRequestReportTransactionList({
                 >
                     {hasComments || isLoadingReportActions ? translate('common.comments') : ''}
                 </Animated.Text>
-                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
-                    <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
-                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, pendingActionsOpacity]}>
-                        {convertToDisplayString(totalDisplaySpend, report?.currency)}
-                    </Text>
-                </View>
+                {!isEmptyTransactions && (
+                    <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
+                        <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
+                        <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, pendingActionsOpacity]}>
+                            {convertToDisplayString(totalDisplaySpend, report?.currency)}
+                        </Text>
+                    </View>
+                )}
             </View>
-            <Modal
-                isVisible={isModalVisible}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                onClose={() => setIsModalVisible(false)}
-                shouldPreventScrollOnFocus
-            >
-                <MenuItem
-                    title={translate('common.select')}
-                    icon={Expensicons.CheckSquare}
-                    onPress={() => {
-                        if (!selectionMode?.isEnabled) {
-                            turnOnMobileSelectionMode();
-                        }
-                        toggleTransaction(selectedTransactionID);
-                        setIsModalVisible(false);
-                    }}
-                />
-            </Modal>
         </>
-    ) : (
-        <SearchMoneyRequestReportEmptyState />
     );
 }
 
