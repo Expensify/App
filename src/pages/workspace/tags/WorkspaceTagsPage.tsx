@@ -505,26 +505,26 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
         }
 
-        if (requiredTagCount > 0 && !hasDependentTags) {
+        if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
             options.push({
                 icon: Expensicons.Checkmark,
                 text: translate('workspace.tags.notRequireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkOptional, false);
+                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkOptional, false, policyTags);
                 },
             });
         }
 
-        if (optionalTagCount > 0 && !hasDependentTags) {
+        if (optionalTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
             options.push({
                 icon: Expensicons.Checkmark,
                 text: translate(requiredTagCount === 1 ? 'workspace.tags.requireTag' : 'workspace.tags.requireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.NOT_REQUIRED,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkRequired, true);
+                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkRequired, true, policyTags);
                 },
             });
         }

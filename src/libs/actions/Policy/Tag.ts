@@ -330,14 +330,93 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
 }
 
-function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isRequired: boolean) {
+function setWorkspaceTagRequired(
+    policyID: string,
+    tagListIndexes: number[],
+    isRequired: boolean,
+    policyTags: OnyxEntry<PolicyTagLists>,
+) {
+    if (!policyTags) {
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                        if (tagListIndexes.includes(policyTags[key].orderWeight)) {
+                            acc[key] = {
+                                ...acc[key],
+                                required: isRequired,
+                                errors: undefined,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {
+                                    required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                            };
+
+                            return acc;
+                        }
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                        if (tagListIndexes.includes(policyTags[key].orderWeight)) {
+                            acc[key] = {
+                                ...acc[key],
+                                errors: undefined,
+                                pendingAction: null,
+                                pendingFields: {
+                                    required: null,
+                                },
+                            };
+                            return acc;
+                        }
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                        acc[key] = {
+                            ...acc[key],
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                            pendingAction: null,
+                            pendingFields: {
+                                required: null,
+                            },
+                        };
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+    };
+
     const parameters: SetPolicyTagListsRequired = {
         policyID,
         tagListIndexes,
         isRequired,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters);
+    API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, onyxData);
 }
 
 function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
