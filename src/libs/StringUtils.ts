@@ -138,6 +138,14 @@ function removePreCodeBlock(text = '') {
 }
 
 /**
+ * Remove white spaces length from the string
+ */
+function countWhiteSpaces(str: string): number {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return (str.match(/ /g) || []).length;
+}
+
+/**
  * Hash a string, plus some logic to increase entropy and reduce collisions.
  *
  * @param str - the string to generate a whole number hash from
@@ -182,5 +190,6 @@ export default {
     removeDoubleQuotes,
     removePreCodeBlock,
     sortStringArrayByLength,
+    countWhiteSpaces,
     hash,
 };
