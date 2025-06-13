@@ -396,6 +396,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const getHeaderButtons = () => {
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
+        const selectedTagLists = selectedTags.map((selectedTag) => policyTagLists.find((policyTagList) => policyTagList.name === selectedTag));
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTags.length === 0) {
             const hasPrimaryActions = !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
@@ -511,6 +512,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate('workspace.tags.notRequireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
                 onSelected: () => {
+                    if (isMakingLastRequiredTagListOptional(policy, policyTags, selectedTagLists)) {
+                        setIsCannotMakeLastTagOptionalModalVisible(true);
+                        return;
+                    }
                     setSelectedTags([]);
                     setWorkspaceTagRequired(policyID, tagListIndexesToMarkOptional, false, policyTags);
                 },

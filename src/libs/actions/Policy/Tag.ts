@@ -330,12 +330,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
 }
 
-function setWorkspaceTagRequired(
-    policyID: string,
-    tagListIndexes: number[],
-    isRequired: boolean,
-    policyTags: OnyxEntry<PolicyTagLists>,
-) {
+function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isRequired: boolean, policyTags: OnyxEntry<PolicyTagLists>) {
     if (!policyTags) {
         return;
     }
