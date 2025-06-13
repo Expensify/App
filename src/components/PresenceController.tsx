@@ -40,7 +40,7 @@ export default function PresenceController() {
                 return;
             }
 
-            Log.info('[PresenceController] Going active');
+            Log.info('[PresenceController] Going active', false, {timeoutMs});
             didJoinPresenceChannel.current = true;
             PusherUtils.joinPresenceChannel(accountID);
         },
