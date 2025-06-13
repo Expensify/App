@@ -3,12 +3,12 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -17,7 +17,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -51,9 +50,7 @@ type MenuItem = {
 
 function AboutPage() {
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
-    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -169,17 +166,7 @@ function AboutPage() {
                     </Section>
                 </View>
                 <View style={[styles.sidebarFooter, styles.mb5]}>
-                    <RenderHtml
-                        contentWidth={windowWidth}
-                        systemFonts={systemFonts}
-                        source={{
-                            html: translate('initialSettingsPage.readTheTermsAndPrivacy'),
-                        }}
-                        tagsStyles={{
-                            a: {...styles.textMicroSupporting, ...styles.link, textDecorationLine: 'none'},
-                        }}
-                        baseStyle={styles.chatItemMessageHeaderTimestamp}
-                    />
+                    <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy')} />
                 </View>
             </ScrollView>
         </ScreenWrapper>
