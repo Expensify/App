@@ -35,6 +35,7 @@ const SCREENS = {
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
+        TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -737,6 +738,10 @@ const SCREENS = {
     SCHEDULE_CALL: {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
+    },
+
+    TEST_TOOLS_MODAL: {
+        ROOT: 'TestToolsModal_Root',
     },
 } as const;
 

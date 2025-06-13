@@ -1325,7 +1325,7 @@ function validateTransactionViolationJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false, isReportArchived = false): TranslationPaths | null {
+function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, hasRBR = false, isReportArchived = false): TranslationPaths | null {
     if (!report) {
         return null;
     }
@@ -1334,6 +1334,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false, 
 
     const reason = reasonForReportToBeInOptionList({
         report,
+        chatReport,
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
         isInFocusMode: !!isInFocusMode,
@@ -1390,6 +1391,7 @@ type RBRReasonAndReportAction = {
  */
 function getReasonAndReportActionForRBRInLHNRow(
     report: Report,
+    chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     transactions: OnyxCollection<Transaction>,
     hasViolations: boolean,
@@ -1397,7 +1399,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};
