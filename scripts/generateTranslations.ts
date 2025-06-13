@@ -88,12 +88,15 @@ class TranslationGenerator {
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translations);
             const result = ts.transform(this.sourceFile, [transformer]);
-            const transformedNode = result.transformed.at(0) ?? this.sourceFile; // Ensure we always have a valid SourceFile
+            let transformedSourceFile = result.transformed.at(0) ?? this.sourceFile; // Ensure we always have a valid SourceFile
             result.dispose();
+
+            // Import en.ts
+            transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
 
             // Generate translated TypeScript code
             const printer = ts.createPrinter();
-            const translatedCode = printer.printFile(transformedNode);
+            const translatedCode = printer.printFile(transformedSourceFile);
 
             // Write to file
             const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
@@ -101,6 +104,17 @@ class TranslationGenerator {
 
             // Format the file with prettier
             await Prettier.format(outputPath);
+
+            // Enforce that the type of translated files matches en.ts
+            const translatedFileContent = fs.readFileSync(outputPath, 'utf8');
+            fs.writeFileSync(
+                outputPath,
+                translatedFileContent.replace(
+                    'export default translations satisfies TranslationDeepObject<typeof translations>;',
+                    'export default translations satisfies TranslationDeepObject<typeof en>;',
+                ),
+                'utf8',
+            );
 
             console.log(`✅ Translated file created: ${outputPath}`);
         }
