@@ -9,7 +9,7 @@ class PromisePool<T> {
      */
     private executing = new Set<Promise<T>>();
 
-    constructor(concurrency: number = 8) {
+    constructor(concurrency = 8) {
         this.concurrency = concurrency;
     }
 
