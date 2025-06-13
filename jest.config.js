@@ -33,4 +33,10 @@ module.exports = {
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
     },
+    coverageReporters: [
+        'text',
+        'html',
+        'text-summary',
+        'lcov'
+    ],
 };
