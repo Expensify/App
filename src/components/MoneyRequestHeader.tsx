@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -10,12 +10,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
+import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense, markDeclineViolationAsResolved} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus, declineMoneyRequestReason, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
@@ -26,6 +26,7 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
+import {dismissDeclineUseExplanation} from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,6 +42,7 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
@@ -81,6 +83,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+    const [isDeclineEducationalModalVisible, setIsDeclineEducationalModalVisible] = useState(false);
+    const [dismissedDeclineUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION, {initialValue: false, canBeMissing: true});
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
@@ -91,6 +95,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
     const reportID = report?.reportID;
     const {removeTransaction} = useSearchContext();
+    const hasUseDeclineDismissedRef = useRef(false);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
@@ -174,6 +179,18 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }}
             />
         ),
+        [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED]: (
+            <Button
+                success
+                onPress={() => {
+                    if (!transaction?.transactionID) {
+                        return;
+                    }
+                    markDeclineViolationAsResolved(transaction?.transactionID);
+                }}
+                text={translate('iou.decline.markAsResolved')}
+            />
+        ),
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (
             <Button
                 success
@@ -202,6 +219,17 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }
         return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy);
     }, [parentReport, policy, transaction]);
+
+    const dismissModalAndUpdateUseDecline = () => {
+        setIsDeclineEducationalModalVisible(false);
+        if (!hasUseDeclineDismissedRef.current) {
+            dismissDeclineUseExplanation();
+            hasUseDeclineDismissedRef.current = true;
+            if (parentReportAction) {
+                declineMoneyRequestReason(parentReportAction);
+            }
+        }
+    };
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
@@ -238,6 +266,20 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
                 setIsDeleteModalVisible(true);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE]: {
+            text: translate('common.decline'),
+            icon: Expensicons.ThumbsDown,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE,
+            onSelected: () => {
+                if (dismissedDeclineUseExplanation) {
+                    if (parentReportAction) {
+                        declineMoneyRequestReason(parentReportAction);
+                    }
+                } else {
+                    setIsDeclineEducationalModalVisible(true);
+                }
             },
         },
     };
@@ -341,6 +383,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 danger
                 shouldEnableNewFocusManagement
             />
+            {!!isDeclineEducationalModalVisible && (
+                <HoldOrDeclineEducationalModal
+                    onClose={dismissModalAndUpdateUseDecline}
+                    onConfirm={dismissModalAndUpdateUseDecline}
+                />
+            )}
         </View>
     );
 }

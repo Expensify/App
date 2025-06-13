@@ -548,6 +548,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The inserted time of the transaction */
         inserted?: string;
+
+        /** The transactionThreadReportID associated with the transaction */
+        transactionThreadReportID?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
