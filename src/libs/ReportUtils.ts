@@ -2214,7 +2214,10 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
  */
 function isOneTransactionReport(reportID: string | undefined): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
-    return getOneTransactionThreadReportID(reportID, reportActions) !== null;
+    const huh = getOneTransactionThreadReportID(reportID, reportActions);
+    console.log('>>> huh', {huh, test: huh !== undefined});
+
+    return getOneTransactionThreadReportID(reportID, reportActions) !== undefined;
 }
 
 /*
@@ -3012,26 +3015,58 @@ function getIconsForExpenseReport(report: OnyxInputOrEntry<Report>, personalDeta
     return [memberIcon, workspaceIcon];
 }
 
-/**
- * Helper function to get the icons for an IOU report. Only to be used in getIcons().
- */
 function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): Icon[] {
     if (!report) {
         return [];
     }
+
     if (isOneTransactionReport(report.reportID)) {
-        console.log('>>> isOneTransactionReport', {report});    
-        return [getParticipantIcon(report.ownerAccountID, personalDetails, true)];
+        return [getParticipantIcon(report.managerID, personalDetails, true)];
     }
 
-    const reportActions = getAllReportActions(report.reportID);
-    const moneyRequestActions = Object.values(reportActions).filter((action) => action && isMoneyRequestAction(action));
+    const accountIDs = new Set<number>();
 
-    if (moneyRequestActions.length > 0) {
-        const ownerAccountIDs = moneyRequestActions.map((action) => action.actorAccountID).filter((id): id is number => !!id);
-        return getIconsForParticipants(ownerAccountIDs, personalDetails);
+    // Get actors and delegates from money request actions, as they are the "owners" of the transactions.
+    const reportActions = Object.values(getAllReportActions(report.reportID));
+    const moneyRequestActions = reportActions.filter((action): action is ReportAction => !!action && isMoneyRequestAction(action));
+
+    moneyRequestActions.forEach((action) => {
+        const ownerID = action.delegateAccountID ?? action.actorAccountID;
+        if (ownerID) {
+            accountIDs.add(ownerID);
+        }
+    });
+
+    // Uses attendees from transactions
+    const transactions = getReportTransactions(report.reportID);
+    if (transactions.length > 0) {
+        const attendeeEmails = new Set<string>();
+        transactions.forEach((transaction) => {
+            const attendees = getAttendees(transaction);
+            attendees.forEach((attendee) => {
+                if (attendee.accountID) {
+                    accountIDs.add(attendee.accountID);
+                } else if (attendee.email) {
+                    attendeeEmails.add(attendee.email);
+                }
+            });
+        });
+
+        if (attendeeEmails.size > 0) {
+            const attendeeAccountIDs = getAccountIDsByLogins(Array.from(attendeeEmails));
+            attendeeAccountIDs.forEach((id) => {
+                if (id) {
+                    accountIDs.add(id);
+                }
+            });
+        }
     }
 
+    if (accountIDs.size > 0) {
+        return getIconsForParticipants(Array.from(accountIDs), personalDetails);
+    }
+
+    // Fallback for older reports or reports without transactions/attendees info
     const managerIcon = getParticipantIcon(report.managerID, personalDetails, true);
     const ownerIcon = getParticipantIcon(report.ownerAccountID, personalDetails, true);
     const isManager = currentUserAccountID === report.managerID;
