@@ -821,6 +821,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
+        AUTO_SUBMIT: 'autoSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -831,11 +832,6 @@ const CONST = {
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
-        /**
-         * Deprecated - do not use this beta in new code anymore.
-         * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
-         * */
-        TABLE_REPORT_VIEW: 'tableReportView',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         RETRACT_NEWDOT: 'retractNewDot',
@@ -846,7 +842,6 @@ const CONST = {
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
-        NEW_DOT_SPLITS: 'newDotSplits',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
