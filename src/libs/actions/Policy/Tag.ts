@@ -767,17 +767,23 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         ],
     };
 
-    readFileAsync(spreadsheet?.fileURI ?? '', 'testFile.csv', (file) => {
-        const parameters: ImportMultiLevelTagsParams = {
-            policyID,
-            isFirstLineHeader: spreadsheet?.containsHeader,
-            isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
-            isGLAdjacent: spreadsheet?.isGLAdjacent,
-            file,
-        };
+    readFileAsync(
+        spreadsheet?.fileURI ?? '',
+        spreadsheet?.fileName ?? 'MultiLevelTags.csv',
+        (file) => {
+            const parameters: ImportMultiLevelTagsParams = {
+                policyID,
+                isFirstLineHeader: spreadsheet?.containsHeader,
+                isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
+                isGLAdjacent: spreadsheet?.isGLAdjacent,
+                file,
+            };
 
-        API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
-    });
+            API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
+        },
+        () => {},
+        spreadsheet?.fileType ?? 'text/csv',
+    );
 }
 
 function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
