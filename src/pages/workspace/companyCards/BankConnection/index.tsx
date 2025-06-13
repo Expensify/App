@@ -61,11 +61,12 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
     const plaidFeed = addNewCard?.data?.plaidConnectedFeed ?? assignCard?.data?.institutionId;
     const plaidFeedName = addNewCard?.data?.plaidConnectedFeedName ?? assignCard?.data?.plaidConnectedFeedName;
+    const country = addNewCard?.data?.selectedCountry;
     const {isBetaEnabled} = usePermissions();
 
     const url =
         isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && plaidToken
-            ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName)
+            ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName, country)
             : getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
