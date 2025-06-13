@@ -10,11 +10,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
  */
 
 function setActiveTransactionThreadIDs(ids: string[]) {
-    Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, ids);
+    return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, ids);
 }
 
 function clearActiveTransactionThreadIDs() {
-    Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, null);
+    return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, null);
 }
 
 export {setActiveTransactionThreadIDs, clearActiveTransactionThreadIDs};

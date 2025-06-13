@@ -72,8 +72,9 @@ function ReportListItem<TItem extends ListItem>({
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
-        setActiveTransactionThreadIDs(siblingTransactionThreadIDs);
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+        setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+        });
     };
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {

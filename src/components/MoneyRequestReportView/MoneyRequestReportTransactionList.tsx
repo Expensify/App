@@ -199,9 +199,9 @@ function MoneyRequestReportTransactionList({
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
-            setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
-
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+            setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+            });
         },
         [reportActions, sortedTransactions],
     );
