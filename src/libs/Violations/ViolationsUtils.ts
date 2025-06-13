@@ -204,11 +204,6 @@ const ViolationsUtils = {
             if (hasMissingCategoryViolation && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
             }
-
-            // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
-                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
-            }
         }
 
         // Calculate client-side tag violations
