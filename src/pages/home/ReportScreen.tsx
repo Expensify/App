@@ -294,10 +294,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back.
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
-    // ref used to not compute new transaction on the first full load to avoid highlighting transactions that belonged to the report but weren't present in Onyx
-    const firstFullLoadTime = useRef<number | undefined>(reportMetadata?.hasOnceLoadedReportActions ? Date.now() : undefined);
     const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
+        selector: (allTransactions): OnyxTypes.Transaction[] | undefined => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
         canBeMissing: false,
     });
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
@@ -314,15 +312,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
-    const prevTransactions = usePrevious(reportTransactions);
+    const prevTransactions = usePrevious(reportMetadata?.hasOnceLoadedReportActions ? reportTransactions : undefined);
 
+    const skipFirstTransactionsChange = useRef<boolean>(!!reportMetadata?.hasOnceLoadedReportActions);
     const newTransactions = useMemo(() => {
-        if (
-            reportTransactions === undefined ||
-            prevTransactions === undefined ||
-            reportTransactions.length <= prevTransactions.length ||
-            (firstFullLoadTime.current && firstFullLoadTime.current + CONST.TIMING.UPDATE_PREV_TRANSACTION_TIMEOUT > Date.now())
-        ) {
+        if (reportTransactions === undefined || prevTransactions === undefined || reportTransactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
+        if (!skipFirstTransactionsChange.current) {
+            skipFirstTransactionsChange.current = true;
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
         return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
@@ -330,6 +328,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportTransactions]);
+
+    useEffect(() => {
+        if (!reportMetadata?.hasOnceLoadedReportActions) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            skipFirstTransactionsChange.current = true;
+        });
+    }, [reportMetadata?.hasOnceLoadedReportActions]);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -761,13 +768,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         readNewestAction(report?.reportID);
     }, [report]);
-
-    useEffect(() => {
-        if (!reportMetadata?.hasOnceLoadedReportActions || firstFullLoadTime.current) {
-            return;
-        }
-        firstFullLoadTime.current = Date.now();
-    }, [reportMetadata?.hasOnceLoadedReportActions]);
 
     const lastRoute = usePrevious(route);
 

@@ -97,15 +97,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    // ref used to not compute new transaction on the first full load to avoid highlighting transactions that belonged to the report but weren't present in Onyx
-    const firstFullLoadTime = useRef<number | undefined>(reportMetadata?.hasOnceLoadedReportActions ? Date.now() : undefined);
-    useEffect(() => {
-        if (!reportMetadata?.hasOnceLoadedReportActions || firstFullLoadTime.current) {
-            return;
-        }
-        firstFullLoadTime.current = Date.now();
-    }, [reportMetadata?.hasOnceLoadedReportActions]);
-
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
         canBeMissing: true,
@@ -114,15 +105,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportTransactionIDs = transactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const prevTransactions = usePrevious(transactions);
-
+    const prevTransactions = usePrevious(reportMetadata?.hasOnceLoadedReportActions ? transactions : undefined);
+    const skipFirstTransactionsChange = useRef<boolean>(!!reportMetadata?.hasOnceLoadedReportActions);
     const newTransactions = useMemo(() => {
-        if (
-            transactions === undefined ||
-            prevTransactions === undefined ||
-            transactions.length <= prevTransactions.length ||
-            (firstFullLoadTime.current && firstFullLoadTime.current + CONST.TIMING.UPDATE_PREV_TRANSACTION_TIMEOUT > Date.now())
-        ) {
+        if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
+        if (!skipFirstTransactionsChange.current) {
+            skipFirstTransactionsChange.current = true;
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
@@ -130,6 +120,15 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactions]);
+
+    useEffect(() => {
+        if (!reportMetadata?.hasOnceLoadedReportActions) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            skipFirstTransactionsChange.current = true;
+        });
+    }, [reportMetadata?.hasOnceLoadedReportActions]);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,

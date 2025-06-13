@@ -57,7 +57,7 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
  */
 function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction>, reportID: string | undefined, reportActions: ReportAction[]) {
     if (!reportID) {
-        return [];
+        return undefined;
     }
 
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
