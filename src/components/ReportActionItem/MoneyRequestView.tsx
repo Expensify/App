@@ -196,7 +196,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction) && canUserPerformWriteAction;
-    const isExpenseSplit = getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit;
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount = (canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT)) || isExpenseSplit;

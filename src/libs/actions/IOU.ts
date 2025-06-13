@@ -178,6 +178,7 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCategoryTaxCodeAndAmount,
+    getChildTransactions,
     getCurrency,
     getDistanceInMeters,
     getMerchant,
@@ -11378,16 +11379,12 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
 
     const reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    const isExpenseSplitTransaction = getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit;
-    if (isExpenseSplitTransaction) {
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
+    if (isExpenseSplit) {
         const originalTransactionID = transaction.comment?.originalTransactionID;
         const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
 
-        const relatedTransactions = Object.values(allTransactions).filter((currentTransaction) => {
-            const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-            return currentTransaction?.comment?.originalTransactionID === originalTransactionID && !!currentReport && currentReport?.stateNum !== CONST.REPORT.STATUS_NUM.CLOSED;
-        });
-
+        const relatedTransactions = getChildTransactions(originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
 
         const draftTransaction = buildOptimisticTransaction({
@@ -11614,10 +11611,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
 
     // List of all child transactions that have been created after split
-    let childTransactions = Object.values(allTransactions).filter((currentTransaction) => {
-        const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-        return currentTransaction?.comment?.originalTransactionID === originalTransactionID && !!currentReport && currentReport?.stateNum !== CONST.REPORT.STATUS_NUM.CLOSED;
-    });
+    let childTransactions = getChildTransactions(originalTransactionID);
 
     // A value that prevents API call from being called if there are no updates in the split item
     let canBeClosedWithoutUpdates = true;

@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
 
@@ -36,9 +37,9 @@ function SplitListItem<TItem extends ListItem>({
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
-    const [prefixCharacterMargin, setPrefixCharacterMargin] = useState(8);
+    const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
     const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
-    const contentWidth = formattedOriginalAmount.length * 8;
+    const contentWidth = formattedOriginalAmount.length * CONST.CHARACTER_WIDTH;
 
     return (
         <BaseListItem
@@ -120,7 +121,7 @@ function SplitListItem<TItem extends ListItem>({
                 </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
-                        {splitItem.isCannotEdit ? (
+                        {splitItem.cannotBeEdited ? (
                             <View style={[styles.flexRow, styles.h13, styles.alignItemsCenter]}>
                                 <Text
                                     style={[styles.optionRowAmountInput, styles.pAbsolute]}
@@ -163,7 +164,7 @@ function SplitListItem<TItem extends ListItem>({
                         )}
                     </View>
                     <View style={[styles.popoverMenuIcon]}>
-                        {splitItem.isCannotEdit ? null : (
+                        {splitItem.cannotBeEdited ? null : (
                             <View style={styles.pointerEventsAuto}>
                                 <Icon
                                     src={Expensicons.ArrowRight}

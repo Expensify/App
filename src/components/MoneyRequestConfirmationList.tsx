@@ -656,7 +656,7 @@ function MoneyRequestConfirmationList({
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
                     maxLength={formattedTotalAmount.length}
-                    contentWidth={formattedTotalAmount.length * 8}
+                    contentWidth={formattedTotalAmount.length * CONST.CHARACTER_WIDTH}
                 />
             ),
         }));

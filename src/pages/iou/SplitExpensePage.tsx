@@ -41,7 +41,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isCannotEditModalVisible, setCannotEditModalVisible] = useState(false);
+    const [cannotBeEditedModalVisible, setCannotBeEditedModalVisible] = useState(false);
 
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
     const {currentSearchHash} = useSearchContext();
@@ -140,7 +140,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseAmountChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                isCannotEdit: !!item.statusNum && item.statusNum >= CONST.REPORT.STATUS_NUM.CLOSED,
+                cannotBeEdited: !!item.statusNum && item.statusNum >= CONST.REPORT.STATUS_NUM.CLOSED,
             };
         });
 
@@ -222,8 +222,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     />
                     <SelectionList
                         onSelectRow={(item) => {
-                            if (item.isCannotEdit) {
-                                setCannotEditModalVisible(true);
+                            if (item.cannotBeEdited) {
+                                setCannotBeEditedModalVisible(true);
                                 return;
                             }
                             Keyboard.dismiss();
@@ -244,12 +244,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     />
                 </View>
                 <ConfirmModal
-                    title={translate('iou.splitExpenseCannotEditModalTitle')}
-                    prompt={translate('iou.splitExpenseCannotEditModalDescription')}
-                    onConfirm={() => setCannotEditModalVisible(false)}
-                    onCancel={() => setCannotEditModalVisible(false)}
+                    title={translate('iou.splitExpenseCannotBeEditedModalTitle')}
+                    prompt={translate('iou.splitExpenseCannotBeEditedModalDescription')}
+                    onConfirm={() => setCannotBeEditedModalVisible(false)}
+                    onCancel={() => setCannotBeEditedModalVisible(false)}
                     confirmText={translate('common.buttonConfirm')}
-                    isVisible={isCannotEditModalVisible}
+                    isVisible={cannotBeEditedModalVisible}
                     shouldShowCancelButton={false}
                 />
             </FullPageNotFoundView>

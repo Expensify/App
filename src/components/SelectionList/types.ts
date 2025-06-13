@@ -414,7 +414,7 @@ type SplitListItemType = ListItem &
         originalAmount: number;
 
         /** Indicates whether a split was approved, paid etc. */
-        isCannotEdit: boolean;
+        cannotBeEdited: boolean;
 
         /** Function for updating amount */
         onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
