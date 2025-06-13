@@ -51,7 +51,6 @@ function ButtonWithDropdownMenu<IValueType>({
     secondLineText = '',
     icon,
     shouldUseModalPaddingStyle = true,
-    shouldHandleNavigationBack = true,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -224,7 +223,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         setIsMenuVisible(false);
                         onOptionsMenuHide?.();
                     }}
-                    shouldHandleNavigationBack={shouldHandleNavigationBack}
+                    shouldHandleNavigationBack
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={(selectedSubitem, index, event) => {
                         onSubItemSelected?.(selectedSubitem, index, event);
