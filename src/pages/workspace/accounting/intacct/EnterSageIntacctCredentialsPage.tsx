@@ -55,6 +55,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={EnterSageIntacctCredentialsPage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
