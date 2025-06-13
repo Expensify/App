@@ -3056,6 +3056,7 @@ const translations = {
             companyCards: 'Company cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
+            findWorkspace: 'Find workspace',
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
@@ -6666,6 +6667,14 @@ const translations = {
             minutes: '30 minutes',
         },
         callScheduled: 'Call scheduled',
+    },
+    autoSubmitModal: {
+        title: 'All clear and submitted!',
+        description: 'All warnings and violations has been cleared so:',
+        submittedExpensesTitle: 'These expenses have been submitted',
+        submittedExpensesDescription: 'These expenses have been sent to your approver but can still be edited until they are approved.',
+        pendingExpensesTitle: 'Pending expenses have been moved',
+        pendingExpensesDescription: 'Any pending card expenses have been moved to a separate report until they post.',
     },
     testDrive: {
         quickAction: {
