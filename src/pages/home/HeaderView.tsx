@@ -398,7 +398,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                         </View>
                     </View>
                 )}
-                <LoadingBar shouldShow={(shouldShowLoadingBar && shouldUseNarrowLayout) ?? false} />
+                <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             </View>
             {shouldShowEarlyDiscountBanner && (
                 <EarlyDiscountBanner
