@@ -48,7 +48,14 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace, getCountOfEnabledTagsOfList, getCountOfRequiredTagLists, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
+import {
+    canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
+    getCountOfEnabledTagsOfList,
+    getCountOfRequiredTagLists,
+    getSubmitToAccountID,
+    isUserInvitedToWorkspace,
+} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -216,6 +223,7 @@ type GetValidReportsConfig = {
     shouldSeparateWorkspaceChat?: boolean;
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
+    isPerDiemRequest?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
@@ -1572,6 +1580,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         shouldSeparateSelfDMChat,
         shouldSeparateWorkspaceChat,
         excludeNonAdminWorkspaces,
+        isPerDiemRequest = false,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1731,6 +1740,10 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 
                 if (subtitle) {
                     newReportOption.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
+                }
+                const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
+                if (!canSubmitPerDiemExpense && isPerDiemRequest) {
+                    continue;
                 }
             }
             workspaceChats.push(newReportOption);
