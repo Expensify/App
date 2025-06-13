@@ -821,6 +821,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
+        AUTO_SUBMIT: 'autoSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -846,7 +847,6 @@ const CONST = {
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
-        NEW_DOT_SPLITS: 'newDotSplits',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

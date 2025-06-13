@@ -1611,6 +1611,7 @@ type SignInNavigatorParamList = {
 type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
+    [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
     [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
 };
 
@@ -1715,6 +1716,10 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
+        token: string;
+        isTestAccount?: boolean;
+    };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;
         transactionID: string;
@@ -1994,6 +1999,7 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<ConsoleNavigatorParamList>;
+    [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
 };
 
 type AuthScreensParamList = SharedScreensParamList & {
@@ -2044,6 +2050,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+    [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
 };
 
 type SearchReportParamList = {
@@ -2168,6 +2175,10 @@ type ScheduleCallParamList = {
     };
 };
 
+type TestToolsModalModalNavigatorParamList = {
+    [SCREENS.TEST_TOOLS_MODAL.ROOT]: undefined;
+};
+
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
@@ -2265,4 +2276,5 @@ export type {
     SplitExpenseParamList,
     SetParamsAction,
     WorkspacesTabNavigatorName,
+    TestToolsModalModalNavigatorParamList,
 };
