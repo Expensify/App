@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {FlashListProps} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -42,6 +42,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashList<Report>>(null);
     const route = useRoute();
+    const isScreenFocused = useIsFocused();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
@@ -158,8 +159,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const reportID = item.reportID;
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.chatReportID}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(reportID, itemReportActions, isOffline)}`];
+            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(item, chatReport, itemReportActions, isOffline)}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
             const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
             const itemReportAttributes = reportAttributes?.[reportID];
@@ -225,7 +227,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     lastReportActionTransaction={lastReportActionTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
-                    isFocused={!shouldDisableFocusOptions}
+                    isOptionFocused={!shouldDisableFocusOptions}
                     lastMessageTextFromReport={lastMessageTextFromReport}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
@@ -233,6 +235,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
+                    isScreenFocused={isScreenFocused}
                 />
             );
         },
@@ -253,6 +256,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             onLayoutItem,
             isOffline,
             firstReportIDWithGBRorRBR,
+            isScreenFocused,
         ],
     );
 
@@ -271,6 +275,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             preferredLocale,
             transactions,
             isOffline,
+            isScreenFocused,
         ],
         [
             reportActions,
@@ -286,6 +291,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             preferredLocale,
             transactions,
             isOffline,
+            isScreenFocused,
         ],
     );
 

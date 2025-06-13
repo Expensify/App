@@ -200,6 +200,7 @@ function ensureSingleSpacing(text: string) {
 
 function shouldDisplayReportInLHN(
     report: Report,
+    reports: OnyxCollection<Report>,
     currentReportId: string | undefined,
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
@@ -221,11 +222,11 @@ function shouldDisplayReportInLHN(
     const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
     const isHidden = isHiddenForCurrentUser(report);
     const isFocused = report.reportID === currentReportId;
-    const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations, reportAttributes);
+    const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+    const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+    const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, reportAttributes);
     const isReportInAccessible = report?.errorFields?.notFound;
-
-    // Check for transaction thread
-    if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
+    if (isOneTransactionThread(report, parentReport, parentReportAction)) {
         return {shouldDisplay: false};
     }
 
@@ -254,6 +255,7 @@ function shouldDisplayReportInLHN(
     // Final check for display eligibility
     const shouldDisplay = shouldReportBeInOptionList({
         report,
+        chatReport,
         currentReportId,
         isInFocusMode,
         betas,
@@ -288,6 +290,7 @@ function getReportsToDisplayInLHN(
 
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
             report,
+            reports,
             currentReportId,
             isInFocusMode,
             betas,
@@ -326,6 +329,7 @@ function updateReportsToDisplayInLHN(
 
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
             report,
+            reports,
             currentReportId,
             isInFocusMode,
             betas,
@@ -357,7 +361,6 @@ function sortReportsToDisplayInLHN(
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
-
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
     // 2. Error reports - Always sorted by reportDisplayName
@@ -436,6 +439,7 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
 
 function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
+    chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     reportErrors: Errors,
@@ -470,7 +474,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
     if (transactionThreadReportID) {
         const transactionID = getTransactionID(transactionThreadReportID);
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -493,6 +497,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
 
 function shouldShowRedBrickRoad(
     report: Report,
+    chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     reportErrors: Errors,
@@ -500,7 +505,7 @@ function shouldShowRedBrickRoad(
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isReportArchived);
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isReportArchived);
 }
 
 /**

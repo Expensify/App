@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import AutoSubmitModal from '@components/AutoSubmitModal';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -27,6 +28,10 @@ function FeatureTrainingModalNavigator() {
                     <Stack.Screen
                         name={SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT}
                         component={ChangePolicyEducationalModal}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.AUTO_SUBMIT_ROOT}
+                        component={AutoSubmitModal}
                     />
                 </Stack.Navigator>
             </View>
