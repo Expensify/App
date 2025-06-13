@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {updateWriteCapability as updateWriteCapabilityUtil} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
