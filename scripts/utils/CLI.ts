@@ -123,9 +123,9 @@ type ParsedPositionalArgs<PositionalArgs extends CLIConfig['positionalArgs']> = 
  *     ],
  * });
  *
- * let fullName = cli.parameters.firstName;
+ * let fullName = cli.positionalArgs.firstName;
  * if (cli.flags.verbose) {
- *     fullName += cli.parameters.lastName;
+ *     fullName += cli.positionalArgs.lastName;
  * }
  * console.log(fullName);
  * console.log(cli.namedArgs.time);
