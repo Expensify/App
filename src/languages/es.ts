@@ -2042,26 +2042,26 @@ const translations = {
             },
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'pt-BR': {
-                label: 'Português (BR)', // @dont-translate
+                label: 'Português (BR)',
             },
             it: {
-                label: 'Italiano', // @dont-translate
+                label: 'Italiano',
             },
             de: {
-                label: 'Deutsch', // @dont-translate
+                label: 'Deutsch',
             },
             fr: {
-                label: 'Français', // @dont-translate
+                label: 'Français',
             },
             nl: {
-                label: 'Nederlands', // @dont-translate
+                label: 'Nederlands',
             },
             ja: {
-                label: '日本語', // @dont-translate
+                label: '日本語',
             },
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'zh-hans': {
-                label: '中文 (简体)', // @dont-translate
+                label: '中文 (简体)',
             },
         },
         aiLanguageHelperText: 'Las traducciones para este idioma se generan automáticamente y pueden contener errores.',
