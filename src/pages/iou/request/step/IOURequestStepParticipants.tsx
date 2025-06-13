@@ -287,7 +287,7 @@ function IOURequestStepParticipants({
 
     const isWorkspacesOnly = useMemo(() => {
         return !!(initialTransaction?.amount && initialTransaction?.amount < 0);
-    }, [initialTransaction?.amount]);
+    }, [initialTransaction]);
 
     return (
         <StepScreenWrapper
