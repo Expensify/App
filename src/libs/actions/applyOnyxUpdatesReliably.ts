@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
@@ -20,6 +21,7 @@ type ApplyOnyxUpdatesReliablyOptions = {
  */
 export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, {shouldRunSync = false, clientLastUpdateID}: ApplyOnyxUpdatesReliablyOptions = {}) {
     const fetchMissingUpdates = () => {
+        Log.info('[applyOnyxUpdatesReliably] Fetching missing updates');
         // If we got here, that means we are missing some updates on our local storage. To
         // guarantee that we're not fetching more updates before our local data is up to date,
         // let's stop the sequential queue from running until we're done catching up.
