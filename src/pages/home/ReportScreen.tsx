@@ -297,7 +297,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
     const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
+        selector: (allTransactions): OnyxTypes.Transaction[] | undefined => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
         canBeMissing: false,
     });
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
@@ -314,10 +314,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
-    const prevTransactions = usePrevious(reportTransactions);
+    const prevTransactions = usePrevious(reportMetadata?.hasOnceLoadedReportActions ? reportTransactions : undefined);
 
+    const skipFirstTransactionsChange = useRef<boolean>(!!reportMetadata?.hasOnceLoadedReportActions);
     const newTransactions = useMemo(() => {
-        if (!reportTransactions || !prevTransactions || reportTransactions.length <= prevTransactions.length) {
+        if (reportTransactions === undefined || prevTransactions === undefined || reportTransactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
+        if (!skipFirstTransactionsChange.current) {
+            skipFirstTransactionsChange.current = true;
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
         return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
@@ -325,6 +330,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportTransactions]);
+
+    useEffect(() => {
+        if (!reportMetadata?.hasOnceLoadedReportActions) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            skipFirstTransactionsChange.current = true;
+        });
+    }, [reportMetadata?.hasOnceLoadedReportActions]);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {

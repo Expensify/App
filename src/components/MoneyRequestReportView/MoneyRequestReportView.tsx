@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -106,10 +106,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportTransactionIDs = transactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const prevTransactions = usePrevious(transactions);
-
+    const prevTransactions = usePrevious(reportMetadata?.hasOnceLoadedReportActions ? transactions : undefined);
+    const skipFirstTransactionsChange = useRef<boolean>(!!reportMetadata?.hasOnceLoadedReportActions);
     const newTransactions = useMemo(() => {
-        if (!prevTransactions || !transactions || transactions.length <= prevTransactions.length) {
+        if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
+        if (!skipFirstTransactionsChange.current) {
+            skipFirstTransactionsChange.current = true;
             return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
@@ -117,6 +121,15 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactions]);
+
+    useEffect(() => {
+        if (!reportMetadata?.hasOnceLoadedReportActions) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            skipFirstTransactionsChange.current = true;
+        });
+    }, [reportMetadata?.hasOnceLoadedReportActions]);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
