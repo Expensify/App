@@ -119,11 +119,8 @@ const buildTransactionsAndViolationsByReport = (): ReportTransactionsAndViolatio
     const reportID = mockChatReport.iouReportID;
     return {
         [String(reportID)]: {
-            transactions: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: mockTransaction,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockSecondTransaction.transactionID}`]: mockSecondTransaction,
-            },
-            violations: {},
+            transactions: mockOnyxTransactions,
+            violations: mockOnyxViolations,
         },
     };
 };
@@ -152,6 +149,7 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.iouReportID}`, mockChatReport).then(waitForBatchedUpdates);
         const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
