@@ -15,6 +15,7 @@ const UPCOMING_LOCALES = {
     IT: 'it',
     JA: 'ja',
     NL: 'nl',
+    PL: 'pl',
     PT_BR: 'pt-BR',
     ZH_HANS: 'zh-hans',
 };
@@ -27,6 +28,7 @@ const UPCOMING_LANGUAGES = [
     UPCOMING_LOCALES.IT,
     UPCOMING_LOCALES.JA,
     UPCOMING_LOCALES.NL,
+    UPCOMING_LOCALES.PL,
     UPCOMING_LOCALES.PT_BR,
     UPCOMING_LOCALES.ZH_HANS,
 ] as const;
@@ -39,6 +41,7 @@ const LOCALE_TO_LANGUAGE_STRING = {
     [UPCOMING_LOCALES.IT]: 'Italiano',
     [UPCOMING_LOCALES.JA]: '日本語',
     [UPCOMING_LOCALES.NL]: 'Nederlands',
+    [UPCOMING_LOCALES.PL]: 'Polski',
     [UPCOMING_LOCALES.PT_BR]: 'Português (BR)',
     [UPCOMING_LOCALES.ZH_HANS]: '中文 (简体)',
 } as const;
