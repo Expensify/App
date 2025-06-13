@@ -4581,6 +4581,18 @@ const translations = {
             editTags: '\u7F16\u8F91\u6807\u7B7E',
             findTag: '\u67E5\u627E\u6807\u7B7E',
             subtitle: '\u6807\u7B7E\u63D0\u4F9B\u4E86\u66F4\u8BE6\u7EC6\u7684\u65B9\u6CD5\u6765\u5206\u7C7B\u8D39\u7528\u3002',
+            requireTag: '要求标签',
+            requireTags: '要求标签',
+            notRequireTags: '不要求',
+
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' 您正在使用 ',
+                phrase2: '依赖标签',
+                phrase3: '。您可以 ',
+                phrase4: '重新导入电子表格',
+                phrase5: ' 来更新您的标签。',
+            },
+
             emptyTags: {
                 title: '\u60A8\u5C1A\u672A\u521B\u5EFA\u4EFB\u4F55\u6807\u7B7E',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
