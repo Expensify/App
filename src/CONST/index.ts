@@ -1147,7 +1147,7 @@ const CONST = {
         COMPLETED: 'completed',
     },
     STORYLANE: {
-        ADMIN_TOUR: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
