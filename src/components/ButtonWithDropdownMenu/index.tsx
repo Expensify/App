@@ -223,6 +223,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         setIsMenuVisible(false);
                         onOptionsMenuHide?.();
                     }}
+                    shouldHandleNavigationBack
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={(selectedSubitem, index, event) => {
                         onSubItemSelected?.(selectedSubitem, index, event);
