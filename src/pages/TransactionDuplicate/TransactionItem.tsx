@@ -13,10 +13,10 @@ type TransactionItemProps = {
     index: number;
 };
 
-function TransactionItem(props: TransactionItemProps) {
+function DuplicateTransactionItem(props: TransactionItemProps) {
     const styles = useThemeStyles();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
@@ -46,5 +46,5 @@ function TransactionItem(props: TransactionItemProps) {
     );
 }
 
-TransactionItem.displayName = 'TransactionItem';
-export default TransactionItem;
+DuplicateTransactionItem.displayName = 'TransactionItem';
+export default DuplicateTransactionItem;

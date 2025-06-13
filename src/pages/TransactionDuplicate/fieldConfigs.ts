@@ -1,56 +1,43 @@
+import type {OnyxKey} from 'react-native-onyx';
+import type {RouteConfig} from '@hooks/useTransactionFieldNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RouteConfig} from '@hooks/useTransactionFieldNavigation';
-import {duplicateReviewRoutes} from './duplicateReviewConfig';
+import duplicateReviewRoutes from './duplicateReviewConfig';
 
-export type FieldReviewConfig = {
+type FieldReviewConfig = {
     routes: RouteConfig;
-    onyxKey: string;
+    onyxKey: OnyxKey;
     setFieldAction: typeof setReviewDuplicatesKey;
-    comparisonFunction: typeof TransactionUtils.compareDuplicateTransactionFields;
-    titleTranslationKey: string;
+    compareFields: typeof TransactionUtils.compareDuplicateTransactionFields;
 };
 
-export const duplicateFieldConfig: FieldReviewConfig = {
+const duplicateFieldConfig: FieldReviewConfig = {
     routes: duplicateReviewRoutes,
     onyxKey: ONYXKEYS.REVIEW_DUPLICATES,
     setFieldAction: setReviewDuplicatesKey,
-    comparisonFunction: TransactionUtils.compareDuplicateTransactionFields,
-    titleTranslationKey: 'iou.reviewDuplicates',
+    compareFields: TransactionUtils.compareDuplicateTransactionFields,
 };
 
 // Field-specific option generators
-export const fieldOptionGenerators = {
-    category: (categories: (string | undefined)[], translate: (key: string) => string) =>
-        categories.map((category) =>
-            !category
-                ? {text: translate('violations.none'), value: ''}
-                : {text: category, value: category}
-        ),
-    
-    merchant: (merchants: (string | undefined)[], translate: (key: string) => string) =>
-        merchants.map((merchant) =>
-            !merchant
-                ? {text: translate('violations.none'), value: ''}
-                : {text: merchant, value: merchant}
-        ),
-    
-    tag: (tags: (string | undefined)[], translate: (key: string) => string) =>
-        tags.map((tag) =>
-            !tag
-                ? {text: translate('violations.none'), value: ''}
-                : {text: PolicyUtils.getCleanedTagName(tag), value: tag}
-        ),
-    
-    reimbursable: (reimbursableValues: (boolean | undefined)[], translate: (key: string) => string) =>
+const fieldOptionGenerators = {
+    category: (categories: Array<string | undefined>, translate: (key: string) => string) =>
+        categories.map((category) => (!category ? {text: translate('violations.none'), value: ''} : {text: category, value: category})),
+
+    merchant: (merchants: Array<string | undefined>, translate: (key: string) => string) =>
+        merchants.map((merchant) => (!merchant ? {text: translate('violations.none'), value: ''} : {text: merchant, value: merchant})),
+
+    tag: (tags: Array<string | undefined>, translate: (key: string) => string) =>
+        tags.map((tag) => (!tag ? {text: translate('violations.none'), value: ''} : {text: PolicyUtils.getCleanedTagName(tag), value: tag})),
+
+    reimbursable: (reimbursableValues: Array<boolean | undefined>, translate: (key: string) => string) =>
         reimbursableValues.map((reimbursable) => ({
             text: reimbursable ? translate('common.yes') : translate('common.no'),
             value: reimbursable ?? false,
         })),
-    
-    billable: (billableValues: (boolean | undefined)[], translate: (key: string) => string) =>
+
+    billable: (billableValues: Array<boolean | undefined>, translate: (key: string) => string) =>
         billableValues.map((billable) => ({
             text: billable ? translate('common.yes') : translate('common.no'),
             value: billable ?? false,
@@ -58,12 +45,15 @@ export const fieldOptionGenerators = {
 };
 
 // Field label translation keys
-export const fieldLabels = {
+const fieldLabels = {
     category: 'violations.categoryToKeep',
-    merchant: 'violations.merchantToKeep', 
+    merchant: 'violations.merchantToKeep',
     tag: 'violations.tagToKeep',
     reimbursable: 'violations.isTransactionReimbursable',
     billable: 'violations.isTransactionBillable',
     taxCode: 'violations.taxCodeToKeep',
     description: 'violations.descriptionToKeep',
-}; 
+};
+
+export type {FieldReviewConfig};
+export {duplicateFieldConfig, fieldOptionGenerators, fieldLabels};

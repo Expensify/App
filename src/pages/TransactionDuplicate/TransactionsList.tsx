@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FlatList from '@components/FlatList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {Transaction} from '@src/types/onyx';
-import TransactionItem from './TransactionItem';
+import DuplicateTransactionItem from './TransactionItem';
 
 type TransactionsListProps = {
     transactions: Array<OnyxEntry<Transaction>>;
@@ -13,7 +13,7 @@ type TransactionsListProps = {
 const keyExtractor: FlatListProps<OnyxEntry<Transaction>>['keyExtractor'] = (item, index) => `${item?.transactionID}+${index}`;
 
 const renderItem: FlatListProps<OnyxEntry<Transaction>>['renderItem'] = ({item, index}) => (
-    <TransactionItem
+    <DuplicateTransactionItem
         transaction={item}
         index={index}
     />

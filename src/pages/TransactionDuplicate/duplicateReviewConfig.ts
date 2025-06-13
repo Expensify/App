@@ -1,7 +1,7 @@
-import ROUTES from '@src/ROUTES';
 import type {RouteConfig} from '@hooks/useTransactionFieldNavigation';
+import ROUTES from '@src/ROUTES';
 
-export const duplicateReviewRoutes: RouteConfig = {
+const duplicateReviewRoutes: RouteConfig = {
     base: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE,
     merchant: ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE,
     category: ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE,
@@ -11,4 +11,6 @@ export const duplicateReviewRoutes: RouteConfig = {
     reimbursable: ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE,
     billable: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE,
     confirmation: ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE,
-}; 
+};
+
+export default duplicateReviewRoutes;

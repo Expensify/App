@@ -102,7 +102,7 @@ function Confirmation() {
             <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
-                        title={translate(duplicateFieldConfig.titleTranslationKey)}
+                        title={translate('iou.reviewDuplicates')}
                         onBackButtonPress={goBack}
                     />
                     <ScrollView>

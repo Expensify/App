@@ -8,18 +8,19 @@ import useTransactionFieldNavigation from '@hooks/useTransactionFieldNavigation'
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {duplicateFieldConfig} from './fieldConfigs';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
-import {duplicateFieldConfig, fieldOptionGenerators, fieldLabels} from './fieldConfigs';
 
 function ReviewMerchant() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
     const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
-    const [reviewDuplicates] = useOnyx(duplicateFieldConfig.onyxKey);
-    const compareResult = duplicateFieldConfig.comparisonFunction(transactionID, reviewDuplicates?.reportID ?? '-1');
-    const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
+    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');
+    const stepNames = Object.keys(compareResult.change ?? {}).map((_, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useTransactionFieldNavigation(
         Object.keys(compareResult.change ?? {}),
         'merchant',
@@ -28,7 +29,15 @@ function ReviewMerchant() {
         route.params.backTo,
     );
     const options = useMemo(
-        () => compareResult.change.merchant ? fieldOptionGenerators.merchant(compareResult.change.merchant, translate) : undefined,
+        () =>
+            compareResult.change.merchant?.map((merchant) =>
+                !merchant
+                    ? {text: translate('violations.none'), value: ''}
+                    : {
+                          text: merchant,
+                          value: merchant,
+                      },
+            ),
         [compareResult.change.merchant, translate],
     );
 
@@ -42,12 +51,12 @@ function ReviewMerchant() {
     return (
         <ScreenWrapper testID={ReviewMerchant.displayName}>
             <HeaderWithBackButton
-                title={translate(duplicateFieldConfig.titleTranslationKey)}
+                title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
             />
             <ReviewFields<'merchant'>
                 stepNames={stepNames}
-                label={translate(fieldLabels.merchant)}
+                label={translate('violations.merchantToKeep')}
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setMerchant}

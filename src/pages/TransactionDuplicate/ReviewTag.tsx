@@ -7,20 +7,22 @@ import useLocalize from '@hooks/useLocalize';
 import useTransactionFieldNavigation from '@hooks/useTransactionFieldNavigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {duplicateFieldConfig, fieldOptionGenerators} from './fieldConfigs';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
-import {duplicateFieldConfig, fieldOptionGenerators, fieldLabels} from './fieldConfigs';
 
 function ReviewTag() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
     const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
 
-    const [reviewDuplicates] = useOnyx(duplicateFieldConfig.onyxKey);
-    const compareResult = duplicateFieldConfig.comparisonFunction(transactionID, reviewDuplicates?.reportID ?? '-1');
-    const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
+    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: false});
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');
+    const stepNames = Object.keys(compareResult.change ?? {}).map((_, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useTransactionFieldNavigation(
         Object.keys(compareResult.change ?? {}),
         'tag',
@@ -29,7 +31,15 @@ function ReviewTag() {
         route.params.backTo,
     );
     const options = useMemo(
-        () => compareResult.change.tag ? fieldOptionGenerators.tag(compareResult.change.tag, translate) : undefined,
+        () =>
+            compareResult.change.tag?.map((tag) =>
+                !tag
+                    ? {text: translate('violations.none'), value: ''}
+                    : {
+                          text: PolicyUtils.getCleanedTagName(tag),
+                          value: tag,
+                      },
+            ),
         [compareResult.change.tag, translate],
     );
     const setTag = (data: FieldItemType<'tag'>) => {
@@ -42,12 +52,12 @@ function ReviewTag() {
     return (
         <ScreenWrapper testID={ReviewTag.displayName}>
             <HeaderWithBackButton
-                title={translate(duplicateFieldConfig.titleTranslationKey)}
+                title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
             />
             <ReviewFields<'tag'>
                 stepNames={stepNames}
-                label={translate(fieldLabels.tag)}
+                label={translate('violations.tagToKeep')}
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setTag}

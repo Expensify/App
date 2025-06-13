@@ -1,4 +1,4 @@
-import {duplicateReviewRoutes} from '@pages/TransactionDuplicate/duplicateReviewConfig';
+import duplicateReviewRoutes from '@pages/TransactionDuplicate/duplicateReviewConfig';
 import useTransactionFieldNavigation from './useTransactionFieldNavigation';
 import type {StepName} from './useTransactionFieldNavigation';
 
