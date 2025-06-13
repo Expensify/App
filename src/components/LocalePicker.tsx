@@ -23,8 +23,8 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
 
-    const {canUseStaticAiTranslations} = usePermissions();
-    const localesToLanguages = CONST.LANGUAGES.filter((language) => ['en', 'es'].includes(language) || canUseStaticAiTranslations).map((language) => ({
+    const {isBetaEnabled} = usePermissions();
+    const localesToLanguages = CONST.LANGUAGES.filter((language) => ['en', 'es'].includes(language) || isBetaEnabled(CONST.BETAS.STATIC_AI_TRANSLATIONS)).map((language) => ({
         value: language,
         label: translate(`languagePage.languages.${language}.label`),
         keyForList: language,

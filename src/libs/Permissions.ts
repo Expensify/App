@@ -31,10 +31,6 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
 
-function canUseStaticAiTranslations(betas: OnyxEntry<Beta[]>): boolean {
-    return true || !!betas?.includes(CONST.BETAS.STATIC_AI_TRANSLATIONS) || canUseAllBetas(betas);
-}
-
 export default {
     canUseLinkPreviews,
     isBlockedFromSpotnanaTravel,
