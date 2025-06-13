@@ -255,6 +255,15 @@ type PureReportActionItemProps = {
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
 
+    /** The task report associated with this action, if any */
+    taskReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The linked report associated with this action, if any */
+    linkedReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The iou report associated with the linked report, if any */
+    iouReportOfLinkedReport: OnyxEntry<OnyxTypes.Report>;
+
     /** All the emoji reactions for the report action. */
     emojiReactions?: OnyxTypes.ReportActionReactions;
 
@@ -384,6 +393,9 @@ function PureReportActionItem({
     parentReportActionForTransactionThread,
     draftMessage,
     iouReport,
+    taskReport,
+    linkedReport,
+    iouReportOfLinkedReport,
     emojiReactions,
     linkedTransactionRouteError,
     reportNameValuePairs,
@@ -886,7 +898,8 @@ function PureReportActionItem({
             children = (
                 <TripRoomPreview
                     action={action}
-                    chatReportID={getOriginalMessage(action)?.linkedReportID}
+                    chatReport={linkedReport}
+                    iouReport={iouReportOfLinkedReport}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
@@ -939,7 +952,7 @@ function PureReportActionItem({
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
                         style={displayAsGroup ? [] : [styles.mt1]}
-                        taskReportID={getOriginalMessage(action)?.taskReportID?.toString()}
+                        taskReport={taskReport}
                         chatReportID={reportID}
                         action={action}
                         isHovered={hovered}
@@ -952,8 +965,8 @@ function PureReportActionItem({
                 </ShowContextMenuContext.Provider>
             );
         } else if (isReimbursementQueuedAction(action)) {
-            const linkedReport = isChatThread(report) ? parentReport : report;
-            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
+            const targetReport = isChatThread(report) ? parentReport : report;
+            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
             const paymentType = getOriginalMessage(action)?.paymentType ?? '';
 
             children = (
@@ -966,7 +979,7 @@ function PureReportActionItem({
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
-                                onPress={() => openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID, undefined, undefined, isUserValidated)}
+                                onPress={() => openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? targetReport?.reportID, undefined, undefined, isUserValidated)}
                                 pressOnEnter
                                 large
                             />
@@ -977,7 +990,7 @@ function PureReportActionItem({
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                chatReportID={linkedReport?.reportID}
+                                chatReportID={targetReport?.reportID}
                                 iouReport={iouReport}
                             >
                                 {(triggerKYCFlow, buttonRef) => (
@@ -1353,6 +1366,7 @@ function PureReportActionItem({
             <ReportActionItemContentCreated
                 contextValue={contextValue}
                 parentReportAction={parentReportAction}
+                parentReport={parentReport}
                 transactionID={transactionID}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
