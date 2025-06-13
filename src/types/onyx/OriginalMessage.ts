@@ -135,6 +135,21 @@ type OriginalMessageActionableReportMentionWhisper = {
     whisperedTo?: number[];
 };
 
+/** Model of `welcome whisper` report action */
+type OriginalMessageWelcomeWhisper = {
+    /** HTML content of the welcome message */
+    html: string;
+
+    /** Collection of accountIDs of users mentioned in message */
+    whisperedTo?: number[];
+
+    /** When was the welcome whisper last modified */
+    lastModified?: string;
+
+    /** Type of whisper (automated) */
+    type?: string;
+};
+
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
     /** Approved expense amount */
