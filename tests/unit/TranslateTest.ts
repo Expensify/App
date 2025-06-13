@@ -144,8 +144,7 @@ describe('Duplicate Translation values', () => {
         return result.join('\n');
     }
 
-    const excludeLanguages = [CONST.LOCALES.ES_ES];
-    const languages = Object.keys(originalTranslations.default).filter((ln) => !excludeLanguages.some((excludeLanguage) => excludeLanguage === ln));
+    const languages = Object.keys(originalTranslations.default);
 
     languages.forEach((ln) => {
         const languageValueIndex = traverseKeyValuePairs(originalTranslations.default[ln as keyof typeof originalTranslations.default]);
