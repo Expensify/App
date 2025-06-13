@@ -1548,8 +1548,7 @@ describe('actions/IOU', () => {
                     .then(mockFetch?.succeed)
             );
         });
-        it('does not trigger notifyNewAction when doing the money request in a money request report and has a canUseTableReportView permission', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
@@ -1569,30 +1568,9 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('trigger notifyNewAction when doing the money request in a chat report', () => {
             requestMoney({
                 report: {reportID: '123'},
-                participantParams: {
-                    payeeEmail: RORY_EMAIL,
-                    payeeAccountID: RORY_ACCOUNT_ID,
-                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                },
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                },
-            });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
-            requestMoney({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
@@ -1612,8 +1590,7 @@ describe('actions/IOU', () => {
     });
 
     describe('createDistanceRequest', () => {
-        it('does not trigger notifyNewAction when doing the money request in a money request report and has a canUseTableReportView permission', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
@@ -1630,27 +1607,9 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('trigger notifyNewAction when doing the money request in a chat report', () => {
             createDistanceRequest({
                 report: {reportID: '123'},
-                participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-            });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
-            createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
                 transactionParams: {
                     amount: 1,
@@ -4045,12 +4004,10 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -4212,12 +4169,10 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -5543,7 +5498,12 @@ describe('actions/IOU', () => {
         it('should merge transaction draft onyx value', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    initMoneyRequest(fakeReport.reportID, fakePolicy, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                    initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
@@ -5553,7 +5513,13 @@ describe('actions/IOU', () => {
         it('should modify transaction draft when currentIouRequestType is different', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest(fakeReport.reportID, fakePolicy, true, CONST.IOU.REQUEST_TYPE.MANUAL, CONST.IOU.REQUEST_TYPE.SCAN);
+                    return initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        isFromGlobalCreate: true,
+                        currentIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
@@ -5565,7 +5531,11 @@ describe('actions/IOU', () => {
         it('should return personal currency when policy is missing', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest(fakeReport.reportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                    return initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({

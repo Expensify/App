@@ -13,7 +13,7 @@ const connect: LocaleListenerConnect = (callbackAfterChange = () => {}) => {
     Onyx.connect({
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         callback: (val) => {
-            if (!val || val === preferredLocale) {
+            if (!val) {
                 return;
             }
 

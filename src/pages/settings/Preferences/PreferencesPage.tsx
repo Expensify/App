@@ -33,12 +33,13 @@ function PreferencesPage() {
     const isPlatformMuted = mutedPlatforms[platform];
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const personalPolicy = usePolicy(getPersonalPolicy()?.id);
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {canUseStaticAiTranslations} = usePermissions();
 
@@ -101,7 +102,7 @@ function PreferencesPage() {
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`)}
+                                title={preferredLocale ? translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`) : undefined}
                                 description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}

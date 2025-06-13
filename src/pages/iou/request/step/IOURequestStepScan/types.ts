@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -10,8 +10,20 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-        /* If the tooltip is allowed to be shown */
-        isTooltipAllowed?: boolean;
+        /**
+         * Callback function that is triggered on the `onLayout` event.
+         * Receives a function (`setTestReceiptAndNavigate`) as an argument,
+         */
+        onLayout?: (setTestReceiptAndNavigate: () => void) => void;
+
+        /** Disable tab swipe */
+        setTabSwipeDisabled?: (isDisabled: boolean) => void;
+
+        /** If the receipts preview should be shown */
+        isMultiScanEnabled?: boolean;
+
+        /** Updates isMultiScanEnabled flag */
+        setIsMultiScanEnabled?: (value: boolean) => void;
     };
 
 type ReceiptFile = {

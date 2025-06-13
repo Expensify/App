@@ -21,7 +21,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [preferredLocale = CONST.LOCALES.DEFAULT] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
 
     const {canUseStaticAiTranslations} = usePermissions();
     const localesToLanguages = CONST.LANGUAGES.filter((language) => ['en', 'es'].includes(language) || canUseStaticAiTranslations).map((language) => ({

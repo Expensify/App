@@ -36,7 +36,7 @@ type CustomLHNOptionsListProps = {
 type LHNOptionsListProps = CustomLHNOptionsListProps;
 
 type OptionRowLHNDataProps = {
-    /** Whether option should be focused */
+    /** Whether row should be focused */
     isOptionFocused?: boolean;
 
     /** List of users' personal details */
@@ -111,7 +111,7 @@ type OptionRowLHNDataProps = {
     shouldShowRBRorGBRTooltip: boolean;
 
     /** Whether the screen is focused */
-    isScreenFocused: boolean;
+    isScreenFocused?: boolean;
 };
 
 type OptionRowLHNProps = {
@@ -142,7 +142,7 @@ type OptionRowLHNProps = {
     shouldShowRBRorGBRTooltip: boolean;
 
     /** Whether the screen is focused */
-    isScreenFocused: boolean;
+    isScreenFocused?: boolean;
 };
 
 type RenderItemProps = {item: Report};
