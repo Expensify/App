@@ -38,12 +38,11 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 
 type Props = {
     backTo: Route | undefined;
-    selectedReportID: string | undefined;
-    selectedPolicyID?: string | undefined;
+    transactionsReports: Report[];
     selectReport: (item: ReportListItem) => void;
 };
 
-function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID, selectReport}: Props) {
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}: Props) {
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -52,28 +51,30 @@ function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID,
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const selectedReport = useMemo(() => {
-        if (!selectedReportID) {
-            return undefined;
-        }
-        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
-    }, [allReports, selectedReportID]);
-
-    const expenseReports = useMemo(() => {
-        if (!selectedReportID) {
-            return selectedPolicyID
-                ? getOutstandingReportsForUser(selectedPolicyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs)
-                : Object.values(allPoliciesID ?? {}).flatMap((policyID) =>
-                      getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs),
-                  );
-        }
-        return getOutstandingReportsForUser(selectedReport?.policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs);
-    }, [allReports, currentUserPersonalDetails.accountID, selectedReport, reportNameValuePairs, allPoliciesID, selectedReportID, selectedPolicyID]);
+    const expenseReports = useMemo(
+        () =>
+            Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
+                if (!policyID) {
+                    return [];
+                }
+                const reports = getOutstandingReportsForUser(
+                    policyID,
+                    transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
+                    allReports ?? {},
+                    reportNameValuePairs,
+                );
+                return reports;
+            }),
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
+    );
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
         }
+
+        const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
+
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
@@ -82,9 +83,9 @@ function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID,
                 text: report.reportName,
                 value: report.reportID,
                 keyForList: report.reportID,
-                isSelected: report.reportID === selectedReportID,
+                isSelected: onlyReport && report.reportID === onlyReport?.reportID,
             }));
-    }, [allReports, debouncedSearchValue, expenseReports, selectedReportID]);
+    }, [allReports, debouncedSearchValue, expenseReports, transactionsReports]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -109,7 +110,7 @@ function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID,
                 textInputLabel={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                 shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
-                initiallyFocusedOptionKey={selectedReportID}
+                initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
                 ListItem={UserListItem}
             />
         </StepScreenWrapper>
