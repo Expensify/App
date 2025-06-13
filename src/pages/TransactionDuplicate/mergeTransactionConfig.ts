@@ -1,4 +1,3 @@
-import {OnyxKey} from 'react-native-onyx';
 import type {RouteConfig} from '@hooks/useTransactionFieldNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -21,7 +20,7 @@ type FieldReviewConfig = {
     routes: RouteConfig;
     setFieldAction: typeof setReviewDuplicatesKey;
     compareFields: typeof TransactionUtils.compareDuplicateTransactionFields;
-    onyxKey: typeof ONYXKEYS.REVIEW_DUPLICATES;
+    onyxKey: typeof ONYXKEYS.MERGE_TRANSACTION;
 };
 
 const mergeTransactionConfig: FieldReviewConfig = {

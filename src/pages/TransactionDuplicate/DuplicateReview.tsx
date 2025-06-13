@@ -28,7 +28,7 @@ function TransactionDuplicateReview() {
     const {translate} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: false});
     const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = getLinkedTransactionID(reportAction, report?.reportID) ?? undefined;
     const transactionViolations = useTransactionViolations(transactionID);

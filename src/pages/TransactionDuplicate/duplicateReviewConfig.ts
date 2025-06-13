@@ -1,4 +1,3 @@
-import type {OnyxKey} from 'react-native-onyx';
 import type {RouteConfig} from '@hooks/useTransactionFieldNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import * as TransactionUtils from '@libs/TransactionUtils';
