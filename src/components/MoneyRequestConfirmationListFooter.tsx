@@ -52,6 +52,14 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
 
+type TagVisibility = {
+    /** Flag indicating if the tag is required */
+    isTagRequired: boolean;
+
+    /** Flag indicating if the tag should be shown */
+    shouldShow: boolean;
+}
+
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
     action: IOUAction;
@@ -340,6 +348,32 @@ function MoneyRequestConfirmationListFooter({
         [],
     );
 
+    const tagVisibility: TagVisibility[] = policyTagLists.map(({tags, required}, index) => {
+        const isTagRequired = required ?? false;
+        let shouldShow = false;
+
+        if (shouldShowTags) {
+            if (hasDependentTags) {
+                if (index === 0) {
+                    shouldShow = true;
+                } else {
+                    const prevTagValue = getTagForDisplay(transaction, index - 1);
+                    shouldShow = !!prevTagValue;
+                }
+            } else {
+                shouldShow = !isMultilevelTags || hasEnabledOptions(tags);
+            }
+        }
+
+        return {
+            isTagRequired,
+            shouldShow,
+        };
+    });
+
+
+    const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
+
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
 
     const fields = [
@@ -519,28 +553,15 @@ function MoneyRequestConfirmationListFooter({
             ),
             shouldShow: shouldShowDate,
         },
-        ...policyTagLists.map(({name, required, tags}, index) => {
-            const isTagRequired = required ?? false;
-            let shouldShow = false;
-
-            if (shouldShowTags) {
-                if (hasDependentTags) {
-                    if (index === 0) {
-                        shouldShow = true;
-                    } else {
-                        const prevTagValue = getTagForDisplay(transaction, index - 1);
-                        shouldShow = !!prevTagValue;
-                    }
-                } else {
-                    shouldShow = !isMultilevelTags || hasEnabledOptions(tags);
-                }
-            }
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/rules-of-hooks
-            const previousValue = usePrevious(shouldShow);
+        ...policyTagLists.map(({name}, index) => {
+            const tagVisibilityItem = tagVisibility.at(index);
+            const isTagRequired = tagVisibilityItem?.isTagRequired ?? false;
+            const shouldShow = tagVisibilityItem?.shouldShow ?? false;
+            const prevShouldShow = previousTagsVisibility.at(index) ?? false;
             return {
                 item: (
                     <HighlightableIOUMenuItem
-                        highlighted={shouldShow && !getTagForDisplay(transaction, index) && !previousValue}
+                        highlighted={shouldShow && !getTagForDisplay(transaction, index) && !prevShouldShow}
                         key={name}
                         shouldShowRightIcon={!isReadOnly}
                         title={getTagForDisplay(transaction, index)}
