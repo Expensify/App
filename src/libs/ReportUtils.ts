@@ -8707,17 +8707,8 @@ function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return (
-        isPolicyAdminPolicyUtils(policy) &&
-        !isAdminRoom(report) &&
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
-        !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
-        !isThread(report) &&
-        !isInvoiceRoom(report) &&
-        !isPolicyExpenseChat(report)
-    );
+function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false): boolean {
+    return isPolicyAdminPolicyUtils(policy) && !isAdminRoom(report) && !isReportArchived && !isThread(report) && !isInvoiceRoom(report) && !isPolicyExpenseChat(report);
 }
 
 /**

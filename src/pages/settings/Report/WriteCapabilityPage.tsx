@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -40,8 +41,8 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
         keyForList: value,
         isSelected: value === (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL),
     }));
-
-    const isAbleToEdit = ReportUtils.canEditWriteCapability(report, policy);
+    const isReportArchived = useReportIsArchived(report.reportID);
+    const isAbleToEdit = ReportUtils.canEditWriteCapability(report, policy, isReportArchived);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, route.params.backTo));

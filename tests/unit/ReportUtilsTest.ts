@@ -2476,6 +2476,17 @@ describe('ReportUtils', () => {
             };
             expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
         });
+        it('should return true for non-archived policy announce room', () => {
+            const policyAnnounceRoom: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+            };
+            // should return true for non-archived policy announce room
+            expect(canEditWriteCapability(policyAnnounceRoom, {...policy, role: CONST.POLICY.ROLE.ADMIN}, false)).toBe(true);
+
+            // should return false for archived policy announce room
+            expect(canEditWriteCapability(policyAnnounceRoom, {...policy, role: CONST.POLICY.ROLE.ADMIN}, true)).toBe(false);
+        });
     });
 
     describe('canDeleteReportAction', () => {
