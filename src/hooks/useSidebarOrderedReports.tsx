@@ -107,6 +107,7 @@ function SidebarOrderedReportsContextProvider({
         }
 
         return reportsToUpdate;
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         reportUpdates,
         reportNameValuePairsUpdates,
@@ -116,6 +117,7 @@ function SidebarOrderedReportsContextProvider({
         policiesUpdates,
         chatReports,
         transactions,
+        derivedCurrentReportID,
         betas,
         priorityMode,
         prevBetas,
@@ -156,7 +158,7 @@ function SidebarOrderedReportsContextProvider({
         }
         return reportsToDisplay;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, derivedCurrentReportID]);
+    }, [getUpdatedReports]);
 
     useEffect(() => {
         reportsToDisplayRef.current = reportsToDisplayInLHN;
