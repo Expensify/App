@@ -1,6 +1,8 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+import {useWindowDimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import RenderHtml from 'react-native-render-html';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
@@ -26,6 +28,7 @@ type WorkspaceOwnerPaymentCardFormProps = {
 
 function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormProps) {
     const {translate} = useLocalize();
+    const {width} = useWindowDimensions();
     const theme = useTheme();
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
@@ -84,7 +87,12 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
             footerContent={
                 <>
                     <Text style={[styles.textMicroSupporting, styles.mt5]}>
-                        {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart1')}{' '}
+                        <RenderHtml
+                            contentWidth={width}
+                            source={{
+                                html: translate('workspace.changeOwner.addPaymentCardReadAndAcceptText.full'),
+                            }}
+                        />{' '}
                         <TextLink
                             style={[styles.textMicroSupporting, styles.link]}
                             href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
@@ -98,7 +106,12 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                         >
                             {translate('workspace.changeOwner.addPaymentCardPrivacy')}
                         </TextLink>{' '}
-                        {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart2')}
+                        <RenderHtml
+                            contentWidth={width}
+                            source={{
+                                html: translate('workspace.changeOwner.addPaymentCardReadAndAcceptText.full'),
+                            }}
+                        />{' '}
                     </Text>
                     <Section
                         icon={Illustrations.ShieldYellow}
