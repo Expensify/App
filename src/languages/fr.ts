@@ -4460,6 +4460,9 @@ const translations = {
             customTagName: 'Nom de balise personnalis\u00E9',
             enableTag: 'Activer le tag',
             enableTags: 'Activer les tags',
+            requireTag: 'Requis le tag',
+            requireTags: 'Requis les tags',
+            notRequireTags: 'Non requis les tags',
             disableTag: 'D\u00E9sactiver le tag',
             disableTags: 'D\u00E9sactiver les balises',
             addTag: 'Ajouter un tag',
@@ -4467,6 +4470,13 @@ const translations = {
             editTags: 'Modifier les \u00E9tiquettes',
             findTag: 'Trouver la balise',
             subtitle: 'Les \u00E9tiquettes ajoutent des moyens plus d\u00E9taill\u00E9s pour classer les co\u00FBts.',
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' Vous utilisez ',
+                phrase2: 'des tags dépendants',
+                phrase3: '. Vous pouvez ',
+                phrase4: 'réimporter une feuille de calcul',
+                phrase5: ' pour mettre à jour vos tags.',
+            },
             emptyTags: {
                 title: "Vous n'avez cr\u00E9\u00E9 aucun tag",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
