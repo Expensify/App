@@ -14,7 +14,7 @@ You can add one **direct** or [**commercial feed**](https://help.expensify.com/a
 
 # Prerequisites
 
-Before setting up a direct feed, go to **Workspaces > New Workspace** to create a workspace (if you haven't already).
+**A workspace on the Collect or Control plan:** Before setting up a direct feed, go to **Workspaces > New Workspace** to create a workspace (if you haven't already).
 
 ---
 
@@ -34,19 +34,6 @@ Before setting up a direct feed, go to **Workspaces > New Workspace** to create 
    - For international members in supported countries, choosing **Direct feed** will automatically launch the Plaid connection process.
 
 ![Click add cards to add a card feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_01.png){:width="100%"}
-
----
-
-# Using Plaid to Connect a Direct Feed
-
-**Supported countries for Plaid feeds:**
-
-- United States
-- Canada
-- United Kingdom
-- Austria, Belgium, Denmark, Estonia, Finland, France, Germany, Ireland, Italy, Latvia, Lithuania, Netherlands, Norway, Poland, Portugal, Spain, Sweden
-
-Once you choose **Direct feed > Other**, you'll be redirected to Plaid, where you can securely log in to your bank and select credit card accounts you want to import into Expensify.
 
 ---
 
@@ -91,7 +78,13 @@ To manage a card, click any assigned card to open the **Card details** page.
 
 ## What if I’m outside the U.S.?
 
-Plaid feeds are available in many countries outside the U.S. See the list above. If your country isn’t supported, you’ll see the option to connect a **Commercial feed**.
+Plaid feeds are available in many countries outside the U.S. If your country isn’t supported, you’ll see the option to connect a **Commercial feed**.
+
+**Direct feeds are supported for the following countries:**
+- United States
+- Canada
+- United Kingdom
+- Austria, Belgium, Denmark, Estonia, Finland, France, Germany, Ireland, Italy, Latvia, Lithuania, Netherlands, Norway, Poland, Portugal, Spain, Sweden
 
 ## How do I reconnect a broken feed?
 
