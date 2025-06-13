@@ -108,7 +108,7 @@ type ExtendedTargetedEvent = TargetedEvent & {
     };
 };
 
-type ListItem<K = string> = {
+type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
 
