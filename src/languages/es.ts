@@ -2034,7 +2034,7 @@ const translations = {
         language: 'Idioma',
         languages: {
             en: {
-                label: 'Inglés',
+                label: 'English',
             },
             es: {
                 label: 'Español',
