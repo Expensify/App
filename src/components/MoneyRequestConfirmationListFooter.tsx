@@ -58,7 +58,7 @@ type TagVisibility = {
 
     /** Flag indicating if the tag should be shown */
     shouldShow: boolean;
-}
+};
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -370,7 +370,6 @@ function MoneyRequestConfirmationListFooter({
             shouldShow,
         };
     });
-
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
