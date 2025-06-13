@@ -18,6 +18,7 @@ import {
     buildOptimisticMovedTransactionAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
+    findSelfDMReportID,
 } from '@libs/ReportUtils';
 import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -614,7 +615,8 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     let transactionsMoved = false;
 
     transactions.forEach((transaction) => {
-        const oldIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+        const isFromSelfDM = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const oldIOUAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : transaction.reportID, transaction.transactionID);
         if (!transaction.reportID || transaction.reportID === reportID) {
             return;
         }
