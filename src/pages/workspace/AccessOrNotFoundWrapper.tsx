@@ -131,7 +131,7 @@ function AccessOrNotFoundWrapper({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         canBeMissing: true,
     });
-    const isLoadingReportData = useReportDataLoading(false);
+    const isLoadingReportData = useReportDataLoading();
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);

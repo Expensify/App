@@ -25,7 +25,7 @@ import FocusModeNotification from './FocusModeNotification';
  */
 export default function PriorityModeController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
-    const isLoadingReportData = useReportDataLoading(false);
+    const isLoadingReportData = useReportDataLoading();
     const [isInFocusMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (priorityMode) => priorityMode === CONST.PRIORITY_MODE.GSD, canBeMissing: true});
     const [hasTriedFocusMode] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});

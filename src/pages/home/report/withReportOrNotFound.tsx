@@ -67,7 +67,7 @@ export default function (
             const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
             const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`, {canBeMissing: true});
-            const isLoadingReportData = useReportDataLoading(false);
+            const isLoadingReportData = useReportDataLoading();
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);

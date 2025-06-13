@@ -36,7 +36,7 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
         }: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>,
         ref: ForwardedRef<TRef>,
     ) {
-        const isLoadingReportData = useReportDataLoading(false);
+        const isLoadingReportData = useReportDataLoading();
         const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
         if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {

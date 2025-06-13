@@ -57,7 +57,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
-    const isLoadingReportData = useReportDataLoading(false);
+    const isLoadingReportData = useReportDataLoading();
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);

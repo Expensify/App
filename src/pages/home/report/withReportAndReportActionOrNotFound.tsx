@@ -42,7 +42,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
         const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`, {canBeMissing: true});
-        const isLoadingReportData = useReportDataLoading(false);
+        const isLoadingReportData = useReportDataLoading();
         const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
         const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false, canBeMissing: true});
