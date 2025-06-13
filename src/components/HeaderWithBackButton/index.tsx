@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {ActivityIndicator, Keyboard, StyleSheet, View} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
 import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
@@ -72,6 +73,7 @@ function HeaderWithBackButton({
     progressBarPercentage,
     style,
     subTitleLink = '',
+    shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
@@ -136,6 +138,52 @@ function HeaderWithBackButton({
         titleColor,
         translate,
         openParentReportInCurrentTab,
+    ]);
+    const ThreeDotMenuButton = useMemo(() => {
+        if (shouldShowThreeDotsButton) {
+            return threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
+                <Tooltip text={threeDotsMenuItems.at(0)?.text}>
+                    <PressableWithoutFeedback
+                        onPress={threeDotsMenuItems.at(0)?.onSelected}
+                        style={[styles.touchableButtonImage]}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
+                    >
+                        <Icon
+                            src={threeDotsMenuItems.at(0)?.icon as React.FC<SvgProps>}
+                            fill={theme.icon}
+                        />
+                    </PressableWithoutFeedback>
+                </Tooltip>
+            ) : (
+                <ThreeDotsMenu
+                    icon={threeDotsMenuIcon}
+                    iconFill={threeDotsMenuIconFill}
+                    disabled={shouldDisableThreeDotsButton}
+                    menuItems={threeDotsMenuItems}
+                    onIconPress={onThreeDotsButtonPress}
+                    anchorPosition={threeDotsAnchorPosition}
+                    shouldOverlay={shouldOverlayDots}
+                    anchorAlignment={threeDotsAnchorAlignment}
+                    shouldSetModalVisibility={shouldSetModalVisibility}
+                />
+            );
+        }
+        return null;
+    }, [
+        onThreeDotsButtonPress,
+        shouldDisableThreeDotsButton,
+        shouldOverlayDots,
+        shouldSetModalVisibility,
+        shouldShowThreeDotsButton,
+        styles.touchableButtonImage,
+        theme.icon,
+        threeDotsAnchorAlignment,
+        threeDotsAnchorPosition,
+        threeDotsMenuIcon,
+        threeDotsMenuIconFill,
+        threeDotsMenuItems,
+        shouldMinimizeMenuButton,
     ]);
 
     return (
@@ -239,19 +287,7 @@ function HeaderWithBackButton({
                             ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>
-                    {shouldShowThreeDotsButton && (
-                        <ThreeDotsMenu
-                            icon={threeDotsMenuIcon}
-                            iconFill={threeDotsMenuIconFill}
-                            disabled={shouldDisableThreeDotsButton}
-                            menuItems={threeDotsMenuItems}
-                            onIconPress={onThreeDotsButtonPress}
-                            anchorPosition={threeDotsAnchorPosition}
-                            shouldOverlay={shouldOverlayDots}
-                            anchorAlignment={threeDotsAnchorAlignment}
-                            shouldSetModalVisibility={shouldSetModalVisibility}
-                        />
-                    )}
+                    {ThreeDotMenuButton}
                     {shouldShowCloseButton && (
                         <Tooltip text={translate('common.close')}>
                             <PressableWithoutFeedback

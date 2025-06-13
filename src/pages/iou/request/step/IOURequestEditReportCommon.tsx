@@ -38,23 +38,42 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 
 type Props = {
     backTo: Route | undefined;
-    transactionReport: OnyxEntry<Report>;
+    selectedReportID: string | undefined;
+    selectedPolicyID?: string | undefined;
     selectReport: (item: ReportListItem) => void;
 };
 
-function IOURequestEditReportCommon({backTo, transactionReport, selectReport}: Props) {
+function IOURequestEditReportCommon({backTo, selectedReportID, selectedPolicyID, selectReport}: Props) {
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const expenseReports = getOutstandingReportsForUser(transactionReport?.policyID, transactionReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
+    const selectedReport = useMemo(() => {
+        if (!selectedReportID) {
+            return undefined;
+        }
+        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
+    }, [allReports, selectedReportID]);
+
+    const expenseReports = useMemo(() => {
+        if (!selectedReportID) {
+            return selectedPolicyID
+                ? getOutstandingReportsForUser(selectedPolicyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs)
+                : Object.values(allPoliciesID ?? {}).flatMap((policyID) =>
+                      getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs),
+                  );
+        }
+        return getOutstandingReportsForUser(selectedReport?.policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs);
+    }, [allReports, currentUserPersonalDetails.accountID, selectedReport, reportNameValuePairs, allPoliciesID, selectedReportID, selectedPolicyID]);
+
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
         }
-
-        const isTransactionReportCorrect = expenseReports.some((report) => report?.reportID === transactionReport?.reportID);
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
@@ -63,9 +82,9 @@ function IOURequestEditReportCommon({backTo, transactionReport, selectReport}: P
                 text: report.reportName,
                 value: report.reportID,
                 keyForList: report.reportID,
-                isSelected: isTransactionReportCorrect ? report.reportID === transactionReport?.reportID : expenseReports.at(0)?.reportID === report.reportID,
+                isSelected: report.reportID === selectedReportID,
             }));
-    }, [allReports, debouncedSearchValue, expenseReports, transactionReport?.reportID]);
+    }, [allReports, debouncedSearchValue, expenseReports, selectedReportID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -90,7 +109,7 @@ function IOURequestEditReportCommon({backTo, transactionReport, selectReport}: P
                 textInputLabel={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                 shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
-                initiallyFocusedOptionKey={transactionReport?.reportID}
+                initiallyFocusedOptionKey={selectedReportID}
                 ListItem={UserListItem}
             />
         </StepScreenWrapper>

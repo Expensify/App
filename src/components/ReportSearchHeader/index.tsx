@@ -15,6 +15,7 @@ function ReportSearchHeader({report, policy, style, transactions, avatarBorderCo
                 transactions={transactions}
                 shouldUseCustomSearchTitleName
                 shouldEnableDetailPageNavigation={false}
+                shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
             />
         );

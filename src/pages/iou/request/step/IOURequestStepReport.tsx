@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ListItem} from '@components/SelectionList/types';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import {isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -21,8 +22,14 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action} = route.params;
-    const reportID = transaction?.reportID === '0' ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+
+    const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
+    const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
+    const participantReportID = transaction?.participants?.at(0)?.reportID;
+    const participantReport = Object.values(allReports ?? {}).find((report) => report?.reportID === participantReportID);
+    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID);
+    const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
+    const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
@@ -36,13 +43,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 changeTransactionsReport([transaction.transactionID], item.value);
             }
         }
-        Navigation.dismissModalWithReport({reportID: item.value});
+        if (isEditing) {
+            Navigation.dismissModalWithReport({reportID: item.value});
+        } else {
+            Navigation.goBack(backTo);
+        }
     };
 
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionReport={transactionReport}
+            selectedReportID={selectedReportID}
             selectReport={selectReport}
         />
     );

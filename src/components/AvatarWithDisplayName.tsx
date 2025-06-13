@@ -58,6 +58,9 @@ type AvatarWithDisplayNameProps = {
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
 
+    /** Whether the avatar is pressable to open the actor details */
+    shouldEnableAvatarNavigation?: boolean;
+
     /** Whether we should enable custom title logic designed for search lis */
     shouldUseCustomSearchTitleName?: boolean;
 
@@ -160,6 +163,7 @@ function AvatarWithDisplayName({
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldEnableDetailPageNavigation = false,
+    shouldEnableAvatarNavigation = true,
     shouldUseCustomSearchTitleName = false,
     transactions = [],
     openParentReportInCurrentTab = false,
@@ -231,32 +235,39 @@ function AvatarWithDisplayName({
         }
     }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
+    const avatar = (
+        <View accessibilityLabel={title}>
+            {shouldShowSubscriptAvatar ? (
+                <SubscriptAvatar
+                    backgroundColor={avatarBorderColor}
+                    mainAvatar={icons.at(0) ?? fallbackIcon}
+                    secondaryAvatar={icons.at(1)}
+                    size={size}
+                />
+            ) : (
+                <MultipleAvatars
+                    icons={icons}
+                    size={size}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+                />
+            )}
+        </View>
+    );
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <PressableWithoutFeedback
-                        onPress={showActorDetails}
-                        accessibilityLabel={title}
-                        role={getButtonRole(true)}
-                    >
-                        <View accessibilityLabel={title}>
-                            {shouldShowSubscriptAvatar ? (
-                                <SubscriptAvatar
-                                    backgroundColor={avatarBorderColor}
-                                    mainAvatar={icons.at(0) ?? fallbackIcon}
-                                    secondaryAvatar={icons.at(1)}
-                                    size={size}
-                                />
-                            ) : (
-                                <MultipleAvatars
-                                    icons={icons}
-                                    size={size}
-                                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                                />
-                            )}
-                        </View>
-                    </PressableWithoutFeedback>
+                    {shouldEnableAvatarNavigation ? (
+                        <PressableWithoutFeedback
+                            onPress={showActorDetails}
+                            accessibilityLabel={title}
+                            role={getButtonRole(true)}
+                        >
+                            {avatar}
+                        </PressableWithoutFeedback>
+                    ) : (
+                        avatar
+                    )}
                     <View style={[styles.flex1, styles.flexColumn]}>
                         {getCustomDisplayName(
                             shouldUseCustomSearchTitleName,

@@ -12,6 +12,7 @@ import createRandomReportAction from '../../utils/collections/reportActions';
 import createRandomReport from '../../utils/collections/reports';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+const emptyFunction = () => {};
 jest.mock('@rnmapbox/maps', () => {
     return {
         default: jest.fn(),
@@ -76,7 +77,8 @@ describe('ReportPreview', () => {
                         chatReportID={chatReportID}
                         action={createRandomReportAction(0)}
                         policyID=""
-                        checkIfContextMenuActive={() => {}}
+                        checkIfContextMenuActive={emptyFunction}
+                        onShowContextMenu={emptyFunction}
                     />
                 </LocaleContextProvider>
             </OnyxProvider>,

@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import Visibility from '@libs/Visibility';
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
@@ -37,17 +36,6 @@ Onyx.connect({
             PushNotification.deregister();
             PushNotification.clearNotifications();
         }
-    },
-});
-
-let lastVisitedPath: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.LAST_VISITED_PATH,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        lastVisitedPath = value;
     },
 });
 
@@ -120,8 +108,6 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
 function navigateToReport({reportID}: PushNotificationData): Promise<void> {
     Log.info('[PushNotification] Navigating to report', false, {reportID});
 
-    const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-
     Navigation.waitForProtectedRoutes().then(() => {
         // The attachment modal remains open when navigating to the report so we need to close it
         Modal.close(() => {
@@ -143,7 +129,7 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID});
-                Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID, backTo: Navigation.getActiveRoute()});
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID), undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
                 let errorMessage = String(error);

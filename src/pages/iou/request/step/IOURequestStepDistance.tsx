@@ -46,7 +46,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPersonalPolicy, getPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, hasRoute, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -145,10 +144,12 @@ function IOURequestStepDistance({
         (participants: Participant[]) => {
             // Get policy report based on transaction participants
             const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
-            const selectedReportID = participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID;
+            const selectedReportID = participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID;
             const policyReport = participants.at(0) ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`] : report;
 
             const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
             const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
             const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -311,7 +312,6 @@ function IOURequestStepDistance({
                 setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
                 const participant = participants.at(0);
                 if (iouType === CONST.IOU.TYPE.TRACK && participant) {
-                    playSound(SOUNDS.DONE);
                     trackExpense({
                         report,
                         isDraftPolicy: false,
@@ -338,7 +338,6 @@ function IOURequestStepDistance({
                     return;
                 }
 
-                playSound(SOUNDS.DONE);
                 createDistanceRequest({
                     report,
                     participants,
@@ -353,7 +352,6 @@ function IOURequestStepDistance({
                         currency: transaction?.currency ?? 'USD',
                         merchant: translate('iou.fieldPending'),
                         billable: !!policy?.defaultBillable,
-                        reimbursable: !!policy?.defaultReimbursable,
                         validWaypoints: getValidWaypoints(waypoints, true),
                         customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
                         splitShares: transaction?.splitShares,
