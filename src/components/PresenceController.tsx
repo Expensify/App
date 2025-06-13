@@ -24,7 +24,7 @@ export default function PresenceController() {
     }, [accountID]);
 
     const goActive = useCallback(
-        (timeoutMs: number) => {
+        (reason: string, timeoutMs: number) => {
             if (!accountID) {
                 return;
             }
@@ -41,14 +41,14 @@ export default function PresenceController() {
                 return;
             }
 
-            Log.info('[PresenceController] Going active', false, {timeoutMs});
+            Log.info('[PresenceController] Going active', false, {reason, timeoutMs});
             didJoinPresenceChannel.current = true;
             PusherUtils.joinPresenceChannel(accountID);
         },
         [accountID, goInactive],
     );
 
-    const goActiveFromFocusing = useCallback(() => goActive(TIMEOUT_FOCUS_TAB), [goActive]);
+    const goActiveFromFocusing = useCallback(() => goActive('app focused', TIMEOUT_FOCUS_TAB), [goActive]);
 
     // Go active on mount and go inactive on unmount
     useEffect(() => {
@@ -61,7 +61,7 @@ export default function PresenceController() {
 
     // Go active when mouse activity is detected
     useEffect(() => {
-        const goActiveForMouseActivity = () => goActive(TIMEOUT_MOUSE_ACTIVITY);
+        const goActiveForMouseActivity = () => goActive('mouse activity', TIMEOUT_MOUSE_ACTIVITY);
         document.addEventListener('mousemove', goActiveForMouseActivity);
         return () => document.removeEventListener('mousemove', goActiveForMouseActivity);
     }, [goActive]);
