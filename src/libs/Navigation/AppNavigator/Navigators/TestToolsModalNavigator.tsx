@@ -1,7 +1,6 @@
 import React, {useCallback, useRef} from 'react';
 import type {MouseEvent} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
+import {Pressable, View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import TestToolsModalPage from '@components/TestToolsModalPage';
@@ -24,14 +23,13 @@ function TestToolsModalNavigator() {
     const outerViewRef = useRef<View>(null);
     const isAuthenticated = useIsAuthenticated();
 
-    const handleOuterClick = useCallback((e: MouseEvent | GestureResponderEvent) => {
-        e.preventDefault();
+    const handleOuterClick = useCallback(() => {
         requestAnimationFrame(() => {
             toggleTestToolsModal();
         });
     }, []);
 
-    const handleInnerPress = useCallback((e: GestureResponderEvent) => {
+    const handleInnerClick = useCallback((e: MouseEvent) => {
         e.stopPropagation();
     }, []);
 
@@ -40,16 +38,15 @@ function TestToolsModalNavigator() {
     return (
         <NoDropZone>
             <Overlay />
-            <View
+            <Pressable
                 ref={outerViewRef}
-                onClick={handleOuterClick}
-                onTouchEnd={handleOuterClick}
-                style={styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)}
+                onPress={handleOuterClick}
+                style={[styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout), styles.cursorDefault]}
             >
                 <FocusTrapForScreens>
                     <View
-                        onClick={(e) => e.stopPropagation()}
-                        onTouchEnd={handleInnerPress}
+                        onStartShouldSetResponder={() => true}
+                        onClick={handleInnerClick}
                         style={styles.getTestToolsNavigatorInnerView(shouldUseNarrowLayout, isAuthenticated)}
                     >
                         <Stack.Navigator screenOptions={{headerShown: false}}>
@@ -60,7 +57,7 @@ function TestToolsModalNavigator() {
                         </Stack.Navigator>
                     </View>
                 </FocusTrapForScreens>
-            </View>
+            </Pressable>
         </NoDropZone>
     );
 }
