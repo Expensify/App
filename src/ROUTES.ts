@@ -5,6 +5,7 @@ import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
+import type {AttachmentModalScreenParams} from './pages/media/AttachmentModalScreen/types';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
@@ -437,28 +438,7 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (
-            reportID: string | undefined,
-            attachmentID: string | undefined,
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE> | undefined,
-            url: string,
-            accountID?: number,
-            isAuthTokenRequired?: boolean,
-            fileName?: string,
-            attachmentLink?: string,
-            hashKey?: number,
-        ) => {
-            const typeParam = type ? `&type=${type}` : '';
-            const reportParam = reportID ? `&reportID=${reportID}` : '';
-            const accountParam = accountID ? `&accountID=${accountID}` : '';
-            const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
-            const fileNameParam = fileName ? `&fileName=${fileName}` : '';
-            const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
-            const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
-            const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
-
-            return `attachment?source=${encodeURIComponent(url)}${typeParam}${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
-        },
+        getRoute: (params?: AttachmentRouteParams) => getAttachmentModalScreenRoute('attachment', params),
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -478,7 +458,7 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
+        getRoute: (reportID: string | number | undefined, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS route');
             }
@@ -2612,6 +2592,30 @@ const HYBRID_APP_ROUTES = {
 
 export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
 export default ROUTES;
+
+type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
+type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
+type AttachmentRoutes = AttachmentsRoute | ReportAddAttachmentRoute;
+type AttachmentRouteParams = AttachmentModalScreenParams;
+
+function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: AttachmentRouteParams) {
+    if (!params?.source) {
+        return url;
+    }
+
+    const {source, attachmentID, type, reportID, accountID, isAuthTokenRequired, originalFileName, attachmentLink} = params;
+
+    const sourceParam = `?source=${encodeURIComponent(source as string)}`;
+    const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
+    const typeParam = type ? `&type=${type as string}` : '';
+    const reportIDParam = reportID ? `&reportID=${reportID}` : '';
+    const accountIDParam = accountID ? `&accountID=${accountID}` : '';
+    const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
+    const fileNameParam = originalFileName ? `&originalFileName=${originalFileName}` : '';
+    const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+
+    return `${url}${sourceParam}${typeParam}${reportIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;

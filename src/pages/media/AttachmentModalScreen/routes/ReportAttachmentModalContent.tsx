@@ -87,17 +87,17 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(
+            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute({
                 reportID,
-                attachment.attachmentID,
+                attachmentID: attachment.attachmentID,
                 type,
-                String(attachment.source),
+                source: String(attachment.source),
                 accountID,
-                attachment?.isAuthTokenRequired,
-                attachment?.file?.name,
-                attachment?.attachmentLink,
+                isAuthTokenRequired: attachment?.isAuthTokenRequired,
+                originalFileName: attachment?.file?.name,
+                attachmentLink: attachment?.attachmentLink,
                 hashKey,
-            );
+            });
             Navigation.navigate(routeToNavigate);
         },
         [reportID, type, accountID, hashKey],

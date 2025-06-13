@@ -11,7 +11,7 @@ import type AttachmentModalContainerProps from './types';
 
 const onCloseNoop = () => {};
 
-function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: AttachmentModalContainerProps) {
+function AttachmentModalContainer({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const [shouldDisableAnimationAfterInitialMount, setShouldDisableAnimationAfterInitialMount] = useState(false);
 
@@ -71,6 +71,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
                 }
                 return contentProps.submitRef.current;
             }}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
         >
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
