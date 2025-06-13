@@ -857,6 +857,14 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     }
 
+    if (reportID) {
+        const chatReport = getReportOrDraftReport(report.chatReportID);
+        const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[reportID]);
+        if (transactionThreadReportID) {
+            lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+        }
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
