@@ -9,9 +9,39 @@ const LOCALES = {
     DEFAULT: 'en',
 } as const;
 
-const LANGUAGES = ['en', 'es'] as const;
+const UPCOMING_LOCALES = {
+    DE: 'de',
+    FR: 'fr',
+    IT: 'it',
+    JA: 'ja',
+    NL: 'nl',
+    PT_BR: 'pt-BR',
+    ZH_HANS: 'zh-hans',
+};
 
-const UPCOMING_LANGUAGES = ['pt-BR', 'it', 'de', 'fr', 'nl', 'ja', 'zh-hans'] as const;
+const LANGUAGES = [LOCALES.EN, LOCALES.ES] as const;
+
+const UPCOMING_LANGUAGES = [
+    UPCOMING_LOCALES.DE,
+    UPCOMING_LOCALES.FR,
+    UPCOMING_LOCALES.IT,
+    UPCOMING_LOCALES.JA,
+    UPCOMING_LOCALES.NL,
+    UPCOMING_LOCALES.PT_BR,
+    UPCOMING_LOCALES.ZH_HANS,
+] as const;
+
+const LOCALE_TO_LANGUAGE_STRING = {
+    [LOCALES.EN]: 'English',
+    [LOCALES.ES]: 'Español',
+    [UPCOMING_LOCALES.DE]: 'Deutsch',
+    [UPCOMING_LOCALES.FR]: 'Français',
+    [UPCOMING_LOCALES.IT]: 'Italiano',
+    [UPCOMING_LOCALES.JA]: '日本語',
+    [UPCOMING_LOCALES.NL]: 'Nederlands',
+    [UPCOMING_LOCALES.PT_BR]: 'Português (BR)',
+    [UPCOMING_LOCALES.ZH_HANS]: '中文 (简体)',
+} as const;
 
 type SupportedLanguage = TupleToUnion<Spread<typeof LANGUAGES, typeof UPCOMING_LANGUAGES>>;
 
@@ -20,5 +50,5 @@ type SupportedLanguage = TupleToUnion<Spread<typeof LANGUAGES, typeof UPCOMING_L
  */
 type TranslationTargetLanguage = Exclude<SupportedLanguage, typeof LOCALES.EN>;
 
-export {LOCALES, LANGUAGES, UPCOMING_LANGUAGES};
+export {LOCALES, LANGUAGES, UPCOMING_LANGUAGES, LOCALE_TO_LANGUAGE_STRING};
 export type {SupportedLanguage, TranslationTargetLanguage};
