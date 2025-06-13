@@ -2127,7 +2127,7 @@ function isExpenseRequest(report: OnyxInputOrEntry<Report>): report is Thread {
  * An IOU Request is a thread where the parent report is an IOU Report and
  * the parentReportAction is a transaction.
  */
-function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
+function isIOURequest(report: OnyxInputOrEntry<Report>): report is Thread {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = getReport(report?.parentReportID, allReports);
@@ -2140,7 +2140,7 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  * A Track Expense Report is a thread where the parent the parentReportAction is a transaction, and
  * parentReportAction has type of track.
  */
-function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
+function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): report is Thread {
     if (isThread(report)) {
         const selfDMReportID = findSelfDMReportID();
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
@@ -2881,7 +2881,7 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
     return {
         id: accountID,
         source: details?.avatar ?? FallbackAvatar,
-        type: CONST.ICON_TYPE_AVATAR as const,
+        type: CONST.ICON_TYPE_AVATAR,
         name: displayName,
         fallbackIcon: details?.fallbackIcon,
     };
@@ -2922,7 +2922,7 @@ function getIconsForExpenseRequest(
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
 ): Icon[] {
-    const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
+    const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? ''}`]?.[report?.parentReportActionID ?? ''];
     const workspaceIcon = getWorkspaceIcon(report, policy);
     const memberIcon = getParticipantIcon(parentReportAction?.actorAccountID, personalDetails, true);
     return [memberIcon, workspaceIcon];
@@ -2936,7 +2936,7 @@ function getIconsForChatThread(
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
 ): Icon[] {
-    const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
+    const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? ''}`]?.[report?.parentReportActionID ?? ''];
     const actorAccountID = getReportActionActorAccountID(parentReportAction, report, report);
     const actorIcon = getParticipantIcon(actorAccountID, personalDetails, true);
 
@@ -3015,14 +3015,26 @@ function getIconsForExpenseReport(report: OnyxInputOrEntry<Report>, personalDeta
 /**
  * Helper function to get the icons for an IOU report. Only to be used in getIcons().
  */
-function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>,): Icon[] {
-    if (isOneTransactionReport(report?.reportID)) {
-        return [getParticipantIcon(report?.ownerAccountID, personalDetails, true)];
+function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): Icon[] {
+    if (!report) {
+        return [];
+    }
+    if (isOneTransactionReport(report.reportID)) {
+        console.log('>>> isOneTransactionReport', {report});    
+        return [getParticipantIcon(report.ownerAccountID, personalDetails, true)];
     }
 
-    const managerIcon = getParticipantIcon(report?.managerID, personalDetails, true);
-    const ownerIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, true);
-    const isManager = currentUserAccountID === report?.managerID;
+    const reportActions = getAllReportActions(report.reportID);
+    const moneyRequestActions = Object.values(reportActions).filter((action) => action && isMoneyRequestAction(action));
+
+    if (moneyRequestActions.length > 0) {
+        const ownerAccountIDs = moneyRequestActions.map((action) => action.actorAccountID).filter((id): id is number => !!id);
+        return getIconsForParticipants(ownerAccountIDs, personalDetails);
+    }
+
+    const managerIcon = getParticipantIcon(report.managerID, personalDetails, true);
+    const ownerIcon = getParticipantIcon(report.ownerAccountID, personalDetails, true);
+    const isManager = currentUserAccountID === report.managerID;
     return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
 }
 
@@ -3032,7 +3044,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
 function getIconsForGroupChat(report: OnyxInputOrEntry<Report>): Icon[] {
     return [
         {
-            source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
+            source: report?.avatarUrl ?? getDefaultGroupAvatar(report?.reportID),
             id: -1,
             type: CONST.ICON_TYPE_AVATAR,
             name: getGroupChatName(undefined, true, report),
@@ -3049,7 +3061,7 @@ function getIconsForInvoiceReport(
     policy: OnyxInputOrEntry<Policy>,
     invoiceReceiverPolicy: OnyxInputOrEntry<Policy>,
 ): Icon[] {
-    const invoiceRoomReport = getReportOrDraftReport(report.chatReportID);
+    const invoiceRoomReport = getReportOrDraftReport(report?.chatReportID);
     const icons = [getWorkspaceIcon(invoiceRoomReport, policy)];
     if (invoiceRoomReport) {
         icons.push(...getInvoiceReceiverIcons(invoiceRoomReport, personalDetails, invoiceReceiverPolicy));
@@ -3505,7 +3517,7 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
         if (nonReimbursableSpend + totalSpend !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
-            // or you enter a negative expense to “offset” future expenses
+            // or you enter a negative expense to "offset" future expenses
             nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
             totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
 

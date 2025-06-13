@@ -1301,9 +1301,10 @@ function getOneTransactionThreadReportID(
         }
     }
 
+    console.log('>>> iouRequestActions', {iouRequestActions});
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
-        return;
+        return null;
     }
 
     const singleAction = iouRequestActions.at(0);

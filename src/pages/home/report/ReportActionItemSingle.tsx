@@ -117,9 +117,10 @@ function ReportActionItemSingle({
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
-    const invoiceReceiverPolicy =
-        report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? activePolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
-
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined}`,
+        {canBeMissing: true},
+    );
     let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
@@ -146,6 +147,12 @@ function ReportActionItemSingle({
         avatarSource = personalDetails?.[ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.avatar;
         avatarId = ownerAccountID;
     }
+
+    console.log('>>> ', {report, iouReport, action});
+
+
+    const icons = getIcons(iouReport, personalDetails, undefined, undefined, undefined, policy);
+    console.log('>>> icons', {icons});
 
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar: Icon;
