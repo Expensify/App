@@ -1095,7 +1095,7 @@ const translations = {
         finished: 'Finished',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `Submit ${amount}`,
-        submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
+        expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         submitted: `submitted`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -2172,6 +2172,25 @@ const translations = {
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: ({workEmail}: WorkEmailMergingBlockedParams) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
+        },
+        workspace: {
+            title: 'Stay organized with a workspace',
+            subtitle: 'Unlock powerful tools to simplify your expense management, all in one place. With a workspace, you can:',
+            explanationModal: {
+                descriptionOne: 'Track and organize receipts',
+                descriptionTwo: 'Categorize and tag expenses',
+                descriptionThree: 'Create and share reports',
+            },
+            price: 'Try it free for 30 days, then upgrade for just <strong>$5/month</strong>.',
+            createWorkspace: 'Create workspace',
+        },
+        confirmWorkspace: {
+            title: 'Confirm workspace',
+            subtitle: 'Create a workspace to track receipts, reimburse expenses, manage travel, create reports, and more — all at the speed of chat.',
+        },
+        inviteMembers: {
+            title: 'Invite members',
+            subtitle: 'Manage and share your expenses with an accountant or start a travel group with friends.',
         },
     },
     featureTraining: {
@@ -6652,6 +6671,14 @@ const translations = {
             minutes: '30 minutes',
         },
         callScheduled: 'Call scheduled',
+    },
+    autoSubmitModal: {
+        title: 'All clear and submitted!',
+        description: 'All warnings and violations has been cleared so:',
+        submittedExpensesTitle: 'These expenses have been submitted',
+        submittedExpensesDescription: 'These expenses have been sent to your approver but can still be edited until they are approved.',
+        pendingExpensesTitle: 'Pending expenses have been moved',
+        pendingExpensesDescription: 'Any pending card expenses have been moved to a separate report until they post.',
     },
     testDrive: {
         quickAction: {
