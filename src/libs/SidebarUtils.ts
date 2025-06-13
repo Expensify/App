@@ -17,17 +17,16 @@ import {getExpensifyCardFromReportAction} from './CardMessageUtils';
 import {extractCollectionItemID} from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
 import Performance from './Performance';
 import {getCleanedTagName, getPolicy} from './PolicyUtils';
 import {
-    getAddedApprovaRulelMessage,
+    getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getCardIssuedMessage,
-    getDeletedApprovaRulelMessage,
+    getDeletedApprovalRuleMessage,
     getIntegrationSyncFailedMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
@@ -49,6 +48,7 @@ import {
     getRetractedMessage,
     getSortedReportActions,
     getTagListNameUpdatedMessage,
+    getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -228,9 +228,11 @@ function getOrderedReportIDs(
         const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const isHidden = isHiddenForCurrentUser(report);
         const isFocused = report.reportID === currentReportId;
-        const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations, reportAttributes);
+        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+        const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+        const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, reportAttributes);
         const isReportInAccessible = report?.errorFields?.notFound;
-        if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
+        if (isOneTransactionThread(report, parentReport, parentReportAction)) {
             return;
         }
         if (hasErrorsOtherThanFailedReceipt && !isReportInAccessible) {
@@ -258,6 +260,7 @@ function getOrderedReportIDs(
         if (
             shouldReportBeInOptionList({
                 report,
+                chatReport,
                 currentReportId,
                 isInFocusMode,
                 betas,
@@ -350,6 +353,7 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
 
 function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
+    chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     reportErrors: Errors,
@@ -384,7 +388,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
     if (transactionThreadReportID) {
         const transactionID = getTransactionID(transactionThreadReportID);
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -407,6 +411,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
 
 function shouldShowRedBrickRoad(
     report: Report,
+    chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     reportErrors: Errors,
@@ -414,7 +419,7 @@ function shouldShowRedBrickRoad(
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isReportArchived);
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isReportArchived);
 }
 
 /**
@@ -530,9 +535,7 @@ function getOptionData({
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpense;
     const subtitle = getChatRoomSubtitle(report);
 
-    const login = Str.removeSMSDomain(personalDetail?.login ?? '');
     const status = personalDetail?.status ?? '';
-    const formattedLogin = Str.isSMSLogin(login) ? formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, undefined, isSelfDM(report));
@@ -689,9 +692,9 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE) {
             result.alternateText = getUpdatedAuditRateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE) {
-            result.alternateText = getAddedApprovaRulelMessage(lastAction);
+            result.alternateText = getAddedApprovalRuleMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE) {
-            result.alternateText = getDeletedApprovaRulelMessage(lastAction);
+            result.alternateText = getDeletedApprovalRuleMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE) {
             result.alternateText = getUpdatedApprovalRuleMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
@@ -700,6 +703,8 @@ function getOptionData({
             result.alternateText = getRetractedMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
             result.alternateText = getReopenedMessage();
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
+            result.alternateText = getTravelUpdateMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
@@ -713,12 +718,13 @@ function getOptionData({
         result.alternateText = prefix + result.alternateText;
     } else {
         if (!lastMessageText) {
-            lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy, !!result.private_isArchived).messageText ?? translateLocal('report.noActivityYet'));
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy, !!result.private_isArchived).messageText || translateLocal('report.noActivityYet'));
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isArchivedReport(reportNameValuePairs)) {
-            result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
+            result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText))}`;
         } else {
-            result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+            result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText));
         }
     }
 
