@@ -1598,7 +1598,16 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         lastReadTime,
     };
 
-    API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
+    API.write(
+        WRITE_COMMANDS.READ_NEWEST_ACTION,
+        parameters,
+        {optimisticData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) =>
+                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === parameters.reportID),
+        },
+    );
+
     if (shouldResetUnreadMarker) {
         DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
     }
