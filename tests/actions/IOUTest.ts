@@ -97,9 +97,12 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getReportRouteByID: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(),
     getActiveRoute: jest.fn(),
-    navigationRef: {
-        getRootState: jest.fn(),
-    },
+}));
+
+jest.mock('@src/libs/Navigation/navigationRef', () => ({
+    getRootState: () => ({
+        routes: [],
+    }),
 }));
 
 jest.mock('@react-navigation/native');
@@ -4008,7 +4011,7 @@ describe('actions/IOU', () => {
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -4173,7 +4176,7 @@ describe('actions/IOU', () => {
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
                     return waitForBatchedUpdates();
                 })
                 .then(
