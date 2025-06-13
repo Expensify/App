@@ -160,8 +160,8 @@ class TranslationGenerator {
     }
 
     /**
-     * Is a given template span (aka placeholder) "simple"?
-     * We define a span as "simple" if it is an identifier or property access expression. Anything else is complex.
+     * Is a given expression (i.e: template placeholder) "simple"?
+     * We define an expression as "simple" if it is an identifier or property access expression. Anything else is complex.
      *
      * @example ${name} => true
      * @example ${user.firstName} => true
@@ -169,13 +169,13 @@ class TranslationGenerator {
      * @example ${name ?? 'someone'} => false
      * @example ${condition ? 'A' : 'B'} => false
      */
-    private isSimpleTemplateSpan(span: ts.TemplateSpan): boolean {
-        return ts.isIdentifier(span.expression) || ts.isPropertyAccessExpression(span.expression) || ts.isElementAccessExpression(span.expression);
+    private isSimpleExpression(expr: ts.Expression): boolean {
+        return ts.isIdentifier(expr) || ts.isPropertyAccessExpression(expr) || ts.isElementAccessExpression(expr);
     }
 
     /**
      * Is the given template expression "simple"? (i.e: can it be sent directly to ChatGPT to be translated)
-     * We define a template expression as "simple" if each of its spans are simple (as defined by this.isSimpleTemplateSpan)
+     * We define a template expression as "simple" if each of its spans' expressions are simple (as defined by this.isSimpleTemplateSpan)
      *
      * @example `Hello, ${name}!` => true
      * @example `Welcome ${user.firstName}` => true
@@ -184,7 +184,7 @@ class TranslationGenerator {
      * @example `Edit ${condition ? 'A' : 'B'}` => false
      */
     private isSimpleTemplateExpression(node: ts.TemplateExpression): boolean {
-        return node.templateSpans.every((span) => this.isSimpleTemplateSpan(span));
+        return node.templateSpans.every((span) => this.isSimpleExpression(span.expression));
     }
 
     /**
@@ -273,7 +273,7 @@ class TranslationGenerator {
         let result = expression.head.text;
         for (const span of expression.templateSpans) {
             const expressionText = span.expression.getText();
-            if (this.isSimpleTemplateSpan(span)) {
+            if (this.isSimpleExpression(span.expression)) {
                 result += `\${${expressionText}}`;
             } else {
                 result += `\${${hashStr(span.expression.getText())}}`;
@@ -287,37 +287,34 @@ class TranslationGenerator {
      * Convert our string-encoded template expression to a template expression.
      * If the template contains any complex spans, those must be translated first, and those translations need to be passed in.
      */
-    private stringToTemplateExpression(input: string, translatedComplexSpans = new Map<number, ts.TemplateSpan>()): ts.TemplateExpression {
+    private stringToTemplateExpression(input: string, translatedComplexExpressions = new Map<number, ts.Expression>()): ts.TemplateExpression {
         const regex = /\$\{([^}]*)}/g;
-        const spans: ts.TemplateSpan[] = [];
-
-        const matchIterator = input.matchAll(regex);
-
-        const firstMatch = matchIterator.next();
-        const headText = firstMatch.done ? input : input.slice(0, firstMatch.value.index);
-        const templateHead = ts.factory.createTemplateHead(headText);
-
         const matches = [...input.matchAll(regex)];
 
-        for (let i = 0; i < matches.length; i++) {
-            // eslint-disable-next-line rulesdir/prefer-at
-            const match = matches[i];
-            const [fullMatch, placeholder] = match;
-            const trimmed = placeholder.trim();
-            let expr: ts.Expression;
+        const headText = input.slice(0, matches.at(0)?.index ?? input.length);
+        const templateHead = ts.factory.createTemplateHead(headText);
 
+        const spans: ts.TemplateSpan[] = [];
+        for (let i = 0; i < matches.length; i++) {
+            const match = matches.at(i);
+            if (!match) {
+                continue;
+            }
+            const [fullMatch, placeholder] = match;
+
+            let expression: ts.Expression;
+            const trimmed = placeholder.trim();
             if (/^\d+$/.test(trimmed)) {
                 // It's a hash reference to a complex span
                 const hashed = Number(trimmed);
-                const translatedSpan = translatedComplexSpans.get(hashed);
-                if (!translatedSpan) {
+                const translatedExpression = translatedComplexExpressions.get(hashed);
+                if (!translatedExpression) {
                     throw new Error(`No template found for hash: ${hashed}`);
                 }
-                spans.push(translatedSpan);
-                continue;
+                expression = translatedExpression;
             } else {
                 // Assume it's a simple identifier or property access
-                expr = ts.factory.createIdentifier(trimmed);
+                expression = ts.factory.createIdentifier(trimmed);
             }
 
             const startOfMatch = match.index;
@@ -327,7 +324,7 @@ class TranslationGenerator {
 
             const literal = i === matches.length - 1 ? ts.factory.createTemplateTail(staticText) : ts.factory.createTemplateMiddle(staticText);
 
-            spans.push(ts.factory.createTemplateSpan(expr, literal));
+            spans.push(ts.factory.createTemplateSpan(expression, literal));
         }
 
         return ts.factory.createTemplateExpression(templateHead, spans);
@@ -357,21 +354,22 @@ class TranslationGenerator {
                             return node;
                         }
 
-                        // Recursively translate all complex template spans first
-                        const translatedComplexSpans = new Map<number, ts.TemplateSpan>();
+                        // Recursively translate all complex template expressions first
+                        const translatedComplexExpressions = new Map<number, ts.Expression>();
 
                         // Template expression is complex:
                         for (const span of node.templateSpans) {
-                            if (this.isSimpleTemplateSpan(span)) {
+                            const expression = span.expression;
+                            if (this.isSimpleExpression(expression)) {
                                 continue;
                             }
-                            const hash = hashStr(span.expression.getText());
-                            const translatedSpan = ts.visitNode(span, visit);
-                            translatedComplexSpans.set(hash, translatedSpan as ts.TemplateSpan);
+                            const hash = hashStr(expression.getText());
+                            const translatedExpression = ts.visitNode(expression, visit);
+                            translatedComplexExpressions.set(hash, translatedExpression as ts.Expression);
                         }
 
                         // Build the translated template expression, referencing the translated template spans as necessary
-                        return this.stringToTemplateExpression(translatedTemplate, translatedComplexSpans);
+                        return this.stringToTemplateExpression(translatedTemplate, translatedComplexExpressions);
                     }
                 }
                 return ts.visitEachChild(node, visit, context);

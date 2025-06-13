@@ -4,7 +4,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import StringUtils from '@libs/StringUtils';
+import dedent from '@libs/StringUtils/dedent';
 import generateTranslations from '../../scripts/generateTranslations';
 import Translator from '../../scripts/utils/Translator/Translator';
 
@@ -45,7 +45,7 @@ describe('generateTranslations', () => {
     it('translates nested structures', async () => {
         fs.writeFileSync(
             EN_PATH,
-            StringUtils.dedent(`
+            dedent(`
                 const strings = {
                     greeting: 'Hello',
                     farewell: 'Goodbye',
@@ -65,7 +65,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            StringUtils.dedent(`
+            dedent(`
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -86,7 +86,7 @@ describe('generateTranslations', () => {
     it("doesn't translate strings or templates used in control flows", async () => {
         fs.writeFileSync(
             EN_PATH,
-            StringUtils.dedent(`
+            dedent(`
                 import Log from '@libs/Log';
                 import CONST from '@src/CONST';
 
@@ -114,7 +114,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            StringUtils.dedent(`
+            dedent(`
                 import Log from '@libs/Log';
                 import CONST from '@src/CONST';
 
@@ -143,7 +143,7 @@ describe('generateTranslations', () => {
     it('handles nested template expressions', async () => {
         fs.writeFileSync(
             EN_PATH,
-            StringUtils.dedent(`
+            dedent(`
                 const strings = {
                     simple: (name: string, greeting: string) => \`\${greeting} good sir \${name}!\`,
                     simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`\${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -183,7 +183,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            StringUtils.dedent(`
+            dedent(`
                 const strings = {
                     simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
                     simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -221,10 +221,43 @@ describe('generateTranslations', () => {
         );
     });
 
+    it('handles repeated ternaries in complex expressions', async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = {
+                    updateReportFieldAllOptionsDisabled: (count: number, enabled: boolean, option: string) => {
+                        if (toggledOptionsCount > 1) {
+                            return \`\${enabled ? 'enabled' : 'disabled'} all options for "\${option}".\`;
+                        }
+                        return \`\${enabled ? 'enabled' : 'disabled'} the option "\${option}" for the report field "\${option}", making all options \${enabled ? 'enabled' : 'disabled'}\`;
+                    },
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        expect(itContent).toStrictEqual(
+            dedent(`
+                const strings = {
+                    updateReportFieldAllOptionsDisabled: (count: number, enabled: boolean, option: string) => {
+                        if (toggledOptionsCount > 1) {
+                            return \`[it] \${enabled ? '[it] enabled' : '[it] disabled'} all options for "\${option}".\`;
+                        }
+                        return \`[it] \${enabled ? '[it] enabled' : '[it] disabled'} the option "\${option}" for the report field "\${option}", making all options \${enabled ? '[it] enabled' : '[it] disabled'}\`;
+                    },
+                };
+                export default strings;
+            `),
+        );
+    });
+
     it('Handles context annotations', async () => {
         fs.writeFileSync(
             EN_PATH,
-            StringUtils.dedent(`
+            dedent(`
                 const strings = {
                     // @context As in a financial institution
                     bank: 'Bank',
@@ -261,7 +294,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            StringUtils.dedent(`
+            dedent(`
                 const strings = {
                     // @context As in a financial institution
                     bank: '[it][ctx: As in a financial institution] Bank',
@@ -299,7 +332,7 @@ describe('generateTranslations', () => {
     it("doesn't request duplicate translations", async () => {
         fs.writeFileSync(
             EN_PATH,
-            StringUtils.dedent(`
+            dedent(`
                 const strings = {
                     greeting: 'Hello',
                     farewell: 'Goodbye',
@@ -319,7 +352,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            StringUtils.dedent(`
+            dedent(`
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
