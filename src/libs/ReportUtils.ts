@@ -5557,6 +5557,7 @@ function buildOptimisticSelfDMReport(created: string): Report {
  * @param currency - IOU currency.
  * @param isSendingMoney - If we pay someone the IOU should be created as settled
  * @param parentReportActionID - The parent report action ID of the IOU report
+ * @param optimisticIOUReportID - Optimistic IOU report id
  */
 
 function buildOptimisticIOUReport(
@@ -5567,6 +5568,7 @@ function buildOptimisticIOUReport(
     currency: string,
     isSendingMoney = false,
     parentReportActionID?: string,
+    optimisticIOUReportID?: string,
 ): OptimisticIOUReport {
     const formattedTotal = convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
@@ -5588,7 +5590,7 @@ function buildOptimisticIOUReport(
         managerID: payerAccountID,
         ownerAccountID: payeeAccountID,
         participants,
-        reportID: generateReportID(),
+        reportID: optimisticIOUReportID ?? generateReportID(),
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: isSendingMoney ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATE_NUM.SUBMITTED,
         total,
@@ -5715,6 +5717,7 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyOptimi
  * @param currency
  * @param reimbursable – Whether the expense is reimbursable
  * @param parentReportActionID – The parent ReportActionID of the PolicyExpenseChat
+ * @param optimisticIOUReportID – Optimistic IOU report id
  */
 function buildOptimisticExpenseReport(
     chatReportID: string | undefined,
@@ -5724,6 +5727,7 @@ function buildOptimisticExpenseReport(
     currency: string,
     nonReimbursableTotal = 0,
     parentReportActionID?: string,
+    optimisticIOUReportID?: string,
 ): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
@@ -5738,7 +5742,7 @@ function buildOptimisticExpenseReport(
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
 
     const expenseReport: OptimisticExpenseReport = {
-        reportID: generateReportID(),
+        reportID: optimisticIOUReportID ?? generateReportID(),
         chatReportID,
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,

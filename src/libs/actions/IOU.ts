@@ -426,6 +426,9 @@ type RequestMoneyInformation = {
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
     backToReport?: string;
+    optimisticChatReportID?: string;
+    optimisticIOUReportID?: string;
+    optimisticReportPreviewActionID?: string;
 };
 
 type MoneyRequestInformationParams = {
@@ -439,6 +442,9 @@ type MoneyRequestInformationParams = {
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     isSplitExpense?: boolean;
     testDriveCommentReportActionID?: string;
+    optimisticChatReportID?: string;
+    optimisticIOUReportID?: string;
+    optimisticReportPreviewActionID?: string;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -3238,6 +3244,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         retryParams,
         isSplitExpense,
         testDriveCommentReportActionID,
+        optimisticChatReportID,
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3281,6 +3290,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
+            optimisticReportID: optimisticChatReportID,
         });
     }
 
@@ -3297,8 +3307,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency)
-            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, undefined, undefined, optimisticIOUReportID)
+            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticIOUReportID);
     } else if (isPolicyExpenseChat) {
         // Splitting doesn’t affect the amount, so no adjustment is needed
         // The amount remains constant after the split
@@ -3385,7 +3395,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -5186,6 +5196,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         shouldHandleNavigation = true,
         backToReport,
         shouldPlaySound = true,
+        optimisticChatReportID,
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -5264,6 +5277,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
         retryParams,
         testDriveCommentReportActionID,
+        optimisticChatReportID,
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
