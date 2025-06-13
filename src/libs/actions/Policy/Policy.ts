@@ -986,7 +986,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         },
     ];
 
-    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
+    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP || currency === CONST.PAYMENT_CARD_CURRENCY.EUR) {
         const params: AddPaymentCardParams = {
             cardNumber,
             cardYear,
@@ -997,7 +997,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             currency,
             isP2PDebitCard: false,
         };
-        PaymentMethods.addPaymentCardGBP(params);
+        PaymentMethods.addPaymentCardSCA(params);
     } else {
         const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
             policyID,
