@@ -9,10 +9,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateExpensifyCardLimit} from '@libs/actions/Card';
-import {filterInactiveCards} from '@libs/CardUtils';
+import {filterInactiveCards, isCurrencySupportECards} from '@libs/CardUtils';
 import {convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -39,6 +41,11 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const {isBetaEnabled} = usePermissions();
+    const policy = usePolicy(policyID);
+
+    const isEuCurrencySupported = isCurrencySupportECards(policy?.outputCurrency) && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK);
+    const currency = isEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
 
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const card = cardsList?.[cardID];
@@ -144,7 +151,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                         <>
                             <InputWrapper
                                 InputComponent={AmountForm}
-                                defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD, false)}
+                                defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, currency, false)}
                                 isCurrencyPressable={false}
                                 inputID={INPUT_IDS.LIMIT}
                                 ref={inputCallbackRef}
@@ -154,7 +161,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                                 isVisible={isConfirmModalVisible}
                                 onConfirm={() => updateCardLimit(Number(inputValues[INPUT_IDS.LIMIT]) * 100)}
                                 onCancel={() => setIsConfirmModalVisible(false)}
-                                prompt={translate(getPromptTextKey, {limit: convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, CONST.CURRENCY.USD)})}
+                                prompt={translate(getPromptTextKey, {limit: convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, currency)})}
                                 confirmText={translate('workspace.expensifyCard.changeLimit')}
                                 cancelText={translate('common.cancel')}
                                 danger
