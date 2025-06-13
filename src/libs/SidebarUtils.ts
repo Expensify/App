@@ -243,8 +243,7 @@ function shouldDisplayReportInLHN(
         hasErrorsOtherThanFailedReceipt ||
         isFocused ||
         isSystemChat ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        report.isPinned ||
+        !!report.isPinned ||
         (!isInFocusMode && isReportArchived) ||
         reportAttributes?.[report?.reportID]?.requiresAttention;
 
