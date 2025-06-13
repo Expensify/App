@@ -1886,7 +1886,7 @@ const CONST = {
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
-        WEB_PRESENCE_CHANNEL_PREFIX: 'web-presence-accountID-',
+        PRIVATE_WEB_PRESENCE_CHANNEL_PREFIX: 'private-newDotWebPresence-accountID-',
         STATE: {
             CONNECTING: 'CONNECTING',
             CONNECTED: 'CONNECTED',

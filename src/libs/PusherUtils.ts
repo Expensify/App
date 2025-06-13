@@ -54,11 +54,11 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
 }
 
 function joinPresenceChannel(accountID: number) {
-    Pusher.subscribe(CONST.PUSHER.WEB_PRESENCE_CHANNEL_PREFIX + accountID);
+    Pusher.subscribe(`${CONST.PUSHER.PRIVATE_WEB_PRESENCE_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`);
 }
 
 function leavePresenceChannel(accountID: number) {
-    Pusher.unsubscribe(CONST.PUSHER.WEB_PRESENCE_CHANNEL_PREFIX + accountID);
+    Pusher.unsubscribe(`${CONST.PUSHER.PRIVATE_WEB_PRESENCE_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`);
 }
 
 export default {
