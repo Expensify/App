@@ -18,11 +18,11 @@ const LOADING_BAR_COMMANDS = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_
 export default function useLoadingBarVisibility(): boolean {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: false});
     const hasRelevantCommands = useCommandsLoading(LOADING_BAR_COMMANDS);
-    
+
     // Loading bar should not be shown when offline since users can't interact with loading content
     if (network?.isOffline) {
         return false;
     }
-    
+
     return hasRelevantCommands;
 }

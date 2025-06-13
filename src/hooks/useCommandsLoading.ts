@@ -12,10 +12,8 @@ import useOnyx from './useOnyx';
  */
 export default function useCommandsLoading(commands: string[]): boolean {
     const [req] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
-    
+
     const commandsSet = useMemo(() => new Set(commands), [commands]);
-    
-    return req?.some((request) => 
-        commandsSet.has(request.command) && !request.initiatedOffline
-    ) ?? false;
+
+    return req?.some((request) => commandsSet.has(request.command) && !request.initiatedOffline) ?? false;
 }
