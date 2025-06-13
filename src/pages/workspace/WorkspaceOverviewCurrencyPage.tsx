@@ -45,7 +45,13 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
         if (isForcedToChangeCurrency) {
             setIsForcedToChangeCurrency(false);
 
-            if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false)) {
+            if (
+                isCurrencySupportedForGlobalReimbursement(
+                    item.currencyCode as CurrencyType,
+                    isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND),
+                    isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK),
+                )
+            ) {
                 navigateToBankAccountRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id));
                 return;
             }

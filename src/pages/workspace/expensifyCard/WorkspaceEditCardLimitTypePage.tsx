@@ -9,11 +9,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
 import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards} from '@libs/CardUtils';
+import {filterInactiveCards, isCurrencySupportECards} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getApprovalWorkflow} from '@libs/PolicyUtils';
@@ -51,6 +52,10 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
 
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+    const {isBetaEnabled} = usePermissions();
+
+    const isEuCurrencySupported = isCurrencySupportECards(policy?.outputCurrency) && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK);
+    const currency = isEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
 
     const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE;
 
@@ -180,7 +185,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                         isVisible={isConfirmModalVisible}
                         onConfirm={updateCardLimitType}
                         onCancel={() => setIsConfirmModalVisible(false)}
-                        prompt={translate(promptTranslationKey, {limit: convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD)})}
+                        prompt={translate(promptTranslationKey, {limit: convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)})}
                         confirmText={translate('workspace.expensifyCard.changeLimitType')}
                         cancelText={translate('common.cancel')}
                         danger

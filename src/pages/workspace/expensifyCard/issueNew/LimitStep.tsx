@@ -95,7 +95,7 @@ function LimitStep({policyID}: LimitStepProps) {
             >
                 <InputWrapper
                     InputComponent={AmountForm}
-                    defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, CONST.CURRENCY.USD, false)}
+                    defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, issueNewCard?.data?.currency, false)}
                     isCurrencyPressable={false}
                     inputID={INPUT_IDS.LIMIT}
                     ref={inputCallbackRef}

@@ -223,6 +223,9 @@ type IssueNewCardData = {
 
     /** Name of the card */
     cardTitle: string;
+
+    /** Currency of the card */
+    currency: string;
 };
 
 /** Model of Issue new card flow */

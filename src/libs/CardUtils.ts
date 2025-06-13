@@ -266,6 +266,18 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
 }
 
+function getEligibleBankAccountsForEuUkCard(bankAccountsList: OnyxEntry<BankAccountList>) {
+    if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
+        return [];
+    }
+    return Object.values(bankAccountsList).filter(
+        (bankAccount) =>
+            bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            bankAccount?.accountData?.allowDebit &&
+            [CONST.EXPENSIFY_EU_UK_SUPPORT_COUNTRIES as unknown as string].includes(bankAccount?.bankCountry),
+    );
+}
+
 function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
     const {cardList, ...cards} = cardsList ?? {};
     return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
@@ -657,6 +669,14 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+const isCurrencySupportECards = (currency?: string, includeUsd?: boolean) => {
+    if (!currency) {
+        return false;
+    }
+    const supportedCurrencies: string[] = includeUsd ? [CONST.CURRENCY.USD, CONST.CURRENCY.GBP, CONST.CURRENCY.EUR] : [CONST.CURRENCY.GBP, CONST.CURRENCY.EUR];
+    return supportedCurrencies.includes(currency);
+};
+
 function getFundIdFromSettingsKey(key: string) {
     const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
     if (!key?.startsWith(prefix)) {
@@ -685,6 +705,7 @@ export {
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
+    isCurrencySupportECards,
     getCardFeedIcon,
     getBankName,
     isSelectedFeedExpired,
@@ -720,5 +741,6 @@ export {
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
+    getEligibleBankAccountsForEuUkCard,
     getCustomCardName,
 };
