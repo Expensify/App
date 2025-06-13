@@ -855,7 +855,7 @@ function IOURequestStepScan({
                                                     height={16}
                                                     width={16}
                                                     src={Expensicons.Bolt}
-                                                    fill={theme.white}
+                                                    fill={flash ? theme.white : theme.icon}
                                                 />
                                             </PressableWithFeedback>
                                         </View>
@@ -881,6 +881,7 @@ function IOURequestStepScan({
                         titleStyles={styles.mb2}
                         confirmText={translate('common.buttonConfirm')}
                         description={translate('iou.scanMultipleReceiptsDescription')}
+                        contentInnerContainerStyles={styles.mb6}
                         shouldGoBack={false}
                     />
                 )}

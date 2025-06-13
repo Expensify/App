@@ -99,6 +99,7 @@ function IOURequestStepConfirmation({
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    const hasMultipleTransactions = transactions.length > 1;
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
@@ -1045,7 +1046,7 @@ function IOURequestStepConfirmation({
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
-                        subtitle={transactions.length > 1 ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
+                        subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                         onBackButtonPress={navigateBack}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                         threeDotsAnchorPosition={threeDotsAnchorPosition}
@@ -1056,8 +1057,9 @@ function IOURequestStepConfirmation({
                                 onSelected: navigateToAddReceipt,
                             },
                         ]}
+                        shouldDisplayHelpButton={!hasMultipleTransactions}
                     >
-                        {transactions.length > 1 ? (
+                        {hasMultipleTransactions ? (
                             <PrevNextButtons
                                 isPrevButtonDisabled={currentTransactionIndex === 0}
                                 isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
