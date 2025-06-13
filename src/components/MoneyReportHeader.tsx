@@ -30,7 +30,7 @@ import {
     changeMoneyRequestHoldStatus,
     getArchiveReason,
     getBankAccountRoute,
-    getIntegrationIcon,
+    getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNonHeldAndFullAmount,
     getTransactionsWithReceipts,
@@ -527,7 +527,7 @@ function MoneyReportHeader({
             [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration!}),
-                icon: getIntegrationIcon(connectedIntegration),
+                icon: getIntegrationExportIcon(connectedIntegration),
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
                 onSelected: () => {
                     if (!connectedIntegration || !moneyRequestReport) {
@@ -539,12 +539,10 @@ function MoneyReportHeader({
                     }
                     exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
                 },
-                additionalIconStyles: styles.integrationIcon,
-                displayInDefaultIconColor: true,
             },
             [CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED]: {
                 text: translate('workspace.common.markAsExported'),
-                icon: getIntegrationIcon(connectedIntegration) ?? Expensicons.CheckCircle,
+                icon: getIntegrationExportIcon(connectedIntegration),
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
                 onSelected: () => {
                     if (!connectedIntegration || !moneyRequestReport) {
@@ -556,11 +554,9 @@ function MoneyReportHeader({
                     }
                     markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
                 },
-                additionalIconStyles: styles.integrationIcon,
-                displayInDefaultIconColor: true,
             },
         }),
-        [translate, connectedIntegration, styles.integrationIcon, moneyRequestReport, isOffline, transactionIDs, isExported],
+        [translate, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported],
     );
 
     const primaryActionsImplementation = {
