@@ -24,8 +24,7 @@ function UserInfoAndActionButtonRow({
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
     const participantToDisplayName = item?.to?.displayName ?? item?.to?.login ?? translate('common.hidden');
-    const shouldShowToRecipient =
-        hasFromSender && hasToRecipient && !!item?.to?.accountID && item?.from?.accountID !== item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
+    const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, styles.ph3]}>
