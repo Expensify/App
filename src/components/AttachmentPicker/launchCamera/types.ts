@@ -24,11 +24,6 @@ type OptionsCommon = {
     presentationStyle?: 'currentContext' | 'fullScreen' | 'pageSheet' | 'formSheet' | 'popover' | 'overFullScreen' | 'overCurrentContext';
 };
 
-type ImageLibraryOptions = OptionsCommon & {
-    /** Specifies the maximum number of images that can be selected from the library. */
-    selectionLimit?: number;
-};
-
 type CameraOptions = OptionsCommon & {
     /** Specifies the maximum duration limit. */
     durationLimit?: number;
@@ -111,4 +106,4 @@ class ErrorLaunchCamera extends Error {
 type LaunchCamera = (options: CameraOptions, callback: Callback) => void;
 
 export {ErrorLaunchCamera};
-export type {CameraOptions, Callback, ErrorCode, ImagePickerResponse, Asset, ImageLibraryOptions, LaunchCamera};
+export type {LaunchCamera};

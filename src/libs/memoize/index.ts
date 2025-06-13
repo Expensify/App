@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import type NonPartial from '@src/types/utils/NonPartial';
-import type {TakeFirst} from '@src/types/utils/TupleOperations';
+import type TakeFirst from '@src/types/utils/TupleOperations';
 import ArrayCache from './cache/ArrayCache';
-import {MemoizeStats} from './stats';
+import MemoizeStats from './stats';
 import type {Callable, ClientOptions, Constructable, IsomorphicFn, IsomorphicParameters, IsomorphicReturnType, MemoizedFn, Stats} from './types';
 import {getEqualityComparator, mergeOptions, truncateArgs} from './utils';
 

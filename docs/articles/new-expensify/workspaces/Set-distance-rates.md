@@ -1,50 +1,60 @@
 ---
-title: Set Distance Rates 
-description: Set distance rates on your Expensify workspace
+title: Set Distance Rates
+description: Set and manage distance rates for mileage reimbursement in your Expensify workspace.
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates]
 ---
 <div id="new-expensify" markdown="1">
 
-# Set Distance eates 
+Distance rates allow your workspace to reimburse mileage-based travel. Admins can create and manage one or more rates that members can select when submitting distance expenses.
 
-Each Expensify workspace can be configured with one or more distance rates. Once distance rates are enabled on your workspace, employees will be able to choose between the available rates to create distance expenses. 
+---
 
-##  Enable distance rates on a workspace
+# Enable Distance Rates in a Workspace
 
-**To enable distance rates on a workspace you are an admin on:**
+To activate distance rates for a workspace:
 
-1. Click your profile image or icon in the bottom left menu
-2. Click **Workspaces** in the left menu
-3. Select the workspace where you want to enable distance rates 
-4. Click **More features** in the left menu
-5. Click the toggle next to **Distance rates**
+1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **More Features** in the left menu.
+4. Toggle on **Distance Rates**.
 
-After toggling on distance rates, you will see a new **Distance rates** option in the left menu.
+Once enabled, a new **Distance Rates** tab will appear in the left-hand menu.
 
-## Add, delete, or edit distance rates
+---
 
-**To add a distance rate:**
+# Add, Edit, or Delete Distance Rates
 
-1. Click your profile image or icon in the bottom left menu
-2. Click **Workspaces** in the left menu
-3. Select the workspace where you want to add distance rates 
-4. Click **Distance rates** in the left menu
-5. Click **Add rate** in the top right
-6. Enter a value, then click **Save**
+You can create multiple distance rates to accommodate different reimbursement types (e.g., personal vehicle vs. company vehicle), and update or remove them as needed.
 
-**To enable, disable, edit or delete a single distance rate:**
+## Add a Distance Rate
 
-1. Click the distance rate on the **Distance rates** settings page
-2. To enable or disable the distance rate, click the toggle next to **Enable rate**, then click **Save**
-3. To edit the rate amount, click on the amount field, enter the new value, then click **Save**
-4. To permanently delete the distance rate, click **Delete**
+1. Go to **Workspaces > [Workspace Name] > Distance Rates**.
+2. Click **Add Rate** in the top-right corner.
+3. Enter the rate value (e.g., $0.585 per mile or km).
+4. Click **Save**.
 
-Note: When Distance rates is enabled, the workspace must have at least one enabled distance rate.
+## Edit, Make Inactive, or Delete a Single Rate
 
-**To enable, disable, edit or delete distance rates in bulk:**
+1. From the **Distance Rates** page, click on the rate you'd like to update.
+2. To **make the rate active or inactive**, toggle the **Enable Rate** switch, then click **Save**.
+3. To **edit** the rate amount, click the value field, enter the new number, and click **Save**.
+4. To **permanently delete** the rate, click **Delete**.
 
-1. On the **Distance rates** settings page, click the checkboxes next to the distance rates that should me modified
-2. Click “x selected” at the top right 
-3. To enable or disable all the selected distance rates, click **Enable rates** or **Disable rates**
-4. To permanently delete the distance rates, click **Delete rates**
+**Note:** When distance rates are enabled, at least one rate must be active.
 
-Note: When Distance rates are enabled, the workspace must have at least one enabled distance rate.
+---
+
+# Bulk Edit or Delete Distance Rates
+
+You can apply actions to multiple rates at once from the main Distance Rates page.
+
+1. Select the checkboxes next to the rates you want to update.
+2. Click the **X selected** dropdown in the top-right corner.
+3. Choose an action:
+   - **Enable Rates** – Make all selected rates active.
+   - **Disable Rates** – Make all selected rates inactive.
+   - **Delete Rates** – Permanently remove the selected rates.
+
+**Reminder:** When the feature is turned on, your workspace must always have at least one active distance rate.
+
+</div>

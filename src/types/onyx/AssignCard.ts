@@ -26,6 +26,15 @@ type AssignCardData = {
 
     /** An option based on which the transaction start date is chosen */
     dateOption: string;
+
+    /** bank id for Plaid */
+    institutionId?: string;
+
+    /** access token for Plaid bank */
+    plaidAccessToken?: string;
+
+    /** Plaid feed name */
+    plaidConnectedFeedName?: string;
 };
 
 /** Model of assign card flow */
@@ -38,6 +47,12 @@ type AssignCard = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Whether the card is successfully assigned */
+    isAssigned?: boolean;
+
+    /** Whether the card is assigning */
+    isAssigning?: boolean;
 };
 
 export type {AssignCard, AssignCardStep, AssignCardData};

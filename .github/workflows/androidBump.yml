@@ -9,21 +9,27 @@ on:
 jobs:
   android_bump:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
         with:
           bundler-cache: true
 
-      - name: Decrypt json Google Play credentials
-        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+      - name: Install 1Password CLI
+        # v1
+        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
+
+      - name: Load files from 1Password
         working-directory: android/app
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
       - name: Get status from Google Play and generate next rollout percentage
         id: checkAndroidStatus
@@ -35,8 +41,28 @@ jobs:
 
       - name: Update Rollout Percentage with Fastlane
         # We should not rollout if the release is halted or the rollout percentage is completed
-        if: ${{ steps.checkAndroidStatus.outputs.HALTED == 'false' && steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE != '-1' }}
+        if: ${{ steps.checkAndroidStatus.outputs.HALTED == 'false' && steps.checkAndroidStatus.outputs.COMPLETED == 'false' && steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE != '-1' }}
         run: |
           echo "HALTED: ${{ steps.checkAndroidStatus.outputs.HALTED }}"
+          echo "COMPLETED: ${{ steps.checkAndroidStatus.outputs.COMPLETED }}"
           echo "ROLLOUT_PERCENTAGE: ${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}"
           bundle exec fastlane android update_hybrid_rollout rollout:${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}
+
+      - name: Warn deployers if Android rollout percentage could not be updated
+        if: ${{ failure() }}
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Android rollout percentage could not be updated. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run> 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

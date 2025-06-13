@@ -51,14 +51,14 @@ function makeTree(numericSearchValues: DynamicArrayBuffer<Uint8Array>) {
         /     \       /     \       /     \                      /     \
        [0,0,0,0,      0,0,0,0,      0,0,0,0,  .................  0,0,0,0]
      */
-    const transitionNodes = new Uint32Array(maxNodes * ALPHABET_SIZE);
+    let transitionNodes = new Uint32Array(maxNodes * ALPHABET_SIZE);
 
     // Storing the range of the original string that each node represents:
-    const rangeStart = new Uint32Array(maxNodes);
-    const rangeEnd = new Uint32Array(maxNodes);
+    let rangeStart = new Uint32Array(maxNodes);
+    let rangeEnd = new Uint32Array(maxNodes);
 
-    const parent = new Uint32Array(maxNodes);
-    const suffixLink = new Uint32Array(maxNodes);
+    let parent = new Uint32Array(maxNodes);
+    let suffixLink = new Uint32Array(maxNodes);
 
     let currentNode = 1;
     let currentPosition = 1;
@@ -144,6 +144,13 @@ function makeTree(numericSearchValues: DynamicArrayBuffer<Uint8Array>) {
             processCharacter(c);
         }
     }
+    function disposeTree() {
+        rangeEnd = new Uint32Array(0);
+        rangeStart = new Uint32Array(0);
+        transitionNodes = new Uint32Array(0);
+        parent = new Uint32Array(0);
+        suffixLink = new Uint32Array(0);
+    }
 
     /**
      * Returns all occurrences of the given (sub)string in the input string.
@@ -196,6 +203,7 @@ function makeTree(numericSearchValues: DynamicArrayBuffer<Uint8Array>) {
     return {
         build,
         findSubstring,
+        disposeTree,
     };
 }
 

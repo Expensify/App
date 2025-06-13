@@ -10,11 +10,11 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {openExternalLink} from '@libs/actions/Link';
+import {setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
-import * as Link from '@userActions/Link';
-import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -39,7 +39,7 @@ type IndividualExpenseRulesMenuItem = {
 };
 
 function IndividualExpenseRulesSectionSubtitle({policy, translate, styles}: IndividualExpenseRulesSectionSubtitleProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const handleOnPressCategoriesLink = () => {
         if (policy?.areCategoriesEnabled) {
@@ -88,30 +88,61 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const maxExpenseAmountNoReceiptText = useMemo(() => {
-        if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoReceipt) {
+        if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
 
-        return CurrencyUtils.convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
+        return convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
     }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
     const maxExpenseAmountText = useMemo(() => {
-        if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmount) {
+        if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
 
-        return CurrencyUtils.convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
+        return convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
     }, [policy?.maxExpenseAmount, policyCurrency]);
 
     const maxExpenseAgeText = useMemo(() => {
-        if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge) {
+        if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
 
-        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge});
+        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
     }, [policy?.maxExpenseAge, translate]);
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
+
+    const prohibitedExpenses = useMemo(() => {
+        // Otherwise return which expenses are prohibited comma separated
+        const prohibitedExpensesList = [];
+        if (policy?.prohibitedExpenses?.adultEntertainment) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.adultEntertainment'));
+        }
+
+        if (policy?.prohibitedExpenses?.alcohol) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.alcohol'));
+        }
+
+        if (policy?.prohibitedExpenses?.gambling) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.gambling'));
+        }
+
+        if (policy?.prohibitedExpenses?.hotelIncidentals) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.hotelIncidentals'));
+        }
+
+        if (policy?.prohibitedExpenses?.tobacco) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.tobacco'));
+        }
+
+        // If no expenses are prohibited, return empty string
+        if (!prohibitedExpensesList.length) {
+            return '';
+        }
+
+        return prohibitedExpensesList.join(', ');
+    }, [policy?.prohibitedExpenses, translate]);
 
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {
@@ -140,7 +171,18 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         },
     ];
 
+    individualExpenseRulesItems.push({
+        title: prohibitedExpenses,
+        descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
+        action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
+        pendingAction: policy?.pendingFields?.prohibitedExpenses,
+    });
+
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
+
+    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
+    // Control policies if the policy does not contain the attribute
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
 
     return (
         <Section
@@ -180,7 +222,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                             <Switch
                                 isOn={areEReceiptsEnabled}
                                 accessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
-                                onToggle={() => PolicyActions.setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                                onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
                                 disabled={policyCurrency !== CONST.CURRENCY.USD}
                             />
                         </View>
@@ -189,11 +231,26 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.eReceiptsHint')}</Text>{' '}
                         <TextLink
                             style={[styles.textLabel, styles.link]}
-                            onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_ERECEIPTS)}
+                            onPress={() => openExternalLink(CONST.DEEP_DIVE_ERECEIPTS)}
                         >
                             {translate('workspace.rules.individualExpenseRules.eReceiptsHintLink')}
                         </TextLink>
                         .
+                    </Text>
+                </View>
+                <View style={[styles.mt3]}>
+                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}>
+                        <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
+                            <Switch
+                                isOn={isAttendeeTrackingEnabled}
+                                accessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}</Text>
                     </Text>
                 </View>
             </View>

@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import {replaceAllDigits, stripCommaFromAmount, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -35,20 +35,20 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ...rest
         (newAmount: string) => {
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
-            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
+            const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validatePercentage(newAmountWithoutSpaces)) {
+            if (!validatePercentage(newAmountWithoutSpaces)) {
                 return;
             }
 
-            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+            const strippedAmount = stripCommaFromAmount(newAmountWithoutSpaces);
             onInputChange?.(strippedAmount);
         },
         [onInputChange],
     );
 
-    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
+    const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
 
     return (
         <TextInput
@@ -79,4 +79,3 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ...rest
 PercentageForm.displayName = 'PercentageForm';
 
 export default forwardRef(PercentageForm);
-export type {PercentageFormProps};

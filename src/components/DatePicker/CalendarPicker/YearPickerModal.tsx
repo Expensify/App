@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -54,11 +55,14 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             hideModalContentWhileAnimating
             useNativeDriver
             shouldHandleNavigationBack
+            shouldUseCustomBackdrop
+            onBackdropPress={onClose}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={YearPickerModal.displayName}
             >
                 <HeaderWithBackButton
@@ -74,6 +78,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     headerMessage={headerMessage}
                     sections={sections}
                     onSelectRow={(option) => {
+                        Keyboard.dismiss();
                         onYearChange?.(option.value);
                     }}
                     initiallyFocusedOptionKey={currentYear.toString()}
@@ -81,6 +86,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
                     ListItem={RadioListItem}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>

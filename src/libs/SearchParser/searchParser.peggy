@@ -70,7 +70,9 @@ filterList
       const keywordFilter = buildFilter(
         "eq",
         "keyword",
-        keywords.map((filter) => filter.right.replace(/^(['"])(.*)\1$/, '$2')).flat()
+        keywords
+          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
+          .flat()
       );
       if (keywordFilter.right.length > 0) {
         nonKeywords.push(keywordFilter);
@@ -88,15 +90,20 @@ defaultFilter
     }
 
 freeTextFilter
-  = _ value:(quotedString / [^ \t\r\n]+) _ {
+  = _ value:(quotedString / [^ \t\r\n\xA0]+) _ {
+      //handle no-breaking space
+      let word;
       if (Array.isArray(value)) {
-        return buildFilter("eq", "keyword", value.join(""));
+        word = value.join("");
+      } else {
+        word = value;
       }
-      return buildFilter("eq", "keyword", value);
+      return buildFilter("eq", "keyword", word);
     }
 
 standardFilter
-  = _ field:key _ op:operator _ values:identifier {
+  = _ field:filterKey _ op:filterOperator _  values:identifier {
+      expectingNestedQuote = false; nameOperator = false;
       return buildFilter(op, field, values);
     }
 
@@ -116,20 +123,33 @@ key "key"
       / taxRate
       / cardID
       / from
+      / payer
+      / exporter
       / expenseType
       / submitted
       / approved
       / paid
       / exported
       / posted
+      / feed
+      / title
+      / assignee
+      / createdBy
+      / reimbursable
+      / billable
     )
 
-defaultKey "default key"
-  = @(type / status / sortBy / sortOrder / policyID)
+filterKey
+  = k:key {
+      nameOperator = (k === "from" || k === "to");
+      return k;
+}
+
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
 
 identifier
   = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
-      const value = parts.flat().map((word) => {
+      const value = parts.flat().filter(Boolean).map((word) => {
         if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
           return word.slice(1, -1);
         }

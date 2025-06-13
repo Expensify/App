@@ -28,11 +28,13 @@ filterList
 filter = @(defaultFilter / freeTextFilter)
 
 defaultFilter
-  = _ key:autocompleteKey _ op:operator _ value:identifier? {
+  = _ key:filterKey _ op:filterOperator _ value:identifier? {
+      expectingNestedQuote = false; nameOperator = false; // Reset string parser
+
       if (!value) {
         autocomplete = {
           key,
-          value: '',
+          value: "",
           start: location().end.offset,
           length: 0,
         };
@@ -43,7 +45,6 @@ defaultFilter
         key,
         ...value[value.length - 1],
       };
-
       return value
         .filter((filter) => filter.length > 0)
         .map((filter) => ({
@@ -52,7 +53,7 @@ defaultFilter
         }));
     }
 
-freeTextFilter = _ (identifier/ ",") _ { autocomplete = null; }
+freeTextFilter = _ (identifier / ",") _ { autocomplete = null; }
 
 autocompleteKey "key"
   = @(
@@ -63,16 +64,31 @@ autocompleteKey "key"
       / to
       / taxRate
       / from
+      / payer
+      / exporter
+      / createdBy
+      / assignee
       / expenseType
       / type
       / status
       / cardID
+      / feed
+      / groupBy
+      / reimbursable
+      / billable
+      / policyID
     )
+
+filterKey
+  = k:autocompleteKey {
+      nameOperator = (k === "from" || k === "to");
+      return k;
+}
 
 identifier
   = parts:(quotedString / alphanumeric)|1.., ","| empty:","? {
       const ends = location();
-      const value = parts.flat();
+      const value = parts.flat().filter(Boolean); // Filter out undefined values returned by the predicate
       if (empty) {
         value.push("");
       }

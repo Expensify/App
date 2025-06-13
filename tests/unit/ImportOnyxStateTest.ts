@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {cleanAndTransformState, transformNumericKeysToArray} from '@components/ImportOnyxState/utils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {cleanAndTransformState, transformNumericKeysToArray} from '../../src/libs/ImportOnyxStateUtils';
 
 describe('transformNumericKeysToArray', () => {
     it('converts object with numeric keys to array', () => {

@@ -4,6 +4,7 @@ type LogOutParams = {
     partnerName: string;
     partnerPassword: string;
     shouldRetry: boolean;
+    skipReauthentication?: boolean;
 };
 
 export default LogOutParams;

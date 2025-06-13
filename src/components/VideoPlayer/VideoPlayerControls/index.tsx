@@ -46,6 +46,8 @@ type VideoPlayerControlsProps = {
     togglePlayCurrentVideo: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     controlsStatus: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
+
+    reportID: string | undefined;
 };
 
 function VideoPlayerControls({
@@ -59,10 +61,11 @@ function VideoPlayerControls({
     showPopoverMenu,
     togglePlayCurrentVideo,
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
+    reportID,
 }: VideoPlayerControlsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {updateCurrentURLAndReportID} = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
@@ -74,9 +77,9 @@ function VideoPlayerControls({
     const enterFullScreenMode = useCallback(() => {
         // eslint-disable-next-line react-compiler/react-compiler
         isFullScreenRef.current = true;
-        updateCurrentlyPlayingURL(url);
+        updateCurrentURLAndReportID(url, reportID);
         videoPlayerRef.current?.presentFullscreenPlayer();
-    }, [isFullScreenRef, updateCurrentlyPlayingURL, url, videoPlayerRef]);
+    }, [isFullScreenRef, reportID, updateCurrentURLAndReportID, url, videoPlayerRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {

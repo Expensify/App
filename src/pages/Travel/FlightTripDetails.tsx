@@ -27,12 +27,20 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
     const theme = useTheme();
     const {translate} = useLocalize();
 
+    const cabinClassMapping: Record<string, string> = {
+        UNKNOWN_CABIN: translate('travel.flightDetails.cabinClasses.unknown'),
+        ECONOMY: translate('travel.flightDetails.cabinClasses.economy'),
+        PREMIUM_ECONOMY: translate('travel.flightDetails.cabinClasses.premiumEconomy'),
+        BUSINESS: translate('travel.flightDetails.cabinClasses.business'),
+        FIRST: translate('travel.flightDetails.cabinClasses.first'),
+    };
+
     const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
     const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
 
     const prevFlightEndDate = prevReservation?.end.date;
     const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), new Date(reservation.start.date));
-    const flightDuration = DateUtils.getFormattedDuration(translate, reservation.duration);
+    const flightDuration = reservation.duration ? DateUtils.getFormattedDuration(translate, reservation.duration) : '';
     const flightRouteDescription = `${reservation.start.cityName} (${reservation.start.shortName}) ${translate('common.conjunctionTo')} ${reservation.end.cityName} (${
         reservation.end.shortName
     })`;
@@ -57,7 +65,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
             <MenuItemWithTopDescription
                 description={`${translate('travel.flight')} ${CONST.DOT_SEPARATOR} ${flightDuration}`}
                 title={`${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`}
-                interactive={false}
+                copyValue={`${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`}
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
@@ -96,7 +104,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                     <View style={styles.w50}>
                         <MenuItemWithTopDescription
                             description={translate('travel.flightDetails.class')}
-                            title={reservation.route.class}
+                            title={cabinClassMapping[reservation.route.class] || reservation.route.class}
                             interactive={false}
                         />
                     </View>
@@ -106,7 +114,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                         <MenuItemWithTopDescription
                             description={translate('travel.flightDetails.recordLocator')}
                             title={reservation.confirmations?.at(0)?.value}
-                            interactive={false}
+                            copyValue={reservation.confirmations?.at(0)?.value}
                         />
                     </View>
                 )}

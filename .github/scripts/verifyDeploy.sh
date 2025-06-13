@@ -1,14 +1,7 @@
 #!/bin/bash
 
-ENV="$1"
+URL="$1"
 EXPECTED_VERSION="$2"
-
-BASE_URL=""
-if [[ "$ENV" == 'staging' ]]; then
-  BASE_URL='https://staging.new.expensify.com'
-else
-  BASE_URL='https://new.expensify.com'
-fi
 
 sleep 5
 ATTEMPT=0
@@ -17,7 +10,7 @@ while [[ $ATTEMPT -lt $MAX_ATTEMPTS ]]; do
   ((ATTEMPT++))
 
   echo "Attempt $ATTEMPT: Checking deployed version..."
-  DOWNLOADED_VERSION="$(wget -q -O /dev/stdout "$BASE_URL"/version.json | jq -r '.version')"
+  DOWNLOADED_VERSION="$(wget -q -O /dev/stdout "$URL"/version.json | jq -r '.version')"
 
   if [[ "$EXPECTED_VERSION" == "$DOWNLOADED_VERSION" ]]; then
     echo "Success: Deployed version matches local version: $DOWNLOADED_VERSION"

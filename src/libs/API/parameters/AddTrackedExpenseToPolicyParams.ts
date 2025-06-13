@@ -17,7 +17,7 @@ type AddTrackedExpenseToPolicyParams = {
     customUnitRateID?: string;
     policyID: string;
     transactionID: string;
-    actionableWhisperReportActionID: string;
+    actionableWhisperReportActionID: string | undefined;
     moneyRequestReportID: string;
     reportPreviewReportActionID: string;
     modifiedExpenseReportActionID: string;

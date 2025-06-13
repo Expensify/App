@@ -14,15 +14,26 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.PersistableBundle
 import android.util.Log
+import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.Arguments
 
 class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplicationContext) :
   ReactNativeBackgroundTaskSpec(context) {
+
+  private fun sendEvent(eventName: String, params: WritableMap?) {
+    reactApplicationContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+      .emit(eventName, params)
+  }
 
   private val taskReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
       val taskName = intent?.getStringExtra("taskName")
       Log.d("ReactNativeBackgroundTaskModule", "Received task: $taskName")
-      emitOnBackgroundTaskExecution(taskName)
+      val params = Arguments.createMap()
+      params.putString("taskName", taskName)
+      sendEvent("onBackgroundTaskExecution", params)
     }
   }
 
@@ -39,6 +50,16 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
 
   override fun getName(): String {
     return NAME
+  }
+
+  override fun invalidate() {
+    super.invalidate()
+    try {
+          reactApplicationContext.unregisterReceiver(taskReceiver)
+          Log.d("ReactNativeBackgroundTaskModule", "BroadcastReceiver unregistered")
+      } catch (e: IllegalArgumentException) {
+          Log.w("ReactNativeBackgroundTaskModule", "Receiver not registered or already unregistered")
+      }
   }
 
   @ReactMethod
@@ -68,6 +89,14 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
     } catch (e: Exception) {
       promise.reject("ERROR", e.message)
     }
+  }
+
+  override fun addListener(eventType: String?) {
+    // no-op
+  }
+
+  override fun removeListeners(count: Double) {
+    // no-op
   }
 
   companion object {

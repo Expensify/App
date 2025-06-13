@@ -9,7 +9,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as MemberActions from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -24,7 +24,7 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
     const policyID = route.params.policyID;
 
     const closePage = useCallback(() => {
-        MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
+        clearWorkspaceOwnerChangeFlow(policyID);
         Navigation.goBack();
         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     }, [accountID, policyID]);

@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
+import {goBackToDetailsPage} from '@libs/ReportUtils';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import CONST from '@src/CONST';
@@ -39,7 +40,7 @@ type NoteListItem = {
 function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNotesListPageProps) {
     const route = useRoute<PlatformStackRouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
     const backTo = route.params.backTo;
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const getAttachmentValue = useCallback((item: NoteListItem) => ({reportID: item.reportID, accountID: Number(item.accountID), type: CONST.ATTACHMENT_TYPE.NOTE}), []);
@@ -77,7 +78,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
             return {
                 reportID: report.reportID,
                 accountID: privateNoteAccountID,
-                title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : personalDetailsList?.[privateNoteAccountID]?.login ?? '',
+                title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : (personalDetailsList?.[privateNoteAccountID]?.login ?? ''),
                 action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID, backTo)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
                 note: privateNote?.note ?? '',
@@ -87,14 +88,11 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
     }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={PrivateNotesListPage.displayName}
-        >
+        <ScreenWrapper testID={PrivateNotesListPage.displayName}>
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo))}
+                onBackButtonPress={() => goBackToDetailsPage(report, route.params.backTo, true)}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <ScrollView

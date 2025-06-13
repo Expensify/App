@@ -4,8 +4,8 @@ import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
-import {subscribe} from './Pusher/pusher';
-import type {PingPongEvent} from './Pusher/pusher';
+import Pusher from './Pusher';
+import type {PingPongEvent} from './Pusher/types';
 
 type Callback = (data: OnyxUpdate[]) => Promise<void>;
 
@@ -50,7 +50,7 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
     function onSubscriptionFailed(error: Error) {
         Log.hmmm('Failed to subscribe to Pusher channel', {error, pusherChannelName, eventName});
     }
-    subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
 }
 
 export default {

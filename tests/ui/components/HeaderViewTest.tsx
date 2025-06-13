@@ -16,6 +16,8 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('@hooks/useCurrentUserPersonalDetails');
+
 describe('HeaderView', () => {
     afterEach(() => {
         jest.clearAllMocks();

@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,10 +33,12 @@ function ButtonWithDropdownMenu<IValueType>({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    popoverHorizontalOffsetType,
     buttonRef,
     onPress,
     options,
     onOptionSelected,
+    onSubItemSelected,
     onOptionsMenuShow,
     onOptionsMenuHide,
     enterKeyEventListenerPriority = 0,
@@ -45,6 +48,9 @@ function ButtonWithDropdownMenu<IValueType>({
     defaultSelectedIndex = 0,
     shouldShowSelectedItemCheck = false,
     testID,
+    secondLineText = '',
+    icon,
+    shouldUseModalPaddingStyle = true,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -56,6 +62,9 @@ function ButtonWithDropdownMenu<IValueType>({
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const dropdownAnchor = useRef<View | null>(null);
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     // eslint-disable-next-line react-compiler/react-compiler
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
@@ -73,8 +82,16 @@ function ButtonWithDropdownMenu<IValueType>({
         }
         if ('measureInWindow' in dropdownAnchor.current) {
             dropdownAnchor.current.measureInWindow((x, y, w, h) => {
+                let horizontalPosition = x + w;
+
+                if (popoverHorizontalOffsetType === 'left') {
+                    horizontalPosition = x;
+                } else if (popoverHorizontalOffsetType === 'center') {
+                    horizontalPosition = x + w / 2;
+                }
+
                 setPopoverAnchorPosition({
-                    horizontal: x + w,
+                    horizontal: horizontalPosition,
                     vertical:
                         anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
                             ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
@@ -82,7 +99,7 @@ function ButtonWithDropdownMenu<IValueType>({
                 });
             });
         }
-    }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
+    }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical, popoverHorizontalOffsetType]);
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
@@ -144,6 +161,8 @@ function ButtonWithDropdownMenu<IValueType>({
                         shouldShowRightIcon={!isSplitButton}
                         isSplitButton={isSplitButton}
                         testID={testID}
+                        secondLineText={secondLineText}
+                        icon={icon}
                     />
 
                     {isSplitButton && (
@@ -193,6 +212,8 @@ function ButtonWithDropdownMenu<IValueType>({
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                     innerStyles={[innerStyleDropButton]}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    secondLineText={secondLineText}
+                    icon={icon}
                 />
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
@@ -203,12 +224,18 @@ function ButtonWithDropdownMenu<IValueType>({
                         onOptionsMenuHide?.();
                     }}
                     onModalShow={onOptionsMenuShow}
-                    onItemSelected={() => setIsMenuVisible(false)}
+                    onItemSelected={(selectedSubitem, index, event) => {
+                        onSubItemSelected?.(selectedSubitem, index, event);
+                        setIsMenuVisible(false);
+                    }}
                     anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverButtonDropdownMenuOffset(windowWidth) : popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
+                    shouldUseScrollView
+                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pv4}
+                    shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({

@@ -3,9 +3,9 @@ const {version} = require('../package.json');
 const pullRequestNumber = process.env.PULL_REQUEST_NUMBER;
 
 const s3Bucket = {
-    production: 'expensify-cash',
-    staging: 'staging-expensify-cash',
-    adhoc: 'ad-hoc-expensify-cash',
+    production: process.env.S3_BUCKET || 'expensify-cash',
+    staging: process.env.S3_BUCKET || 'staging-expensify-cash',
+    adhoc: process.env.S3_BUCKET || 'ad-hoc-expensify-cash',
 };
 
 const s3Path = {

@@ -14,7 +14,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import type {QRShareHandle, QRShareProps} from './types';
 
-function QRShare({url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBackgroundColor, logoRatio, logoMarginRatio}: QRShareProps, ref: ForwardedRef<QRShareHandle>) {
+function QRShare(
+    {url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBackgroundColor, logoRatio, logoMarginRatio, shouldShowExpensifyLogo = true, additionalStyles, size}: QRShareProps,
+    ref: ForwardedRef<QRShareHandle>,
+) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -22,7 +25,7 @@ function QRShare({url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBac
     const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
     const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
-    const svgRef = useRef<Svg>();
+    const svgRef = useRef<Svg | undefined>(undefined);
 
     useImperativeHandle(
         ref,
@@ -39,16 +42,18 @@ function QRShare({url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBac
 
     return (
         <View
-            style={styles.shareCodeContainer}
+            style={[styles.shareCodeContainer, additionalStyles]}
             onLayout={onLayout}
         >
-            <View style={styles.expensifyQrLogo}>
-                <ImageSVG
-                    contentFit="contain"
-                    src={ExpensifyWordmark}
-                    fill={theme.QRLogo}
-                />
-            </View>
+            {shouldShowExpensifyLogo && (
+                <View style={styles.expensifyQrLogo}>
+                    <ImageSVG
+                        contentFit="contain"
+                        src={ExpensifyWordmark}
+                        fill={theme.QRLogo}
+                    />
+                </View>
+            )}
 
             <QRCode
                 getRef={(svg) => (svgRef.current = svg)}
@@ -57,19 +62,21 @@ function QRShare({url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBac
                 svgLogoFillColor={svgLogoFillColor}
                 logoBackgroundColor={logoBackgroundColor}
                 logo={logo}
-                size={qrCodeSize}
+                size={size ?? qrCodeSize}
                 logoRatio={logoRatio}
                 logoMarginRatio={logoMarginRatio}
             />
 
-            <Text
-                family="EXP_NEW_KANSAS_MEDIUM"
-                fontSize={variables.fontSizeXLarge}
-                numberOfLines={2}
-                style={styles.qrShareTitle}
-            >
-                {title}
-            </Text>
+            {!!title && (
+                <Text
+                    family="EXP_NEW_KANSAS_MEDIUM"
+                    fontSize={variables.fontSizeXLarge}
+                    numberOfLines={2}
+                    style={styles.qrShareTitle}
+                >
+                    {title}
+                </Text>
+            )}
 
             {!!subtitle && (
                 <Text

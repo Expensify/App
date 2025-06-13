@@ -1,22 +1,34 @@
-import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useState} from 'react';
-import {View} from 'react-native';
+/* eslint-disable rulesdir/no-acc-spread-in-reduce */
+import type {ForwardedRef, RefObject} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import handleKeyPress from '@libs/SearchInputOnKeyPress';
-import shouldDelayFocus from '@libs/shouldDelayFocus';
+import {clearAdvancedFilters} from '@libs/actions/Search';
+import {parseFSAttributes} from '@libs/Fullstory';
+import Navigation from '@libs/Navigation/Navigation';
+import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
+import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import getSearchFiltersButtonTransition from './getSearchFiltersButtonTransition.ts/index';
+import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
+
+const SearchFiltersButtonTransition = getSearchFiltersButtonTransition();
 
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
@@ -47,19 +59,19 @@ type SearchAutocompleteInputProps = {
     onBlur?: () => void;
 
     /** Any additional styles to apply */
-    wrapperStyle?: StyleProp<ViewStyle>;
+    wrapperStyle?: ViewStyle;
 
     /** Any additional styles to apply when input is focused */
-    wrapperFocusedStyle?: StyleProp<ViewStyle>;
+    wrapperFocusedStyle?: ViewStyle;
 
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Component to be displayed on the right */
-    rightComponent?: ReactNode;
-
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
+
+    /** Map of autocomplete suggestions. Required for highlighting to work properly */
+    substitutionMap: SubstitutionMap;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
 
 function SearchAutocompleteInput(
@@ -76,40 +88,125 @@ function SearchAutocompleteInput(
         onBlur,
         caretHidden = false,
         wrapperStyle,
-        wrapperFocusedStyle,
+        wrapperFocusedStyle = {},
         outerWrapperStyle,
-        rightComponent,
         isSearchingForReports,
         selection,
+        substitutionMap,
     }: SearchAutocompleteInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
-    const [isFocused, setIsFocused] = useState<boolean>(false);
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
+    const currencySharedValue = useSharedValue(currencyAutocompleteList);
+
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
+    const categoryAutocompleteList = useMemo(() => {
+        return getAutocompleteCategories(allPolicyCategories);
+    }, [allPolicyCategories]);
+    const categorySharedValue = useSharedValue(categoryAutocompleteList);
+
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+    const tagAutocompleteList = useMemo(() => {
+        return getAutocompleteTags(allPoliciesTags);
+    }, [allPoliciesTags]);
+    const tagSharedValue = useSharedValue(tagAutocompleteList);
+
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
     const emailList = Object.keys(loginList ?? {});
+    const emailListSharedValue = useSharedValue(emailList);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
+    // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
+    const focusedSharedValue = useSharedValue(false);
+    const wrapperAnimatedStyle = useAnimatedStyle(() => {
+        return focusedSharedValue.get() ? wrapperFocusedStyle : (wrapperStyle ?? {});
+    });
+
+    useEffect(() => {
+        runOnLiveMarkdownRuntime(() => {
+            'worklet';
+
+            emailListSharedValue.set(emailList);
+        })();
+    }, [emailList, emailListSharedValue]);
+
+    useEffect(() => {
+        runOnLiveMarkdownRuntime(() => {
+            'worklet';
+
+            currencySharedValue.set(currencyAutocompleteList);
+        })();
+    }, [currencyAutocompleteList, currencySharedValue]);
+
+    useEffect(() => {
+        runOnLiveMarkdownRuntime(() => {
+            'worklet';
+
+            categorySharedValue.set(categoryAutocompleteList);
+        })();
+    }, [categorySharedValue, categoryAutocompleteList]);
+
+    useEffect(() => {
+        runOnLiveMarkdownRuntime(() => {
+            'worklet';
+
+            tagSharedValue.set(tagAutocompleteList);
+        })();
+    }, [tagSharedValue, tagAutocompleteList]);
+
+    const parser = useCallback(
+        (input: string) => {
+            'worklet';
+
+            return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
+        },
+        [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
+    );
+
+    const clearFilters = useCallback(() => {
+        clearAdvancedFilters();
+        onSearchQueryChange('');
+
+        // Check if we are on the search page before clearing query. If we are using the popup search menu,
+        // then the clear button is ONLY available when the search is *not* saved, so we don't have to navigate
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+        const isSearchPage = currentRoute === `/${ROUTES.SEARCH_ROOT.route}`;
+
+        if (isSearchPage) {
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: buildCannedSearchQuery(),
+                }),
+            );
+        }
+    }, [onSearchQueryChange]);
+
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
+
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
 
     return (
         <View style={[outerWrapperStyle]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
+            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}>
                 <View
                     style={styles.flex1}
-                    fsClass="fs-unmask"
+                    fsClass={CONST.FULL_STORY.UNMASK}
+                    testID={CONST.FULL_STORY.UNMASK}
                 >
                     <TextInput
                         testID="search-autocomplete-text-input"
                         value={value}
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
-                        shouldDelayFocus={shouldDelayFocus}
                         caretHidden={caretHidden}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                         role={CONST.ROLE.PRESENTATION}
@@ -123,33 +220,39 @@ function SearchAutocompleteInput(
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
-                        textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pr3]}
-                        inputStyle={[inputWidth, styles.pl3, styles.pr3]}
+                        textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
+                        inputStyle={[inputWidth, {lineHeight: undefined}]}
+                        placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
-                            setIsFocused(true);
-                            autocompleteListRef?.current?.updateExternalTextInputFocus(true);
                             onFocus?.();
+                            autocompleteListRef?.current?.updateExternalTextInputFocus(true);
+                            focusedSharedValue.set(true);
                         }}
                         onBlur={() => {
-                            setIsFocused(false);
                             autocompleteListRef?.current?.updateExternalTextInputFocus(false);
+                            focusedSharedValue.set(false);
                             onBlur?.();
                         }}
-                        isLoading={!!isSearchingForReports}
+                        isLoading={isSearchingForReports}
                         ref={ref}
-                        onKeyPress={handleKeyPress(onSubmit)}
-                        isMarkdownEnabled
+                        type="markdown"
                         multiline={false}
-                        parser={(input: string) => {
-                            'worklet';
-
-                            return parseForLiveMarkdown(input, emailList, currentUserPersonalDetails.displayName ?? '');
-                        }}
+                        parser={parser}
                         selection={selection}
                     />
                 </View>
-                {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
-            </View>
+                {!!value && (
+                    <Animated.View
+                        style={styles.pr3}
+                        layout={SearchFiltersButtonTransition}
+                    >
+                        <TextInputClearButton
+                            onPressButton={clearFilters}
+                            style={styles.mt0}
+                        />
+                    </Animated.View>
+                )}
+            </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}
                 isError={false}

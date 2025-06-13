@@ -27,7 +27,7 @@ This section will be the final nice-to-know section which covers additional Best
 
 - Is the feature multi-layered (contains features within features) and needs further explanation in this section? Example: Managing Domains.
 - Does the feature have several different variables that can cause different outcomes for different customers? Example: Billing.
-- Does the feature have optional enhancements that can be used in different ways depending on the use case? Example: Category-specifc rules.
+- Does the feature have optional enhancements that can be used in different ways depending on the use case? Example: Category-specific rules.
 -->
 
 
@@ -38,7 +38,7 @@ This section covers the useful but not as vital information, it should capture c
 - What's idiosyncratic or potentially confusing about this feature?
 - Is there anything unique about how this feature relates to billing/activity?
 - If this feature is released, are there any common confusions that can't be solved by improvements to the product itself?
-- Similarly, if this feature hasn't been released, can you predict and pre-empt any potential confusion?
+- Similarly, if this feature hasn't been released, can you predict and preempt any potential confusion?
 - Is there any general troubleshooting for this feature?
  - Note: troubleshooting should generally go in the FAQ, but if there is extensive troubleshooting, such as with integrations, that will be housed in a separate page, stored with and linked from the main page for that feature.
 -->

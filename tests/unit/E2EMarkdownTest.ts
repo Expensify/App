@@ -13,6 +13,7 @@ const results = {
 describe('markdown formatter', () => {
     it('should format significant changes properly', () => {
         const data = compareResults(results.main, results.delta, {commentLinking: 'ms'});
-        expect(buildMarkdown(data, [])).toMatchSnapshot();
+        const markdown = buildMarkdown(data, []).join('\nEOF\n\n');
+        expect(markdown).toMatchSnapshot();
     });
 });

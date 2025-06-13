@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 /**
  * @jest-environment node
  */
+
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
@@ -43,14 +43,14 @@ beforeAll(() => {
     asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 create: jest.fn().mockImplementation((arg: Parameters<OctokitCreateIssue>[0]) =>
                     Promise.resolve({
                         data: {
                             ...arg,
-                            html_url: 'https://github.com/Expensify/App/issues/29',
+                            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
                         },
                     }),
                 ),
@@ -60,7 +60,7 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     } as unknown as InternalOctokit;
 
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 });
 
 afterEach(() => {
@@ -76,6 +76,7 @@ describe('GithubUtils', () => {
             labels: [
                 {
                     id: 2783847782,
+                    // cspell:disable-next-line
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                     name: 'StagingDeployCash',
@@ -85,27 +86,26 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/21\r\n- [x] https://github.com/Expensify/App/pull/22\r\n- [ ] https://github.com/Expensify/App/pull/23\r\n\r\n',
+            body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/21\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/22\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/23\r\n\r\n`,
         };
         const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
-        issueWithDeployBlockers.body +=
-            '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/issues/1\r\n- [x] https://github.com/Expensify/App/issues/2\r\n- [ ] https://github.com/Expensify/App/pull/1234\r\n';
+        issueWithDeployBlockers.body += `\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234\r\n`;
 
         const baseExpectedResponse: Partial<Awaited<ReturnType<typeof GithubUtils.getStagingDeployCash>>> = {
             PRList: [
                 {
-                    url: 'https://github.com/Expensify/App/pull/21',
+                    url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/21`,
                     number: 21,
                     isVerified: false,
                 },
                 {
-                    url: 'https://github.com/Expensify/App/pull/22',
+                    url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/22`,
                     number: 22,
                     isVerified: true,
                 },
                 {
-                    url: 'https://github.com/Expensify/App/pull/23',
+                    url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/23`,
                     number: 23,
                     isVerified: false,
                 },
@@ -117,34 +117,35 @@ describe('GithubUtils', () => {
                     description: '',
                     id: 2783847782,
                     name: 'StagingDeployCash',
+                    // cspell:disable-next-line
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                 },
             ],
-            tag: '1.0.1-47',
+            version: '1.0.1-47',
+            tag: '1.0.1-47-staging',
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             number: 29,
             deployBlockers: [],
             internalQAPRList: [],
-            isTimingDashboardChecked: false,
             isFirebaseChecked: false,
             isGHStatusChecked: false,
         };
         const expectedResponseWithDeployBlockers = {...baseExpectedResponse};
         expectedResponseWithDeployBlockers.deployBlockers = [
             {
-                url: 'https://github.com/Expensify/App/issues/1',
+                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1`,
                 number: 1,
                 isResolved: false,
             },
             {
-                url: 'https://github.com/Expensify/App/issues/2',
+                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2`,
                 number: 2,
                 isResolved: true,
             },
             {
-                url: 'https://github.com/Expensify/App/pull/1234',
+                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234`,
                 number: 1234,
                 isResolved: false,
             },
@@ -154,7 +155,7 @@ describe('GithubUtils', () => {
             const bareIssue: Issue = {
                 ...baseIssue,
                 // eslint-disable-next-line max-len
-                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n',
+                body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n`,
             };
 
             const bareExpectedResponse: Partial<Awaited<ReturnType<typeof GithubUtils.getStagingDeployCash>>> = {
@@ -209,10 +210,10 @@ describe('GithubUtils', () => {
         describe('valid pull requests', () => {
             test.each([
                 ['https://github.com/Expensify/Expensify/pull/156369', 156369],
-                ['https://github.com/Expensify/App/pull/1644', 1644],
+                [`https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1644`, 1644],
                 ['https://github.com/Expensify/expensify-common/pull/346', 346],
                 ['https://api.github.com/repos/Expensify/Expensify/pull/156369', 156369],
-                ['https://api.github.com/repos/Expensify/App/pull/1644', 1644],
+                [`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/pull/1644`, 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/pull/346', 346],
             ])('getPullRequestNumberFromURL("%s")', (input, expected) => {
                 expect(GithubUtils.getPullRequestNumberFromURL(input)).toBe(expected);
@@ -236,10 +237,10 @@ describe('GithubUtils', () => {
         describe('valid issues', () => {
             test.each([
                 ['https://github.com/Expensify/Expensify/issues/156369', 156369],
-                ['https://github.com/Expensify/App/issues/1644', 1644],
+                [`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1644`, 1644],
                 ['https://github.com/Expensify/expensify-common/issues/346', 346],
                 ['https://api.github.com/repos/Expensify/Expensify/issues/156369', 156369],
-                ['https://api.github.com/repos/Expensify/App/issues/1644', 1644],
+                [`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/issues/1644`, 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/issues/346', 346],
             ])('getIssueNumberFromURL("%s")', (input, expected) => {
                 expect(GithubUtils.getIssueNumberFromURL(input)).toBe(expected);
@@ -263,16 +264,16 @@ describe('GithubUtils', () => {
         describe('valid issues and pull requests', () => {
             test.each([
                 ['https://github.com/Expensify/Expensify/issues/156369', 156369],
-                ['https://github.com/Expensify/App/issues/1644', 1644],
+                [`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1644`, 1644],
                 ['https://github.com/Expensify/expensify-common/issues/346', 346],
                 ['https://github.com/Expensify/Expensify/pull/156369', 156369],
-                ['https://github.com/Expensify/App/pull/1644', 1644],
+                [`https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1644`, 1644],
                 ['https://github.com/Expensify/expensify-common/pull/346', 346],
                 ['https://api.github.com/repos/Expensify/Expensify/issues/156369', 156369],
-                ['https://api.github.com/repos/Expensify/App/issues/1644', 1644],
+                [`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/issues/1644`, 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/issues/346', 346],
                 ['https://api.github.com/repos/Expensify/Expensify/pull/156369', 156369],
-                ['https://api.github.com/repos/Expensify/App/pull/1644', 1644],
+                [`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/pull/1644`, 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/pull/346', 346],
             ])('getIssueOrPullRequestNumberFromURL("%s")', (input, expected) => {
                 expect(GithubUtils.getIssueOrPullRequestNumberFromURL(input)).toBe(expected);
@@ -297,48 +298,48 @@ describe('GithubUtils', () => {
             {
                 number: 1,
                 title: 'Test PR 1',
-                html_url: 'https://github.com/Expensify/App/pull/1',
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1`,
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 2,
                 title: 'Test PR 2',
-                html_url: 'https://github.com/Expensify/App/pull/2',
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/2`,
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 3,
                 title: 'Test PR 3',
-                html_url: 'https://github.com/Expensify/App/pull/3',
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`,
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 4,
                 title: '[NO QA] Test No QA PR uppercase',
-                html_url: 'https://github.com/Expensify/App/pull/4',
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`,
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 5,
                 title: '[NoQa] Test No QA PR Title Case',
-                html_url: 'https://github.com/Expensify/App/pull/5',
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`,
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 6,
                 title: '[Internal QA] Another Test Internal QA PR',
-                html_url: 'https://github.com/Expensify/App/pull/6',
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`,
                 user: {login: 'testUser'},
                 labels: [
                     {
                         id: 1234,
                         node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
-                        url: 'https://api.github.com/Expensify/App/labels/InternalQA',
+                        url: `https://api.github.com/${process.env.GITHUB_REPOSITORY}/labels/InternalQA`,
                         name: 'InternalQA',
                         description: 'An Expensifier needs to test this.',
                         color: 'f29513',
@@ -349,13 +350,13 @@ describe('GithubUtils', () => {
             {
                 number: 7,
                 title: '[Internal QA] Another Test Internal QA PR',
-                html_url: 'https://github.com/Expensify/App/pull/7',
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`,
                 user: {login: 'testUser'},
                 labels: [
                     {
                         id: 1234,
                         node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
-                        url: 'https://api.github.com/Expensify/App/labels/InternalQA',
+                        url: `https://api.github.com/${process.env.GITHUB_REPOSITORY}/labels/InternalQA`,
                         name: 'InternalQA',
                         description: 'An Expensifier needs to test this.',
                         color: 'f29513',
@@ -387,23 +388,23 @@ describe('GithubUtils', () => {
         githubUtils.internalOctokit = octokit as unknown as InternalOctokit;
         const tag = '1.0.2-12';
         const basePRList = [
-            'https://github.com/Expensify/App/pull/2',
-            'https://github.com/Expensify/App/pull/3',
-            'https://github.com/Expensify/App/pull/1',
-            'https://github.com/Expensify/App/pull/3', // This is an intentional duplicate for testing duplicates
-            'https://github.com/Expensify/App/pull/4', // No QA
-            'https://github.com/Expensify/App/pull/5', // No QA
+            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/2`,
+            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`,
+            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1`,
+            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`, // This is an intentional duplicate for testing duplicates
+            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`, // No QA
+            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`, // No QA
         ];
 
         const internalQAPRList = [
-            'https://github.com/Expensify/App/pull/6', // Internal QA
-            'https://github.com/Expensify/App/pull/7', // Internal QA
+            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, // Internal QA
+            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`, // Internal QA
         ];
 
-        const baseDeployBlockerList = ['https://github.com/Expensify/App/pull/3', 'https://github.com/Expensify/App/issues/4'];
+        const baseDeployBlockerList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/4`];
 
         // eslint-disable-next-line max-len
-        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
         const openCheckbox = '- [ ] ';
         const closedCheckbox = '- [x] ';
         const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
@@ -414,14 +415,11 @@ describe('GithubUtils', () => {
         const assignOctocat = ' - @octocat';
         const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
         // eslint-disable-next-line max-len
-        const timingDashboardVerification =
-            'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
-        // eslint-disable-next-line max-len
         const firebaseVerificationCurrentRelease =
-            'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
+            'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
         // eslint-disable-next-line max-len
         const firebaseVerificationPreviousRelease =
-            'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
+            'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
         // eslint-disable-next-line max-len
         const ghVerification = 'I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.';
 
@@ -448,7 +446,6 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -472,7 +469,6 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -491,7 +487,6 @@ describe('GithubUtils', () => {
                 expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -513,7 +508,6 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${baseDeployBlockerList.at(0)}` +
                         `${lineBreak}${openCheckbox}${baseDeployBlockerList.at(1)}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                         `${lineBreak}${openCheckbox}${ghVerification}${lineBreak}` +
@@ -535,7 +529,6 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${baseDeployBlockerList.at(0)}` +
                         `${lineBreak}${openCheckbox}${baseDeployBlockerList.at(1)}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -561,7 +554,6 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${baseDeployBlockerList.at(0)}` +
                         `${lineBreak}${closedCheckbox}${baseDeployBlockerList.at(1)}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -588,7 +580,6 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${internalQAPRList.at(0)}${assignOctocat}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList.at(1)}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -615,7 +606,6 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${internalQAPRList.at(0)}${assignOctocat}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList.at(1)}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -628,8 +618,8 @@ describe('GithubUtils', () => {
 
     describe('getPullRequestURLFromNumber', () => {
         test.each([
-            [1234, 'https://github.com/Expensify/App/pull/1234'],
-            [54321, 'https://github.com/Expensify/App/pull/54321'],
+            [1234, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234`],
+            [54321, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/54321`],
         ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input)).toBe(expectedOutput));
     });
 });

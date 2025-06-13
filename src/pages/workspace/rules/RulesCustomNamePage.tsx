@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
@@ -17,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -26,7 +27,7 @@ import INPUT_IDS from '@src/types/form/RulesCustomNameModalForm';
 type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
 
 function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
-    const policyID = route?.params?.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
@@ -40,12 +41,17 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         translate('workspace.rules.expenseReportRules.customNameTotalExample'),
     ] as const satisfies string[];
 
-    const customNameDefaultValue = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue;
+    const customNameDefaultValue = Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '');
 
     const validateCustomName = ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
         if (!customName) {
             errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.fieldRequired');
+        } else if (customName.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+            errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.characterLimitExceedCounter', {
+                length: customName.length,
+                limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT,
+            });
         }
         return errors;
     };
@@ -54,11 +60,9 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            shouldBeBlocked={!policy?.shouldShowCustomReportTitleOption}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesCustomNamePage.displayName}
             >
@@ -83,11 +87,13 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
                     validate={validateCustomName}
                     onSubmit={({customName}) => {
-                        PolicyActions.setPolicyDefaultReportTitle(policyID, customName);
+                        setPolicyDefaultReportTitle(policyID, customName);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -95,7 +101,6 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                         defaultValue={customNameDefaultValue}
                         label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
                         aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
-                        maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                         ref={inputCallbackRef}
                     />
                     <BulletList

@@ -1,63 +1,67 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as UserUtils from '@libs/UserUtils';
-import * as Session from '@userActions/Session';
-import * as User from '@userActions/User';
+import {isCurrentUserValidated} from '@libs/UserUtils';
+import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
+import {resendValidateCode} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
-    const {isOffline} = useNetwork();
+    const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
 
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    const isValidated = UserUtils.isCurrentUserValidated(loginList);
+    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {canBeMissing: true});
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES, {canBeMissing: true});
+    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
-    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
 
+    const isValidated = isCurrentUserValidated(loginList);
+
     const sendValidateCode = useCallback(() => {
-        if (!credentials?.login) {
+        if (!email) {
             return;
         }
-        User.resendValidateCode(credentials.login);
-    }, [credentials?.login]);
+        resendValidateCode(email);
+    }, [email]);
 
     useEffect(() => {
-        if (!isValidated) {
-            sendValidateCode();
+        if (isValidated) {
+            return;
+        }
+        sendValidateCode();
+    }, [sendValidateCode, isValidated]);
+
+    useEffect(() => {
+        if (!isValidated || joinablePoliciesLength === 0) {
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
-    }, [sendValidateCode, isValidated]);
+        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+    }, [isValidated, joinablePoliciesLength]);
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            includeSafeAreaPaddingBottom
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
@@ -66,32 +70,33 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 progressBarPercentage={40}
                 onBackButtonPress={Navigation.goBack}
             />
-            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
-                <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
-                <ValidateCodeForm
-                    validateCodeAction={validateCodeAction}
-                    handleSubmitForm={(code) => {
-                        Session.validateUserAndGetAccessiblePolicies(code);
-                        return Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
-                    }}
-                    sendValidateCode={sendValidateCode}
-                    clearError={() => {}}
-                    hideSubmitButton
-                />
-                <View style={[styles.flex2, styles.justifyContentEnd]}>
-                    <Button
-                        isDisabled={isOffline}
-                        success={false}
-                        large
-                        style={[styles.mb5]}
-                        text={translate('common.skip')}
-                        isLoading={isValidateCodeFormSubmitting}
-                        onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
+            <ScrollView
+                style={[styles.w100, styles.h100, styles.flex1]}
+                contentContainerStyle={styles.flexGrow1}
+            >
+                <View style={[styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.flex1]}>
+                    <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
+                    <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
+                    <ValidateCodeForm
+                        validateCodeActionErrorField="getAccessiblePolicies"
+                        handleSubmitForm={(code) => {
+                            getAccessiblePolicies(code);
+                            setHasMagicCodeBeenSent(false);
+                        }}
+                        sendValidateCode={() => {
+                            sendValidateCode();
+                            setHasMagicCodeBeenSent(true);
+                        }}
+                        clearError={() => clearGetAccessiblePoliciesErrors()}
+                        validateError={getAccessiblePoliciesAction?.errors}
+                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        shouldShowSkipButton
+                        handleSkipButtonPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
+                        buttonStyles={[styles.flex2, styles.justifyContentEnd]}
+                        isLoading={getAccessiblePoliciesAction?.loading}
                     />
-                    {shouldUseNarrowLayout && <OfflineIndicator />}
                 </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }

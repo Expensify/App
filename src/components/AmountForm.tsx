@@ -4,11 +4,11 @@ import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {isMobileSafari} from '@libs/Browser';
+import {getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
@@ -52,7 +52,7 @@ type AmountFormProps = {
     /** Number of decimals to display */
     fixedDecimals?: number;
 } & Pick<BaseTextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
-    Pick<BaseTextInputProps, 'autoFocus'>;
+    Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'style'>;
 
 /**
  * Returns the new selection object based on the updated amount's length
@@ -88,7 +88,7 @@ function AmountForm(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 
-    const decimals = fixedDecimals ?? CurrencyUtils.getCurrencyDecimals(currency) + extraDecimals;
+    const decimals = fixedDecimals ?? getCurrencyDecimals(currency) + extraDecimals;
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -104,7 +104,7 @@ function AmountForm(
      * Event occurs when a user presses a mouse button over an DOM element.
      */
     const focusTextInput = (event: React.MouseEvent, ids: string[]) => {
-        const relatedTargetId = (event.nativeEvent?.target as HTMLElement | null)?.id ?? '';
+        const relatedTargetId = (event.nativeEvent?.target as HTMLElement)?.id;
         if (!ids.includes(relatedTargetId)) {
             return;
         }
@@ -131,15 +131,15 @@ function AmountForm(
         (newAmount: string) => {
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
-            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
+            const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces, decimals, amountMaxLength)) {
+            if (!validateAmount(newAmountWithoutSpaces, decimals, amountMaxLength)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
 
-            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+            const strippedAmount = stripCommaFromAmount(newAmountWithoutSpaces);
             const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
             setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
             onInputChange?.(strippedAmount);
@@ -155,16 +155,16 @@ function AmountForm(
     const setFormattedAmount = (text: string) => {
         // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
         // More info: https://github.com/Expensify/App/issues/16974
-        const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(text);
-        const replacedCommasAmount = MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
-        const withLeadingZero = MoneyRequestUtils.addLeadingZero(replacedCommasAmount);
+        const newAmountWithoutSpaces = stripSpacesFromAmount(text);
+        const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+        const withLeadingZero = addLeadingZero(replacedCommasAmount);
 
-        if (!MoneyRequestUtils.validateAmount(withLeadingZero, decimals, amountMaxLength)) {
+        if (!validateAmount(withLeadingZero, decimals, amountMaxLength)) {
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
 
-        const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(withLeadingZero);
+        const strippedAmount = stripCommaFromAmount(withLeadingZero);
         const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
         setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
         onInputChange?.(strippedAmount);
@@ -173,12 +173,12 @@ function AmountForm(
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return
-        if (MoneyRequestUtils.validateAmount(currentAmount, decimals, amountMaxLength)) {
+        if (validateAmount(currentAmount, decimals, amountMaxLength)) {
             return;
         }
 
         // If the changed currency doesn't support decimals, we can strip the decimals
-        setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
+        setNewAmount(stripDecimalsFromAmount(currentAmount));
 
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -198,11 +198,11 @@ function AmountForm(
                 if (currentAmount.length > 0) {
                     const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
                     const newAmount = `${currentAmount.substring(0, selectionStart)}${currentAmount.substring(selection.end)}`;
-                    setNewAmount(MoneyRequestUtils.addLeadingZero(newAmount));
+                    setNewAmount(addLeadingZero(newAmount));
                 }
                 return;
             }
-            const newAmount = MoneyRequestUtils.addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
+            const newAmount = addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
             setNewAmount(newAmount);
         },
         [currentAmount, selection, shouldUpdateSelection, setNewAmount],
@@ -225,8 +225,8 @@ function AmountForm(
      */
     const textInputKeyPress = (event: NativeSyntheticEvent<KeyboardEvent>) => {
         const key = event.nativeEvent.key.toLowerCase();
-        if (Browser.isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
-            // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
+        if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
+            // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessibility keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
             forwardDeletePressedRef.current = true;
             return;
@@ -238,8 +238,8 @@ function AmountForm(
         forwardDeletePressedRef.current = key === 'delete' || (allowedOS.includes(operatingSystem ?? '') && event.nativeEvent.ctrlKey && key === 'd');
     };
 
-    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
+    const canUseTouchScreen = canUseTouchScreenCheck();
 
     if (displayAsTextInput) {
         return (
@@ -257,6 +257,7 @@ function AmountForm(
                     textInput.current = ref;
                 }}
                 prefixCharacter={currency}
+                prefixContainerStyle={styles.pb2half}
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.

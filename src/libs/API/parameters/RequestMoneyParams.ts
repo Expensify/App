@@ -28,6 +28,11 @@ type RequestMoneyParams = {
     transactionThreadReportID: string;
     createdReportActionIDForThread: string | undefined;
     reimbursible?: boolean;
+    description?: string;
+    attendees?: string;
+    isTestDrive?: boolean;
+    guidedSetupData?: string;
+    testDriveCommentReportActionID?: string;
 };
 
 export default RequestMoneyParams;

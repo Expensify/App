@@ -5,14 +5,11 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
+import {modifyRoomName} from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
-function RoomNameInput(
-    {disabled = false, autoFocus = false, shouldDelayFocus = false, isFocused, value, onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps, ref: ForwardedRef<BaseTextInputRef>) {
     const {translate} = useLocalize();
 
     /**
@@ -20,7 +17,7 @@ function RoomNameInput(
      */
     const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
         const roomName = event.nativeEvent.text;
-        const modifiedRoomName = RoomNameInputUtils.modifyRoomName(roomName);
+        const modifiedRoomName = modifyRoomName(roomName);
         onChangeText?.(modifiedRoomName);
 
         // if custom component has onInputChange, use it to trigger changes (Form input)
@@ -43,10 +40,8 @@ function RoomNameInput(
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}
             value={value?.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
-            maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             onBlur={(event) => isFocused && onBlur?.(event)}
             autoFocus={isFocused && autoFocus}
-            shouldDelayFocus={shouldDelayFocus}
             autoCapitalize="none"
             onChange={setModifiedRoomName}
             keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449

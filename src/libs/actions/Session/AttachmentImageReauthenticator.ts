@@ -47,7 +47,7 @@ function deactivate() {
 
 /**
  * The reauthenticator is currently only used by attachment images and only when the current session is expired.
- * It will only request reauthentification only once between two receptions of different sessions from Onyx
+ * It will only request reauthentication only once between two receptions of different sessions from Onyx
  * @param session the current session
  * @returns
  */
@@ -64,7 +64,7 @@ function tryReauthenticate() {
     if (isOffline || !active) {
         return;
     }
-    reauthenticate().catch((error) => {
+    reauthenticate()?.catch((error) => {
         Log.hmmm('Could not reauthenticate attachment image or receipt', {error});
     });
 }

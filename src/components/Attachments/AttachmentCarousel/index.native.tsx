@@ -18,23 +18,25 @@ import AttachmentCarouselPager from './Pager';
 import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID, onAttachmentError}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const [activeSource, setActiveSource] = useState<AttachmentSource>(source);
-    const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
+    const compareImage = useCallback((attachment: Attachment) => (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source), [attachmentID, source]);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, report});
+        } else if (type === CONST.ATTACHMENT_TYPE.ONBOARDING) {
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.ONBOARDING, {parentReportAction, reportActions: reportActions ?? undefined, report});
         } else {
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions, report});
         }
@@ -80,7 +82,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
             setPage(newPageIndex);
             if (newPageIndex >= 0 && item) {
-                setActiveSource(item.source);
+                setActiveAttachmentID(item.attachmentID ?? item.source);
                 if (onNavigate) {
                     onNavigate(item);
                 }
@@ -142,11 +144,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                     <AttachmentCarouselPager
                         items={attachments}
                         initialPage={page}
-                        activeSource={activeSource}
+                        onAttachmentError={onAttachmentError}
+                        activeAttachmentID={activeAttachmentID}
                         setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                         onClose={onClose}
                         ref={pagerRef}
+                        reportID={report.reportID}
                     />
                 </>
             )}

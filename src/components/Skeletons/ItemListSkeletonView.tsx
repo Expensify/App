@@ -13,6 +13,8 @@ type ListItemSkeletonProps = {
     gradientOpacityEnabled?: boolean;
     itemViewStyle?: StyleProp<ViewStyle>;
     itemViewHeight?: number;
+    speed?: number;
+    style?: StyleProp<ViewStyle>;
 };
 
 const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
@@ -35,6 +37,8 @@ function ItemListSkeletonView({
     gradientOpacityEnabled = false,
     itemViewStyle = {},
     itemViewHeight = CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT,
+    speed,
+    style,
 }: ListItemSkeletonProps) {
     const theme = useTheme();
     const themeStyles = useThemeStyles();
@@ -64,6 +68,7 @@ function ItemListSkeletonView({
             const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
             items.push(
                 <SkeletonViewContentLoader
+                    speed={speed}
                     key={`skeletonContainer${i}`}
                     animate={shouldAnimate}
                     height={itemViewHeight}
@@ -76,11 +81,11 @@ function ItemListSkeletonView({
             );
         }
         return items;
-    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacityEnabled, itemViewHeight, itemViewStyle]);
+    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacityEnabled, itemViewHeight, itemViewStyle, speed]);
 
     return (
         <View
-            style={[themeStyles.flex1]}
+            style={[themeStyles.flex1, style]}
             onLayout={handleLayout}
         >
             {skeletonViewItems}

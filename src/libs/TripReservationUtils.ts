@@ -49,5 +49,12 @@ function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
     }
 }
 
-export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon};
+/**
+ * Extracts the confirmation code from a reservation
+ */
+function getTripReservationCode(reservation: Reservation): string {
+    return `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations.at(0)?.value} • ` : ''}`;
+}
+
+export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, getTripReservationCode};
 export type {ReservationData};

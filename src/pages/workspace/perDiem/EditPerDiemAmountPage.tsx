@@ -15,7 +15,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PerDiem from '@userActions/Policy/PerDiem';
+import {editPerDiemRateAmount} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -62,7 +62,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
             const newAmount = values.amount.trim();
             const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
             if (backendAmount !== Number(selectedSubrate?.rate)) {
-                PerDiem.editPerDiemRateAmount(policyID, rateID, subRateID, customUnit, backendAmount);
+                editPerDiemRateAmount(policyID, rateID, subRateID, customUnit, backendAmount);
             }
             Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
         },
@@ -77,7 +77,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate) || isEmptyObject(selectedSubrate)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={EditPerDiemAmountPage.displayName}
                 shouldEnableMaxHeight
@@ -93,6 +93,8 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         ref={inputCallbackRef}
