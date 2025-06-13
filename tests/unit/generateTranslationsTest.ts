@@ -66,6 +66,8 @@ describe('generateTranslations', () => {
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
             dedent(`
+                import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -117,6 +119,7 @@ describe('generateTranslations', () => {
             dedent(`
                 import Log from '@libs/Log';
                 import CONST from '@src/CONST';
+                import type en from './en';
 
                 if (CONST.REPORT.TYPE.EXPENSE == 'true') {
                     Log.info('This should not be translated');
@@ -184,6 +187,8 @@ describe('generateTranslations', () => {
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
             dedent(`
+                import type en from './en';
+
                 const strings = {
                     simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
                     simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -241,6 +246,8 @@ describe('generateTranslations', () => {
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
             dedent(`
+                import type en from './en';
+
                 const strings = {
                     updateReportFieldAllOptionsDisabled: (count: number, enabled: boolean, option: string) => {
                         if (toggledOptionsCount > 1) {
@@ -295,6 +302,8 @@ describe('generateTranslations', () => {
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
             dedent(`
+                import type en from './en';
+
                 const strings = {
                     // @context As in a financial institution
                     bank: '[it][ctx: As in a financial institution] Bank',
@@ -353,6 +362,8 @@ describe('generateTranslations', () => {
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
             dedent(`
+                import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
