@@ -26,7 +26,7 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
     // for this component. This file is only used for e2e tests, so it's okay to
     // disable compiler for this file.
 
-    const textInputRef = useRef<ComposerRef | null>();
+    const textInputRef = useRef<ComposerRef | null>(null);
     const hasFocusBeenRequested = useRef(false);
     const onLayout = useCallback((event: LayoutChangeEvent) => {
         const testConfig = E2EClient.getCurrentActiveTestConfig();
@@ -78,7 +78,7 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
             }}
             onLayout={onLayout}
         >
-            {/* Important: 
+            {/* Important:
                     this has to be a child, as this container might not
                     re-render while the actual ComposerWithSuggestions will.
             */}

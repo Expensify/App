@@ -1,14 +1,17 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
-import * as Device from '@userActions/Device';
+import {setDeviceID} from '@userActions/Device';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
-import initializeLastVisitedPath from './initializeLastVisitedPath';
 import platformSetup from './platformSetup';
+import telemetry from './telemetry';
 
 export default function () {
+    telemetry();
+
     /*
      * Initialize the Onyx store when the app loads for the first time.
      *
@@ -26,8 +29,14 @@ export default function () {
         keys: ONYXKEYS,
 
         // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
-        maxCachedKeysCount: 20000,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        maxCachedKeysCount: 50000,
+        evictableKeys: [
+            ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            ONYXKEYS.COLLECTION.SNAPSHOT,
+            ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
+            ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+            ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
+        ],
         initialKeyStates: {
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false},
@@ -39,12 +48,13 @@ export default function () {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
             },
-            // Always open the home route on app startup for native platforms by clearing the lastVisitedPath
-            [ONYXKEYS.LAST_VISITED_PATH]: initializeLastVisitedPath(),
         },
+        skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
 
-    Device.setDeviceID();
+    initOnyxDerivedValues();
+
+    setDeviceID();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);

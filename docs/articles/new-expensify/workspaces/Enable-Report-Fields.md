@@ -1,51 +1,52 @@
 ---
-title: Enable-Report-Fields.md
-description: Enable and create Report Fields for your Workspaces
+title: Enable Report Fields
+description: Enable and create Report Fields for your Workspaces.
+keywords: [New Expensify, report fields, custom report fields, workspace headers, Control plan, project tracking]
+---
+<div id="new-expensify" markdown="1">
+
+Report Fields let workspace admins collect additional header-level information on reports, such as project names, client codes, or trip types. This feature is only available on the **Control plan**.
+
+**Note:** If your workspace is connected to an accounting system like QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite, Report Fields must be created in that system directly. [Learn more about connecting integrations.](#)
+
 ---
 
-{% include info.html %}
-Report fields are only available on the Control plan. You cannot create these report fields directly in Expensify if you are connected to an accounting integration (QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite). Please refer to the relevant article for instructions on creating fields within that system.
-{% include end-info.html %}
+# Enable Report Fields
 
-If you are not connected to an accounting integration, workspace Admins can add additional required report fields that allow you to specify header-level details like specific project names, business trip information, locations, and more.
+To enable Report Fields in a workspace:
 
-## Enable Report Fields 
-To enable report fields on a Workspace:
+1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **More Features**.
+4. Toggle on **Report Fields**.
 
-1. Click Settings in the bottom left menu
-2. Click Workspaces from the left-hand menu
-3. Select the Workspace you want to enable Report Fields for 
-4. Go to More Features and toggle on Report Fields
+**Note:** If you're not on a Control plan, you'll be prompted to upgrade before enabling this feature.
 
-{% include info.html %}
-If you are not already on a Control plan, you will be prompted to upgrade
-{% include end-info.html %}
+---
 
-## Create New Report Fields
-To create new Report Fields:
+# Create New Report Fields
 
-1. Click Settings in the bottom left menu
-2. Click Workspaces from the left-hand menu
-3. Select the Workspace you want to create Report Fields on
-4. Click Report Fields on the lefthand menu (if you do not see this option, enable Report Fields by following the Enable Report Fields process above this)
-5. Click “Add Field” in the top right corner
-6. Click “Name” and add a name your your Report Field
-7. Click “Type” to select the Report Field type; you will have the following options:
-   - Text - Add a field for free-text input
-   - Date - Add a calendar for date selection
-   - List - Add a list of options to choose from
-       - To create values for your list, click List Vales > Add Values
-8. Once you have added a Name and the Type, click Save at the bottom of the page
+Once Report Fields are enabled, follow these steps to create a new field:
 
-## Edit or Delete Existing Report Fields
-To edit or delete existing report fields  Report Fields:
+1. Go to **Workspaces > [Workspace Name] > Report Fields**.
+   - If you don’t see **Report Fields**, first enable it using the steps above.
+2. Click **Add Field** in the top-right corner.
+3. Enter a name for your field under **Name**.
+4. Choose a **Field Type**:
+   - **Text** – Free-text entry.
+   - **Date** – Calendar date selection.
+   - **List** – Predefined list of values.
+     - To create list options, click **List Values** > **Add Values**.
+5. After naming and choosing the field type, click **Save**.
 
-1. Click Settings in the bottom left menu
-2. Click Workspaces from the left-hand menu
-3. Select the Workspace you want to edit Report Fields on
-4. Click Report Fields on the lefthand menu 
-5. Click the Report Field you wish to edit or delete
-6. Make the required edits in the right-hand panel, or select “Delete”
+---
 
+# Edit or Delete Report Fields
 
+To modify or remove an existing Report Field:
 
+1. Go to **Workspaces > [Workspace Name] > Report Fields**.
+2. Click the field you want to update.
+3. Make your edits in the right-hand panel, or click **Delete** to remove the field entirely.
+
+</div>

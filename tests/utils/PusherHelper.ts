@@ -1,9 +1,8 @@
+import Pusher from '@libs/Pusher';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import * as Pusher from '@src/libs/Pusher/pusher';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
-import asMutable from '@src/types/utils/asMutable';
 
 const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
 
@@ -12,8 +11,8 @@ function setup() {
     // channel already in a subscribed state. These methods are normally used to prevent
     // duplicated subscriptions, but we don't need them for this test so forcing them to
     // return false will make the testing less complex.
-    asMutable(Pusher).isSubscribed = jest.fn().mockReturnValue(false);
-    asMutable(Pusher).isAlreadySubscribing = jest.fn().mockReturnValue(false);
+    jest.spyOn(Pusher, 'isSubscribed').mockReturnValue(false);
+    jest.spyOn(Pusher, 'isAlreadySubscribing').mockReturnValue(false);
 
     // Connect to Pusher
     PusherConnectionManager.init();
@@ -23,15 +22,17 @@ function setup() {
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     });
 
-    window.getPusherInstance()?.connection.emit('connected');
+    const pusher = window.getPusherInstance();
+    if (pusher && 'connection' in pusher) {
+        pusher.connection?.emit('connected');
+    }
 }
 
 function emitOnyxUpdate(args: OnyxServerUpdate[]) {
-    const channel = Pusher.getChannel(CHANNEL_NAME);
-    channel?.emit(Pusher.TYPE.MULTIPLE_EVENTS, {
+    Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.MULTIPLE_EVENTS, {
         type: 'pusher',
-        lastUpdateID: null,
-        previousUpdateID: null,
+        lastUpdateID: 0,
+        previousUpdateID: 0,
         updates: [
             {
                 eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,

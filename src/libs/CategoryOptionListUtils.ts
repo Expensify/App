@@ -6,8 +6,10 @@ import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import * as Localize from './Localize';
+import localeCompare from './LocaleCompare';
+import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 type CategoryTreeSection = SectionBase & {
     data: OptionTree[];
@@ -125,17 +127,11 @@ function getCategoryListSections({
 
     if (searchValue) {
         const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
-        const searchCategories: Category[] = [];
 
-        categoriesForSearch.forEach((category) => {
-            if (!category.name.toLowerCase().includes(searchValue.toLowerCase())) {
-                return;
-            }
-            searchCategories.push({
-                ...category,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
-            });
-        });
+        const searchCategories: Category[] = tokenizedSearch(categoriesForSearch, searchValue, (category) => [category.name]).map((category) => ({
+            ...category,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+        }));
 
         const data = getCategoryOptionTree(searchCategories, true);
         categorySections.push({
@@ -192,7 +188,7 @@ function getCategoryListSections({
         const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
-            title: Localize.translateLocal('common.recent'),
+            title: translateLocal('common.recent'),
             shouldShow: true,
             data,
             indexOffset: data.length,
@@ -202,7 +198,7 @@ function getCategoryListSections({
     const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
+        title: translateLocal('common.all'),
         shouldShow: true,
         data,
         indexOffset: data.length,
@@ -218,7 +214,7 @@ function getCategoryListSections({
  */
 function sortCategories(categories: Record<string, Category>): Category[] {
     // Sorts categories alphabetically by name.
-    const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
+    const sortedCategories = Object.values(categories).sort((a, b) => localeCompare(a.name, b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy: Hierarchy = {};
@@ -279,4 +275,4 @@ function sortCategories(categories: Record<string, Category>): Category[] {
 
 export {getCategoryListSections, getCategoryOptionTree, sortCategories};
 
-export type {Category, SectionBase as CategorySectionBase, CategoryTreeSection, Hierarchy};
+export type {Category, CategoryTreeSection};

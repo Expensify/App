@@ -27,7 +27,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         sessionEmail = value?.email ?? '';
-        sessionAccountID = value?.accountID ?? -1;
+        sessionAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -41,7 +41,12 @@ Onyx.connect({
  * @param publicRoomReportID - This is the global reportID for the public room, we'll ignore the optimistic one
  */
 function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string, policyID: string, publicRoomReportID: string) {
-    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID);
+    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport({
+        participantList: [],
+        reportName: CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        policyID,
+    });
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -69,7 +74,7 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
     };
 
     API.write(WRITE_COMMANDS.REFER_TEACHERS_UNITE_VOLUNTEER, parameters, {optimisticData});
-    Navigation.dismissModal(publicRoomReportID);
+    Navigation.dismissModalWithReport({reportID: publicRoomReportID});
 }
 
 /**
@@ -80,7 +85,15 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     const loggedInEmail = PhoneNumber.addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData: ReportCreationData = {};
 
-    const expenseChatData = ReportUtils.buildOptimisticChatReport([sessionAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, sessionAccountID, true, policyName);
+    const expenseChatData = ReportUtils.buildOptimisticChatReport({
+        participantList: [sessionAccountID],
+        reportName: '',
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        ownerAccountID: sessionAccountID,
+        isOwnPolicyExpenseChat: true,
+        oldPolicyName: policyName,
+    });
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(sessionEmail);
     const expenseReportActionData: ExpenseReportActionData = {
@@ -103,6 +116,8 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 name: policyName,
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
+                // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+                // eslint-disable-next-line deprecation/deprecation
                 outputCurrency: getPolicy(policyID)?.outputCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 employeeList: {
                     [sessionEmail]: {
@@ -193,7 +208,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     };
 
     API.write(WRITE_COMMANDS.ADD_SCHOOL_PRINCIPAL, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(expenseChatReportID);
+    Navigation.dismissModalWithReport({reportID: expenseChatReportID});
 }
 
 export default {referTeachersUniteVolunteer, addSchoolPrincipal};

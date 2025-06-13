@@ -15,19 +15,9 @@ type AdditionalDomainItemProps = {
     isRecommended?: boolean;
 };
 
-type DomainItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalDomainItemProps> & {shouldHighlightSelectedItem?: boolean};
+type DomainItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalDomainItemProps>;
 
-function TravelDomainListItem<TItem extends ListItem>({
-    item,
-    isFocused,
-    showTooltip,
-    isDisabled,
-    onSelectRow,
-    onCheckboxPress,
-    onFocus,
-    shouldSyncFocus,
-    shouldHighlightSelectedItem,
-}: DomainItemProps<TItem>) {
+function TravelDomainListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus}: DomainItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -42,7 +32,6 @@ function TravelDomainListItem<TItem extends ListItem>({
 
     return (
         <BaseListItem
-            pressableStyle={[[shouldHighlightSelectedItem && item.isSelected && styles.activeComponentBG]]}
             item={item}
             wrapperStyle={[styles.flex1, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow, styles.justifyContentBetween]}
             isFocused={isFocused}

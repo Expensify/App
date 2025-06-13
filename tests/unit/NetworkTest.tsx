@@ -4,7 +4,7 @@ import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
 import TestToolMenu from '@components/TestToolMenu';
-import * as App from '@libs/actions/App';
+import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
 import * as NetworkActions from '@src/libs/actions/Network';
@@ -136,6 +136,7 @@ describe('NetworkTests', () => {
 
         // Sign in test user and wait for updates
         await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await waitForBatchedUpdates();
 
         const initialAuthToken = sessionState?.authToken;
@@ -165,8 +166,8 @@ describe('NetworkTests', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         // Trigger reconnect which will fail due to expired token
-        App.confirmReadyToOpenApp();
-        App.reconnectApp();
+        confirmReadyToOpenApp();
+        reconnectApp();
         await waitForBatchedUpdates();
 
         // 4. First API Call Verification - Check ReconnectApp
@@ -183,8 +184,8 @@ describe('NetworkTests', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         // 7.Trigger another reconnect due to network change
-        App.confirmReadyToOpenApp();
-        App.reconnectApp();
+        confirmReadyToOpenApp();
+        reconnectApp();
 
         // 8. Now fail the pending authentication request
         resolveAuthRequest(Promise.reject(new Error('Network request failed')));
@@ -249,9 +250,9 @@ describe('NetworkTests', () => {
             .then(() => {
                 // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
                 // And we should also see the reconnection callbacks triggered.
-                const callsToopenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
                 const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
-                expect(callsToopenPublicProfilePage.length).toBe(3);
+                expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
             });

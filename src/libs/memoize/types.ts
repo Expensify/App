@@ -1,6 +1,6 @@
-import type {TakeFirst} from '@src/types/utils/TupleOperations';
+import type TakeFirst from '@src/types/utils/TupleOperations';
 import type {Cache} from './cache/types';
-import type {MemoizeStats} from './stats';
+import type MemoizeStats from './stats';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Callable = (...args: any[]) => any;

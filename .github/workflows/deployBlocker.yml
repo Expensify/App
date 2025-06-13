@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Give the issue/PR the Hourly, Engineering labels
         run: gh issue edit ${{ github.event.issue.number }} --add-label 'Engineering,Hourly' --remove-label 'Daily,Weekly,Monthly'

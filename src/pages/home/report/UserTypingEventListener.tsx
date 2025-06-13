@@ -4,7 +4,7 @@ import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -19,7 +19,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
 
     useEffect(
         () => () => {

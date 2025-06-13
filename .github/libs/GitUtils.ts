@@ -1,7 +1,7 @@
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
-import * as VersionUpdater from './versionUpdater';
+import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
 
 type CommitType = {
@@ -55,15 +55,20 @@ function tagExists(tag: string) {
  * @param level the Semver level to step backward by
  */
 function getPreviousExistingTag(tag: string, level: SemverLevel) {
-    let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
+    let previousVersion = getPreviousVersion(tag.replace('-staging', ''), level);
     let tagExistsForPreviousVersion = false;
     while (!tagExistsForPreviousVersion) {
         if (tagExists(previousVersion)) {
             tagExistsForPreviousVersion = true;
             break;
         }
+        if (tagExists(`${previousVersion}-staging`)) {
+            tagExistsForPreviousVersion = true;
+            previousVersion = `${previousVersion}-staging`;
+            break;
+        }
         console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
-        previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
+        previousVersion = getPreviousVersion(previousVersion, level);
     }
     return previousVersion;
 }
@@ -112,8 +117,8 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
-    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+    // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? SEMANTIC_VERSION_LEVELS.PATCH : SEMANTIC_VERSION_LEVELS.MINOR);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
 
@@ -164,7 +169,7 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
             return;
         }
 
-        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
             return;
         }

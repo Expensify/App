@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,6 +10,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +50,9 @@ type TripRoomPreviewProps = {
 
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 type ReservationViewProps = {
@@ -80,15 +83,35 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
         const endName = reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? reservation.end.shortName : reservation.end.longName;
 
         titleComponent = (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                <Text style={[styles.labelStrong, styles.flexShrink1]}>{startName}</Text>
-                <Icon
-                    src={Expensicons.ArrowRightLong}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
-                    fill={theme.icon}
-                />
-                <Text style={[styles.labelStrong, styles.flexShrink1]}>{endName}</Text>
+            <View style={[styles.flexRow, styles.alignItemsStart]}>
+                <View style={styles.tripReservationRow}>
+                    <View style={styles.flexShrink1}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.labelStrong, styles.mr2]}
+                            ellipsizeMode="tail"
+                        >
+                            {startName}
+                        </Text>
+                    </View>
+                    <View style={styles.iconWrapper}>
+                        <Icon
+                            src={Expensicons.ArrowRightLong}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </View>
+                <View style={[styles.flex1, styles.ml2]}>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.labelStrong]}
+                        ellipsizeMode="tail"
+                    >
+                        {endName}
+                    </Text>
+                </View>
             </View>
         );
     }
@@ -114,15 +137,26 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
     );
 }
 
-function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
+function TripRoomPreview({
+    action,
+    chatReportID,
+    containerStyles,
+    contextMenuAnchor,
+    isHovered = false,
+    checkIfContextMenuActive = () => {},
+    shouldDisplayContextMenu = true,
+}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {canBeMissing: true});
     const tripTransactions = useTripTransactions(chatReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
-    const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
+    const dateInfo =
+        chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
+            ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
+            : '';
     const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(chatReport);
 
     const currency = iouReport?.currency ?? chatReport?.currency;
@@ -137,7 +171,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
         );
     }, [currency, totalDisplaySpend, tripTransactions]);
 
-    const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
+    const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => (
         <ReservationView
             reservation={item.reservation}
@@ -156,7 +190,12 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                     onPress={navigateToTrip}
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                    onLongPress={(event) => {
+                        if (!shouldDisplayContextMenu) {
+                            return;
+                        }
+                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                    }}
                     shouldUseHapticsOnLongPress
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role={CONST.ROLE.BUTTON}
@@ -192,7 +231,6 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                             renderItem={renderItem}
                         />
                         <Button
-                            success
                             text={translate('travel.viewTrip')}
                             onPress={navigateToTrip}
                         />

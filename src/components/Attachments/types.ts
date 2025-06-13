@@ -1,4 +1,4 @@
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type AttachmentSource = string | IconAsset | number;
@@ -6,6 +6,9 @@ type AttachmentSource = string | IconAsset | number;
 type Attachment = {
     /** Report action ID of the attachment */
     reportActionID?: string;
+
+    /** The attachment id, which is the concatenation of the report action id it is in and its order index within that report action. */
+    attachmentID?: string;
 
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;

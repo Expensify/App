@@ -35,8 +35,8 @@ type TranslationDeepObject<TTranslations = any> = {
     [Path in keyof TTranslations]: TTranslations[Path] extends string | ((...args: any[]) => any)
         ? TranslationLeafValue<TTranslations[Path]>
         : TTranslations[Path] extends number | boolean | null | undefined | unknown[]
-        ? string
-        : TranslationDeepObject<TTranslations[Path]>;
+          ? string
+          : TranslationDeepObject<TTranslations[Path]>;
 };
 
 /**
@@ -50,9 +50,9 @@ type FlattenObject<TObject, TPrefix extends string = ''> = {
     [TKey in keyof TObject]: TObject[TKey] extends (arg: any) => any
         ? `${TPrefix}${TKey & string}`
         : // eslint-disable-next-line @typescript-eslint/ban-types
-        TObject[TKey] extends object
-        ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
-        : `${TPrefix}${TKey & string}`;
+          TObject[TKey] extends object
+          ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
+          : `${TPrefix}${TKey & string}`;
 }[keyof TObject];
 
 /**
@@ -61,10 +61,10 @@ type FlattenObject<TObject, TPrefix extends string = ''> = {
 type TranslationValue<TObject, TKey extends string> = TKey extends keyof TObject
     ? TObject[TKey]
     : TKey extends `${infer TPathKey}.${infer TRest}`
-    ? TPathKey extends keyof TObject
-        ? TranslationValue<TObject[TPathKey], TRest>
-        : never
-    : never;
+      ? TPathKey extends keyof TObject
+          ? TranslationValue<TObject[TPathKey], TRest>
+          : never
+      : never;
 
 /**
  * English is the default translation, other languages will be type-safe based on this
@@ -94,4 +94,4 @@ type TranslationParameters<TKey extends TranslationPaths> = FlatTranslationsObje
         : Args
     : never[];
 
-export type {DefaultTranslation, TranslationDeepObject, TranslationPaths, PluralForm, TranslationValue, FlatTranslationsObject, TranslationParameters};
+export type {TranslationDeepObject, TranslationPaths, PluralForm, FlatTranslationsObject, TranslationParameters};

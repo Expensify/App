@@ -7,9 +7,11 @@ import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePers
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as Localize from './Localize';
-import * as UserUtils from './UserUtils';
+import {formatPhoneNumber} from './LocalePhoneNumber';
+import {translateLocal} from './Localize';
+import {areEmailsFromSamePrivateDomain} from './LoginUtils';
+import {parsePhoneNumber} from './PhoneNumber';
+import {generateAccountID} from './UserUtils';
 
 type FirstAndLastName = {
     firstName: string;
@@ -42,14 +44,32 @@ Onyx.connect({
         if (!value) {
             return;
         }
-        hiddenTranslation = Localize.translateLocal('common.hidden');
-        youTranslation = Localize.translateLocal('common.you').toLowerCase();
+        hiddenTranslation = translateLocal('common.hidden');
+        youTranslation = translateLocal('common.you').toLowerCase();
+    },
+});
+
+let defaultCountry = '';
+
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        defaultCountry = value;
     },
 });
 
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
-function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
+function getDisplayNameOrDefault(
+    passedPersonalDetails?: Partial<PersonalDetails> | null,
+    defaultValue = '',
+    shouldFallbackToHidden = true,
+    shouldAddCurrentUserPostfix = false,
+    youAfterTranslation = youTranslation,
+): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     let login = passedPersonalDetails?.login ?? '';
@@ -60,7 +80,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
         displayName = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
 
-    // If the displayName is not set by the user, the backend sets the diplayName same as the login so
+    // If the displayName is not set by the user, the backend sets the displayName same as the login so
     // we need to remove the sms domain from the displayName if it is an sms login.
     if (Str.isSMSLogin(login)) {
         if (displayName === login) {
@@ -70,7 +90,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${youTranslation})`;
+        displayName = `${displayName} (${youAfterTranslation})`;
     }
 
     if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -99,16 +119,26 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
  * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns - Array of personal detail objects
  */
-function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: number, shouldChangeUserDisplayName = false): PersonalDetails[] {
+function getPersonalDetailsByIDs({
+    accountIDs,
+    currentUserAccountID,
+    shouldChangeUserDisplayName = false,
+    personalDetailsParam = allPersonalDetails,
+}: {
+    accountIDs: number[];
+    currentUserAccountID: number;
+    shouldChangeUserDisplayName?: boolean;
+    personalDetailsParam?: Partial<PersonalDetailsList>;
+}): PersonalDetails[] {
     const result: PersonalDetails[] = accountIDs
-        .filter((accountID) => !!allPersonalDetails?.[accountID])
+        .filter((accountID) => !!personalDetailsParam?.[accountID])
         .map((accountID) => {
-            const detail = (allPersonalDetails?.[accountID] ?? {}) as PersonalDetails;
+            const detail = (personalDetailsParam?.[accountID] ?? {}) as PersonalDetails;
 
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
                     ...detail,
-                    displayName: Localize.translateLocal('common.you'),
+                    displayName: translateLocal('common.you'),
                 };
             }
 
@@ -133,12 +163,22 @@ function getAccountIDsByLogins(logins: string[]): number[] {
         const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-            foundAccountIDs.push(UserUtils.generateAccountID(login));
+            foundAccountIDs.push(generateAccountID(login));
         } else {
             foundAccountIDs.push(Number(currentDetail.accountID));
         }
         return foundAccountIDs;
     }, []);
+}
+
+/**
+ * Given an accountID, find the associated personal detail and return related login.
+ *
+ * @param accountID User accountID
+ * @returns Login according to passed accountID
+ */
+function getLoginByAccountID(accountID: number): string | undefined {
+    return allPersonalDetails?.[accountID]?.login;
 }
 
 /**
@@ -149,9 +189,9 @@ function getAccountIDsByLogins(logins: string[]): number[] {
  */
 function getLoginsByAccountIDs(accountIDs: number[]): string[] {
     return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentDetail: Partial<PersonalDetails> = allPersonalDetails?.[accountID] ?? {};
-        if (currentDetail.login) {
-            foundLogins.push(currentDetail.login);
+        const currentLogin = getLoginByAccountID(accountID);
+        if (currentLogin) {
+            foundLogins.push(currentLogin);
         }
         return foundLogins;
     }, []);
@@ -187,7 +227,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
         personalDetailsNew[accountID] = {
             login,
             accountID,
-            displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            displayName: formatPhoneNumber(login),
             isOptimisticPersonalDetail: true,
         };
 
@@ -284,7 +324,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
  */
 function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
-        return LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
+        return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
     }
 
     return undefined;
@@ -296,7 +336,7 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
-    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
+    const userLogin = formatPhoneNumber(login);
 
     if (!passedPersonalDetails) {
         return userLogin;
@@ -360,6 +400,42 @@ function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'display
     return email;
 }
 
+const getShortMentionIfFound = (displayText: string, userAccountID: string, currentUserPersonalDetails: OnyxEntry<PersonalDetails>, userLogin = '') => {
+    // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
+    // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
+    if (userAccountID && userLogin !== displayText) {
+        return displayText;
+    }
+
+    // If the emails are not in the same private domain, we also return the displayText
+    if (!areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails?.login ?? '')) {
+        return displayText;
+    }
+
+    // Otherwise, the emails must be of the same private domain, so we should remove the domain part
+    return displayText.split('@').at(0);
+};
+
+function getDefaultCountry() {
+    return defaultCountry;
+}
+
+/**
+ * Gets the phone number to display for SMS logins
+ */
+const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined => {
+    const {login = '', displayName = ''} = details ?? {};
+    // If the user hasn't set a displayName, it is set to their phone number
+    const parsedPhoneNumber = parsePhoneNumber(displayName);
+
+    if (parsedPhoneNumber.possible) {
+        return parsedPhoneNumber?.number?.e164;
+    }
+
+    // If the user has set a displayName, get the phone number from the SMS login
+    return login ? Str.removeSMSDomain(login) : '';
+};
+
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -378,4 +454,8 @@ export {
     getNewAccountIDsAndLogins,
     getPersonalDetailsLength,
     getUserNameByEmail,
+    getShortMentionIfFound,
+    getDefaultCountry,
+    getLoginByAccountID,
+    getPhoneNumber,
 };

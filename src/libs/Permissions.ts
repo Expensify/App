@@ -6,24 +6,9 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
-function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
-}
-
-function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
-}
-
-function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
-}
-
-function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
-}
-
-function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
+function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
+    // Don't check for all betas or nobody can use test travel on dev
+    return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 }
 
 /**
@@ -33,31 +18,27 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
+/**
+ * Checks if the user can use the auto-submit feature
+ * @param betas - The user's beta flags
+ * @returns true if the user can use auto-submit, false otherwise
+ */
+function canUseAutoSubmit(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.AUTO_SUBMIT) || canUseAllBetas(betas);
 }
 
-function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
-}
-
-function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
-}
-
-function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
+    // This beta has been released to everyone, but in case user does not have the NVP loaded, we need to return true here.
+    // Will be removed in this issue https://github.com/Expensify/App/issues/63254
+    if (beta === CONST.BETAS.TABLE_REPORT_VIEW) {
+        return true;
+    }
+    return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
 
 export default {
-    canUseDefaultRooms,
     canUseLinkPreviews,
-    canUseSpotnanaTravel,
-    canUseNetSuiteUSATax,
-    canUseCategoryAndTagApprovers,
-    canUsePerDiem,
-    canUseMergeAccounts,
-    canUseManagerMcTest,
-    canUseInternationalBankAccount,
-    canUseNSQS,
+    isBlockedFromSpotnanaTravel,
+    isBetaEnabled,
+    canUseAutoSubmit,
 };

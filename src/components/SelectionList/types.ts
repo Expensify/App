@@ -12,16 +12,22 @@ import type {
     TextStyle,
     ViewStyle,
 } from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
+import type {SearchColumnType} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
+import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
@@ -96,7 +102,10 @@ type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEv
 
 type ExtendedTargetedEvent = TargetedEvent & {
     /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
-    sourceCapabilities?: unknown;
+    sourceCapabilities?: {
+        /** A boolean value that indicates whether the device dispatches touch events. */
+        firesTouchEvents: boolean;
+    };
 };
 
 type ListItem = {
@@ -200,6 +209,9 @@ type ListItem = {
 
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
+
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -247,6 +259,9 @@ type TransactionListItemType = ListItem &
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
+
+        /** Precomputed violations */
+        violations?: TransactionViolation[];
     };
 
 type ReportActionListItemType = ListItem &
@@ -262,6 +277,39 @@ type ReportActionListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
+    };
+
+type TaskListItemType = ListItem &
+    SearchTask & {
+        /** The personal details of the user who is assigned to the task */
+        assignee: SearchPersonalDetails;
+
+        /** The personal details of the user who created the task */
+        createdBy: SearchPersonalDetails;
+
+        /** final and formatted "assignee" value used for displaying and sorting */
+        formattedAssignee: string;
+
+        /** final and formatted "createdBy" value used for displaying and sorting */
+        formattedCreatedBy: string;
+
+        /** The name of the parent report room */
+        parentReportName?: string;
+
+        /** The icon of the parent  report room */
+        parentReportIcon?: Icon;
+
+        /** The report details of the task */
+        report?: Report;
+
+        /** Key used internally by React */
+        keyForList: string;
+
+        /**
+         * Whether we should show the task year.
+         * This is true if at least one task in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
     };
 
 type ReportListItemType = ListItem &
@@ -304,20 +352,21 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
 
-    /** Whether we highlight all the selected items */
-    shouldHighlightSelectedItem?: boolean;
-
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
 
-    /** Styles applid for the title container of the list item */
+    /** Styles applied for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     shouldPreventEnterKeySubmit?: boolean;
+    shouldShowBlueBorderOnFocus?: boolean;
     keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
@@ -327,6 +376,10 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     hoverStyle?: StyleProp<ViewStyle>;
     /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
+    /** Test ID of the component. Used to locate this view in end-to-end tests. */
+    testID?: string;
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -340,9 +393,46 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
+type SplitListItemType = ListItem &
+    SplitExpense & {
+        /** Item header text */
+        headerText: string;
+
+        /** Merchant or vendor name */
+        merchant: string;
+
+        /** Currency code */
+        currency: string;
+
+        /** ID of split expense */
+        transactionID: string;
+
+        /** Currency symbol */
+        currencySymbol: string;
+
+        /** Original amount before split */
+        originalAmount: number;
+
+        /** Indicates whether a split was opened through this transaction */
+        isTransactionLinked: boolean;
+
+        /** Function for updating amount */
+        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+    };
+
+type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
+
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
+type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -351,9 +441,19 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
+type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+};
+
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    queryJSONHash?: number;
+
+    /** The policies which the user has access to */
+    policies?: OnyxCollection<Policy>;
+};
 
 type ValidListItem =
     | typeof RadioListItem
@@ -365,7 +465,9 @@ type ValidListItem =
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
-    | typeof TravelDomainListItem;
+    | typeof TravelDomainListItem
+    | typeof UnreportedExpenseListItem
+    | typeof SpendCategorySelectorListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -386,13 +488,15 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     indexOffset?: number;
 };
 
-type SkeletonViewProps = {
-    shouldAnimate: boolean;
-};
-
-type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
+type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
+
+    /** List of selected items */
+    selectedItems?: string[];
+
+    /** Whether the item is selected */
+    isSelected?: (item: TItem) => boolean;
 
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
@@ -432,6 +536,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Label for the text input */
     textInputLabel?: string;
 
+    /** Style for the text input */
+    textInputStyle?: StyleProp<ViewStyle>;
+
     /** Placeholder for the text input */
     textInputPlaceholder?: string;
 
@@ -464,6 +571,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether the text input should be shown after list header */
     shouldShowTextInputAfterHeader?: boolean;
+
+    /** Whether the header message should be shown after list header */
+    shouldShowHeaderMessageAfterHeader?: boolean;
 
     /** Whether to include padding bottom */
     includeSafeAreaPaddingBottom?: boolean;
@@ -513,8 +623,11 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to call preventDefault() on pressing enter key or not */
     shouldPreventDefault?: boolean;
 
-    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+
+    /** Whether to subscribe to KeyboardShortcut arrow keys events */
+    shouldSubscribeToArrowKeyEvents?: boolean;
 
     /** Custom content to display in the header */
     headerContent?: ReactNode;
@@ -527,6 +640,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
+
+    /** Custom content to display above the pagination */
+    footerContentAbovePagination?: React.JSX.Element | null;
 
     /** Custom content to display when the list is empty after finish loading */
     listEmptyContent?: React.JSX.Element | null;
@@ -548,6 +664,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
+
+    /** Whether we should clear the search input when an item is selected */
+    shouldClearInputOnSelect?: boolean;
 
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
@@ -582,10 +701,10 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
 
-    /** Styles applid for the title of the list item */
+    /** Styles applied for the title of the list item */
     listItemTitleStyles?: StyleProp<TextStyle>;
 
-    /** Styles applid for the title container of the list item */
+    /** Styles applied for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 
     /** This may improve scroll performance for large lists */
@@ -635,9 +754,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Additional styles to apply to scrollable content */
     contentContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether we highlight all the selected items */
-    shouldHighlightSelectedItem?: boolean;
-
     /** Determines if the focused item should remain at the top of the viewable area when navigating with arrow keys */
     shouldKeepFocusedItemAtTopOfViewableArea?: boolean;
 
@@ -650,11 +766,35 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to scroll to the focused index */
     shouldScrollToFocusedIndex?: boolean;
 
+    /** Whether the layout is narrow */
+    isSmallScreenWidth?: boolean;
+
     /** Called when scrollable content view of the ScrollView changes */
     onContentSizeChange?: (w: number, h: number) => void;
 
     /** Initial number of items to render */
     initialNumToRender?: number;
+
+    /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
+    isScreenFocused?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Number of items to render in the loader */
+    fixedNumItemsForLoader?: number;
+
+    /** Skeleton loader speed */
+    loaderSpeed?: number;
+
+    /** Error text to display */
+    errorText?: string;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -679,6 +819,7 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
+    someSelected: boolean;
 };
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
@@ -689,31 +830,41 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
+type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
+
+type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+
 export type {
     BaseListItemProps,
-    BaseSelectionListProps,
+    SelectionListProps,
     ButtonOrCheckBoxRoles,
-    CommonListItemProps,
     ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
-    ItemLayout,
     ListItem,
-    ListItemFocusEventHandler,
     ListItemProps,
+    ListItemFocusEventHandler,
     RadioListItemProps,
+    SingleSelectListItemProps,
+    MultiSelectListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
-    SkeletonViewProps,
     SectionListDataType,
     SectionWithIndexOffset,
     SelectionListHandle,
     TableListItemProps,
+    TaskListItemType,
+    TaskListItemProps,
     TransactionListItemProps,
     TransactionListItemType,
+    TransactionSelectionListItem,
     UserListItemProps,
-    ValidListItem,
+    UserSelectionListItemProps,
     ReportActionListItemType,
     ChatListItemProps,
+    SortableColumnName,
+    SplitListItemProps,
+    SplitListItemType,
+    SearchListItem,
 };

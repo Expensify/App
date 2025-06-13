@@ -77,7 +77,10 @@ type BaseTextInputWithCurrencySymbolProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'contentWidth' | 'onPress'>;
+
+    /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
+    testID?: string;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'contentWidth' | 'onPress' | 'submitBehavior'>;
 
 type TextInputWithCurrencySymbolProps = Omit<BaseTextInputWithCurrencySymbolProps, 'onSelectionChange'> & {
     onSelectionChange?: (start: number, end: number) => void;

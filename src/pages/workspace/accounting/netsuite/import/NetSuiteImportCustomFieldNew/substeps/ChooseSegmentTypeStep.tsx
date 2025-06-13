@@ -54,6 +54,7 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
             shouldUseScrollView
             shouldHideFixErrorsAlert
             submitFlexEnabled={false}
+            addBottomSafeAreaPadding
         >
             <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>
                 {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentRecordType`)}

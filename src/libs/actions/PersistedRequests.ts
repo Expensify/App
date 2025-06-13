@@ -134,7 +134,7 @@ function rollbackOngoingRequest() {
     }
 
     // Prepend ongoingRequest to persistedRequests
-    persistedRequests.unshift({...ongoingRequest, isRollbacked: true});
+    persistedRequests.unshift({...ongoingRequest, isRollback: true});
 
     // Clear the ongoingRequest
     ongoingRequest = null;

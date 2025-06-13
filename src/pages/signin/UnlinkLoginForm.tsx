@@ -32,7 +32,8 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const unlinkMessage = account?.message === 'unlinkLoginForm.linkSent' || account?.message === 'unlinkLoginForm.succesfullyUnlinkedLogin' ? translate(account?.message) : account?.message;
+    const unlinkMessage =
+        account?.message === 'unlinkLoginForm.linkSent' || account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account?.message) : account?.message;
     const primaryLogin = useMemo(() => {
         if (!account?.primaryLogin) {
             return '';

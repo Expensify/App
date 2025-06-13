@@ -1,0 +1,19 @@
+{
+  "name": "@expensify/react-native-hybrid-app",
+  "version": "0.0.0",
+  "description": "HybridApp",
+  "main": "src/index",
+  "codegenConfig": {
+    "name": "RNReactNativeHybridAppSpec",
+    "type": "modules",
+    "jsSrcsDir": "src"
+  },
+  "author": " <> ()",
+  "license": "UNLICENSED",
+  "homepage": "#readme",
+  "create-react-native-library": {
+    "type": "turbo-module",
+    "languages": "kotlin-objc",
+    "version": "0.48.1"
+  }
+}

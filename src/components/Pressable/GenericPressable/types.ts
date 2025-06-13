@@ -148,6 +148,11 @@ type PressableProps = RNPressableProps &
          * e.g., show disabled cursor when disabled
          */
         interactive?: boolean;
+
+        /**
+         * Whether the pressable is nested in another one.
+         */
+        isNested?: boolean;
     };
 
 type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;

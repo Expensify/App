@@ -1,5 +1,6 @@
+import {useNavigation, useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -32,20 +33,43 @@ type CurrencyPickerProps = {
     /** List of currencies to exclude from the list */
     excludeCurrencies?: string[];
 
-    /** Is the MenuItem interactive */
-    interactive?: boolean;
+    /** Is the MenuItem disabled */
+    disabled?: boolean;
 
     /** Should show the full page offline view (whenever the user is offline) */
     shouldShowFullPageOfflineView?: boolean;
+
+    /** Should sync picker visibility with navigation params (for modal state restoration) */
+    shouldSyncPickerVisibilityWithNavigation?: boolean;
+
+    /** Should save currency value in navigation params */
+    shouldSaveCurrencyInNavigation?: boolean;
 };
 
-function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, interactive, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({
+    label,
+    value,
+    errorText,
+    headerContent,
+    excludeCurrencies,
+    disabled = false,
+    shouldShowFullPageOfflineView = false,
+    shouldSyncPickerVisibilityWithNavigation = false,
+    shouldSaveCurrencyInNavigation = false,
+    onInputChange = () => {},
+}: CurrencyPickerProps) {
     const {translate} = useLocalize();
-    const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const route = useRoute();
+    const navigation = useNavigation();
+    const isPickerVisibleParam = route.params && 'isPickerVisible' in route.params && route.params.isPickerVisible === 'true';
+    const [isPickerVisible, setIsPickerVisible] = useState(isPickerVisibleParam ?? false);
     const styles = useThemeStyles();
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
+        if (shouldSaveCurrencyInNavigation) {
+            Navigation.setParams({currency: value});
+        }
     };
 
     const updateInput = (item: CurrencyListItem) => {
@@ -54,6 +78,13 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
     };
 
     const BlockingComponent = shouldShowFullPageOfflineView ? FullPageOfflineBlockingView : Fragment;
+
+    useEffect(() => {
+        if (!shouldSyncPickerVisibilityWithNavigation) {
+            return;
+        }
+        Navigation.setParams({isPickerVisible: String(isPickerVisible)});
+    }, [isPickerVisible, navigation, shouldSyncPickerVisibilityWithNavigation]);
 
     return (
         <>
@@ -64,7 +95,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
-                interactive={interactive}
+                disabled={disabled}
             />
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -72,14 +103,18 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
                 hideModalContentWhileAnimating
+                shouldEnableNewFocusManagement
                 useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
+                shouldUseModalPaddingStyle={false}
+                shouldHandleNavigationBack
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
-                    includePaddingTop={false}
-                    includeSafeAreaPaddingBottom
                     testID={CurrencyPicker.displayName}
+                    shouldEnableMaxHeight
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={label}
@@ -93,6 +128,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                             onSelect={updateInput}
                             searchInputLabel={translate('common.search')}
                             excludedCurrencies={excludeCurrencies}
+                            addBottomSafeAreaPadding
                         />
                     </BlockingComponent>
                 </ScreenWrapper>

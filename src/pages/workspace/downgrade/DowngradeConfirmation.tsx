@@ -2,7 +2,8 @@ import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import {MushroomTopHat} from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils} from '@libs/PolicyUtils';
 
 type Props = {
     onConfirmDowngrade: () => void;
@@ -11,7 +12,8 @@ type Props = {
 
 function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {translate} = useLocalize();
-    const hasOtherControlWorkspaces = PolicyUtils.hasOtherControlWorkspaces(policyID);
+    const styles = useThemeStyles();
+    const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(policyID);
 
     return (
         <ConfirmationPage
@@ -21,6 +23,7 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
             shouldShowButton
             onButtonPress={onConfirmDowngrade}
             buttonText={translate('workspace.downgrade.completed.gotIt')}
+            containerStyle={styles.h100}
         />
     );
 }

@@ -2,8 +2,8 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+import useOnyx from '@hooks/useOnyx';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
@@ -106,7 +106,7 @@ function KYCWall({
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 openPersonalBankAccountSetupView();
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                Navigation.navigate(addDebitCardRoute);
+                Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
                 if (iouReport && isIOUReport(iouReport)) {
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};

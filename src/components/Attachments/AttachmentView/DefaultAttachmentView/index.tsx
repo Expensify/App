@@ -63,6 +63,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
                         <ActivityIndicator
                             size="small"
                             color={theme.textSupporting}
+                            testID="attachment-loading-spinner"
                         />
                     </Tooltip>
                 </View>

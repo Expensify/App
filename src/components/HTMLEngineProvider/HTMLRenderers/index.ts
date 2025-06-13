@@ -1,7 +1,6 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
-import CustomEmojiRenderer from './CustomEmojiRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
@@ -11,6 +10,9 @@ import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
+import RBRRenderer from './RBRRenderer';
+import ShortMentionRenderer from './ShortMentionRenderer';
+import TaskTitleRenderer from './TaskTitleRenderer';
 import VideoRenderer from './VideoRenderer';
 
 /**
@@ -27,10 +29,12 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     edited: EditedRenderer,
     pre: PreRenderer,
     /* eslint-disable @typescript-eslint/naming-convention */
+    'task-title': TaskTitleRenderer,
+    rbr: RBRRenderer,
     'mention-user': MentionUserRenderer,
     'mention-report': MentionReportRenderer,
     'mention-here': MentionHereRenderer,
-    'custom-emoji': CustomEmojiRenderer,
+    'mention-short': ShortMentionRenderer,
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,

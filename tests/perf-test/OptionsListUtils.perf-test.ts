@@ -2,7 +2,7 @@ import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,7 +73,18 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = OptionsListUtils.createOptionList(personalDetails, reports);
+const options = createOptionList(personalDetails, reports);
+
+const ValidOptionsConfig = {
+    betas: mockedBetas,
+    includeRecentReports: true,
+    includeTasks: true,
+    includeThreads: true,
+    includeMoneyRequests: true,
+    includeMultipleParticipantReports: true,
+    includeSelfDM: true,
+    includeOwnedWorkspaceChats: true,
+};
 
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
@@ -95,34 +106,41 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getSearchOptions(options, mockedBetas));
+        await measureFunction(() => getSearchOptions(options, mockedBetas));
     });
 
     /* Testing getShareLogOptions */
     test('[OptionsListUtils] getShareLogOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getShareLogOptions(options, mockedBetas));
+        await measureFunction(() => getShareLogOptions(options, mockedBetas));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
         await measureFunction(() => {
-            const formattedOptions = OptionsListUtils.getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {betas: mockedBetas});
-            OptionsListUtils.filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+        });
+    });
+    test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
+        await waitForBatchedUpdates();
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
+        await measureFunction(() => {
+            filterAndOrderOptions(formattedOptions, '');
         });
     });
 
     /* Testing getShareDestinationOptions */
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
+        await measureFunction(() => getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
     });
 
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getMemberInviteOptions(options.personalDetails, mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {

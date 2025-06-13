@@ -42,6 +42,10 @@ export default {
         flexDirection: 'column',
     },
 
+    flexRowReverse: {
+        flexDirection: 'row-reverse',
+    },
+
     flexColumnReverse: {
         flexDirection: 'column-reverse',
     },
@@ -63,6 +67,10 @@ export default {
 
     justifyContentAround: {
         justifyContent: 'space-around',
+    },
+
+    justifyContentEvenly: {
+        justifyContent: 'space-evenly',
     },
 
     alignSelfStretch: {

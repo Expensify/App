@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,11 +17,11 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import * as Environment from '@libs/Environment/Environment';
+import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Link from '@userActions/Link';
-import * as Report from '@userActions/Report';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {openExternalLink} from '@userActions/Link';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -51,7 +51,7 @@ type MenuItem = {
 function AboutPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const popoverAnchor = useRef<View | RNText | null>(null);
+    const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -72,7 +72,7 @@ function AboutPage() {
                 icon: Expensicons.Eye,
                 iconRight: Expensicons.NewWindow,
                 action: () => {
-                    Link.openExternalLink(CONST.GITHUB_URL);
+                    openExternalLink(CONST.GITHUB_URL);
                     return Promise.resolve();
                 },
                 link: CONST.GITHUB_URL,
@@ -82,7 +82,7 @@ function AboutPage() {
                 icon: Expensicons.MoneyBag,
                 iconRight: Expensicons.NewWindow,
                 action: () => {
-                    Link.openExternalLink(CONST.UPWORK_URL);
+                    openExternalLink(CONST.UPWORK_URL);
                     return Promise.resolve();
                 },
                 link: CONST.UPWORK_URL,
@@ -90,7 +90,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: Expensicons.Bug,
-                action: waitForNavigate(Report.navigateToConciergeChat),
+                action: waitForNavigate(navigateToConciergeChat),
             },
         ];
 
@@ -102,7 +102,13 @@ function AboutPage() {
             onPress: action,
             shouldShowRightIcon: true,
             onSecondaryInteraction: link
-                ? (event: GestureResponderEvent | MouseEvent) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current)
+                ? (event: GestureResponderEvent | MouseEvent) =>
+                      showContextMenu({
+                          type: CONST.CONTEXT_MENU_TYPES.LINK,
+                          event,
+                          selection: link,
+                          contextMenuAnchor: popoverAnchor.current,
+                      })
                 : undefined,
             ref: popoverAnchor,
             shouldBlockSelection: !!link,
@@ -117,7 +123,7 @@ function AboutPage() {
                     selectable
                     style={[styles.textLabel, styles.textVersion, styles.alignSelfCenter]}
                 >
-                    v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
+                    v{isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                 </Text>
             </View>
         ),
@@ -136,7 +142,7 @@ function AboutPage() {
                 title={translate('initialSettingsPage.about')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                onBackButtonPress={Navigation.popToSidebar}
                 icon={Illustrations.PalmTree}
                 shouldUseHeadlineHeader
             />

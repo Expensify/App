@@ -8,10 +8,11 @@ on:
 jobs:
   perf-tests:
     if: ${{ github.actor != 'OSBotify' }}
-    runs-on: ubuntu-latest-reassure-tests
+    runs-on: ubuntu-24.04-v4
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           fetch-depth: 0
 
@@ -32,6 +33,9 @@ jobs:
         uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
         with:
           github_token: ${{ github.token }}
+
+      - name: Test connectivity to stats.expensify.com server
+        run: nc -zv stats.expensify.com 3003
 
       - name: Get and save graphite string
         id: saveGraphiteString

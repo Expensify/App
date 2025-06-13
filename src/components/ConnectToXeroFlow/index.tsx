@@ -4,8 +4,9 @@ import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAut
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
+import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Link from '@userActions/Link';
+import {openLink} from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectToXeroFlowProps} from './types';
@@ -14,7 +15,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const is2FAEnabled = account?.requiresTwoFactorAuth;
 
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
@@ -24,7 +25,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             setIsRequire2FAModalOpen(true);
             return;
         }
-        Link.openLink(getXeroSetupLink(policyID), environmentURL);
+        openLink(getXeroSetupLink(policyID), environmentURL);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
@@ -33,7 +34,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             <RequireTwoFactorAuthenticationModal
                 onSubmit={() => {
                     setIsRequire2FAModalOpen(false);
-                    Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
+                    close(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID))));
                 }}
                 onCancel={() => {
                     setIsRequire2FAModalOpen(false);

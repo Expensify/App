@@ -10,20 +10,23 @@ import wrapInAct from '../utils/wrapInActHelper';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
-jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
-jest.mock('@src/hooks/useIsCurrentRouteHome');
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),
     getTopmostReportId: jest.fn(),
+    getActiveRoute: jest.fn(),
     getTopmostReportActionId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
 }));
 jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     getState: () => ({
+        routes: [{name: 'Report'}],
+    }),
+    getRootState: () => ({
         routes: [],
     }),
+    addListener: () => () => {},
 }));
 jest.mock('@components/Icon/Expensicons');
 
@@ -51,7 +54,7 @@ describe('SidebarLinks', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
     });
 
@@ -91,9 +94,11 @@ describe('SidebarLinks', () => {
 
     test('[SidebarLinks] should click on list item', async () => {
         const scenario = async () => {
-            await wrapInAct(async () => {
+            await waitFor(async () => {
                 const button = await screen.findByTestId('1');
-                fireEvent.press(button);
+                await wrapInAct(() => {
+                    fireEvent.press(button);
+                });
             });
         };
 

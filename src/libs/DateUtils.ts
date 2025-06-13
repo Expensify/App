@@ -31,7 +31,7 @@ import {
     subMilliseconds,
     subMinutes,
 } from 'date-fns';
-import {formatInTimeZone, fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {enGB} from 'date-fns/locale/en-GB';
 import {es} from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
@@ -40,11 +40,14 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {timezoneBackwardMap} from '@src/TIMEZONES';
+import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
+import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
+import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import Log from './Log';
+import memoize from './memoize';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
@@ -88,6 +91,23 @@ Onyx.connect({
     callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
 });
 
+let isOffline: boolean | undefined;
+
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => {
+        if (!val?.lastOfflineAt) {
+            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
+        }
+
+        const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
+        if (newIsOffline && isOffline === false) {
+            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
+        }
+        isOffline = newIsOffline;
+    },
+});
+
 function isDate(arg: unknown): arg is Date {
     return Object.prototype.toString.call(arg) === '[object Date]';
 }
@@ -128,7 +148,8 @@ function setLocale(localeString: Locale) {
  * Gets the user's stored time zone NVP and returns a localized
  * Date object for the given ISO-formatted datetime string
  */
-function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: string | SelectedTimezone = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
         const res = toZonedTime(new Date(), currentSelectedTimezone);
@@ -196,6 +217,22 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 }
 
 /**
+ * We have to fall back to older timezone names for native platforms that do not ship with newer timezone names to avoid a crash.
+ * Memoize to prevent unnecessary calculation as timezone support will not change on runtime on a platform.
+ */
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string => {
+    try {
+        const date = new Date();
+        const testDate = toZonedTime(date, timezoneInput);
+        format(testDate, CONST.DATE.FNS_FORMAT_STRING);
+        return timezoneInput;
+    } catch (error) {
+        return timezoneNewToBackwardMap[timezoneInput];
+    }
+});
+
+/**
  * Formats an ISO-formatted datetime string to local date and time string
  *
  * e.g.
@@ -204,7 +241,7 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
 function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZone = false, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
-    const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
+    const date = getLocalDateFromDatetime(locale, datetime, fallbackToSupportedTimezone(currentSelectedTimezone));
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translate(locale, 'common.todayAt');
     let tomorrowAt = translate(locale, 'common.tomorrowAt');
@@ -328,7 +365,7 @@ function getCurrentTimezone(): Required<Timezone> {
 }
 
 /**
- * @returns [January, Fabruary, March, April, May, June, July, August, ...]
+ * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(preferredLocale: Locale): string[] {
     if (preferredLocale) {
@@ -344,7 +381,7 @@ function getMonthNames(preferredLocale: Locale): string[] {
 }
 
 /**
- * @returns [Monday, Thuesday, Wednesday, ...]
+ * @returns [Monday, Tuesday, Wednesday, ...]
  */
 function getDaysOfWeek(preferredLocale: Locale): string[] {
     if (preferredLocale) {
@@ -696,6 +733,15 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 };
 
 /**
+ * Checks if the input time is after the reference date
+ * param {Date} inputDate - The date to validate.
+ * returns {boolean} - Returns true if the input date is after the reference date, otherwise false.
+ */
+const isFutureDay = (inputDate: Date): boolean => {
+    return isAfter(startOfDay(inputDate), startOfDay(new Date()));
+};
+
+/**
  * Checks if the input time is at least one minute in the future compared to the reference time.
  * param {Date} inputTime - The time to validate.
  * param {Date} referenceTime - The time to compare against.
@@ -717,7 +763,7 @@ const getTimeValidationErrorKey = (inputTime: Date): string => {
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
 function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
-    const date = new Date(datetime);
+    const date = toDate(datetime, {timeZone: 'UTC'});
 
     if (isValid(date)) {
         return tzFormat(toZonedTime(date, 'UTC'), dateFormat);
@@ -729,7 +775,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
 /**
  *
  * @param timezone
- * function format unsupported timezone to supported timezone
+ * Convert unsupported old timezone to app supported timezone
  * @returns Timezone
  */
 function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
@@ -737,7 +783,7 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
         return timezoneInput;
     }
     return {
-        selected: timezoneBackwardMap[timezoneInput.selected] ?? timezoneInput.selected,
+        selected: timezoneBackwardToNewMap[timezoneInput.selected] ?? timezoneInput.selected,
         automatic: timezoneInput.automatic,
     };
 }
@@ -819,9 +865,9 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
  */
 function getFormattedTransportDate(date: Date): string {
     if (isThisYear(date)) {
-        return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+        return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'hh:mm a')}`;
     }
-    return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+    return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'hh:mm a')}`;
 }
 
 /**
@@ -841,6 +887,19 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
         date: format(date, 'EEEE, MMM d, yyyy'),
         hour: format(date, 'h:mm a'),
     };
+}
+
+/**
+ * Returns a formatted cancellation date.
+ * Dates are formatted as follows:
+ * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
+ * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
+ */
+function getFormattedCancellationDate(date: Date): string {
+    if (isThisYear(date)) {
+        return format(date, 'EEEE, MMM d h:mm a');
+    }
+    return format(date, 'EEEE, MMM d, yyyy h:mm a');
 }
 
 /**
@@ -904,11 +963,38 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
     return `${format(date1, 'MMM d, yyyy')} - ${format(date2, 'MMM d, yyyy')}`;
 }
 
+/**
+ * Checks if the current time falls within the specified time range.
+ */
+const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean => {
+    const now = Date.now();
+    return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
+};
+
+/**
+ * Converts a date to a string in the format MMMM d, yyyy
+ */
+const formatToReadableString = (date: string): string => {
+    const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+    return format(parsedDate, 'MMMM d, yyyy');
+};
+
+const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, formatStr, options?) => {
+    try {
+        return formatInTimeZone(date, timeZone, formatStr, options);
+        // On macOs and iOS devices some platform use deprecated old timezone values which results in invalid time string error.
+        // Try with backward timezone values on error.
+    } catch {
+        return formatInTimeZone(date, timezoneNewToBackwardMap[timeZone as SelectedTimezone], formatStr, options);
+    }
+};
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
+    formatToReadableString,
     getZoneAbbreviation,
     datetimeToRelative,
     datetimeToCalendarTime,
@@ -951,13 +1037,17 @@ const DateUtils = {
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
     getFormattedTransportDateAndHour,
+    getFormattedCancellationDate,
     doesDateBelongToAPastYear,
     isCardExpired,
     getDifferenceInDaysFromNow,
     isValidDateString,
     getFormattedDurationBetweenDates,
     getFormattedDuration,
+    isFutureDay,
     getFormattedDateRangeForPerDiem,
+    isCurrentTimeWithinRange,
+    formatInTimeZoneWithFallback,
 };
 
 export default DateUtils;

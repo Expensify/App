@@ -1,40 +1,44 @@
-import {useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
+import isEqual from 'lodash/isEqual';
+import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
+import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchQueryString} from '@components/Search/types';
-import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
+import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import {navigateToAndOpenReport} from '@userActions/Report';
+import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type Report from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 
 function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
@@ -69,14 +73,14 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
+    isSearchRouterDisplayed?: boolean;
 };
 
-function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) {
+function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
@@ -90,7 +94,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
-        return state?.routes.at(-1)?.params?.reportID;
+        const focusedRoute = findFocusedRoute(state);
+        if (focusedRoute?.name === SCREENS.REPORT) {
+            // We're guaranteed that the type of params is of SCREENS.REPORT
+            return (focusedRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID;
+        }
     });
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
@@ -101,6 +109,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
+                return undefined;
+            }
+
+            if (!isSearchRouterDisplayed) {
                 return undefined;
             }
 
@@ -136,7 +148,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 {
                     data: [
                         {
-                            text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
+                            text: StringUtils.lineBreaksToSpaces(`${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`),
                             singleIcon: Expensicons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,
@@ -150,7 +162,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed],
     );
 
     const searchQueryItem = textInputValue
@@ -173,19 +185,22 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
         scrollToRight(textInputRef.current);
         shouldScrollRef.current = false;
-    }, []);
+    }, [textInputValue]);
 
     const onSearchQueryChange = useCallback(
         (userQuery: string, autoScrollToRight = false) => {
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
-            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
+            const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
+            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
 
-            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
-            setAutocompleteSubstitutions(updatedSubstitutionsMap);
+            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
+            if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
+                setAutocompleteSubstitutions(updatedSubstitutionsMap);
+            }
 
             if (updatedUserQuery || textInputValue.length > 0) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
@@ -199,23 +214,26 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, activeWorkspaceID);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
             if (!updatedQuery) {
                 return;
             }
 
-            onRouterClose();
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: updatedQuery}));
+            backHistory(() => {
+                onRouterClose();
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+            });
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue],
     );
 
     const setTextAndUpdateSelection = useCallback(
         (text: string) => {
             setTextInputValue(text);
+            shouldScrollRef.current = true;
             setSelection({start: text.length, end: text.length});
         },
         [setSelection, setTextInputValue],
@@ -223,6 +241,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
+            const setFocusAndScrollToRight = () => {
+                InteractionManager.runAfterInteractions(() => {
+                    if (!textInputRef.current) {
+                        return;
+                    }
+                    textInputRef.current.focus();
+                    scrollToRight(textInputRef.current);
+                });
+            };
+
             if (isSearchQueryItem(item)) {
                 if (!item.searchQuery) {
                     return;
@@ -240,10 +268,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
                         setAutocompleteSubstitutions(substitutions);
                     }
+                    setFocusAndScrollToRight();
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
                     const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
-                    onSearchQueryChange(newSearchQuery);
+                    onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
@@ -252,18 +281,19 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         setAutocompleteSubstitutions(substitutions);
                     }
                     // needed for android mWeb
-                    textInputRef.current?.focus();
+                    setFocusAndScrollToRight();
                 } else {
                     submitSearch(item.searchQuery);
                 }
             } else {
-                onRouterClose();
-
-                if (item?.reportID) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
-                } else if ('login' in item) {
-                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
-                }
+                backHistory(() => {
+                    onRouterClose();
+                    if (item?.reportID) {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
+                    } else if ('login' in item) {
+                        navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                    }
+                });
             }
         },
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
@@ -292,11 +322,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
             testID={SearchRouter.displayName}
+            ref={ref}
         >
             {shouldUseNarrowLayout && (
                 <HeaderWithBackButton
                     title={translate('common.search')}
                     onBackButtonPress={() => onRouterClose()}
+                    shouldDisplayHelpButton={false}
                 />
             )}
             {isRecentSearchesDataLoaded && (
@@ -318,21 +350,25 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         caretHidden={shouldHideInputCaret}
                         autocompleteListRef={listRef}
                         shouldShowOfflineMessage
-                        wrapperStyle={[styles.border, styles.alignItemsCenter]}
+                        wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
                         outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                        wrapperFocusedStyle={[styles.borderColorFocus]}
+                        wrapperFocusedStyle={styles.borderColorFocus}
                         isSearchingForReports={isSearchingForReports}
                         selection={selection}
+                        substitutionMap={autocompleteSubstitutions}
                         ref={textInputRef}
                     />
                     <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                        handleSearch={searchInServer}
                         searchQueryItem={searchQueryItem}
                         getAdditionalSections={getAdditionalSections}
                         onListItemPress={onListItemPress}
                         setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                        onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
                         ref={listRef}
+                        textInputRef={textInputRef}
                     />
                 </>
             )}
@@ -342,4 +378,4 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
 SearchRouter.displayName = 'SearchRouter';
 
-export default SearchRouter;
+export default forwardRef(SearchRouter);

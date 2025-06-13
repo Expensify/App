@@ -1,12 +1,13 @@
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -49,6 +50,9 @@ type SelectionScreenProps<T = string> = {
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
 
+    /** The style is applied for the wrap component of list item */
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null | undefined;
 
@@ -56,10 +60,10 @@ type SelectionScreenProps<T = string> = {
     onSelectRow: (selection: SelectorType<T>) => void;
 
     /** Callback to fire when back button is pressed */
-    onBackButtonPress: () => void;
+    onBackButtonPress?: () => void;
 
     /** The current policyID */
-    policyID: string;
+    policyID?: string;
 
     /** Defines which types of access should be verified */
     accessVariants?: AccessVariant[];
@@ -115,6 +119,7 @@ function SelectionScreen<T = string>({
     listFooterContent,
     sections,
     listItem,
+    listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
     onBackButtonPress,
@@ -138,7 +143,7 @@ function SelectionScreen<T = string>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const policy = PolicyUtils.getPolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     return (
@@ -149,7 +154,7 @@ function SelectionScreen<T = string>({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={!!errors && !isEmptyObject(errors)}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={displayName}
             >
                 <HeaderWithBackButton
@@ -180,6 +185,8 @@ function SelectionScreen<T = string>({
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                         isAlternateTextMultilineSupported
+                        listItemWrapperStyle={listItemWrapperStyle}
+                        addBottomSafeAreaPadding={!errors || isEmptyObject(errors)}
                     >
                         <ErrorMessageRow
                             errors={errors}

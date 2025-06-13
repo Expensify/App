@@ -2,11 +2,12 @@ import debounce from 'lodash/debounce';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import memoize from '@libs/memoize';
+import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
@@ -18,19 +19,44 @@ Onyx.connect({
     },
 });
 
-function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string) {
+let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportNameValuePairs = value;
+    },
+});
+
+let allReportActions: OnyxCollection<ReportActions> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportActions = value;
+    },
+});
+
+function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined) {
     return Object.values(reports ?? {}).filter((report) => {
         const notificationPreference = ReportUtils.getReportNotificationPreference(report);
+        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
+        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        const nameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+        const isReportArchived = ReportUtils.isArchivedReport(nameValuePairs);
         return (
-            ReportUtils.isUnread(report) &&
+            ReportUtils.isUnread(report, oneTransactionThreadReport) &&
             ReportUtils.shouldReportBeInOptionList({
                 report,
-                currentReportId: currentReportID ?? '-1',
+                chatReport,
+                currentReportId: currentReportID,
                 betas: [],
                 policies: {},
                 doesReportHaveViolations: false,
                 isInFocusMode: false,
                 excludeEmptyChats: false,
+                isReportArchived,
             }) &&
             /**
              * Chats with hidden preference remain invisible in the LHN and are not considered "unread."
@@ -49,7 +75,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
 const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 1});
 
 const triggerUnreadUpdate = debounce(() => {
-    const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() ?? '-1' : '-1';
+    const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
 
     // We want to keep notification count consistent with what can be accessed from the LHN list
     const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID);

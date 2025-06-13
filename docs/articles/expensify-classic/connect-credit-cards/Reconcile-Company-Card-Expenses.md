@@ -1,9 +1,13 @@
 ---
 title: Reconcile Company Card Expenses
 description: Learn how to reconcile company card expenses in Expensify, including troubleshooting discrepancies, managing approvals, and preparing accruals
+keywords: [Expensify Classic, reconcile company cards]
 ---
+<div id="expensify-classic" markdown="1">
 
 This guide explains how to reconcile corporate card transactions imported into Expensify using the reconciliation dashboard feature.
+
+---
 
 # Steps to Reconcile Transactions
 
@@ -51,6 +55,7 @@ Use the **Unapproved Total** and **Approved Total** columns to locate expenses t
 3. If an open report exists in the cardholder’s account, the expenses will be added to it. Otherwise, a new report will be created.
 
 ---
+
 # Process and Edit Reports
 
 Workspace Admins can do the following via the Reconciliation Dashboard:
@@ -69,6 +74,7 @@ To close your books for the month with unapproved expenses:
 3. Use the **Unapproved Total** as the accrual amount if the above totals are correct.
 
 ---
+
 # FAQ
 
 ## Who can access the Reconciliation tab?
@@ -90,3 +96,5 @@ Only Domain Admins can access the Reconciliation tool.
    - Last four digits of the card number
 
 **Note: Only posted transactions will be imported.**
+
+</div>

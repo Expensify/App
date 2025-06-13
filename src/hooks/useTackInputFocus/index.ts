@@ -1,6 +1,7 @@
 import {useCallback, useEffect} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
-import * as Browser from '@libs/Browser';
+import {isChromeIOS} from '@libs/Browser';
+import CONST from '@src/CONST';
 
 /**
  * Detects input or text area focus on browsers, to avoid scrolling on virtual viewports
@@ -11,7 +12,7 @@ export default function useTackInputFocus(enable = false): boolean {
     const handleFocusIn = useCallback(
         (event: FocusEvent) => {
             const targetElement = event.target as HTMLElement;
-            if (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA') {
+            if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
                 setIsInputFocus(true);
             }
         },
@@ -21,27 +22,27 @@ export default function useTackInputFocus(enable = false): boolean {
     const handleFocusOut = useCallback(
         (event: FocusEvent) => {
             const targetElement = event.target as HTMLElement;
-            if (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA') {
+            if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
                 setIsInputFocus(false);
             }
         },
         [setIsInputFocus],
     );
 
-    const resetScrollPositionOnVisualViewport = useCallback(() => {
-        if (Browser.isChromeIOS() && window.visualViewport?.offsetTop) {
-            // On Chrome iOS, the visual viewport triggers a scroll event when the keyboard is opened, but some time the scroll position is not correct.
-            // So this change is specific to Chrome iOS, helping to reset the viewport position correctly.
-            window.scrollTo({top: -window.visualViewport.offsetTop});
-        } else {
-            window.scrollTo({top: 0});
-        }
-    }, []);
-
     useEffect(() => {
         if (!enable) {
             return;
         }
+        // Putting the function here so a new instance of the function is created for each usage of the hook
+        const resetScrollPositionOnVisualViewport = () => {
+            if (isChromeIOS() && window.visualViewport?.offsetTop) {
+                // On Chrome iOS, the visual viewport triggers a scroll event when the keyboard is opened, but some time the scroll position is not correct.
+                // So this change is specific to Chrome iOS, helping to reset the viewport position correctly.
+                window.scrollTo({top: -window.visualViewport.offsetTop});
+            } else {
+                window.scrollTo({top: 0});
+            }
+        };
         window.addEventListener('focusin', handleFocusIn);
         window.addEventListener('focusout', handleFocusOut);
         window.visualViewport?.addEventListener('scroll', resetScrollPositionOnVisualViewport);
@@ -50,7 +51,7 @@ export default function useTackInputFocus(enable = false): boolean {
             window.removeEventListener('focusout', handleFocusOut);
             window.visualViewport?.removeEventListener('scroll', resetScrollPositionOnVisualViewport);
         };
-    }, [enable, handleFocusIn, handleFocusOut, resetScrollPositionOnVisualViewport]);
+    }, [enable, handleFocusIn, handleFocusOut]);
 
     return isInputFocusDebounced;
 }

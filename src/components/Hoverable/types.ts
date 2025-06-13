@@ -24,5 +24,3 @@ type HoverableProps = {
 };
 
 export default HoverableProps;
-
-export type {HoverableChild};

@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
-import {NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -16,9 +15,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TripReservationUtils from '@libs/TripReservationUtils';
-import * as Link from '@userActions/Link';
+import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
+import {getTripReservationIcon} from '@libs/TripReservationUtils';
+import {openTravelDotLink} from '@userActions/Link';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -40,22 +40,22 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {isBlockedFromSpotnanaTravel} = usePermissions();
     const {isOffline} = useNetwork();
 
     const [isModifyTripLoading, setIsModifyTripLoading] = useState(false);
     const [isTripSupportLoading, setIsTripSupportLoading] = useState(false);
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
 
-    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(parentReport?.reportID);
+    const tripID = getTripIDFromTransactionParentReportID(parentReport?.reportID);
     const reservationType = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0)?.type;
     const reservation = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0);
-    const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation?.type);
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation)});
+    const reservationIcon = getTripReservationIcon(reservation?.type);
+    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation), canBeMissing: true});
 
     return (
         <ScreenWrapper
@@ -67,7 +67,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={!reservation || (!canUseSpotnanaTravel && !NativeModules.HybridAppModule)}
+                shouldShow={!reservation || (!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel)}
             >
                 <HeaderWithBackButton
                     title={reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details')}
@@ -107,12 +107,11 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     <MenuItem
                         title={translate('travel.modifyTrip')}
                         icon={Expensicons.Pencil}
-                        iconFill={theme.iconSuccessFill}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
                             setIsModifyTripLoading(true);
-                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))?.finally(() => {
+                            openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))?.finally(() => {
                                 setIsModifyTripLoading(false);
                             });
                         }}
@@ -123,12 +122,11 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     <MenuItem
                         title={translate('travel.tripSupport')}
                         icon={Expensicons.Phone}
-                        iconFill={theme.iconSuccessFill}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
                             setIsTripSupportLoading(true);
-                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_SUPPORT)?.finally(() => {
+                            openTravelDotLink(activePolicyID, CONST.TRIP_SUPPORT)?.finally(() => {
                                 setIsTripSupportLoading(false);
                             });
                         }}

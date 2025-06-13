@@ -8,7 +8,7 @@ import type {PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-
 import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
 import getComponentDisplayName from './getComponentDisplayName';
-import * as Metrics from './Metrics';
+import canCapturePerformanceMetrics from './Metrics';
 
 /**
  * Deep diff between two objects. Useful for figuring out what changed about an object from one render to the next so
@@ -52,7 +52,7 @@ function measureTTI(endMark?: string): void {
             // We don't want an alert to show:
             // - on builds with performance metrics collection disabled by a feature flag
             // - e2e test sessions
-            if (!Metrics.canCapturePerformanceMetrics() || isE2ETestSession()) {
+            if (!canCapturePerformanceMetrics() || isE2ETestSession()) {
                 return;
             }
 
@@ -218,7 +218,7 @@ type WrappedComponentConfig = {id: string};
  * A HOC that captures render timings of the Wrapped component
  */
 function withRenderTrace({id}: WrappedComponentConfig) {
-    if (!Metrics.canCapturePerformanceMetrics()) {
+    if (!canCapturePerformanceMetrics()) {
         return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P> => WrappedComponent;
     }
 

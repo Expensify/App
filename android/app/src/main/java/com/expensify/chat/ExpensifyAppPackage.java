@@ -22,6 +22,8 @@ public class ExpensifyAppPackage implements ReactPackage {
         List<NativeModule> modules = new ArrayList<>();
 
         modules.add(new StartupTimer(reactContext));
+        modules.add(new ShareActionHandlerModule(reactContext));
+        modules.add(new AppStateTrackerModule(reactContext));
 
         return modules;
     }

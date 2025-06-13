@@ -9,9 +9,9 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
@@ -21,7 +21,7 @@ type SidebarLinksProps = {
     insets: EdgeInsets;
 
     /** List of options to display */
-    optionListItems: string[];
+    optionListItems: Report[];
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoading: OnyxEntry<boolean>;
@@ -31,10 +31,6 @@ type SidebarLinksProps = {
 
     /** Method to change currently active report */
     isActiveReport: (reportID: string) => boolean;
-
-    /** ID of currently active workspace */
-    // eslint-disable-next-line react/no-unused-prop-types -- its used in withOnyx
-    activeWorkspaceID: string | undefined;
 };
 
 function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
@@ -44,7 +40,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
-        App.confirmReadyToOpenApp();
+        confirmReadyToOpenApp();
     }, []);
 
     useEffect(() => {
@@ -68,7 +64,16 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
             const reportActionID = Navigation.getTopmostReportActionId();
-            if ((option.reportID === Navigation.getTopmostReportId() && !reportActionID) || (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID)) {
+
+            // Prevent opening a new Report page if the user quickly taps on another conversation
+            // before the first one is displayed.
+            const shouldBlockReportNavigation = Navigation.getActiveRoute() !== '/home' && shouldUseNarrowLayout;
+
+            if (
+                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
+                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
+                shouldBlockReportNavigation
+            ) {
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
@@ -79,7 +84,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
+    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
     return (
         <View style={[styles.flex1, styles.h100]}>
@@ -91,10 +96,10 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                     onSelectRow={showReportPage}
                     shouldDisableFocusOptions={shouldUseNarrowLayout}
                     optionMode={viewMode}
-                    onFirstItemRendered={App.setSidebarLoaded}
+                    onFirstItemRendered={setSidebarLoaded}
                 />
                 {!!isLoading && optionListItems?.length === 0 && (
-                    <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
+                    <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
                         <OptionsListSkeletonView shouldAnimate />
                     </View>
                 )}

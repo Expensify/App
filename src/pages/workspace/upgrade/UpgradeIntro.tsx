@@ -10,6 +10,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,30 +21,34 @@ import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import GenericFeaturesView from './GenericFeaturesView';
 
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    feature?: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
+    feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
     policyID?: string;
+    backTo?: Route;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, policyID}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, policyID, backTo}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const subscriptionPlan = useSubscriptionPlan();
     const preferredCurrency = usePreferredCurrency();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
 
     const formattedPrice = React.useMemo(() => {
-        const upgradePlan = isCategorizing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE;
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
-        const upgradePrice = CONST.SUBSCRIPTION_PRICES[upgradeCurrency][upgradePlan][CONST.SUBSCRIPTION.TYPE.ANNUAL];
-        return `${convertToShortDisplayString(upgradePrice, upgradeCurrency)} `;
+        return `${convertToShortDisplayString(
+            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][isCategorizing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            upgradeCurrency,
+        )} `;
     }, [preferredCurrency, isCategorizing]);
 
     /**
@@ -58,8 +63,10 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
                 buttonDisabled={buttonDisabled}
+                formattedPrice={formattedPrice}
                 loading={loading}
                 policyID={policyID}
+                backTo={backTo}
             />
         );
     }
@@ -97,7 +104,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     <Text style={[styles.textNormal, styles.textSupporting]}>
                         {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
                         <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
-                        {translate(`workspace.upgrade.pricing.perActiveMember`)}
+                        {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}
                     </Text>
                 </View>
                 <Button
@@ -120,7 +127,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                                 openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
                                 return;
                             }
-                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()));
                         }}
                     >
                         {translate('workspace.upgrade.note.learnMore')}

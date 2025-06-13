@@ -23,6 +23,7 @@ type SendInvoiceParams = RequireAtLeastOne<
         createdIOUReportActionID: string;
         createdReportActionIDForThread: string | undefined;
         reportActionID: string;
+        description?: string;
     },
     'receiverEmail' | 'receiverInvoiceRoomID'
 >;
