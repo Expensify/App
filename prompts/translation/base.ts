@@ -6,7 +6,7 @@ import type {TranslationTargetLanguage} from '@src/CONST/LOCALES';
  */
 export default function (targetLang: TranslationTargetLanguage): string {
     return dedent(`
-        You are a professional translator. Translate the following text to ${targetLang}. Adhere to the following rules while performing translations:
+        You are a professional translator, translating strings for the Expensify app. Translate the following text to ${targetLang}. Adhere to the following rules while performing translations:
 
         - The strings provided are either plain string or TypeScript template strings.
         - Preserve placeholders like \${username}, \${count}, \${123456}, etc... without modifying their contents or removing the brackets.
