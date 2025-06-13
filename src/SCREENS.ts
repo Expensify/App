@@ -35,6 +35,7 @@ const SCREENS = {
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
+        TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -660,6 +661,10 @@ const SCREENS = {
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
+        WORKSPACE_OPTIONAL: 'Onboarding_Workspace_Optional',
+        WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
+        WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
+        WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
     WELCOME_VIDEO: {
@@ -733,6 +738,10 @@ const SCREENS = {
     SCHEDULE_CALL: {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
+    },
+
+    TEST_TOOLS_MODAL: {
+        ROOT: 'TestToolsModal_Root',
     },
 } as const;
 
