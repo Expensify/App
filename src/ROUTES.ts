@@ -1927,6 +1927,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_DOT_LINK_WEB_VIEW: {
+        route: 'travel-dot-link',
+        getRoute: (token: string, isTestAccount?: boolean) => `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}` as const,
+    },
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
@@ -2006,6 +2010,22 @@ const ROUTES = {
         route: 'onboarding/work-email-validation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
     },
+    ONBOARDING_WORKSPACE: {
+        route: 'onboarding/create-workspace',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/create-workspace`, backTo),
+    },
+    ONBOARDING_WORKSPACE_CONFIRMATION: {
+        route: 'onboarding/workspace-confirmation',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-confirmation`, backTo),
+    },
+    ONBOARDING_WORKSPACE_CURRENCY: {
+        route: 'onboarding/workspace-currency',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
+    },
+    ONBOARDING_WORKSPACE_INVITE: {
+        route: 'onboarding/workspace-invite',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
+    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {
@@ -2013,6 +2033,7 @@ const ROUTES = {
         getRoute: (bossEmail?: string) => `onboarding/test-drive${bossEmail ? `?bossEmail=${encodeURIComponent(bossEmail)}` : ''}` as const,
     },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
+    AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
     WORKSPACE_CONFIRMATION: {
         route: 'workspace/confirmation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
@@ -2573,6 +2594,8 @@ const ROUTES = {
         route: 'r/:reportID/schedule-call/confirmation',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
+
+    TEST_TOOLS_MODAL: 'test-tools',
 } as const;
 
 /**
