@@ -17,7 +17,7 @@ Follow these steps to build and submit an expense report manually.
 2. Select **Create report**.
 3. The report will be created on your default workspace.
 4. A draft report will open with the workspace’s default title.
-5. Click More to change the workspace if needed.
+5. Click **More** to change the workspace if needed.
 
 **Note:** The report will display *“This report is empty”* until expenses are added.
 
