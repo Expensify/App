@@ -12,6 +12,9 @@ type AttachmentCarouselProps = {
     /** Source is used to determine the starting index in the array of attachments */
     source: AttachmentSource;
 
+    /** The report currently being looked at */
+    report: Report;
+
     /** The id of the current active attachment */
     attachmentID?: string;
 
@@ -20,9 +23,6 @@ type AttachmentCarouselProps = {
 
     /** Function to change the download button Visibility */
     setDownloadButtonVisibility?: (isButtonVisible: boolean) => void;
-
-    /** The report currently being looked at */
-    report: Report;
 
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
