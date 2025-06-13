@@ -11,9 +11,9 @@ import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Console from '@libs/actions/Console';
+import {disableLoggingAndFlushLogs, setShouldStoreLogs} from '@libs/actions/Console';
 import toggleProfileTool from '@libs/actions/ProfilingTool';
-import * as Troubleshoot from '@libs/actions/Troubleshoot';
+import {setShouldRecordTroubleshootData} from '@libs/actions/Troubleshoot';
 import {parseStringifiedMessages} from '@libs/Console';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -128,8 +128,8 @@ function BaseRecordTroubleshootDataToolMenu({
             onToggleProfiling();
         }
         if (!shouldRecordTroubleshootData) {
-            Console.setShouldStoreLogs(true);
-            Troubleshoot.setShouldRecordTroubleshootData(true);
+            setShouldStoreLogs(true);
+            setShouldRecordTroubleshootData(true);
 
             if (onEnableLogging) {
                 onEnableLogging();
@@ -142,8 +142,8 @@ function BaseRecordTroubleshootDataToolMenu({
 
         if (!capturedLogs) {
             Alert.alert(translate('initialSettingsPage.troubleshoot.noLogsToShare'));
-            Console.disableLoggingAndFlushLogs();
-            Troubleshoot.setShouldRecordTroubleshootData(false);
+            disableLoggingAndFlushLogs();
+            setShouldRecordTroubleshootData(false);
             return;
         }
 
@@ -155,8 +155,8 @@ function BaseRecordTroubleshootDataToolMenu({
             zipRef.current.file(infoFileName, appInfo);
 
             onDisableLogging(logsWithParsedMessages).then(() => {
-                Console.disableLoggingAndFlushLogs();
-                Troubleshoot.setShouldRecordTroubleshootData(false);
+                disableLoggingAndFlushLogs();
+                setShouldRecordTroubleshootData(false);
                 setIsDisabled(false);
             });
         });

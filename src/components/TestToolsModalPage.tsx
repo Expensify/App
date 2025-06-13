@@ -5,11 +5,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
-import {shouldShowProfileTool} from '@userActions/TestTool';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
-import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
-import ProfilingToolMenu from './ProfilingToolMenu';
+import RecordTroubleshootDataToolMenu from './RecordTroubleshootDataToolMenu';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollView from './ScrollView';
 import TestToolMenu from './TestToolMenu';
@@ -41,8 +39,7 @@ function TestToolsModalPage() {
                         >
                             {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                         </Text>
-                        {shouldShowProfileTool() && <ProfilingToolMenu />}
-                        <ClientSideLoggingToolMenu />
+                        <RecordTroubleshootDataToolMenu />
                         {!!false && (
                             <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
                                 <Button
