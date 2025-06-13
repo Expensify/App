@@ -25,7 +25,7 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: jest.fn(),
         useRoute: jest.fn(),
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        UNSTABLE_usePreventRemove: jest.fn(),
+        usePreventRemove: jest.fn(),
     };
 });
 
