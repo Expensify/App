@@ -80,6 +80,7 @@ function App({url, hybridAppSettings}: AppProps) {
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
                 <InitialURLContextProvider url={url}>
+                    <HybridAppHandler hybridAppSettings={hybridAppSettings} />
                     <GestureHandlerRootView style={fill}>
                         <SafeAreaProvider
                             initialMetrics={{
