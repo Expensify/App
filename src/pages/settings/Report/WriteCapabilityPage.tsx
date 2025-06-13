@@ -10,13 +10,13 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import {updateWriteCapability as updateWriteCapabilityUtil} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {canEditWriteCapability} from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,7 +42,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
         isSelected: value === (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL),
     }));
     const isReportArchived = useReportIsArchived(report.reportID);
-    const isAbleToEdit = ReportUtils.canEditWriteCapability(report, policy, isReportArchived);
+    const isAbleToEdit = canEditWriteCapability(report, policy, isReportArchived);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, route.params.backTo));
@@ -50,7 +50,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
 
     const updateWriteCapability = useCallback(
         (newValue: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>) => {
-            ReportActions.updateWriteCapability(report, newValue);
+            updateWriteCapabilityUtil(report, newValue);
             goBack();
         },
         [report, goBack],

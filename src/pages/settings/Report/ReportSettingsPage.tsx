@@ -12,7 +12,16 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {
+    canEditRoomVisibility,
+    canEditWriteCapability,
+    getReportNotificationPreference,
+    isAdminRoom,
+    isArchivedNonExpenseReport,
+    isHiddenForCurrentUser,
+    isMoneyRequestReport as isMoneyRequestReportUtil,
+    isSelfDM,
+} from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
@@ -29,25 +38,25 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    const isMoneyRequestReport = isMoneyRequestReportUtil(report);
 
-    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs) || ReportUtils.isSelfDM(report);
-    const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
+    const shouldDisableSettings = isEmptyObject(report) || isArchivedNonExpenseReport(report, reportNameValuePairs) || isSelfDM(report);
+    const notificationPreferenceValue = getReportNotificationPreference(report);
     const notificationPreference =
-        notificationPreferenceValue && !ReportUtils.isHiddenForCurrentUser(notificationPreferenceValue)
+        notificationPreferenceValue && !isHiddenForCurrentUser(notificationPreferenceValue)
             ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`)
             : '';
-    const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    const writeCapability = isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL);
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const isReportArchived = useReportIsArchived(report.reportID);
-    const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace, isReportArchived), [report, linkedWorkspace, isReportArchived]);
-    const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
+    const shouldAllowWriteCapabilityEditing = useMemo(() => canEditWriteCapability(report, linkedWorkspace, isReportArchived), [report, linkedWorkspace, isReportArchived]);
+    const shouldAllowChangeVisibility = useMemo(() => canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && !ReportUtils.isHiddenForCurrentUser(notificationPreferenceValue);
+    const shouldShowNotificationPref = !isMoneyRequestReport && !isHiddenForCurrentUser(notificationPreferenceValue);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
