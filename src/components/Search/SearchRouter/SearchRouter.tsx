@@ -39,6 +39,8 @@ import type Report from '@src/types/onyx/Report';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
+import {useOptionsList} from "@components/OptionListContextProvider";
+import OptionsListSkeletonView from "@components/OptionsListSkeletonView";
 
 function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
     if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
@@ -79,6 +81,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const {areOptionsInitialized} = useOptionsList();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
@@ -354,18 +357,27 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}
                 />
-                <SearchAutocompleteList
-                    autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                    handleSearch={searchInServer}
-                    searchQueryItem={searchQueryItem}
-                    getAdditionalSections={getAdditionalSections}
-                    onListItemPress={onListItemPress}
-                    setTextQuery={setTextAndUpdateSelection}
-                    updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                    onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
-                    ref={listRef}
-                    textInputRef={textInputRef}
-                />
+                {areOptionsInitialized && (
+                        <SearchAutocompleteList
+                            autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                            handleSearch={searchInServer}
+                            searchQueryItem={searchQueryItem}
+                            getAdditionalSections={getAdditionalSections}
+                            onListItemPress={onListItemPress}
+                            setTextQuery={setTextAndUpdateSelection}
+                            updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                            onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                            ref={listRef}
+                            textInputRef={textInputRef}
+                        />
+                    )}
+                {!areOptionsInitialized && (
+                    <OptionsListSkeletonView
+                        fixedNumItems={4}
+                        shouldStyleAsTable
+                        speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                    />
+                )}
             </>
         </View>
     );
