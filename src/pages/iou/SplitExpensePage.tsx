@@ -25,7 +25,7 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -54,10 +54,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + Math.abs(item.amount ?? 0), 0), [draftTransaction]);
+    const lengthOfSplitExpenses = draftTransaction?.comment?.splitExpenses?.length ?? 0;
+
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isCardTransaction(transaction);
+
+    const childTransactions = getChildTransactions(transactionID);
+    const isCreationOfSplits = !childTransactions.length;
 
     useEffect(() => {
         setErrorMessage(null);
@@ -68,6 +73,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [draftTransaction, transaction]);
 
     const onSaveSplitExpense = useCallback(() => {
+        if (isCreationOfSplits && lengthOfSplitExpenses < 2) {
+            setErrorMessage(translate('iou.splitExpenseOneMoreSplit'));
+            return;
+        }
         if (sumOfSplitExpenses > Math.abs(transactionDetailsAmount)) {
             const difference = sumOfSplitExpenses - Math.abs(transactionDetailsAmount);
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
@@ -85,7 +94,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate]);
+    }, [isCreationOfSplits, lengthOfSplitExpenses, sumOfSplitExpenses, transactionDetailsAmount, isPerDiem, isCard, draftTransaction, currentSearchHash, translate, transactionDetails?.currency]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {

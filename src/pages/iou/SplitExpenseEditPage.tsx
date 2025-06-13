@@ -20,7 +20,7 @@ import {getPolicy, getTagLists} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getChildTransactions, getTag} from '@libs/TransactionUtils';
+import {getTag} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,9 +60,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const shouldShowTag = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
-    const childTransactions = getChildTransactions(transactionID);
-
-    const isCreationOfSplits = !childTransactions.length;
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
@@ -164,7 +161,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
-                        {Number(splitExpensesList?.length) > (isCreationOfSplits ? 2 : 1) && (
+                        {Number(splitExpensesList?.length) > 1 && (
                             <Button
                                 danger
                                 large
