@@ -1,7 +1,8 @@
 import React, {useCallback, useRef} from 'react';
 import type {MouseEvent} from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import TestToolsModalPage from '@components/TestToolsModalPage';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
@@ -38,10 +39,12 @@ function TestToolsModalNavigator() {
     return (
         <NoDropZone>
             <Overlay />
-            <Pressable
+            <PressableWithoutFeedback
                 ref={outerViewRef}
                 onPress={handleOuterClick}
                 style={[styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout), styles.cursorDefault]}
+                accessibilityRole="button"
+                accessibilityLabel="button"
             >
                 <FocusTrapForScreens>
                     <View
@@ -57,7 +60,7 @@ function TestToolsModalNavigator() {
                         </Stack.Navigator>
                     </View>
                 </FocusTrapForScreens>
-            </Pressable>
+            </PressableWithoutFeedback>
         </NoDropZone>
     );
 }
