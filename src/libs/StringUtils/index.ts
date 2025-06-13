@@ -1,6 +1,8 @@
 import deburr from 'lodash/deburr';
+import {isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
-import {isSafari} from './Browser';
+import dedent from './dedent';
+import hash from './hash';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -137,93 +139,6 @@ function removePreCodeBlock(text = '') {
     return text.replace(/<pre[^>]*>|<\/pre>/g, '');
 }
 
-/**
- * Hash a string, plus some logic to increase entropy and reduce collisions.
- *
- * @param str - the string to generate a whole number hash from
- * @param max - the hash will not be more than this maximum. It defaults to 2^32 to prevent the hash from overflowing the max number space in JavaScript, which is 2^53
- *
- * @example
- * // deterministically choose an item from an array with an even distribution:
- * const avatars = [Avatar1, Avatar2, Avatar3, Avatar4];
- * const email = 'someone@gmail.com';
- * const defaultAvatarForEmail = avatars[StringUtils.hash(email, avatars.length)];
- */
-function hash(str: string, max: number = 2 ** 32): number {
-    if (max <= 0) {
-        throw new Error('max must be a positive integer');
-    }
-
-    // Create a rolling hash from the characters
-    let hashCode = 0;
-    for (let i = 0; i < str.length; i++) {
-        // Char code, weighted by position in the string (this way "act" and "cat" will produce different hashes)
-        const charCode = str.charCodeAt(i) * (i + 1);
-
-        // Multiplied and offset by prime numbers for more even distribution.
-        hashCode *= 31;
-        hashCode += charCode + 7;
-
-        // Continuously mod by the max to prevent max number overflow for large strings
-        hashCode %= max;
-    }
-    return Math.abs(hashCode);
-}
-
-/**
- * Find the minimum indentation of any line in the string,
- * and remove that number of leading spaces from every line in the string.
- *
- * It also removes at most one leading newline, to reflect a common usage:
- *
- * ```
- * StringUtils.dedent(`
- *    const myIndentedStr = 'Hello, world!';
- *    console.log(myIndentedStr);
- * `)
- * ```
- *
- * This implementation assumes you'd want that to be:
- *
- * ```
- * const myIndentedStr = 'Hello, world!';
- * console.log(myIndentedStr);
- *
- * ```
- *
- * Rather than:
- *
- * ```
- *
- * const myIndentedStr = 'Hello, world!';
- * console.log(myIndentedStr);
- *
- * ```
- */
-function dedent(str: string): string {
-    // Remove at most one leading newline
-    const stringWithoutLeadingNewlines = str.replace(/^\r?\n/, '');
-
-    // Split string by remaining newlines
-    const lines = stringWithoutLeadingNewlines.replace(/\r\n/g, '\n').split('\n');
-
-    // Find the minimum indentation of non-empty lines
-    let minIndent = Number.MAX_SAFE_INTEGER;
-    for (const line of lines) {
-        if (line.trim().length === 0) {
-            // eslint-disable-next-line no-continue
-            continue;
-        }
-        const indentation = line.match(/^ */)?.[0].length ?? 0;
-        if (indentation < minIndent) {
-            minIndent = indentation;
-        }
-    }
-
-    // Remove the common indentation
-    return lines.map((line) => line.slice(minIndent)).join('\n');
-}
-
 export default {
     sanitizeString,
     isEmptyString,
@@ -236,6 +151,6 @@ export default {
     removeDoubleQuotes,
     removePreCodeBlock,
     sortStringArrayByLength,
-    hash,
     dedent,
+    hash,
 };

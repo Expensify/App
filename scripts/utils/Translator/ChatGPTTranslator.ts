@@ -1,4 +1,4 @@
-import StringUtils from '@libs/StringUtils';
+import dedent from '@libs/StringUtils/dedent';
 import getBasePrompt from '@prompts/translation/base';
 import getContextPrompt from '@prompts/translation/context';
 import type Locale from '@src/types/onyx/Locale';
@@ -22,7 +22,7 @@ class ChatGPTTranslator extends Translator {
     }
 
     protected async performTranslation(targetLang: Locale, text: string, context?: string): Promise<string> {
-        const systemPrompt = StringUtils.dedent(`
+        const systemPrompt = dedent(`
             ${getBasePrompt(targetLang)}
             ${getContextPrompt(context)}
         `);

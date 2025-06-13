@@ -1,10 +1,10 @@
-import StringUtils from '@libs/StringUtils';
+import dedent from '@libs/StringUtils/dedent';
 
 export default function (context?: string) {
     if (!context) {
         return '';
     }
-    return StringUtils.dedent(`
+    return dedent(`
         When translating this phrase, consider this additional context which clarifies the intended meaning:
 
         ${context}

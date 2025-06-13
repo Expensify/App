@@ -9,7 +9,7 @@ import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
 import LocaleUtils from '@libs/LocaleUtils';
-import StringUtils from '@libs/StringUtils';
+import hashStr from '@libs/StringUtils/hash';
 import type Locale from '@src/types/onyx/Locale';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
@@ -240,7 +240,7 @@ class TranslationGenerator {
         if (context) {
             keyBase += context;
         }
-        return StringUtils.hash(keyBase);
+        return hashStr(keyBase);
     }
 
     /**
@@ -281,7 +281,7 @@ class TranslationGenerator {
             if (this.isSimpleTemplateSpan(span)) {
                 result += `\${${expressionText}}`;
             } else {
-                result += `\${${StringUtils.hash(span.expression.getText())}}`;
+                result += `\${${hashStr(span.expression.getText())}}`;
             }
             result += span.literal.text;
         }
@@ -370,7 +370,7 @@ class TranslationGenerator {
                             if (this.isSimpleTemplateSpan(span)) {
                                 continue;
                             }
-                            const hash = StringUtils.hash(span.expression.getText());
+                            const hash = hashStr(span.expression.getText());
                             const translatedSpan = ts.visitNode(span, visit);
                             translatedComplexSpans.set(hash, translatedSpan as ts.TemplateSpan);
                         }
