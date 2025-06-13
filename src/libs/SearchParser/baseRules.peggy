@@ -61,6 +61,7 @@ feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
+exportStatus = "exportStatus"i / "export-status"i { return "exportStatus"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }

@@ -832,6 +832,7 @@ const CONST = {
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
+        /* eslint-disable deprecation/deprecation */
         /**
          * Deprecated - do not use this beta in new code anymore.
          * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
@@ -6559,6 +6560,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             DONE: 'done',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
         BULK_ACTION_TYPES: {
@@ -6688,6 +6690,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
+            EXPORT_STATUS: 'exportStatus',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6730,6 +6733,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            EXPORT_STATUS: 'export-status',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',

@@ -57,6 +57,7 @@ const FILTER_KEYS = {
     ASSIGNEE: 'assignee',
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
+    EXPORT_STATUS: 'exportStatus',
 } as const;
 
 type InputID = ValueOf<typeof FILTER_KEYS>;
@@ -109,6 +110,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ASSIGNEE]: string[];
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
+        [FILTER_KEYS.EXPORT_STATUS]: string;
     }
 >;
 

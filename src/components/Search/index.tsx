@@ -16,7 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
+import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -223,6 +223,14 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         handleSearch({queryJSON, offset});
     }, [handleSearch, isOffline, offset, queryJSON]);
 
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
+        openSearch();
+    }, [isOffline]);
+
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
@@ -245,8 +253,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
-        return getSections(type, status, searchResults.data, searchResults.search, shouldGroupByReports);
-    }, [searchResults, isDataLoaded, type, status, shouldGroupByReports]);
+        return getSections(type, searchResults.data, searchResults.search, shouldGroupByReports, reportActions);
+    }, [searchResults, isDataLoaded, type, shouldGroupByReports, reportActions]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
