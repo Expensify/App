@@ -15,6 +15,9 @@ function AgentZeroProcessingRequestIndicator({reportID}: AgentZeroProcessingRequ
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
     const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {canBeMissing: true});
 
+    // Temporarily hiding this while we wait on some deploys
+    return null;
+
     // Check if anyone is currently typing
     const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
     const isAnyoneTyping = usersTyping.length > 0;
