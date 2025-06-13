@@ -20,21 +20,24 @@ export default function useShortMentionsList() {
             return [];
         }
 
-        return Object.values(personalDetails)
-            .map((personalDetail) => {
-                if (!personalDetail?.login) {
-                    return;
-                }
+        return Object.values(personalDetails).reduce((acc, personalDetail) => {
+            if (!personalDetail?.login) {
+                return acc;
+            }
 
-                // If the emails are not in the same private domain, we don't want to highlight them
-                if (!areEmailsFromSamePrivateDomain(personalDetail.login, currentUserPersonalDetails.login ?? '')) {
-                    return;
-                }
+            // If the emails are not in the same private domain, we don't want to highlight them
+            if (!areEmailsFromSamePrivateDomain(personalDetail.login, currentUserPersonalDetails.login ?? '')) {
+                return acc;
+            }
 
-                const [username] = personalDetail.login.split('@');
-                return username ? getMention(username) : undefined;
-            })
-            .filter((login): login is string => !!login);
+            const [username] = personalDetail.login.split('@');
+            const login = username ? getMention(username) : undefined;
+            if (login) {
+                acc.push(login);
+            }
+
+            return acc;
+        }, [] as string[]);
     }, [currentUserPersonalDetails.login, personalDetails]);
 
     // We want to highlight both short and long version of current user login
