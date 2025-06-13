@@ -15,7 +15,7 @@ describe('PromisePool', () => {
         });
 
     beforeEach(() => {
-        pool = new PromisePool({concurrency: 2});
+        pool = new PromisePool(2);
         completedTasks = [];
     });
 
