@@ -21,10 +21,10 @@ function findAncestor<T extends ts.Node>(node: ts.Node, predicate: (n: ts.Node) 
 /**
  * Adds a default import statement to the provided SourceFile.
  */
-function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath: string): ts.SourceFile {
+function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath: string, isTypeOnly = false): ts.SourceFile {
     const newImport = ts.factory.createImportDeclaration(
         undefined,
-        ts.factory.createImportClause(false, ts.factory.createIdentifier(identifierName), undefined),
+        ts.factory.createImportClause(isTypeOnly, ts.factory.createIdentifier(identifierName), undefined),
         ts.factory.createStringLiteral(modulePath),
     );
 

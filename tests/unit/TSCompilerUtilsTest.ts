@@ -82,5 +82,23 @@ describe('TSCompilerUtils', () => {
                 `),
             );
         });
+
+        it('supports type-only imports', () => {
+            const source = createSourceFile(
+                dedent(`
+                    import fs from 'fs';
+                    console.log('hello');
+                `),
+            );
+            const updated = TSCompilerUtils.addImport(source, 'MyType', 'some-path', true);
+            const output = printSourceFile(updated);
+            expect(output).toBe(
+                dedent(`
+                    import fs from 'fs';
+                    import type MyType from "some-path";
+                    console.log('hello');
+                `),
+            );
+        });
     });
 });
