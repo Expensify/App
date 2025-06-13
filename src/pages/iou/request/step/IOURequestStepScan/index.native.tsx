@@ -751,9 +751,9 @@ function IOURequestStepScan({
             setShouldShowMultiScanEducationalPopup(true);
         }
         if (isMultiScanEnabled) {
-            removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
         }
+        removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
         setIsMultiScanEnabled?.(!isMultiScanEnabled);
     };
 
