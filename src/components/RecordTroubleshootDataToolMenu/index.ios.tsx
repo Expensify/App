@@ -3,14 +3,17 @@ import React, {useRef, useState} from 'react';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import {useOnyx} from 'react-native-onyx';
+import useEnvironment from '@hooks/useEnvironment';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
+import getDownloadFolderPathSuffixForIOS from '@libs/getDownloadFolderPathSuffixForIOS';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log} from '@src/types/onyx';
 import BaseRecordTroubleshootDataToolMenu from './BaseRecordTroubleshootDataToolMenu';
 
 function RecordTroubleshootDataToolMenu() {
+    const {environment} = useEnvironment();
     const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
 
@@ -59,6 +62,7 @@ function RecordTroubleshootDataToolMenu() {
             pathToBeUsed={RNFS.DocumentDirectoryPath}
             showShareButton
             zipRef={zipRef}
+            displayPath={`${CONST.NEW_EXPENSIFY_PATH}${getDownloadFolderPathSuffixForIOS(environment)}`}
         />
     );
 }

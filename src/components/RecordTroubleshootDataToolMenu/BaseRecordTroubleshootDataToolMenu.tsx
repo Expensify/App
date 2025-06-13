@@ -8,7 +8,9 @@ import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Console from '@libs/actions/Console';
 import toggleProfileTool from '@libs/actions/ProfilingTool';
 import * as Troubleshoot from '@libs/actions/Troubleshoot';
@@ -49,6 +51,8 @@ type BaseRecordTroubleshootDataToolMenuProps = {
     onDownloadZip?: () => void;
     /** It's a desktop-only prop, as it's impossible to download two files simultaneously */
     showDownloadButton?: boolean;
+    /** Path used to display location of saved file */
+    displayPath?: string;
 };
 
 function formatBytes(bytes: number, decimals = 2) {
@@ -77,8 +81,10 @@ function BaseRecordTroubleshootDataToolMenu({
     zipRef,
     onDownloadZip,
     showDownloadButton = false,
+    displayPath,
 }: BaseRecordTroubleshootDataToolMenuProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const [shouldRecordTroubleshootData] = useOnyx(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, {canBeMissing: true});
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: true});
     const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
@@ -242,13 +248,16 @@ function BaseRecordTroubleshootDataToolMenu({
                 />
             </TestToolRow>
             {(shareUrls?.length ?? 0) > 0 && showShareButton && (
-                <TestToolRow title={translate('initialSettingsPage.troubleshoot.results')}>
-                    <Button
-                        small
-                        text={translate('common.share')}
-                        onPress={onShare}
-                    />
-                </TestToolRow>
+                <>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.results')}>
+                        <Button
+                            small
+                            text={translate('common.share')}
+                            onPress={onShare}
+                        />
+                    </TestToolRow>
+                </>
             )}
             {showDownloadButton && !!file?.path && (
                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>

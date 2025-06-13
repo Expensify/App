@@ -65,6 +65,7 @@ function RecordTroubleshootDataToolMenu() {
             pathToBeUsed={RNFS.DownloadDirectoryPath}
             showShareButton
             zipRef={zipRef}
+            displayPath={CONST.DOWNLOADS_PATH}
         />
     );
 }
