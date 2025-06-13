@@ -1,6 +1,8 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
+import type {CustomBlockRenderer} from 'react-native-render-html';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -16,6 +18,7 @@ import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
@@ -27,7 +30,9 @@ import ROUTES from '@src/ROUTES';
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
+    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -70,16 +75,54 @@ function SubscriptionSettings() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
-                <Text style={[styles.textSupporting, styles.mb5]}>
-                    {translate('subscription.subscriptionSettings.learnMore.part1')}
-                    <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
-                    {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    {adminsChatReportID ? (
-                        <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
-                    ) : (
-                        translate('subscription.subscriptionSettings.learnMore.adminsRoom')
-                    )}
-                </Text>
+                <RenderHtml
+                    contentWidth={windowWidth}
+                    systemFonts={systemFonts}
+                    source={{
+                        html: translate('subscription.subscriptionSettings.learnMore'),
+                    }}
+                    tagsStyles={{
+                        a: {...styles.link},
+                        body: {
+                            ...styles.textSupporting,
+                            ...styles.mb5,
+                        },
+                    }}
+                    renderers={{
+                        a: (({TDefaultRenderer, ...props}) => {
+                            const firstChild = props.tnode.domNode.children.at(0);
+                            const isAdminsRoom =
+                                !!adminsChatReportID &&
+                                firstChild &&
+                                'data' in firstChild &&
+                                typeof firstChild === 'object' &&
+                                firstChild !== null &&
+                                'data' in firstChild &&
+                                typeof (firstChild as {data?: unknown}).data === 'string' &&
+                                (firstChild as {data: string}).data.includes('#admins');
+                            if (isAdminsRoom) {
+                                return (
+                                    <TextLink onPress={openAdminsRoom}>
+                                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                                        <TDefaultRenderer {...props} />
+                                    </TextLink>
+                                );
+                            }
+                            return (
+                                <TextLink
+                                    onPress={() => {
+                                        Linking.openURL(CONST.PRICING).catch((error) => {
+                                            console.error('Failed to open URL:', error);
+                                        });
+                                    }}
+                                >
+                                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                                    <TDefaultRenderer {...props} />
+                                </TextLink>
+                            );
+                        }) as CustomBlockRenderer,
+                    }}
+                />
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
                 <Text style={styles.mv1}>{priceDetails}</Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>
