@@ -3077,6 +3077,7 @@ const translations = {
             companyCards: 'Tarjetas de empresa',
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
+            findWorkspace: 'Encontrar espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
@@ -7194,6 +7195,14 @@ const translations = {
             minutes: '30 minutos',
         },
         callScheduled: 'Llamada programada',
+    },
+    autoSubmitModal: {
+        title: '¡Todo claro y enviado!',
+        description: 'Se han solucionado todas las advertencias e infracciones, así que:',
+        submittedExpensesTitle: 'Estos gastos han sido enviados',
+        submittedExpensesDescription: 'Estos gastos se han enviado a tu aprobador pero aún se pueden editar hasta que sean aprobados.',
+        pendingExpensesTitle: 'Los gastos pendientes se han movido',
+        pendingExpensesDescription: 'Todo gasto de tarjeta pendiente se ha movido a un informe separado hasta que sea contabilizado.',
     },
     testDrive: {
         quickAction: {

@@ -28,7 +28,8 @@ export default function markAllPolicyReportsAsRead(policyID: string) {
     let delay = 0;
     Object.keys(allReports ?? {}).forEach((key: string) => {
         const report = allReports?.[key];
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report?.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         if (report?.policyID !== policyID || !isUnread(report, oneTransactionThreadReport)) {
             return;

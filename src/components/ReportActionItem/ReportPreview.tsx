@@ -413,7 +413,7 @@ function ReportPreview({
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !areAllTransactionsScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
 
-    const isPayAtEndExpense = isPayAtEndExpenseReport(iouReportID, transactions);
+    const isPayAtEndExpense = isPayAtEndExpenseReport(iouReport, transactions);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: getArchiveReason, canBeMissing: false});
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
