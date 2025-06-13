@@ -25,6 +25,7 @@ import {clearPolicyErrorField, setPolicyDefaultReportTitle} from '@userActions/P
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import INPUT_IDS from '@src/types/form/RulesCustomNameModalForm';
 
 type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
@@ -66,10 +67,9 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         clearPolicyErrorField(policyID, 'fieldList');
     };
 
-    // Get the actual error from the nested structure
-    const fieldListErrors = policy?.errorFields?.fieldList as Record<string, unknown> | undefined;
-    const textTitleErrors = fieldListErrors?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE] as Record<string, unknown> | undefined;
-    const defaultValueErrors = textTitleErrors?.defaultValue as Record<string, string> | undefined;
+    // Get the nested error structure for the specific field title
+    const fieldListErrors = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const defaultValueErrors: Errors | undefined = fieldListErrors?.defaultValue;
 
     // Get pending action for loading state
     const isLoading = !!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue;
@@ -85,12 +85,12 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
             return;
         }
 
-        if (!defaultValueErrors) {
+        if (!defaultValueErrors || Object.keys(defaultValueErrors).length === 0) {
             Navigation.goBack();
         }
     }, [isLoading, prevIsLoading, defaultValueErrors]);
 
-    const submitForm = (values: FormOnyxValues<'rulesCustomNameModalForm'>) => {
+    const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
         setPolicyDefaultReportTitle(policyID, values.customName);
     };
 
