@@ -583,6 +583,18 @@ type OriginalMessageDeletedTransaction = {
 type OriginalMessageConciergeCategoryOptions = {
     /** The options we present to the user when confidence in the predicted category is low */
     options: string[];
+
+    /** The confidence levels for each option */
+    confidenceLevels?: number[];
+
+    /** The transaction ID associated with this action */
+    transactionID?: string;
+
+    /** The category selected by the user (set when the action is resolved) */
+    selectedCategory?: string;
+
+    /** Agent Zero metadata (optional) */
+    agentZero?: Record<string, unknown>;
 };
 
 /** Model of `reimbursement queued` report action */
