@@ -1,4 +1,4 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, StyleSheet, View} from 'react-native';
@@ -6,8 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
+import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -149,7 +149,7 @@ function OptionRow({
     const firstIcon = option?.icons?.at(0);
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip);
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
@@ -221,7 +221,7 @@ function OptionRow({
                                             icons={option.icons}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                            shouldShowTooltip={showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(option)}
+                                            shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option)}
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>
@@ -358,7 +358,7 @@ export default React.memo(
         prevProps.showSelectedState === nextProps.showSelectedState &&
         prevProps.highlightSelected === nextProps.highlightSelected &&
         prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
-        lodashIsEqual(prevProps.option.icons, nextProps.option.icons) &&
+        deepEqual(prevProps.option.icons, nextProps.option.icons) &&
         prevProps.optionIsFocused === nextProps.optionIsFocused &&
         prevProps.option.text === nextProps.option.text &&
         prevProps.option.alternateText === nextProps.option.alternateText &&
@@ -370,7 +370,7 @@ export default React.memo(
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon &&
         prevProps.option.tabIndex === nextProps.option.tabIndex &&
-        lodashIsEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
+        deepEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
 );
 
 export type {OptionRowProps};
