@@ -716,7 +716,7 @@
         "tests/unit/searchCountryOptionsTest.ts",
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
-        "src/CONST.ts",
+        "src/CONST/index.ts",
         "src/libs/SearchParser/*"
     ],
     "ignoreRegExpList": ["@assets/.*"],
