@@ -1,3 +1,4 @@
+import {Buffer} from 'buffer';
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {PUBLIC_DOMAINS_SET, Str, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -657,6 +658,15 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
     }
 }
 
+/**
+ * Checks if the `inputValue` byte length exceeds the specified byte length,
+ * returning `isValid` (boolean) and `byteLength` (number) to be used in dynamic error copy.
+ */
+function isValidInputLength(inputValue: string, byteLength: number) {
+    const valueByteLength = Buffer.from(inputValue).length;
+    return {isValid: valueByteLength > byteLength, byteLength: valueByteLength};
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -708,4 +718,5 @@ export {
     isValidZipCodeInternational,
     isValidOwnershipPercentage,
     isValidRegistrationNumber,
+    isValidInputLength,
 };
