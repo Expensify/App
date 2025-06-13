@@ -148,14 +148,12 @@ describe('MoneyRequestReportPreview', () => {
     });
 
     it('renders transaction details and associated report name correctly', async () => {
-        const transactionsAndViolationsByReport = buildTransactionsAndViolationsByReport();
-        renderPage({transactionsAndViolationsByReport});
+        renderPage({transactionsAndViolationsByReport: buildTransactionsAndViolationsByReport()});
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
         const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
-        const reportTransactions = transactionsAndViolationsByReport[mockChatReport?.iouReportID ?? CONST.DEFAULT_NUMBER_ID]?.transactions;
-        for (const transaction of Object.values(reportTransactions)) {
+        for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
 
             expect(screen.getByText(moneyRequestReportPreviewName)).toBeOnTheScreen();
