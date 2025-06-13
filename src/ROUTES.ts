@@ -2089,6 +2089,42 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/confirm',
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
     },
+    TRANSACTION_MERGE_REVIEW_PAGE: {
+        route: 'r/:threadReportID/merge/review',
+        getRoute: (threadReportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/merge/review` as const, backTo),
+    },
+    TRANSACTION_MERGE_REVIEW_MERCHANT_PAGE: {
+        route: 'r/:threadReportID/merge/review/merchant',
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/merge/review/merchant` as const, backTo),
+    },
+    TRANSACTION_MERGE_REVIEW_CATEGORY_PAGE: {
+        route: 'r/:threadReportID/merge/review/category',
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/merge/review/category` as const, backTo),
+    },
+    TRANSACTION_MERGE_REVIEW_TAG_PAGE: {
+        route: 'r/:threadReportID/merge/review/tag',
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/merge/review/tag` as const, backTo),
+    },
+    TRANSACTION_MERGE_REVIEW_TAX_CODE_PAGE: {
+        route: 'r/:threadReportID/merge/review/tax-code',
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/merge/review/tax-code` as const, backTo),
+    },
+    TRANSACTION_MERGE_REVIEW_DESCRIPTION_PAGE: {
+        route: 'r/:threadReportID/merge/review/description',
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/merge/review/description` as const, backTo),
+    },
+    TRANSACTION_MERGE_REVIEW_REIMBURSABLE_PAGE: {
+        route: 'r/:threadReportID/merge/review/reimbursable',
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/merge/review/reimbursable` as const, backTo),
+    },
+    TRANSACTION_MERGE_REVIEW_BILLABLE_PAGE: {
+        route: 'r/:threadReportID/merge/review/billable',
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/merge/review/billable` as const, backTo),
+    },
+    TRANSACTION_MERGE_CONFIRMATION_PAGE: {
+        route: 'r/:threadReportID/merge/confirm',
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/merge/confirm` as const, backTo),
+    },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,

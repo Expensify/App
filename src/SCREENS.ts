@@ -204,6 +204,7 @@ const SCREENS = {
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
+        TRANSACTION_MERGE: 'TransactionMerge',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
@@ -282,6 +283,18 @@ const SCREENS = {
         REIMBURSABLE: 'Transaction_Duplicate_Reimbursable',
         BILLABLE: 'Transaction_Duplicate_Billable',
         CONFIRMATION: 'Transaction_Duplicate_Confirmation',
+    },
+
+    TRANSACTION_MERGE: {
+        REVIEW: 'Transaction_Merge_Review',
+        MERCHANT: 'Transaction_Merge_Merchant',
+        CATEGORY: 'Transaction_Merge_Category',
+        TAG: 'Transaction_Merge_Tag',
+        DESCRIPTION: 'Transaction_Merge_Description',
+        TAX_CODE: 'Transaction_Merge_Tax_Code',
+        REIMBURSABLE: 'Transaction_Merge_Reimbursable',
+        BILLABLE: 'Transaction_Merge_Billable',
+        CONFIRMATION: 'Transaction_Merge_Confirmation',
     },
 
     IOU_SEND: {

@@ -1666,6 +1666,45 @@ type TransactionDuplicateNavigatorParamList = {
     };
 };
 
+type TransactionMergeNavigatorParamList = {
+    [SCREENS.TRANSACTION_MERGE.REVIEW]: {
+        threadReportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRANSACTION_MERGE.MERCHANT]: {
+        threadReportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRANSACTION_MERGE.CATEGORY]: {
+        threadReportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRANSACTION_MERGE.TAG]: {
+        threadReportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRANSACTION_MERGE.DESCRIPTION]: {
+        threadReportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRANSACTION_MERGE.TAX_CODE]: {
+        threadReportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRANSACTION_MERGE.BILLABLE]: {
+        threadReportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRANSACTION_MERGE.REIMBURSABLE]: {
+        threadReportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.TRANSACTION_MERGE.CONFIRMATION]: {
+        threadReportID: string;
+        backTo?: Routes;
+    };
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
@@ -1699,6 +1738,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: NavigatorScreenParams<TransactionDuplicateNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TRANSACTION_MERGE]: NavigatorScreenParams<TransactionMergeNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
@@ -2249,6 +2289,7 @@ export type {
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
+    TransactionMergeNavigatorParamList,
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WelcomeVideoModalNavigatorParamList,

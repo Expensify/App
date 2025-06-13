@@ -36,6 +36,7 @@ import type {
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
+    TransactionMergeNavigatorParamList,
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
@@ -704,6 +705,18 @@ const TransactionDuplicateStackNavigator = createModalStackNavigator<Transaction
     [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Confirmation').default,
 });
 
+const TransactionMergeStackNavigator = createModalStackNavigator<TransactionMergeNavigatorParamList>({
+    [SCREENS.TRANSACTION_MERGE.REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DuplicateReview').default,
+    [SCREENS.TRANSACTION_MERGE.MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewMerchant').default,
+    [SCREENS.TRANSACTION_MERGE.CATEGORY]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewCategory').default,
+    [SCREENS.TRANSACTION_MERGE.TAG]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewTag').default,
+    [SCREENS.TRANSACTION_MERGE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewDescription').default,
+    [SCREENS.TRANSACTION_MERGE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewTaxCode').default,
+    [SCREENS.TRANSACTION_MERGE.BILLABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewBillable').default,
+    [SCREENS.TRANSACTION_MERGE.REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewReimbursable').default,
+    [SCREENS.TRANSACTION_MERGE.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Confirmation').default,
+});
+
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>(
     {
         [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
@@ -814,6 +827,7 @@ export {
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
     TransactionDuplicateStackNavigator,
+    TransactionMergeStackNavigator,
     SearchReportModalStackNavigator,
     RestrictedActionModalStackNavigator,
     SearchAdvancedFiltersModalStackNavigator,
