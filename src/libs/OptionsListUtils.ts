@@ -59,6 +59,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReceiptScanFailedMessage,
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
@@ -821,6 +822,8 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPTSCANFAILED) {
+        lastMessageTextFromReport = getReceiptScanFailedMessage();
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
