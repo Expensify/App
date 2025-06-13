@@ -2050,7 +2050,10 @@ const CONST = {
         AV01: 'video/av01',
         VIDEO: 'video/*',
         TXT: 'txt',
+        CSV: 'text/csv',
     },
+
+    MULTI_LEVEL_TAGS_FILE_NAME: 'MultiLevelTags.csv',
 
     ATTACHMENT_TYPE: {
         REPORT: 'r',

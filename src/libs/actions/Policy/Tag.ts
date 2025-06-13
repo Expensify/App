@@ -769,7 +769,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
 
     readFileAsync(
         spreadsheet?.fileURI ?? '',
-        spreadsheet?.fileName ?? 'MultiLevelTags.csv',
+        spreadsheet?.fileName ?? CONST.MULTI_LEVEL_TAGS_FILE_NAME,
         (file) => {
             const parameters: ImportMultiLevelTagsParams = {
                 policyID,
@@ -782,7 +782,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
             API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
         },
         () => {},
-        spreadsheet?.fileType ?? 'text/csv',
+        spreadsheet?.fileType ?? CONST.SHARE_FILE_MIMETYPE.CSV,
     );
 }
 
