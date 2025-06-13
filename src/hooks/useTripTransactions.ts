@@ -22,7 +22,7 @@ function useTripTransactions(reportID: string | undefined, transactionsAndViolat
         canBeMissing: true,
     });
     const {transactions} = transactionsAndViolationsByReport[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
-    const tripTransactions = tripTransactionReportIDs.flatMap((transactionReportID) => transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionReportID}`] ?? []);
+    const tripTransactions = tripTransactionReportIDs.flatMap((transactionReportID) => transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionReportID}`] ?? []);
 
     return tripTransactions;
 }
