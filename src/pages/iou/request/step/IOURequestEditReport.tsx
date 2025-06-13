@@ -21,13 +21,13 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
     const selectReport = (item: ReportListItem) => {
-        if (selectedTransactionIDs.length === 0) {
+        if (selectedTransactionIDs.length === 0 || item.value === reportID) {
+            Navigation.dismissModal();
             return;
         }
-        if (item.value !== reportID) {
-            changeTransactionsReport(selectedTransactionIDs, item.value);
-            clearSelectedTransactions(true);
-        }
+
+        changeTransactionsReport(selectedTransactionIDs, item.value);
+        clearSelectedTransactions(true);
         Navigation.dismissModalWithReport({reportID: item.value});
     };
 
