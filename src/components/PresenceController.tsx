@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,11 +48,18 @@ export default function PresenceController() {
         [accountID, goInactive],
     );
 
-    useEffect(() => {
-        goActive(TIMEOUT_FOCUS_TAB);
-        return () => goInactive();
-    }, [goActive, goInactive]);
+    const goActiveFromFocusing = useCallback(() => goActive(TIMEOUT_FOCUS_TAB), [goActive]);
 
+    // Go active on mount and go inactive on unmount
+    useEffect(() => {
+        goActiveFromFocusing();
+        return () => goInactive();
+    }, [goActiveFromFocusing, goInactive]);
+
+    // Go active when the tab is focused
+    useAppFocusEvent(goActiveFromFocusing);
+
+    // Go active when mouse activity is detected
     useEffect(() => {
         const goActiveForMouseActivity = () => goActive(TIMEOUT_MOUSE_ACTIVITY);
         document.addEventListener('mousemove', goActiveForMouseActivity);
