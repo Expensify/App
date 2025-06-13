@@ -543,7 +543,7 @@ function MoneyRequestPreviewContent({
             ]}
         >
             {childContainer}
-            {isReviewDuplicateTransactionPage && !isSettled && !isApproved && shouldShowKeepButton && (
+            {isReviewDuplicateTransactionPage && !isSettled && !isApproved && !isCardTransaction && shouldShowKeepButton && (
                 <Button
                     text={translate('violations.keepThisOne')}
                     success
