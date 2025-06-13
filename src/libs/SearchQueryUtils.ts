@@ -352,6 +352,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const {type, status, policyID, groupBy, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
+    // If the type is no longer expense, then we need to remove the 'payer' field so we don't get an error
+    if (type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        otherFilters.payer = undefined;
+    }
+
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${CONST.SEARCH.SORT_ORDER.DESC}`);
 
@@ -360,7 +365,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
     }
 
-    if (groupBy) {
+    // If the type is not an expense, then we need to remove remove grouping, because we cannot
+    // group other data types
+    if (groupBy && type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
     }
@@ -574,6 +581,7 @@ function buildFilterFormValuesFromQuery(
 
     const [typeKey = '', typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
     filtersForm[FILTER_KEYS.TYPE] = typeValue ? queryJSON.type : CONST.SEARCH.DATA_TYPES.EXPENSE;
+
     const [statusKey] =
         Object.entries(CONST.SEARCH.STATUS).find(([, value]) =>
             Array.isArray(queryJSON.status) ? queryJSON.status.some((status) => Object.values(value).includes(status)) : Object.values(value).includes(queryJSON.status),

@@ -439,11 +439,15 @@ function removeSageIntacctUserDimensions(policyID: string, dimensionName: string
 }
 
 function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof SageIntacctExportConfig, settingValue: string | null, oldSettingValue?: string | null) {
+    const exporterOptimisticData = settingName === 'exporter' ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === 'exporter' ? {exporter: oldSettingValue} : {};
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterOptimisticData,
                 connections: {
                     intacct: {
                         config: {
@@ -468,6 +472,7 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Sag
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterErrorData,
                 connections: {
                     intacct: {
                         config: {
