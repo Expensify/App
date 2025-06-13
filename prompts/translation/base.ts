@@ -35,5 +35,8 @@ export default function (targetLang: TranslationTargetLanguage): string {
         - SAP Concur
         - Xero
         - Zenefits
+        ${Object.values(LOCALE_TO_LANGUAGE_STRING)
+            .map((str) => `- ${str}`)
+            .join('\n')}
     `);
 }
