@@ -1,11 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
+import {OnyxKey} from 'react-native-onyx';
 import type {RouteConfig} from '@hooks/useTransactionFieldNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-const duplicateReviewRoutes: RouteConfig = {
+const mergeTransactionRoutes: RouteConfig = {
     base: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE,
     merchant: ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE,
     category: ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE,
@@ -24,11 +24,11 @@ type FieldReviewConfig = {
     onyxKey: typeof ONYXKEYS.REVIEW_DUPLICATES;
 };
 
-const duplicateReviewConfig: FieldReviewConfig = {
-    routes: duplicateReviewRoutes,
+const mergeTransactionConfig: FieldReviewConfig = {
+    routes: mergeTransactionRoutes,
     setFieldAction: setReviewDuplicatesKey,
     compareFields: TransactionUtils.compareDuplicateTransactionFields,
-    onyxKey: ONYXKEYS.REVIEW_DUPLICATES,
+    onyxKey: ONYXKEYS.MERGE_TRANSACTION,
 };
 
-export default duplicateReviewConfig;
+export default mergeTransactionConfig;

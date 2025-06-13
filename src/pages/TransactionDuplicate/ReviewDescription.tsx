@@ -11,24 +11,26 @@ import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/type
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import duplicateReviewConfig from './duplicateReviewConfig';
+import mergeTransactionConfig from './mergeTransactionConfig';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
-import {duplicateFieldConfig} from './fieldConfigs';
 
 function ReviewDescription() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION>>();
     const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
-    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: false});
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID);
-    const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
+    const isMerge = route.path?.includes('merge');
+    const config = isMerge ? mergeTransactionConfig : duplicateReviewConfig;
+    const [reviewDuplicates] = useOnyx(config.onyxKey, {canBeMissing: true});
+    const compareResult = config.compareFields(transactionID, reviewDuplicates?.reportID ?? '-1');
+    const stepNames = Object.keys(compareResult.change ?? {}).map((_, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useTransactionFieldNavigation(
         Object.keys(compareResult.change ?? {}),
         'description',
         route.params.threadReportID,
-        duplicateFieldConfig.routes,
+        config.routes,
         route.params.backTo,
     );
     const options = useMemo(

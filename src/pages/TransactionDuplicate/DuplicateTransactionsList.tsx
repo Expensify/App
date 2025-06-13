@@ -23,7 +23,7 @@ const maintainVisibleContentPosition: ScrollViewProps['maintainVisibleContentPos
     minIndexForVisible: 1,
 };
 
-function TransactionsList({transactions}: TransactionsListProps) {
+function DuplicateTransactionsList({transactions}: TransactionsListProps) {
     const styles = useThemeStyles();
 
     return (
@@ -37,5 +37,5 @@ function TransactionsList({transactions}: TransactionsListProps) {
     );
 }
 
-TransactionsList.displayName = 'TransactionsList';
-export default TransactionsList;
+DuplicateTransactionsList.displayName = 'TransactionsList';
+export default DuplicateTransactionsList;

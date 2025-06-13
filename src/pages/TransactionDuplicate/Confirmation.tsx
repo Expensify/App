@@ -31,7 +31,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {duplicateFieldConfig} from './fieldConfigs';
+import duplicateReviewConfig from './duplicateReviewConfig';
 
 function Confirmation() {
     const styles = useThemeStyles();
@@ -42,7 +42,7 @@ function Confirmation() {
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID);
-    const {goBack} = useTransactionFieldNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, duplicateFieldConfig.routes, route.params.backTo);
+    const {goBack} = useTransactionFieldNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, duplicateReviewConfig.routes, route.params.backTo);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`, {canBeMissing: true});

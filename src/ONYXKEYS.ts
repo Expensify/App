@@ -425,6 +425,8 @@ const ONYXKEYS = {
     /** Stores info during review duplicates flow */
     REVIEW_DUPLICATES: 'reviewDuplicates',
 
+    MERGE_TRANSACTION: 'mergeTransaction',
+
     /** Stores the last export method for policy */
     LAST_EXPORT_METHOD: 'lastExportMethod',
 
@@ -1134,6 +1136,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING]: boolean;
     [ONYXKEYS.NVP_TRAVEL_SETTINGS]: OnyxTypes.TravelSettings;
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
+    [ONYXKEYS.MERGE_TRANSACTION]: OnyxTypes.ReviewDuplicates;
     [ONYXKEYS.ADD_NEW_COMPANY_CARD]: OnyxTypes.AddNewCompanyCardFeed;
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
     [ONYXKEYS.MOBILE_SELECTION_MODE]: OnyxTypes.MobileSelectionMode;
