@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ListItem} from '@components/SelectionList/types';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import {isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -12,7 +13,7 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type ReportListItemType = ListItem & {
+type ReportListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -21,12 +22,18 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action} = route.params;
-    const reportID = transaction?.reportID === '0' ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+
+    const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
+    const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
+    const participantReportID = transaction?.participants?.at(0)?.reportID;
+    const participantReport = Object.values(allReports ?? {}).find((report) => report?.reportID === participantReportID);
+    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID);
+    const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
+    const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    const selectReport = (item: ReportListItemType) => {
+    const selectReport = (item: ReportListItem) => {
         if (!transaction) {
             return;
         }
@@ -43,21 +50,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
-    const removeFromReport = () => {
-        if (!transaction) {
-            return;
-        }
-        changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
-        Navigation.dismissModal();
-    };
-
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionsReports={transactionReport ? [transactionReport] : []}
+            selectedReportID={selectedReportID}
             selectReport={selectReport}
-            removeFromReport={removeFromReport}
-            isEditing={isEditing}
         />
     );
 }
