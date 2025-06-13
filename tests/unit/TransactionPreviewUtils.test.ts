@@ -39,7 +39,7 @@ const basicProps = {
 describe('TransactionPreviewUtils', () => {
     describe('getTransactionPreviewTextAndTranslationPaths', () => {
         it('should return an empty RBR message when shouldShowRBR is false and no transaction is given', () => {
-            const result = getTransactionPreviewTextAndTranslationPaths({...basicProps, shouldShowRBR: false});
+            const result = getTransactionPreviewTextAndTranslationPaths({...basicProps, shouldShowRBR: false, originalTransaction: undefined});
             expect(result.RBRMessage.text).toEqual('');
         });
 
@@ -47,6 +47,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 transaction: {...basicProps.transaction, comment: {hold: 'true'}},
+                originalTransaction: undefined,
                 shouldShowRBR: true,
             };
 
@@ -55,7 +56,7 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('should handle missing iouReport and transaction correctly', () => {
-            const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined};
+            const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.text).toEqual('');
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.cash'});
@@ -66,6 +67,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 transaction: {...basicProps.transaction, merchant: '', amount: 0},
+                originalTransaction: undefined,
                 shouldShowRBR: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
@@ -79,28 +81,29 @@ describe('TransactionPreviewUtils', () => {
                     ...basicProps.transaction,
                     managedCard: true,
                 },
+                originalTransaction: undefined,
             };
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
-            const cashTransaction = getTransactionPreviewTextAndTranslationPaths(basicProps);
+            const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps, originalTransaction: undefined});
 
             expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.card'}]));
             expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
         });
 
         it('displays appropriate header text if the transaction is bill split', () => {
-            const functionArgs = {...basicProps, isBillSplit: true};
+            const functionArgs = {...basicProps, isBillSplit: true, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.split'}]));
         });
 
         it('displays description when receipt is being scanned', () => {
-            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}};
+            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
         });
 
         it('should apply correct text when transaction is pending and not a bill split', () => {
-            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, status: CONST.TRANSACTION.STATUS.PENDING}};
+            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, status: CONST.TRANSACTION.STATUS.PENDING}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.pending'}]));
         });
@@ -110,13 +113,14 @@ describe('TransactionPreviewUtils', () => {
                 ...basicProps,
                 transactionDetails: {amount: 300, currency: 'EUR'},
                 transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                originalTransaction: undefined,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
         it('shows approved message when the iouReport is canceled', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}};
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.canceled'});
         });
@@ -126,6 +130,7 @@ describe('TransactionPreviewUtils', () => {
                 ...basicProps,
                 iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
                 shouldShowRBR: true,
+                originalTransaction: undefined,
             };
             jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
