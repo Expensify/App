@@ -3051,6 +3051,7 @@ const translations = {
             companyCards: 'Company cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
+            findWorkspace: 'Find workspace',
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
