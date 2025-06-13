@@ -147,6 +147,10 @@ function shouldShowPolicyError(policy: OnyxEntry<Policy>): boolean {
     return Object.keys(policy?.errors ?? {}).length > 0 ? isPolicyAdmin(policy) : shouldShowPolicyErrorFields(policy);
 }
 
+function isDeleteWorkspaceAnnualSubscriptionError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.errors ?? {}).some((error) => error === CONST.ERROR_TITLE.CANNOT_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION);
+}
+
 /**
  * Checks if we have any errors stored within the policy custom units.
  */
@@ -1455,6 +1459,7 @@ export {
     hasPolicyCategoriesError,
     shouldShowPolicyError,
     shouldShowPolicyErrorFields,
+    isDeleteWorkspaceAnnualSubscriptionError,
     shouldShowTaxRateError,
     isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
