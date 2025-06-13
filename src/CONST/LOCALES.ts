@@ -11,7 +11,7 @@ const LOCALES = {
 
 const LANGUAGES = ['en', 'es'] as const;
 
-const UPCOMING_LANGUAGES = ['pr-BR', 'it', 'de', 'fr', 'nl', 'ja', 'zh-hans'] as const;
+const UPCOMING_LANGUAGES = ['pt-BR', 'it', 'de', 'fr', 'nl', 'ja', 'zh-hans'] as const;
 
 type SupportedLanguage = TupleToUnion<Spread<typeof LANGUAGES, typeof UPCOMING_LANGUAGES>>;
 

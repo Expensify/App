@@ -404,7 +404,7 @@ async function main(): Promise<void> {
             // By default, generate translations for all supported languages. Can be overridden with the --locales flag
             locales: {
                 description: 'Locales to generate translations for.',
-                default: (UPCOMING_LANGUAGES as readonly string[]).join(','),
+                default: UPCOMING_LANGUAGES as unknown as TranslationTargetLanguage[],
                 parse: (val: string): TranslationTargetLanguage[] => {
                     const rawLocales = val.split(',');
                     const validatedLocales: TranslationTargetLanguage[] = [];
