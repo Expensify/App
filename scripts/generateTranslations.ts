@@ -8,9 +8,9 @@ import fs from 'fs';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
-import LocaleUtils from '@libs/LocaleUtils';
 import hashStr from '@libs/StringUtils/hash';
-import type Locale from '@src/types/onyx/Locale';
+import {LANGUAGES, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
+import type {TranslationTargetLanguage} from '@src/CONST/LOCALES';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
@@ -26,11 +26,6 @@ type StringWithContext = {
     text: string;
     context?: string;
 };
-
-/**
- * Default locales to translate. Can be overridden with the --locales flag
- */
-const DEFAULT_LOCALES_TO_TRANSLATE = ['pr-BR', 'it', 'de', 'fr', 'nl', 'ja', 'zh-hans'];
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
@@ -49,7 +44,7 @@ class TranslationGenerator {
     /**
      * The languages to generate translations for.
      */
-    private readonly targetLanguages: Locale[];
+    private readonly targetLanguages: TranslationTargetLanguage[];
 
     /**
      * The directory where translations are stored.
@@ -66,7 +61,7 @@ class TranslationGenerator {
      */
     private readonly translator: Translator;
 
-    constructor(config: {targetLanguages: Locale[]; languagesDir: string; sourceFile: string; translator: Translator}) {
+    constructor(config: {targetLanguages: TranslationTargetLanguage[]; languagesDir: string; sourceFile: string; translator: Translator}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
@@ -390,6 +385,10 @@ class TranslationGenerator {
     }
 }
 
+function isTranslationTargetLanguage(str: string): str is TranslationTargetLanguage {
+    return (LANGUAGES as readonly string[]).includes(str) || (UPCOMING_LANGUAGES as readonly string[]).includes(str);
+}
+
 /**
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
@@ -402,19 +401,20 @@ async function main(): Promise<void> {
             },
         },
         namedArgs: {
+            // By default, generate translations for all supported languages. Can be overridden with the --locales flag
             locales: {
                 description: 'Locales to generate translations for.',
-                default: DEFAULT_LOCALES_TO_TRANSLATE.join(','),
-                parse: (val: string) => {
-                    const locales = val.split(',');
-                    for (const locale of locales) {
-                        // Note: we are making a temporary exception for `it` for the sake of testing this script.
-                        // We can remove that check once we add `it` and other locales to CONST.LOCALES.
-                        if (!LocaleUtils.isValidLocale(locale) && locale !== 'it') {
-                            throw new Error(`Invalid locale ${locale}`);
+                default: (UPCOMING_LANGUAGES as readonly string[]).join(','),
+                parse: (val: string): TranslationTargetLanguage[] => {
+                    const rawLocales = val.split(',');
+                    const validatedLocales: TranslationTargetLanguage[] = [];
+                    for (const locale of rawLocales) {
+                        if (!isTranslationTargetLanguage(locale)) {
+                            throw new Error(`Invalid locale ${String(locale)}`);
                         }
+                        validatedLocales.push(locale);
                     }
-                    return locales as Locale[];
+                    return validatedLocales;
                 },
             },
         },

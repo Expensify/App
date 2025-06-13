@@ -1,10 +1,10 @@
 import dedent from '@libs/StringUtils/dedent';
-import type Locale from '@src/types/onyx/Locale';
+import type {TranslationTargetLanguage} from '@src/CONST/LOCALES';
 
 /**
  * This file contains the base translation prompt used to translate static strings in en.ts to other languages.
  */
-export default function (targetLang: Locale): string {
+export default function (targetLang: TranslationTargetLanguage): string {
     return dedent(`
         You are a professional translator. Translate the following text to ${targetLang}. Adhere to the following rules while performing translations:
 
