@@ -10,6 +10,8 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
+    isInvoiceReport,
+    isMoneyRequestReport,
     isReportTransactionThread,
 } from './ReportUtils';
 
@@ -91,6 +93,7 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
     const isTransactionThreadView = isReportTransactionThread(report);
     const isStillLoadingData = !!reportMetadata?.isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
     return (
+        (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
         !isTransactionThreadView &&
         report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&

@@ -96,6 +96,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false, canBeMissing: true});
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -103,7 +104,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {transactions: reportTransactions} = transactionsAndViolationsByReport[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const transactions = useMemo(() => Object.values(reportTransactions ?? {}) ?? [], [reportTransactions]);
     const reportTransactionIDs = transactions?.map((transaction) => transaction.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const prevTransactions = usePrevious(transactions);
 
     const newTransactions = useMemo(() => {
