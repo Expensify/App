@@ -52,6 +52,7 @@ import {
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
+    shouldDisableRename,
     shouldDisableThread,
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
@@ -1174,11 +1175,67 @@ describe('ReportUtils', () => {
                     managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs]);
-                expect(moneyRequestOptions.length).toBe(3);
+                expect(moneyRequestOptions.length).toBe(2);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
-                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
                 expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
+            });
+        });
+
+        describe('Teachers Unite policy logic', () => {
+            const teachersUniteTestPolicyID = CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+            const otherPolicyID = 'normal-policy-id';
+
+            it('should hide Create Expense option and show Split Expense for Teachers Unite policy', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    policyID: teachersUniteTestPolicyID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+
+                // Should not include SUBMIT (Create Expense)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+
+                // Should include SPLIT (Split Expense)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+            });
+
+            it('should show Create Expense option and hide Split Expense for non-Teachers Unite policy', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    policyID: otherPolicyID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+
+                // Should include SUBMIT (Create Expense)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
+
+                // Should not include SPLIT (Split Expense)
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+
+                // Should include other options like TRACK
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+            });
+
+            it('should disable Create report option for expense chats on Teachers Unite workspace', () => {
+                const expenseReport = {
+                    ...LHNTestUtils.getFakeReport(),
+                    policyID: teachersUniteTestPolicyID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(expenseReport, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+
+                // Should not include SUBMIT
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
             });
         });
     });
@@ -3253,6 +3310,195 @@ describe('ReportUtils', () => {
 
             // Then it cannot be edited
             expect(result).toBeFalsy();
+        });
+    });
+
+    describe('shouldDisableRename', () => {
+        it('should return true for archived reports', async () => {
+            // Given an archived policy room
+            const report: Report = {
+                ...createRandomReport(50001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+            // When shouldDisableRename is called
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = shouldDisableRename(report, isReportArchived.current);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for default rooms', () => {
+            // Given a default room
+            const report: Report = {
+                ...createRandomReport(50002),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                reportName: '#admins',
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for public rooms', () => {
+            // Given a public room
+            const report: Report = {
+                ...createRandomReport(50003),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for threads', () => {
+            // Given a thread report
+            const report: Report = {
+                ...createRandomReport(50004),
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for money request reports', () => {
+            // Given a money request report
+            const report: Report = {
+                ...createRandomReport(50005),
+                type: CONST.REPORT.TYPE.IOU,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for expense reports', () => {
+            // Given an expense report
+            const report: Report = {
+                ...createRandomReport(50006),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for policy expense chats', () => {
+            // Given a policy expense chat
+            const report: Report = {
+                ...createRandomReport(50007),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for invoice rooms', () => {
+            // Given an invoice room
+            const report: Report = {
+                ...createRandomReport(50008),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for invoice reports', () => {
+            // Given an invoice report
+            const report: Report = {
+                ...createRandomReport(50009),
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for system chats', () => {
+            // Given a system chat
+            const report: Report = {
+                ...createRandomReport(50010),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return false for group chats', async () => {
+            // Given a group chat
+            const report: Report = {
+                ...createRandomReport(50011),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for non-archived regular chats', async () => {
+            // Given a non-archived regular chat (1:1 DM)
+            const report: Report = {
+                reportID: '50012',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+
+                // Ensure it's not a policy expense chat or any other special chat type
+                chatType: undefined,
+                isOwnPolicyExpenseChat: false,
+                policyID: undefined,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When shouldDisableRename is called
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = shouldDisableRename(report, isReportArchived.current);
+
+            // Then it should return false (since this is a 1:1 DM and not a group chat, and none of the other conditions are met)
+            expect(result).toBe(false);
         });
     });
 });

@@ -4,15 +4,16 @@ import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
-import type ResponsiveLayoutResult from './hooks/useResponsiveLayout/types';
-import type {Video} from './libs/actions/Report';
-import type {MileageRate} from './libs/DistanceRequestUtils';
-import BankAccount from './libs/models/BankAccount';
-import {addTrailingForwardSlash} from './libs/Url';
-import ONYXKEYS from './ONYXKEYS';
-import SCREENS from './SCREENS';
-import variables from './styles/variables';
-import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import type {Video} from '@libs/actions/Report';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
+import BankAccount from '@libs/models/BankAccount';
+import {addTrailingForwardSlash} from '@libs/Url';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
+import {LANGUAGES, LOCALES} from './LOCALES';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -821,6 +822,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
+        AUTO_SUBMIT: 'autoSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -831,11 +833,6 @@ const CONST = {
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
-        /**
-         * Deprecated - do not use this beta in new code anymore.
-         * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
-         * */
-        TABLE_REPORT_VIEW: 'tableReportView',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         RETRACT_NEWDOT: 'retractNewDot',
@@ -2892,16 +2889,8 @@ const CONST = {
         DURATION_LONG: 3500,
     },
 
-    LOCALES: {
-        EN: 'en',
-        ES: 'es',
-        ES_ES: 'es-ES',
-        ES_ES_ONFIDO: 'es_ES',
-
-        DEFAULT: 'en',
-    },
-
-    LANGUAGES: ['en', 'es'],
+    LOCALES,
+    LANGUAGES,
 
     PRONOUNS_LIST: [
         'coCos',
@@ -7226,6 +7215,8 @@ const CONST = {
         RESCHEDULED: 'rescheduled',
         CANCELLED: 'cancelled',
     },
+
+    SIGNIN_ROUTE: '/signin',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

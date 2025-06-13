@@ -77,6 +77,7 @@ import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
+import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -3344,7 +3345,12 @@ function openReportFromDeepLink(url: string) {
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     }
 
-    const route = getRouteFromLink(url);
+    let route = getRouteFromLink(url);
+
+    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
+    if (normalizePath(route) === CONST.SIGNIN_ROUTE) {
+        route = '';
+    }
 
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
