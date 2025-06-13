@@ -10,23 +10,37 @@ import Navigation from '@libs/Navigation/Navigation';
 import {setLocaleAndNavigate} from '@userActions/App';
 import type {ListItem} from '@src/components/SelectionList/types';
 import CONST from '@src/CONST';
+import type {SupportedLanguage} from '@src/CONST/LOCALES';
+import {LANGUAGES, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
 
 type LanguageEntry = ListItem & {
-    value: ValueOf<typeof CONST.LOCALES>;
+    value: SupportedLanguage;
 };
 
 function LanguagePage() {
     const {translate, preferredLocale} = useLocalize();
     const isOptionSelected = useRef(false);
-    const {canUseStaticAiTranslations} = usePermissions();
 
-    const localesToLanguages: LanguageEntry[] = CONST.LANGUAGES.filter((language) => ['en', 'es'].includes(language) || canUseStaticAiTranslations).map((language) => ({
+    const {isBetaEnabled} = usePermissions();
+    const localesToLanguages: LanguageEntry[] = LANGUAGES.map((language: SupportedLanguage) => ({
         value: language,
         text: translate(`languagePage.languages.${language}.label`),
         keyForList: language,
         isSelected: preferredLocale === language,
         shouldShowRightIcon: true,
     }));
+
+    if (isBetaEnabled(CONST.BETAS.STATIC_AI_TRANSLATIONS)) {
+        localesToLanguages.push(
+            ...UPCOMING_LANGUAGES.map((language: SupportedLanguage) => ({
+                value: language,
+                text: translate(`languagePage.languages.${language}.label`),
+                keyForList: language,
+                isSelected: preferredLocale === language,
+                shouldShowRightIcon: true,
+            })),
+        );
+    }
 
     const updateLanguage = (selectedLanguage: LanguageEntry) => {
         if (isOptionSelected.current) {

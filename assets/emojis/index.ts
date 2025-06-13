@@ -1,4 +1,5 @@
-import type {Locale} from '@src/types/onyx';
+import type {Locale} from '@src/CONST/LOCALES';
+import {LOCALES} from '@src/CONST/LOCALES';
 import emojis from './common';
 import type {Emoji, EmojisList} from './types';
 
@@ -34,7 +35,7 @@ const localeEmojis: LocaleEmojis = {
 
 const importEmojiLocale = (locale: Locale) => {
     let normalizedLocale = locale.toLowerCase().split('-').at(0) as Locale;
-    if (!['en', 'es'].includes(normalizedLocale)) {
+    if (normalizedLocale !== LOCALES.EN && normalizedLocale !== LOCALES.ES) {
         normalizedLocale = 'en';
     }
     if (!localeEmojis[normalizedLocale]) {
