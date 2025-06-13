@@ -1,4 +1,4 @@
-import {circularDeepEqual} from 'fast-equals';
+import {circularDeepEqual, deepEqual} from 'fast-equals';
 import React, {useContext, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
@@ -90,8 +90,8 @@ function PopoverWithMeasuredContent({
 
     if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
         // Check if anything significant changed that would require re-measurement
-        const hasAnchorPositionChanged = !isEqual(prevAnchorPosition, anchorPosition);
-        const hasWindowSizeChanged = !isEqual(prevWindowDimensions, {windowWidth, windowHeight});
+        const hasAnchorPositionChanged = !deepEqual(prevAnchorPosition, anchorPosition);
+        const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {windowWidth, windowHeight});
         const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
 
         // Only reset if:

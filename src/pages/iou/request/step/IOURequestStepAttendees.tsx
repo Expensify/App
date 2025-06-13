@@ -40,6 +40,7 @@ function IOURequestStepAttendees({
     policyCategories,
 }: IOURequestStepAttendeesProps) {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [attendees, setAttendees] = useState<Attendee[]>(() => getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
