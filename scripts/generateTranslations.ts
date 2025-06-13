@@ -160,6 +160,10 @@ class TranslationGenerator {
             return false;
         }
 
+        if (ts.isLiteralTypeNode(node.parent)) {
+            return false;
+        }
+
         // Only translate string literals if they contain alphabet characters
         if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
             return /[a-zA-Z]/.test(node.text);

@@ -383,4 +383,29 @@ describe('generateTranslations', () => {
         expect(translateSpy).toHaveBeenNthCalledWith(2, 'it', 'Goodbye', undefined);
         expect(translateSpy).toHaveBeenNthCalledWith(3, 'it', 'Hello', 'diff');
     });
+
+    it("doesn't translate type annotations", async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = {
+                    myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`\${brand} Phone\`,
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        expect(itContent).toStrictEqual(
+            dedent(`
+                import type en from './en';
+
+                const strings = {
+                    myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`[it] \${brand} Phone\`,
+                };
+                export default strings;
+            `),
+        );
+    });
 });
