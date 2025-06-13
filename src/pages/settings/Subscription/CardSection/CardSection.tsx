@@ -6,6 +6,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
@@ -228,8 +229,7 @@ function CardSection() {
                     onCancel={() => setIsRequestRefundModalVisible(false)}
                     prompt={
                         <>
-                            <Text style={styles.mb4}>{translate('subscription.cardSection.requestRefundModal.phrase1')}</Text>
-                            <Text>{translate('subscription.cardSection.requestRefundModal.phrase2')}</Text>
+                            <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />
                         </>
                     }
                     confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
