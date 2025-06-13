@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
+import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
 import {LANGUAGES, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLanguage} from '@src/CONST/LOCALES';
@@ -18,6 +19,20 @@ import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
 import TSCompilerUtils from './utils/TSCompilerUtils';
+
+const GENERATED_FILE_PREFIX = dedent(`
+    /**
+     *   _____                      __         __
+     *  / ___/__ ___  ___ _______ _/ /____ ___/ /
+     * / (_ / -_) _ \\/ -_) __/ _ \\\`/ __/ -_) _  /
+     * \\___/\\__/_//_/\\__/_/  \\_,_/\\__/\\__/\\_,_/
+     *
+     * This file was automatically generated. Please consider these alternatives before manually editing it:
+     *
+     * - Improve the prompts in prompts/translation, or
+     * - Improve context annotations in src/languages/en.ts
+     */
+`);
 
 /**
  * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
@@ -106,15 +121,16 @@ class TranslationGenerator {
             await Prettier.format(outputPath);
 
             // Enforce that the type of translated files matches en.ts
-            const translatedFileContent = fs.readFileSync(outputPath, 'utf8');
-            fs.writeFileSync(
-                outputPath,
-                translatedFileContent.replace(
-                    'export default translations satisfies TranslationDeepObject<typeof translations>;',
-                    'export default translations satisfies TranslationDeepObject<typeof en>;',
-                ),
-                'utf8',
+            let finalFileContent = fs.readFileSync(outputPath, 'utf8');
+            finalFileContent = finalFileContent.replace(
+                'export default translations satisfies TranslationDeepObject<typeof translations>;',
+                'export default translations satisfies TranslationDeepObject<typeof en>;',
             );
+
+            // Add a fun ascii art touch with a helpful message
+            finalFileContent = `${GENERATED_FILE_PREFIX}${finalFileContent}`;
+
+            fs.writeFileSync(outputPath, finalFileContent, 'utf8');
 
             console.log(`✅ Translated file created: ${outputPath}`);
         }
@@ -469,3 +485,4 @@ if (require.main === module) {
 }
 
 export default main;
+export {GENERATED_FILE_PREFIX};

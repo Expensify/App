@@ -5,7 +5,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import dedent from '@libs/StringUtils/dedent';
-import generateTranslations from '../../scripts/generateTranslations';
+import generateTranslations, {GENERATED_FILE_PREFIX} from '../../scripts/generateTranslations';
 import Translator from '../../scripts/utils/Translator/Translator';
 
 jest.mock('openai');
@@ -65,7 +65,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            dedent(`
+            `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -81,7 +81,7 @@ describe('generateTranslations', () => {
                     },
                 };
                 export default strings;
-            `),
+            `)}`,
         );
     });
 
@@ -116,7 +116,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            dedent(`
+            `${GENERATED_FILE_PREFIX}${dedent(`
                 import Log from '@libs/Log';
                 import CONST from '@src/CONST';
                 import type en from './en';
@@ -139,7 +139,7 @@ describe('generateTranslations', () => {
                         }
                     }
                 }
-            `),
+            `)}`,
         );
     });
 
@@ -186,7 +186,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            dedent(`
+            `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -222,7 +222,7 @@ describe('generateTranslations', () => {
                         })()} If someone really uses an IIFE in here, then we've got bigger problems.\`,
                 };
                 export default strings;
-            `),
+            `)}`,
         );
     });
 
@@ -245,7 +245,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            dedent(`
+            `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -257,7 +257,7 @@ describe('generateTranslations', () => {
                     },
                 };
                 export default strings;
-            `),
+            `)}`,
         );
     });
 
@@ -301,7 +301,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            dedent(`
+            `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -334,7 +334,7 @@ describe('generateTranslations', () => {
                         \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? /* @context inline context */ '[it][ctx: inline context] my very good friend'}\`,
                 };
                 export default strings;
-            `),
+            `)}`,
         );
     });
 
@@ -361,7 +361,7 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            dedent(`
+            `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -376,7 +376,7 @@ describe('generateTranslations', () => {
                     greetingWithDifferentContext: '[it][ctx: diff] Hello',
                 };
                 export default strings;
-            `),
+            `)}`,
         );
         expect(translateSpy).toHaveBeenCalledTimes(3);
         expect(translateSpy).toHaveBeenNthCalledWith(1, 'it', 'Hello', undefined);
@@ -398,14 +398,14 @@ describe('generateTranslations', () => {
         await generateTranslations();
         const itContent = fs.readFileSync(IT_PATH, 'utf8');
         expect(itContent).toStrictEqual(
-            dedent(`
+            `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
                     myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`[it] \${brand} Phone\`,
                 };
                 export default strings;
-            `),
+            `)}`,
         );
     });
 });
