@@ -8722,8 +8722,9 @@ function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
+ * @param isReportArchived - if the room's report or workspace has been archived
  */
-function canEditRoomVisibility(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean = false): boolean {
+function canEditRoomVisibility(policy: OnyxEntry<Policy>, isReportArchived: boolean = false): boolean {
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     return !isReportArchived && isPolicyAdminPolicyUtils(policy)
 }
