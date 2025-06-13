@@ -1,4 +1,6 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
@@ -9,6 +11,7 @@ import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import type ReportActionName from '../../src/types/onyx/ReportActionName';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
@@ -732,38 +735,47 @@ describe('DebugUtils', () => {
             Onyx.clear();
         });
         it('returns null when report is not defined', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN(undefined);
+            const reason = DebugUtils.getReasonForShowingRowInLHN(undefined, chatReportR14932);
             expect(reason).toBeNull();
         });
         it('returns correct reason when report has a valid draft comment', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`, 'Hello world!');
-            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport);
+            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport, chatReportR14932);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
         it('returns correct reason when report has GBR', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                lastMentionedTime: '2024-08-10 18:70:44.171',
-                lastReadTime: '2024-08-08 18:70:44.171',
-            });
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                    lastMentionedTime: '2024-08-10 18:70:44.171',
+                    lastReadTime: '2024-08-08 18:70:44.171',
+                },
+                chatReportR14932,
+            );
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
         it('returns correct reason when report is pinned', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                isPinned: true,
-            });
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                    isPinned: true,
+                },
+                chatReportR14932,
+            );
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
         it('returns correct reason when report has add workspace room errors', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                errorFields: {
-                    addWorkspaceRoom: {
-                        error: 'Something happened',
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                    errorFields: {
+                        addWorkspaceRoom: {
+                            error: 'Something happened',
+                        },
                     },
                 },
-            });
+                chatReportR14932,
+            );
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
         it('returns correct reason when report is unread', async () => {
@@ -771,18 +783,21 @@ describe('DebugUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {
                 accountID: 1234,
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    1234: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                    participants: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        1234: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
                     },
+                    lastVisibleActionCreated: '2024-08-10 18:70:44.171',
+                    lastReadTime: '2024-08-08 18:70:44.171',
+                    lastMessageText: 'Hello world!',
                 },
-                lastVisibleActionCreated: '2024-08-10 18:70:44.171',
-                lastReadTime: '2024-08-08 18:70:44.171',
-                lastMessageText: 'Hello world!',
-            });
+                chatReportR14932,
+            );
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
         it('returns correct reason when report is archived', async () => {
@@ -791,20 +806,29 @@ describe('DebugUtils', () => {
             };
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs);
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-            });
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseReport?.reportID));
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                },
+                chatReportR14932,
+                false,
+                isReportArchived.current,
+            );
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
         it('returns correct reason when report is self DM', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-            });
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                },
+                chatReportR14932,
+            );
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
         it('returns correct reason when report is temporarily focused', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport);
+            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport, chatReportR14932);
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
         it('returns correct reason when report has one transaction thread with violations', async () => {
@@ -862,7 +886,7 @@ describe('DebugUtils', () => {
                     },
                 ],
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_TRANSACTION_REPORT, true);
+            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_TRANSACTION_REPORT, chatReportR14932, true);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has violations', async () => {
@@ -920,11 +944,11 @@ describe('DebugUtils', () => {
                     },
                 ],
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_EXPENSE_REPORT, true);
+            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_EXPENSE_REPORT, chatReportR14932, true);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has errors', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport, true);
+            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport, chatReportR14932, true);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
     });
@@ -1107,6 +1131,7 @@ describe('DebugUtils', () => {
                         {
                             reportID: '1',
                         },
+                        chatReportR14932,
                         undefined,
                         {},
                         false,
@@ -1160,6 +1185,7 @@ describe('DebugUtils', () => {
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                         MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
+                        chatReportR14932,
                         undefined,
                         {},
                         false,
@@ -1223,7 +1249,7 @@ describe('DebugUtils', () => {
                             },
                         });
                         const reportErrors = getAllReportErrors(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS);
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
+                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
                         expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                     });
                 });
@@ -1282,7 +1308,7 @@ describe('DebugUtils', () => {
                             },
                         });
                         const reportErrors = getAllReportErrors(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS);
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
+                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
                         expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                     });
                 });
@@ -1342,7 +1368,7 @@ describe('DebugUtils', () => {
                         },
                     });
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS);
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_CHAT_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
                 it('returns correct report action which is a split bill and has an error', async () => {
@@ -1405,7 +1431,7 @@ describe('DebugUtils', () => {
                         },
                     });
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS);
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
                 it("returns undefined if there's no report action is a report preview or a split bill", async () => {
@@ -1462,7 +1488,7 @@ describe('DebugUtils', () => {
                         },
                     });
                     const reportErrors = getAllReportErrors(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS);
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, false, reportErrors) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1514,6 +1540,7 @@ describe('DebugUtils', () => {
                         {
                             reportID: '1',
                         },
+                        chatReportR14932,
                         MOCK_REPORT_ACTIONS,
                         {},
                         false,
@@ -1545,7 +1572,7 @@ describe('DebugUtils', () => {
                 };
 
                 const reportErrors = getAllReportErrors(mockedReport, mockedReportActions);
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, mockedReportActions, {}, false, reportErrors) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, {}, false, reportErrors) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
             it('returns correct reason when there are violations', () => {
@@ -1554,6 +1581,7 @@ describe('DebugUtils', () => {
                         {
                             reportID: '1',
                         },
+                        chatReportR14932,
                         undefined,
                         {},
                         true,
@@ -1567,6 +1595,7 @@ describe('DebugUtils', () => {
                         {
                             reportID: '1',
                         },
+                        chatReportR14932,
                         undefined,
                         {},
                         true,
@@ -1609,7 +1638,7 @@ describe('DebugUtils', () => {
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}, {}, false, {}) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, {}, false, {}) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
         });

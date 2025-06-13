@@ -7,7 +7,6 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
-import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
@@ -153,6 +152,7 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {addTrailingForwardSlash} from '@libs/Url';
 import Visibility from '@libs/Visibility';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -703,7 +703,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     if (file && attachmentAction?.reportActionID) {
         optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
-
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
@@ -826,25 +825,19 @@ function addComment(reportID: string, text: string, shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    // If we are resolving a Concierge Category Options action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
-    // This is because we need it to be associated with the transaction thread and not the expense report.
-    if (isExpenseReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])) {
+    // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
+    // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
+    if (isMoneyRequestReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])) {
         const reportActions = allReportActions?.[reportID];
         if (reportActions) {
-            const moneyRequestPreviewActions = Object.values(reportActions).filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+            const moneyRequestPreviewActions = Object.values(reportActions).filter(
+                (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isDeletedAction(action),
+            );
             if (moneyRequestPreviewActions.length === 1) {
                 const transactionThreadReportID = moneyRequestPreviewActions.at(0)?.childReportID;
                 if (transactionThreadReportID) {
-                    const transactionThreadReportActions = allReportActions?.[transactionThreadReportID];
-                    if (transactionThreadReportActions) {
-                        const conciergeCategoryOptionsAction = Object.values(transactionThreadReportActions).find(
-                            (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS,
-                        );
-                        if (conciergeCategoryOptionsAction && !ReportActionsUtils.isResolvedConciergeCategoryOptions(conciergeCategoryOptionsAction)) {
-                            addActions(transactionThreadReportID, text);
-                            return;
-                        }
-                    }
+                    addActions(transactionThreadReportID, text);
+                    return;
                 }
             }
         }
@@ -1029,6 +1022,7 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
+                hasOnceLoadedReportActions: true,
                 isLoadingInitialReportActions: false,
             },
         },
@@ -1627,8 +1621,10 @@ function markAllMessagesAsRead() {
             return;
         }
 
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(
-            report.reportID,
+            report,
+            chatReport,
             allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`],
         );
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
@@ -1695,7 +1691,8 @@ function markCommentAsUnread(reportID: string | undefined, reportAction: ReportA
     }, null);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? []);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
 
     // If no action created date is provided, use the last action's from other user
@@ -2720,6 +2717,13 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         },
         {
             onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                hasOnceLoadedReportActions: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportActionID]: optimisticCreateAction},
         },
@@ -2808,6 +2812,8 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
 }
 
 function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldNotifyNewAction = false) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -4659,7 +4665,7 @@ function clearDeleteTransactionNavigateBackUrl() {
     Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
 }
 
-/** Deletes a report and unreports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
+/** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
 function deleteAppReport(reportID: string | undefined) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
@@ -4841,7 +4847,7 @@ function deleteAppReport(reportID: string | undefined) {
             },
         );
 
-        // 4. Add UNREPORTEDTRANSACTION report action
+        // 4. Add UNREPORTED_TRANSACTION report action
         const unreportedAction = buildOptimisticUnreportedTransactionAction(childReportID, reportID);
 
         optimisticData.push({
@@ -4936,6 +4942,8 @@ function deleteAppReport(reportID: string | undefined) {
  */
 function moveIOUReportToPolicy(reportID: string, policyID: string) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     // This flow only works for IOU reports
@@ -5104,6 +5112,8 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
  */
 function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: string) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     if (!policy || !iouReport) {
@@ -5433,7 +5443,7 @@ function changeReportPolicy(reportID: string, policyID: string) {
     if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
         const workspaceChatReportID = reportToMove.parentReportID;
         const reportPreviewActionID = reportToMove.parentReportActionID;
-        const oldReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`]?.[reportPreviewActionID];
+        const oldReportPreviewAction = allReportActions?.[workspaceChatReportID]?.[reportPreviewActionID];
         const deletedTime = DateUtils.getDBTime();
         const firstMessage = Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.at(0) : null;
         const updatedReportPreviewAction = {
@@ -5465,7 +5475,14 @@ function changeReportPolicy(reportID: string, policyID: string) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
-            value: {[reportPreviewActionID]: oldReportPreviewAction},
+            value: {
+                [reportPreviewActionID]: {
+                    ...oldReportPreviewAction,
+                    originalMessage: {
+                        deleted: null,
+                    },
+                },
+            },
         });
 
         // Update the expense chat report

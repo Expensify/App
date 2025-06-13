@@ -108,6 +108,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
     const subscriptionPlan = useSubscriptionPlan();
+
+    const shouldLogout = useRef(false);
+
     const freeTrialText = getFreeTrialText(policies);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
@@ -297,7 +300,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const getMenuItemsSection = useCallback(
         (menuItemsData: Menu) => {
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
-                if (!Navigation.getActiveRoute().includes(ROUTES.SETTINGS)) {
+                if (!Navigation.isActiveRoute(ROUTES.SETTINGS)) {
                     return;
                 }
 
@@ -447,8 +450,17 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     confirmText={translate('initialSettingsPage.signOut')}
                     cancelText={translate('common.cancel')}
                     isVisible={shouldShowSignoutConfirmModal}
-                    onConfirm={() => signOut(true)}
+                    onConfirm={() => {
+                        toggleSignoutConfirmModal(false);
+                        shouldLogout.current = true;
+                    }}
                     onCancel={() => toggleSignoutConfirmModal(false)}
+                    onModalHide={() => {
+                        if (!shouldLogout.current) {
+                            return;
+                        }
+                        signOut(true);
+                    }}
                 />
             </ScrollView>
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
