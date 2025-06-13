@@ -12,7 +12,8 @@ export default function (targetLang: TranslationTargetLanguage): string {
         - Preserve placeholders like \${username}, \${count}, \${123456}, etc... without modifying their contents or removing the brackets.
         - In most cases, the contents of the placeholders are descriptive of what they represent in the phrase, but in some cases the placeholders may just contain a number.
         - If the given phrase can't be translated, reply with the same text unchanged.
-        - Be cautious not to change any URLs.
+        - Do not modify or translate any html tags.
+        - Do not change any URLs.
 
         Treat the following words and phrases as proper nouns which should never be translated:
 
