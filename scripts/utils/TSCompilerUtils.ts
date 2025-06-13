@@ -1,4 +1,4 @@
-import type ts from 'typescript';
+import ts from 'typescript';
 
 /**
  * Walk up the AST from a given node and return the nearest ancestor that matches a predicate.
@@ -18,4 +18,22 @@ function findAncestor<T extends ts.Node>(node: ts.Node, predicate: (n: ts.Node) 
     return undefined;
 }
 
-export default {findAncestor};
+/**
+ * Adds a default import statement to the provided SourceFile.
+ */
+function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath: string): ts.SourceFile {
+    const newImport = ts.factory.createImportDeclaration(
+        undefined,
+        ts.factory.createImportClause(false, ts.factory.createIdentifier(identifierName), undefined),
+        ts.factory.createStringLiteral(modulePath),
+    );
+
+    // Find the index of the last import declaration
+    const lastImportIndex = sourceFile.statements.findLastIndex((statement) => ts.isImportDeclaration(statement));
+
+    const updatedStatements = ts.factory.createNodeArray([...sourceFile.statements.slice(0, lastImportIndex + 1), newImport, ...sourceFile.statements.slice(lastImportIndex + 1)]);
+
+    return ts.factory.updateSourceFile(sourceFile, updatedStatements);
+}
+
+export default {findAncestor, addImport};
