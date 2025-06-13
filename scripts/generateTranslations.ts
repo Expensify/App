@@ -92,6 +92,7 @@ class TranslationGenerator {
             const stringsToTranslate = new Map<number, StringWithContext>();
             this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
+            // Translate all the strings in parallel (up to 8 at a time)
             const translations = new Map<number, string>();
             const translationPromises = [];
             for (const [key, {text, context}] of stringsToTranslate) {
@@ -176,6 +177,7 @@ class TranslationGenerator {
             return false;
         }
 
+        // Don't translate a string that's a literal type annotation
         if (ts.isLiteralTypeNode(node.parent)) {
             return false;
         }
@@ -259,16 +261,19 @@ class TranslationGenerator {
         if (!ts.isStringLiteral(node) && !ts.isNoSubstitutionTemplateLiteral(node) && !ts.isTemplateExpression(node)) {
             throw new Error(`Cannot generate translation key for node: ${node.getText()}`);
         }
+
+        // Trim leading whitespace, quotation marks, and backticks
         let keyBase = node
             .getText()
-            // Trim leading whitespace, quotation marks, and backticks
             .trim()
             .replace(/^['"`]/, '')
             .replace(/['"`]$/, '');
+
         const context = this.getContextForNode(node);
         if (context) {
             keyBase += context;
         }
+
         return hashStr(keyBase);
     }
 
@@ -281,9 +286,14 @@ class TranslationGenerator {
     private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>) {
         if (this.shouldNodeBeTranslated(node)) {
             const context = this.getContextForNode(node);
+
+            // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
                 stringsToTranslate.set(this.getTranslationKey(node), {text: node.text, context});
-            } else if (ts.isTemplateExpression(node)) {
+            }
+
+            // Template expressions must be encoded directly before they can be translated
+            else if (ts.isTemplateExpression(node)) {
                 if (this.isSimpleTemplateExpression(node)) {
                     stringsToTranslate.set(this.getTranslationKey(node), {text: this.templateExpressionToString(node), context});
                 } else {
@@ -306,9 +316,8 @@ class TranslationGenerator {
     private templateExpressionToString(expression: TemplateExpression): string {
         let result = expression.head.text;
         for (const span of expression.templateSpans) {
-            const expressionText = span.expression.getText();
             if (this.isSimpleExpression(span.expression)) {
-                result += `\${${expressionText}}`;
+                result += `\${${span.expression.getText()}}`;
             } else {
                 result += `\${${hashStr(span.expression.getText())}}`;
             }
