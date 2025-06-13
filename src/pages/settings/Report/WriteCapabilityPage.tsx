@@ -1,7 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {updateWriteCapability as updateWriteCapabilityUtil} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,21 +17,13 @@ import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 
-type WriteCapabilityPageOnyxProps = {
-    /** The policy object for the current route */
-    policy: OnyxEntry<Policy>;
-};
+type WriteCapabilityPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY>;
 
-type WriteCapabilityPageProps = WriteCapabilityPageOnyxProps &
-    WithReportOrNotFoundProps &
-    PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY>;
-
-function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
+function WriteCapabilityPage({report, policies}: WriteCapabilityPageProps) {
+    const policy = policies?.[report.policyID ?? ''];
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY>>();
     const {translate} = useLocalize();
     const writeCapabilityOptions = Object.values(CONST.REPORT.WRITE_CAPABILITIES).map((value) => ({
@@ -81,10 +72,4 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
 
 WriteCapabilityPage.displayName = 'WriteCapabilityPage';
 
-export default withReportOrNotFound()(
-    withOnyx<WriteCapabilityPageProps, WriteCapabilityPageOnyxProps>({
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
-        },
-    })(WriteCapabilityPage),
-);
+export default withReportOrNotFound()(WriteCapabilityPage);
