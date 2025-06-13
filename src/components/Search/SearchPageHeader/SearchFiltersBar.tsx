@@ -21,6 +21,7 @@ import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup'
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import useDeferredRender from '@hooks/useDeferredRender';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -148,27 +149,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     // that react calculates diffs (it doesn't know how to compare objects).
     const filterFormValuesKey = JSON.stringify(filterFormValues);
 
-    // Performance fix, delay the popover first render to speed up the initial render of the component
-    const [delayPopoverFirstRender, setDelayPopoverFirstRender] = useState(true);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDelayPopoverFirstRender(false);
-        }, 100);
-
-        return () => clearTimeout(timer);
-    }, []);
-
-    const getDelayedPopoverComponent = useCallback(
-        (Component: React.FC<PopoverComponentProps>) => {
-            if (delayPopoverFirstRender) {
-                return () => null;
-            }
-            return Component;
-        },
-        [delayPopoverFirstRender],
-    );
-
     const openAdvancedFilters = useCallback(() => {
         updateAdvancedFilters(filterFormValues);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
@@ -178,7 +158,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filterFormValuesKey]);
 
-    const typeComponent = useCallback(
+    const typeComponent = useDeferredRender(
         ({closeOverlay}: PopoverComponentProps) => {
             const value = typeOptions.find((option) => option.value === type) ?? null;
 
@@ -211,7 +191,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         [allPolicies, groupBy, queryJSON, session?.email, status, translate, type],
     );
 
-    const statusComponent = useCallback(
+    const statusComponent = useDeferredRender(
         ({closeOverlay}: PopoverComponentProps) => {
             const items = getStatusOptions(type, groupBy);
             const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : (items.find((option) => option.value === status) ?? []);
@@ -236,7 +216,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         [groupBy, queryJSON, status, translate, type],
     );
 
-    const datePickerComponent = useCallback(
+    const datePickerComponent = useDeferredRender(
         ({closeOverlay}: PopoverComponentProps) => {
             const value: DateSelectPopupValue = {
                 [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter ?? null,
@@ -274,7 +254,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         [filterFormValuesKey, queryJSON],
     );
 
-    const userPickerComponent = useCallback(
+    const userPickerComponent = useDeferredRender(
         ({closeOverlay}: PopoverComponentProps) => {
             const value = filterFormValues.from ?? [];
 
@@ -313,22 +293,22 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         const filterList = [
             {
                 label: translate('common.type'),
-                PopoverComponent: getDelayedPopoverComponent(typeComponent),
+                PopoverComponent: typeComponent,
                 value: typeValue?.translation ? translate(typeValue.translation) : null,
             },
             {
                 label: translate('common.status'),
-                PopoverComponent: getDelayedPopoverComponent(statusComponent),
+                PopoverComponent: statusComponent,
                 value: statusValue.map((option) => translate(option.translation)),
             },
             {
                 label: translate('common.date'),
-                PopoverComponent: getDelayedPopoverComponent(datePickerComponent),
+                PopoverComponent: datePickerComponent,
                 value: dateValue,
             },
             {
                 label: translate('common.from'),
-                PopoverComponent: getDelayedPopoverComponent(userPickerComponent),
+                PopoverComponent: userPickerComponent,
                 value: fromValue,
             },
         ];
@@ -342,7 +322,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         filterFormValues.dateBefore,
         filterFormValues.dateOn,
         translate,
-        getDelayedPopoverComponent,
         typeComponent,
         statusComponent,
         datePickerComponent,
