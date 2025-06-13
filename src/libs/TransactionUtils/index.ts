@@ -45,7 +45,7 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1601,19 +1601,29 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
     return getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+type UnreportedExpenseListItem = Transaction & {
+    isDisabled: boolean;
+    keyForList: string;
+    errors?: Errors;
+};
+
 /**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
-function createUnreportedExpenseSections<T extends Transaction>(transactions: Array<T | undefined>): Array<{shouldShow: boolean; data: Array<T & {isDisabled: boolean}>}> {
+function createUnreportedExpenseSections(transactions: Array<Transaction | undefined>): Array<{shouldShow: boolean; data: UnreportedExpenseListItem[]}> {
     return [
         {
             shouldShow: true,
             data: transactions
-                .filter((t): t is T => t !== undefined)
-                .map((transaction) => ({
-                    ...transaction,
-                    isDisabled: isTransactionPendingDelete(transaction),
-                })),
+                .filter((t): t is Transaction => t !== undefined)
+                .map(
+                    (transaction): UnreportedExpenseListItem => ({
+                        ...transaction,
+                        isDisabled: isTransactionPendingDelete(transaction),
+                        keyForList: transaction.transactionID,
+                        errors: transaction.errors as Errors | undefined,
+                    }),
+                ),
         },
     ];
 }

@@ -69,10 +69,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
-    const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(
-        () => createUnreportedExpenseSections(transactions as Array<(Transaction & ListItem) | undefined>),
-        [transactions],
-    );
+    const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(() => createUnreportedExpenseSections(transactions), [transactions]);
 
     const thereIsNoUnreportedTransaction = !((sections.at(0)?.data.length ?? 0) > 0);
 
