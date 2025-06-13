@@ -107,7 +107,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             isActive: !!qboConfig?.autoCreateVendor,
             onToggle: (isOn: boolean) => {
                 const nonReimbursableVendorUpdateValue = isOn
-                    ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
+                    ? (policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE)
                     : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
                 const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
 

@@ -3,31 +3,31 @@ import CONST from '@src/CONST';
 
 describe('TourUtils', () => {
     describe('getTestDriveURL', () => {
-        describe('Environment is production', () => {
+        describe('Intro selected is Track Workspace', () => {
             it('returns proper URL when screen is narrow', () => {
-                const url = getTestDriveURL(CONST.ENVIRONMENT.PRODUCTION, true);
+                const url = getTestDriveURL(true, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
 
-                expect(url).toBe(CONST.STORYLANE.ADMIN_TOUR_MOBILE_PRODUCTION);
+                expect(url).toBe(CONST.STORYLANE.TRACK_WORKSPACE_TOUR_MOBILE);
             });
 
             it('returns proper URL when screen is not narrow', () => {
-                const url = getTestDriveURL(CONST.ENVIRONMENT.PRODUCTION, false);
+                const url = getTestDriveURL(false, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
 
-                expect(url).toBe(CONST.STORYLANE.ADMIN_TOUR_PRODUCTION);
+                expect(url).toBe(CONST.STORYLANE.TRACK_WORKSPACE_TOUR);
             });
         });
 
-        describe('Environment is not production', () => {
+        describe('Intro selected is Track Workspace', () => {
             it('returns proper URL when screen is narrow', () => {
-                const url = getTestDriveURL(CONST.ENVIRONMENT.STAGING, true);
+                const url = getTestDriveURL(true);
 
-                expect(url).toBe(CONST.STORYLANE.ADMIN_TOUR_MOBILE_STAGING);
+                expect(url).toBe(CONST.STORYLANE.ADMIN_TOUR_MOBILE);
             });
 
             it('returns proper URL when screen is not narrow', () => {
-                const url = getTestDriveURL(CONST.ENVIRONMENT.STAGING, false);
+                const url = getTestDriveURL(false);
 
-                expect(url).toBe(CONST.STORYLANE.ADMIN_TOUR_STAGING);
+                expect(url).toBe(CONST.STORYLANE.ADMIN_TOUR);
             });
         });
     });

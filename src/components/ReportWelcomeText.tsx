@@ -155,6 +155,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 {report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? (
                                     <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})}</Text>
                                 ) : (
+                                    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+                                    // eslint-disable-next-line deprecation/deprecation
                                     <Text style={[styles.textStrong]}>{getPolicy(report?.invoiceReceiver?.policyID)?.name}</Text>
                                 )}
                             </Text>

@@ -128,7 +128,6 @@ function useWorkletStateMachine<SM extends StateMachine<string, string>, P>(stat
 
             // save previous payload or merge the new payload with the previous payload
             const nextPayload = typeof action.payload === 'undefined' ? state.current.payload : fastMerge(state.current.payload, action.payload);
-
             log(`Next STATE: ${nextState}`, nextPayload);
 
             currentState.set({

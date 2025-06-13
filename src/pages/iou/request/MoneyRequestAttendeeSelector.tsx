@@ -217,7 +217,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
                 const iconSource = option.icons?.[0]?.source;
-                const icon = typeof iconSource === 'function' ? '' : iconSource?.toString() ?? '';
+                const icon = typeof iconSource === 'function' ? '' : (iconSource?.toString() ?? '');
                 newSelectedOptions = [
                     ...attendees,
                     {

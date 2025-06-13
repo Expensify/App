@@ -57,7 +57,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         if (!scrollRef.current) {
             return 0;
         }
-        return horizontal ? getScrollableNode(scrollRef.current)?.scrollLeft ?? 0 : getScrollableNode(scrollRef.current)?.scrollTop ?? 0;
+        return horizontal ? (getScrollableNode(scrollRef.current)?.scrollLeft ?? 0) : (getScrollableNode(scrollRef.current)?.scrollTop ?? 0);
     }, [horizontal]);
 
     const getContentView = useCallback(() => getScrollableNode(scrollRef.current)?.childNodes[0], []);

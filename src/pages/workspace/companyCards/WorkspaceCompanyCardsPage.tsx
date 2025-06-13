@@ -8,6 +8,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +17,7 @@ import {
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
+    getPlaidInstitutionId,
     getSelectedFeed,
     hasOnlyOneCardToAssign,
     isCustomFeed,
@@ -53,6 +55,9 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [cardFeeds] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useCardsList(policyID, selectedFeed);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const {isBetaEnabled} = usePermissions();
+    const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
 
     const {cardList, ...cards} = cardsList ?? {};
 
@@ -76,6 +81,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
+    const isGB = countryByIp === CONST.COUNTRY.GB;
+    const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
 
     useEffect(() => {
         fetchCompanyCards();
@@ -131,7 +138,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         }
 
         if (isFeedExpired) {
-            currentStep = CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
+            const institutionId = !!getPlaidInstitutionId(selectedFeed);
+            currentStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
         }
 
         setAssignCardStepAndData({data, currentStep});
@@ -168,11 +176,17 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             handleAssignCard={handleAssignCard}
                         />
                     )}
-                    {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
+                    {isNoFeed && (
+                        <WorkspaceCompanyCardPageEmptyState
+                            route={route}
+                            shouldShowGBDisclaimer={shouldShowGBDisclaimer}
+                        />
+                    )}
                     {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
                     {isFeedAdded && !isPending && (
                         <WorkspaceCompanyCardsList
                             cardsList={cardsList}
+                            shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                             policyID={policyID}
                             handleAssignCard={handleAssignCard}
                             isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}

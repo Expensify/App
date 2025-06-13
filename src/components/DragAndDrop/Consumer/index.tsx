@@ -7,6 +7,9 @@ function DragAndDropConsumer({children, onDrop}: DragAndDropConsumerProps) {
     const {isDraggingOver, setOnDropHandler, dropZoneID} = useContext(DragAndDropContext);
 
     useEffect(() => {
+        if (!onDrop) {
+            return;
+        }
         setOnDropHandler?.(onDrop);
     }, [onDrop, setOnDropHandler]);
 

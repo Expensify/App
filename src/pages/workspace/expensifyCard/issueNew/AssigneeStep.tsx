@@ -15,6 +15,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import {clearIssueNewCardFlow, getCardDefaultName, setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -34,7 +35,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -115,7 +116,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         }
 
         const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
-        const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
+        const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         return [
             {

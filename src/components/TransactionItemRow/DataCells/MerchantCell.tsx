@@ -1,24 +1,26 @@
 import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMerchant} from '@libs/TransactionUtils';
-import CONST from '@src/CONST';
-import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function MerchantCell({transactionItem, shouldShowTooltip, shouldUseNarrowLayout}: TransactionDataCellProps) {
+function MerchantOrDescriptionCell({
+    merchantOrDescription,
+    shouldShowTooltip,
+    shouldUseNarrowLayout,
+}: {
+    merchantOrDescription: string;
+    shouldUseNarrowLayout?: boolean | undefined;
+    shouldShowTooltip: boolean;
+}) {
     const styles = useThemeStyles();
-
-    const merchantName = getMerchant(transactionItem);
-    const merchantToDisplay = merchantName === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchantName;
 
     return (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
-            text={merchantToDisplay}
-            style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
+            text={merchantOrDescription}
+            style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1]}
         />
     );
 }
 
-MerchantCell.displayName = 'MerchantCell';
-export default MerchantCell;
+MerchantOrDescriptionCell.displayName = 'MerchantOrDescriptionCell';
+export default MerchantOrDescriptionCell;

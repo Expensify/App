@@ -12,9 +12,10 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
@@ -23,10 +24,11 @@ type AvailableCompanyCardTypes = {
     translate: LocaleContextProps['translate'];
     typeSelected?: CardFeedProvider;
     styles: StyleProp<ViewStyle>;
+    canUsePlaidCompanyCards?: boolean;
 };
 
-function getAvailableCompanyCardTypes({translate, typeSelected, styles}: AvailableCompanyCardTypes) {
-    return [
+function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePlaidCompanyCards}: AvailableCompanyCardTypes) {
+    const defaultCards = [
         {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             text: translate('workspace.companyCards.addNewCard.cardProviders.cdf'),
@@ -56,15 +58,38 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles}: Availab
             ),
         },
     ];
+
+    if (!canUsePlaidCompanyCards) {
+        return defaultCards;
+    }
+
+    return [
+        {
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.gl1025'),
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            leftElement: (
+                <Icon
+                    src={Illustrations.AmexCardCompanyCardDetail}
+                    height={variables.iconSizeExtraLarge}
+                    width={variables.iconSizeExtraLarge}
+                    additionalStyles={styles}
+                />
+            ),
+        },
+        ...defaultCards,
+    ];
 }
 
 function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
     const [isError, setIsError] = useState(false);
-    const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3});
+    const {isBetaEnabled} = usePermissions();
+    const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3, canUsePlaidCompanyCards: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)});
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;
@@ -73,7 +98,7 @@ function CardTypeStep() {
         if (!typeSelected) {
             setIsError(true);
         } else {
-            CompanyCards.setAddNewCompanyCardStepAndData({
+            setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
                 data: {
                     feedType: typeSelected,
@@ -90,10 +115,10 @@ function CardTypeStep() {
 
     const handleBackButtonPress = () => {
         if (isOtherBankSelected) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
 
     return (

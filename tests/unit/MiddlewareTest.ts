@@ -167,10 +167,13 @@ describe('Middleware', () => {
             const formData = ((global.fetch as jest.Mock).mock.calls.at(2) as FormDataObject[]).at(1)?.body;
             expect(formData).not.toBeUndefined();
             if (formData) {
-                const formDataObject = Array.from(formData.entries()).reduce((acc, [key, val]) => {
-                    acc[key] = val;
-                    return acc;
-                }, {} as Record<string, string | Blob | undefined>);
+                const formDataObject = Array.from(formData.entries()).reduce(
+                    (acc, [key, val]) => {
+                        acc[key] = val;
+                        return acc;
+                    },
+                    {} as Record<string, string | Blob | undefined>,
+                );
                 expect(formDataObject.reportActionID).toBeUndefined();
                 expect(formDataObject.parentReportActionID).toBeUndefined();
             }

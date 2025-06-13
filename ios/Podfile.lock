@@ -56,6 +56,28 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpensifyNitroUtils (0.0.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Expo (52.0.41):
     - ExpoModulesCore
   - ExpoAsset (11.0.5):
@@ -313,7 +335,7 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - NitroModules (0.24.1):
+  - NitroModules (0.25.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -420,7 +442,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -438,7 +459,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -455,7 +475,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -474,7 +493,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -492,7 +510,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -510,7 +527,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -528,7 +544,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -546,7 +561,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -564,7 +578,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -582,7 +595,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -600,7 +612,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -618,7 +629,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -636,7 +646,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -654,7 +663,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -729,7 +737,6 @@ PODS:
     - React-Fabric/componentregistry (= 0.77.1)
     - React-Fabric/componentregistrynative (= 0.77.1)
     - React-Fabric/components (= 0.77.1)
-    - React-Fabric/consistency (= 0.77.1)
     - React-Fabric/core (= 0.77.1)
     - React-Fabric/dom (= 0.77.1)
     - React-Fabric/imagemanager (= 0.77.1)
@@ -921,27 +928,6 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/core
     - Yoga
-  - React-Fabric/consistency (0.77.1):
-    - DoubleConversion
-    - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
-    - glog
-    - hermes-engine
-    - RCT-Folly/Fabric (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-cxxreact
-    - React-debug
-    - React-featureflags
-    - React-graphics
-    - React-jsi
-    - React-jsiexecutor
-    - React-logger
-    - React-rendererdebug
-    - React-runtimescheduler
-    - React-utils
-    - ReactCommon/turbomodule/core
   - React-Fabric/core (0.77.1):
     - DoubleConversion
     - fast_float (= 6.1.4)
@@ -1799,7 +1785,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-key-command (1.0.12):
+  - react-native-key-command (1.0.14):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2558,30 +2544,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.244):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.244)
-    - RNReanimated/worklets
-    - Yoga
-  - RNLiveMarkdown/newarch (0.1.244):
+  - RNLiveMarkdown (0.1.288):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2957,6 +2920,7 @@ DEPENDENCIES:
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - "expensify-react-native-background-task (from `../node_modules/@expensify/react-native-background-task`)"
+  - "ExpensifyNitroUtils (from `../node_modules/@expensify/nitro-utils`)"
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
@@ -3142,6 +3106,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-image-loader/ios"
   expensify-react-native-background-task:
     :path: "../node_modules/@expensify/react-native-background-task"
+  ExpensifyNitroUtils:
+    :path: "../node_modules/@expensify/nitro-utils"
   Expo:
     :path: "../node_modules/expo"
   ExpoAsset:
@@ -3400,11 +3366,12 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: d7090b1a93a9798c029277a8288114f2948f471c
-  DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
+  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 57ea461614a714b8b8fcc72c6fbc298b8f1ec78b
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
   expensify-react-native-background-task: f180077e77a41952128fdc2c83ce1d980994d125
+  ExpensifyNitroUtils: 531df6f934e9cd9ef8ba4eb4cb51b47ebd32245f
   Expo: 3a8a619381412bbf8537746ec27b485be01c8a1f
   ExpoAsset: 0687fe05f5d051c4a34dd1f9440bd00858413cfe
   ExpoFont: 773955186469acc5108ff569712a2d243857475f
@@ -3426,7 +3393,7 @@ SPEC CHECKSUMS:
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
   fullstory_react-native: 5132c9dfa5e1ea4ec42679a708af782d4c4ec4bc
-  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
+  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -3445,7 +3412,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  NitroModules: 32f6f1111b1c77b51e7907aa92f4de3b1a1764bc
+  NitroModules: 6cad985fa4a6efaf567fe5c9aa464bce17e2d0cc
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 1b8abe574234b86a592d7efb4eeada715709e23b
@@ -3459,13 +3426,13 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 031cefa254a1df313a196f105b8fcffdab1c5ab6
   React: 8edfc46c315852ec88ea4a29d5e79019af3dc667
   React-callinvoker: 4450b01574dfc7a8f074f7e29e6965ac04859c8f
-  React-Core: 0ac3acde025b10da5ccb9970547ab60a863654ce
+  React-Core: 13bdd0a0125fdaecdee747b62e02d2a65b026520
   React-CoreModules: ebe93fa403bbd4d0909de105ffd34eeaad355083
   React-cxxreact: af8a2be3edfed0e1168279eea443f95a7285602e
   React-debug: b0f7271aeacc2eb9e34f863397dcfc204ef721c0
   React-defaultsnativemodule: 2ad21fff895dabfb7db60ee1c37d0a3866229430
   React-domnativemodule: f788e7169988a61ac38a5fc493ac02b5fbda7d6b
-  React-Fabric: 012ec12475cf941575871fdc006cf934090a9840
+  React-Fabric: 8b404451db2bb07bcf0e3f6dfebfb26455e4d7ce
   React-FabricComponents: 40cecebced128b2aa50c25a5fa6fdcd3b175286d
   React-FabricImage: 81787fa643b67f1327b4aa5fa1678dc73a771e34
   React-featureflags: 23d3dcdac6c9badeeb631db8a0883c7a3108d580
@@ -3491,7 +3458,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: ead1d62b121e66ab5edbf6fcfdbfb58e81662b55
   react-native-geolocation: cd91e4fd914de585933c836fd71f6bdb3c97a410
   react-native-image-picker: 9e419813377d42566b0168121ab9483614488db5
-  react-native-key-command: 96c9dfb09bc89ecd1d58348c0d3ed84d0255648b
+  react-native-key-command: 8e0e438fd6bba404cff79ab43d131e5187e45f73
   react-native-keyboard-controller: 5c628f5d8301047a87039a2d7de322233a39bbda
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: eb0dfd4450b6f825eea973c490cee45db21cf570
@@ -3503,11 +3470,10 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: 9b169299f9dc95f1d7fe1dd266fde53bd899cd0c
   react-native-view-shot: bb169342812ded991a4a0387e7d0b17cb515e62a
   react-native-wallet: 46df147c6089b2490dc5f4cbf25c58ce70b0215d
-  react-native-webrtc: 0f1c94069ff1eb9d8fb1618c2dc71f73542c8cfa
   react-native-webview: b375842af66a9f0ab979378bdc8b26eeb5d8e3ee
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564
   React-NativeModulesApple: 82a8bee52df9f5b378195a500f22be3a6ef0f890
-  React-perflogger: a8a27aa65a47f740eff65bb38b79baacb38a50d5
+  React-perflogger: 8152bab3f0eb4b8751f282f9af7caed2c823a9ea
   React-performancetimeline: 3ef4a640b56f9c7ec5f52bd93217b9b607c37cf4
   React-RCTActionSheet: 0fdf55fb8724856d63ca8c63cdb4e2325e15e8ec
   React-RCTAnimation: b93f5a1675cc2599e96851fec13c909fdfb1d6bb
@@ -3521,7 +3487,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: 433c9f6a070bcecbe5a44d5009326b4d6f3b0667
   React-RCTText: 46249950f8d8738b90a60883d19b5bef09f0a296
   React-RCTVibration: 8f41e85ab6d40c7db6111ca9e8c7492c8de374fb
-  React-rendererconsistency: d59654ad59217708509d1bb6373358be321613a4
+  React-rendererconsistency: c766ce7261ab6ed6be7bc155c403e29436d4f156
   React-rendererdebug: 1f619b295f346242842f3accee23e8394b995d3c
   React-rncore: cafe45e14d870bbecbbf4bd89e12ef3b596e1f2d
   React-RuntimeApple: 7f27fb75a37e00a8e1efaa6e8f7a5b653871fb1b
@@ -3547,7 +3513,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 66e593addd8952725107cfaa4f5e3378e946b541
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: e3f49ff5a70a7fb5ba515a390cae767e5e999ac9
+  RNLiveMarkdown: c5eb96d42d1f695dc6da2d2d38064259bc6abe22
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 1d313fe5d7d18845b3015ffd6994e0c81afbffcd
   RNNitroSQLite: 0243d91c6662d8a334fb4953c969b82884ac6c68
@@ -3568,6 +3534,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: 1fd059161b449018342943b095a6d4e69bcaa719
 
-PODFILE CHECKSUM: 3742d104d6ece80a980e5052f676b69f97405c55
+PODFILE CHECKSUM: 7259116b0f802ccccad12de2f41d2b5abec35add
 
 COCOAPODS: 1.15.2

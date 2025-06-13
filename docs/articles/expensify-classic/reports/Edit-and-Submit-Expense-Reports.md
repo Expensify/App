@@ -204,6 +204,8 @@ Every report passes through several statuses. Here’s what they mean:
 - **Reimbursed** – Payment sent. **Withdrawing** or **Confirmed** may appear based on ACH status. 
 - **Closed** – Finalized and no longer editable.
 
+**Note:** A report will only move to the **Closed** status if it's submitted on an **Individual workspace** or a **Group workspace** using the **Submit & Close** approval workflow.
+
 ## Finalized state by workflow
 
 - **Non-reimbursable** – Finalized at **Approved**.

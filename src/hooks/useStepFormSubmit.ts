@@ -24,10 +24,13 @@ export default function useStepFormSubmit<T extends keyof OnyxFormValuesMapping>
     return useCallback(
         (values: FormOnyxValues<T>) => {
             if (shouldSaveDraft) {
-                const stepValues = fieldIds.reduce((acc, key) => {
-                    acc[key] = values[key];
-                    return acc;
-                }, {} as Record<TupleToUnion<typeof fieldIds>, OnyxValues[T][Exclude<keyof OnyxValues[T], keyof BaseForm>]>);
+                const stepValues = fieldIds.reduce(
+                    (acc, key) => {
+                        acc[key] = values[key];
+                        return acc;
+                    },
+                    {} as Record<TupleToUnion<typeof fieldIds>, OnyxValues[T][Exclude<keyof OnyxValues[T], keyof BaseForm>]>,
+                );
 
                 FormActions.setDraftValues(formId, stepValues);
                 onNext(stepValues);

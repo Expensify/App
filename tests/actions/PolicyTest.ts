@@ -56,7 +56,7 @@ describe('actions/Policy', () => {
             let expenseReportID;
             const policyID = Policy.generatePolicyID();
 
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
@@ -239,12 +239,9 @@ describe('actions/Policy', () => {
         });
 
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
-            await waitForBatchedUpdates();
-
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
@@ -262,12 +259,9 @@ describe('actions/Policy', () => {
         });
 
         it('creates a new workspace with OPTIONAL approval mode if the introSelected is TRACK_WORKSPACE', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
-            await waitForBatchedUpdates();
-
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
@@ -288,11 +282,10 @@ describe('actions/Policy', () => {
             (fetch as MockFetch)?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true, chatReportID: '12345'});
-            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
             await waitForBatchedUpdates();
 
             (fetch as MockFetch)?.fail?.();
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, undefined, CONST.ONBOARDING_CHOICES.LOOKING_AROUND);
             await waitForBatchedUpdates();
 
             (fetch as MockFetch)?.resume?.();
@@ -310,12 +303,9 @@ describe('actions/Policy', () => {
         });
 
         it('create a new workspace with delayed submission set to manually if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
-            await waitForBatchedUpdates();
-
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({
@@ -331,11 +321,8 @@ describe('actions/Policy', () => {
         });
 
         it('create a new workspace with delayed submission set to manually if the onboarding choice is not selected', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: undefined});
-            await waitForBatchedUpdates();
-
             const policyID = Policy.generatePolicyID();
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, undefined);
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({
@@ -351,12 +338,9 @@ describe('actions/Policy', () => {
         });
 
         it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
-            await waitForBatchedUpdates();
-
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({
@@ -370,12 +354,9 @@ describe('actions/Policy', () => {
         });
 
         it('create a new workspace with enabled workflows if the onboarding choice is newDotLookingAround', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
-            await waitForBatchedUpdates();
-
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to LOOKING_AROUND
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.LOOKING_AROUND);
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({
@@ -388,32 +369,26 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with disabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
-            await waitForBatchedUpdates();
-
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 waitForCollectionCallback: false,
                 callback: (policy) => {
-                    // Then workflows are not enabled
-                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                    // Then workflows is enabled
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
                 },
             });
         });
 
         it('create a new workspace with disabled workflows if the onboarding choice is newDotEmployer', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.EMPLOYER});
-            await waitForBatchedUpdates();
-
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to EMPLOYER
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.EMPLOYER);
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({
@@ -427,12 +402,9 @@ describe('actions/Policy', () => {
         });
 
         it('create a new workspace with disabled workflows if the onboarding choice is newDotSplitChat', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT});
-            await waitForBatchedUpdates();
-
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to CHAT_SPLIT
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({

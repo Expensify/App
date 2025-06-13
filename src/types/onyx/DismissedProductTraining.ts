@@ -14,6 +14,7 @@ const {
     GBR_RBR_CHAT,
     EXPENSE_REPORTS_FILTER,
     SCAN_TEST_DRIVE_CONFIRMATION,
+    MULTI_SCAN_EDUCATIONAL_MODAL,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
@@ -98,9 +99,14 @@ type DismissedProductTraining = {
     [EXPENSE_REPORTS_FILTER]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the test drive on confirmantion page product training tooltip, we store the timestamp here.
+     * When user dismisses the test drive on confirmation page product training tooltip, we store the timestamp here.
      */
     [SCAN_TEST_DRIVE_CONFIRMATION]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the MultiScan product training tooltip, we store the timestamp here.
+     */
+    [MULTI_SCAN_EDUCATIONAL_MODAL]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.

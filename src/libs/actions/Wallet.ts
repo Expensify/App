@@ -279,13 +279,24 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
  * @param walletAccountID ID of the wallet on user's phone
  * @param deviceID ID of user's phone
  */
-function createDigitalGoogleWallet({walletAccountID, deviceID, cardHolderName}: {deviceID: string; walletAccountID: string; cardHolderName: string}): Promise<AndroidCardData> {
+function createDigitalGoogleWallet({
+    walletAccountID,
+    deviceID,
+    cardID,
+    cardHolderName,
+}: {
+    deviceID: string;
+    walletAccountID: string;
+    cardID: number;
+    cardHolderName: string;
+}): Promise<AndroidCardData> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
         platform: 'android',
         appVersion: pkg.version,
         walletAccountID,
         deviceID,
+        cardID,
     })
         .then((response) => {
             const data = response as unknown as ProvisioningCardData;

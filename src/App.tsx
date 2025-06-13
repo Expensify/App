@@ -44,6 +44,7 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 import './setup/backgroundTask';
+import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
 /**
@@ -78,6 +79,7 @@ function App({url, hybridAppSettings}: AppProps) {
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
                 <InitialURLContextProvider url={url}>
+                    <HybridAppHandler hybridAppSettings={hybridAppSettings} />
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
@@ -114,12 +116,6 @@ function App({url, hybridAppSettings}: AppProps) {
                         >
                             <CustomStatusBarAndBackground />
                             <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                {CONFIG.IS_HYBRID_APP && (
-                                    <HybridAppHandler
-                                        url={url}
-                                        hybridAppSettings={hybridAppSettings}
-                                    />
-                                )}
                                 <ColorSchemeWrapper>
                                     <Expensify />
                                 </ColorSchemeWrapper>

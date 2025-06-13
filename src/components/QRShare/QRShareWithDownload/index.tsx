@@ -23,7 +23,7 @@ function QRShareWithDownload(props: QRShareProps, ref: ForwardedRef<QRShareWithD
                         return;
                     }
 
-                    svg.toDataURL((dataURL) => resolve(fileDownload(dataURL, getQrCodeFileName(props.title))));
+                    svg.toDataURL((dataURL) => resolve(fileDownload(dataURL, getQrCodeFileName(props.title ?? 'QRCode'))));
                 }),
         }),
         [props.title],

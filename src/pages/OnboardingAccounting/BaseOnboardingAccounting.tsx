@@ -109,7 +109,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const {canUseDefaultRooms} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
@@ -242,7 +242,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             navigateAfterOnboarding(
                 isSmallScreenWidth,
-                canUseDefaultRooms,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 policyID,
                 adminsChatReportID,
                 // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
@@ -251,7 +251,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             );
         });
     }, [
-        canUseDefaultRooms,
+        isBetaEnabled,
         isSmallScreenWidth,
         onboardingAdminsChatReportID,
         onboardingCompanySize,

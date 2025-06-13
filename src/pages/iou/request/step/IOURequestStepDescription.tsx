@@ -71,11 +71,11 @@ function IOURequestStepDescription({
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
 
     const currentDescriptionInMarkdown = useMemo(() => {
-        if (!isTransactionDraft) {
-            return Parser.htmlToMarkdown(isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '');
+        if (!isTransactionDraft || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) {
+            return Parser.htmlToMarkdown(isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? ''));
         }
-        return isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
-    }, [isTransactionDraft, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
+        return isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
+    }, [isTransactionDraft, iouType, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
 
     const descriptionRef = useRef(currentDescriptionInMarkdown);
     const isSavedRef = useRef(false);
@@ -158,7 +158,7 @@ function IOURequestStepDescription({
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
     const getDescriptionHint = () => {
-        return transaction?.category && policyCategories ? policyCategories[transaction?.category]?.commentHint ?? '' : '';
+        return transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
     };
 
     return (

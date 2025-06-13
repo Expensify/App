@@ -32,7 +32,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const rateID = route.params.rateID;
     const subRateID = route.params.subRateID;
     const [deletePerDiemConfirmModalVisible, setDeletePerDiemConfirmModalVisible] = useState(false);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -44,7 +44,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
 
     const selectedSubRate = fetchedSubRate ?? previousFetchedSubRate;
 
-    const amountValue = selectedSubRate?.rate ? convertToDisplayStringWithoutCurrency(Number(selectedSubRate.rate), selectedRate?.currency) : undefined;
+    const amountValue = selectedSubRate?.rate ? convertToDisplayStringWithoutCurrency(Number(selectedSubRate.rate)) : undefined;
     const currencyValue = selectedRate?.currency ? `${selectedRate.currency} - ${getCurrencySymbol(selectedRate.currency)}` : undefined;
 
     const FullPageBlockingView = isEmptyObject(selectedSubRate) ? FullPageOfflineBlockingView : View;

@@ -12,12 +12,26 @@ const ReactCompilerConfig = {
 };
 
 /**
+ * Custom plugin that prints a file name when it's being processed by babel.
+ * Disabled by default. To enable, set DEBUG_BABEL_TRACE=true in the environment.
+ */
+function traceTransformer() {
+    return {
+        visitor: {
+            Program(path, state) {
+                console.log('🔧 Transforming file:', state.filename);
+            },
+        },
+    };
+}
+
+/**
  * Setting targets to node 20 to reduce JS bundle size
  * It is also recommended by babel:
  * https://babeljs.io/docs/options#no-targets
  */
-const defaultPresets = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPlugins = [
+const defaultPresetsForWebpack = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
+const defaultPluginsForWebpack = [
     ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
@@ -38,7 +52,7 @@ const defaultPlugins = [
 // ignore it for desktop builds.
 if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
     console.debug('This is not a desktop build, adding babel-plugin-annotate-react');
-    defaultPlugins.push([
+    defaultPluginsForWebpack.push([
         '@fullstory/babel-plugin-annotate-react',
         {
             'react-native-web': true,
@@ -47,9 +61,13 @@ if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') 
     ]);
 }
 
+if (process.env.DEBUG_BABEL_TRACE) {
+    defaultPluginsForWebpack.push(traceTransformer);
+}
+
 const webpack = {
-    presets: defaultPresets,
-    plugins: defaultPlugins,
+    presets: defaultPresetsForWebpack,
+    plugins: defaultPluginsForWebpack,
 };
 
 const metro = {
@@ -122,6 +140,10 @@ const metro = {
         },
     },
 };
+
+if (process.env.DEBUG_BABEL_TRACE) {
+    metro.plugins.push(traceTransformer);
+}
 
 /*
  * We use <React.Profiler> and react-native-performance to capture/monitor stats

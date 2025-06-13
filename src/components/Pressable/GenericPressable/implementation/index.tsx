@@ -5,7 +5,7 @@ import type PressableProps from '@components/Pressable/GenericPressable/types';
 import GenericPressable from './BaseGenericPressable';
 
 function WebGenericPressable({focusable = true, ...props}: PressableProps, ref: PressableRef) {
-    const accessible = props.accessible ?? props.accessible === undefined ? true : props.accessible;
+    const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
 
     return (
         <GenericPressable
@@ -14,7 +14,7 @@ function WebGenericPressable({focusable = true, ...props}: PressableProps, ref: 
             ref={ref}
             // change native accessibility props to web accessibility props
             focusable={focusable}
-            tabIndex={props.tabIndex ?? (!accessible || !focusable) ? -1 : 0}
+            tabIndex={(props.tabIndex ?? (!accessible || !focusable)) ? -1 : 0}
             role={(props.accessibilityRole ?? props.role) as Role}
             id={props.id}
             aria-label={props.accessibilityLabel}

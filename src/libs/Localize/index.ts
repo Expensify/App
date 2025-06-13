@@ -59,12 +59,7 @@ function init() {
  * phrase and stores the translated value in the cache and returns
  * the translated value.
  */
-function getTranslatedPhrase<TKey extends TranslationPaths>(
-    language: 'en' | 'es' | 'es-ES',
-    phraseKey: TKey,
-    fallbackLanguage: 'en' | 'es' | null,
-    ...parameters: TranslationParameters<TKey>
-): string | null {
+function getTranslatedPhrase<TKey extends TranslationPaths>(language: 'en' | 'es', phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
     const translatedPhrase = translations?.[language]?.[phraseKey];
 
     if (translatedPhrase) {
@@ -108,30 +103,15 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
         return translatedPhrase;
     }
 
-    if (!fallbackLanguage) {
-        return null;
-    }
-
-    // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...parameters);
-
-    if (fallbackTranslatedPhrase) {
-        return fallbackTranslatedPhrase;
-    }
-
-    if (fallbackLanguage !== CONST.LOCALES.DEFAULT) {
-        Log.alert(`${phraseKey} was not found in the ${fallbackLanguage} locale`);
-    }
-
-    // Phrase is not translated, search it in default language (en)
-    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...parameters);
+    Log.alert(`${phraseKey} was not found in the ${language} locale`);
+    return null;
 }
 
 const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
     maxArgs: 2,
     equality: 'shallow',
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    skipCache: (params) => !isEmptyObject(params.at(3)),
+    skipCache: (params) => !isEmptyObject(params.at(2)),
 });
 
 /**
@@ -142,11 +122,9 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
  */
 function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', path: TPath, ...parameters: TranslationParameters<TPath>): string {
     // Search phrase in full locale e.g. es-ES
-    const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
-    // Phrase is not found in full locale, search it in fallback language e.g. es
-    const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
+    const language = ([CONST.LOCALES.ES_ES_ONFIDO, CONST.LOCALES.ES_ES] as string[]).includes(desiredLanguage) ? CONST.LOCALES.ES : (desiredLanguage as 'en' | 'es');
 
-    const translatedPhrase = memoizedGetTranslatedPhrase(language, path, languageAbbreviation, ...parameters);
+    const translatedPhrase = memoizedGetTranslatedPhrase(language, path, ...parameters);
     if (translatedPhrase !== null && translatedPhrase !== undefined) {
         return translatedPhrase;
     }

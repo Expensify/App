@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
@@ -180,6 +180,10 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
 
+    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
+    // Control policies if the policy does not contain the attribute
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
+
     return (
         <Section
             isCentralPane
@@ -232,6 +236,21 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                             {translate('workspace.rules.individualExpenseRules.eReceiptsHintLink')}
                         </TextLink>
                         .
+                    </Text>
+                </View>
+                <View style={[styles.mt3]}>
+                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}>
+                        <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
+                            <Switch
+                                isOn={isAttendeeTrackingEnabled}
+                                accessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}</Text>
                     </Text>
                 </View>
             </View>

@@ -1,6 +1,7 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
+import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
 import Log from '@libs/Log';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -23,9 +24,8 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
 ];
 
 const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
-const reportsSplitsWithEnteringAnimation = new Set<string>();
-const settingsSplitWithEnteringAnimation = new Set<string>();
-const searchFullscreenWithEnteringAnimation = new Set<string>();
+
+const screensWithEnteringAnimation = new Set<string>();
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
  * If the user is on other tab than workspaces and the workspace split is "remembered", this action will be called after pressing the settings tab.
@@ -73,84 +73,29 @@ function handleOpenWorkspaceSplitAction(
     return stateWithWorkspaceSplitNavigator;
 }
 
-/**
- * If a new ReportSplitNavigator is opened, it is necessary to check whether workspace is currently selected in the application.
- * If so, the id of the current policy has to be passed to the new ReportSplitNavigator.
- */
-function handlePushReportSplitAction(
+function handlePushFullscreenAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+    const stateWithNavigator = stackRouter.getStateForAction(state, action, configOptions);
+    const navigatorName = action.payload.name;
 
-    if (!stateWithReportsSplitNavigator) {
-        Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
+    if (!stateWithNavigator) {
+        Log.hmmm(`[handlePushAction] ${navigatorName} has not been found in the navigation state.`);
         return null;
     }
 
-    const lastFullScreenRoute = stateWithReportsSplitNavigator.routes.at(-1);
-    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
+    const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
+    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
 
-    // ReportScreen should always be opened with an animation
-    if (actionPayloadScreen === SCREENS.REPORT && lastFullScreenRoute?.key) {
-        reportsSplitsWithEnteringAnimation.add(lastFullScreenRoute.key);
+    // Transitioning to all central screens in each split should be animated
+    if (lastFullScreenRoute?.key && actionPayloadScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(actionPayloadScreen)) {
+        screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
 
-    return stateWithReportsSplitNavigator;
-}
-
-function handlePushSettingsSplitAction(
-    state: StackNavigationState<ParamListBase>,
-    action: PushActionType,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-) {
-    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
-
-    if (!stateWithSettingsSplitNavigator) {
-        Log.hmmm('[handlePushSettingsAction] SettingsSplitNavigator has not been found in the navigation state.');
-        return null;
-    }
-
-    const lastFullScreenRoute = stateWithSettingsSplitNavigator.routes.at(-1);
-    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
-
-    // Transitioning to all central screens in settings should be animated
-    if (actionPayloadScreen !== SCREENS.SETTINGS.ROOT && lastFullScreenRoute?.key) {
-        settingsSplitWithEnteringAnimation.add(lastFullScreenRoute.key);
-    }
-
-    return stateWithSettingsSplitNavigator;
-}
-
-/**
- * If a new Search page is opened, it is necessary to check whether workspace is currently selected in the application.
- * If so, the id of the current policy has to be passed to the new Search page
- */
-function handlePushSearchPageAction(
-    state: StackNavigationState<ParamListBase>,
-    action: PushActionType,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-) {
-    const stateWithSearchFullscreenNavigator = stackRouter.getStateForAction(state, action, configOptions);
-
-    if (!stateWithSearchFullscreenNavigator) {
-        Log.hmmm('[handlePushSettingsAction] SearchFullscreenNavigator has not been found in the navigation state.');
-        return null;
-    }
-
-    const lastFullScreenRoute = stateWithSearchFullscreenNavigator.routes.at(-1);
-    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
-
-    // Transitioning to SCREENS.SEARCH.MONEY_REQUEST_REPORT should be animated
-    if (actionPayloadScreen === SCREENS.SEARCH.MONEY_REQUEST_REPORT && lastFullScreenRoute?.key) {
-        searchFullscreenWithEnteringAnimation.add(lastFullScreenRoute.key);
-    }
-
-    return stateWithSearchFullscreenNavigator;
+    return stateWithNavigator;
 }
 
 function handleReplaceReportsSplitNavigatorAction(
@@ -170,7 +115,7 @@ function handleReplaceReportsSplitNavigatorAction(
 
     // ReportScreen should always be opened with an animation when replacing the navigator
     if (lastReportsSplitNavigator?.key) {
-        reportsSplitsWithEnteringAnimation.add(lastReportsSplitNavigator.key);
+        screensWithEnteringAnimation.add(lastReportsSplitNavigator.key);
     }
 
     return stateWithReportsSplitNavigator;
@@ -213,12 +158,8 @@ export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
     handleOpenWorkspaceSplitAction,
-    handlePushReportSplitAction,
-    handlePushSearchPageAction,
-    handlePushSettingsSplitAction,
+    handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
-    reportsSplitsWithEnteringAnimation,
-    searchFullscreenWithEnteringAnimation,
-    settingsSplitWithEnteringAnimation,
+    screensWithEnteringAnimation,
     workspaceSplitsWithoutEnteringAnimation,
 };

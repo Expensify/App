@@ -1,8 +1,11 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isExpenseReport} from '@libs/ReportUtils';
+import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
+import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowOneTransactionThreadID, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Report, ReportAction} from '../../src/types/onyx';
 import createRandomReport from '../utils/collections/reports';
@@ -298,6 +301,122 @@ describe('ReportActionsUtils', () => {
         test.each(cases)('in descending order', (input, expectedOutput) => {
             const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[], true);
             expect(result).toStrictEqual(expectedOutput.reverse());
+        });
+    });
+
+    describe('isIOUActionMatchingTransactionList', () => {
+        const nonIOUAction = {
+            created: '2022-11-13 22:27:01.825',
+            reportActionID: '8401445780099176',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            originalMessage: {
+                html: 'Hello world',
+                whisperedTo: [],
+            },
+            message: [
+                {
+                    html: 'Hello world',
+                    type: 'Action type',
+                    text: 'Action text',
+                },
+            ],
+        };
+
+        it('returns false for non-money request actions when defaultToFalseForNonIOU is true', () => {
+            expect(isIOUActionMatchingTransactionList(nonIOUAction, undefined, true)).toBeFalsy();
+        });
+
+        it('returns true for non-money request actions when defaultToFalseForNonIOU is false', () => {
+            expect(isIOUActionMatchingTransactionList(nonIOUAction, undefined, false)).toBeTruthy();
+        });
+
+        it('returns true if no reportTransactionIDs are provided', () => {
+            expect(isIOUActionMatchingTransactionList(mockIOUAction)).toBeTruthy();
+        });
+
+        it('returns true if action is of excluded type', () => {
+            const action = {
+                ...mockIOUAction,
+                originalMessage: {
+                    ...mockOriginalMessage,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+            expect(isIOUActionMatchingTransactionList(action, ['124', '125', '126'])).toBeTruthy();
+        });
+
+        it('returns true if IOUTransactionID matches any provided reportTransactionIDs', () => {
+            expect(isIOUActionMatchingTransactionList(mockIOUAction, ['123', '124', mockOriginalMessage.IOUTransactionID])).toBeTruthy();
+        });
+
+        it('returns false if IOUTransactionID does not match any provided reportTransactionIDs', () => {
+            expect(isIOUActionMatchingTransactionList(mockIOUAction, ['123', '124'])).toBeFalsy();
+        });
+    });
+
+    describe('getOneTransactionThreadReportID', () => {
+        const IOUReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_IOU` as const;
+        const IOUTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_IOU` as const;
+        const IOUExpenseTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_EXPENSE` as const;
+        const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.reportID}` as const;
+        const mockedReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+            [IOUReportID]: {...mockIOUReport, reportID: IOUReportID},
+            [mockChatReportID]: mockChatReport,
+        };
+
+        const linkedCreateAction = {
+            ...mockIOUAction,
+            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+        };
+
+        const unlinkedCreateAction = {
+            ...mockIOUAction,
+            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID: IOUExpenseTransactionID},
+        };
+
+        const linkedDeleteAction = {
+            ...mockIOUAction,
+            originalMessage: {
+                ...getOriginalMessage(mockIOUAction),
+                IOUTransactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+            },
+        };
+
+        const linkedPayAction = {
+            ...mockIOUAction,
+            originalMessage: {
+                ...getOriginalMessage(mockIOUAction),
+                IOUTransactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            },
+        };
+
+        it('should return the childReportID for a valid single IOU action', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it('should return undefined for action with a transaction that is not linked to it', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [unlinkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined if multiple IOU actions are present', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction, linkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toBeUndefined();
+        });
+
+        it('should skip actions where original message type is PAY', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedPayAction, linkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it('should return undefined if no valid IOU actions are present', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [unlinkedCreateAction, linkedDeleteAction, linkedPayAction], false, [
+                IOUTransactionID,
+            ]);
+            expect(result).toBeUndefined();
         });
     });
 
@@ -731,6 +850,65 @@ describe('ReportActionsUtils', () => {
             const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+    });
+
+    describe('getSendMoneyFlowOneTransactionThreadID', () => {
+        const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT` as const;
+        const mockDMChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_DM` as const;
+        const childReportID = `${ONYXKEYS.COLLECTION.REPORT}childReport123` as const;
+
+        const mockedReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+            [mockChatReportID]: {...mockChatReport, reportID: mockChatReportID},
+            [mockDMChatReportID]: {
+                ...mockChatReport,
+                reportID: mockDMChatReportID,
+                chatType: undefined,
+                parentReportID: undefined,
+                parentReportActionID: undefined,
+            },
+        };
+
+        const createAction = {
+            ...mockIOUAction,
+            childReportID,
+            originalMessage: {...getOriginalMessage(mockIOUAction), type: CONST.IOU.TYPE.CREATE},
+        };
+
+        const nonIOUAction = {
+            ...mockIOUAction,
+            childReportID,
+            type: CONST.REPORT.ACTIONS.TYPE.CREATED,
+        };
+
+        const payAction = {
+            ...mockIOUAction,
+            childReportID,
+            originalMessage: {...getOriginalMessage(mockIOUAction), type: CONST.IOU.TYPE.PAY},
+        };
+
+        it('should return undefined for a single non-IOU action', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([nonIOUAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+        });
+
+        it('should return undefined for multiple IOU actions regardless of type', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([payAction, payAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+        });
+
+        it('should return undefined for a single IOU action that is not `Pay`', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([createAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+        });
+
+        it('should return the appropriate childReportID for a valid single `Pay` IOU action in DM chat', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockedReports[mockDMChatReportID])).toEqual(childReportID);
+        });
+
+        it('should return undefined for a valid single `Pay` IOU action in a chat that is not DM', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockedReports[mockChatReportID])).toBeUndefined();
+        });
+
+        it('should return undefined for a valid `Pay` IOU action in DM chat that has also a create IOU action', () => {
+            expect(getSendMoneyFlowOneTransactionThreadID([payAction, createAction], mockedReports[mockDMChatReportID])).toBeUndefined();
         });
     });
 
