@@ -51,7 +51,7 @@ import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, o
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -60,7 +60,9 @@ type PolicyOption = ListItem & {
     keyForList: string;
 };
 
-type WorkspaceCategoriesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps =
+    | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>
+    | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
@@ -85,7 +87,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const filterCategories = useCallback((category: PolicyCategory | undefined) => !!category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
 
     const [selectedCategories, setSelectedCategories] = useFilteredSelection(policyCategories, filterCategories);
@@ -230,10 +232,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             setSelectedCategories([]);
         });
     };
-
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const policyHasAccountingConnections = hasAccountingConnections(policy);
+
+    const navigateToImportSpreadsheet = useCallback(() => {
+        if (isOffline) {
+            close(() => setIsOfflineModalVisible(true));
+            return;
+        }
+        Navigation.navigate(
+            isQuickSettingsFlow
+                ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
+                : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId),
+        );
+    }, [backTo, isOffline, isQuickSettingsFlow, policyId]);
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
@@ -247,17 +260,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
-                onSelected: () => {
-                    if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
-                            : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId),
-                    );
-                },
+                onSelected: navigateToImportSpreadsheet,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
             });
         }
@@ -281,7 +284,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToCategoriesSettings, policyHasAccountingConnections, hasVisibleCategories, isOffline, isQuickSettingsFlow, policyId, backTo]);
+    }, [translate, navigateToCategoriesSettings, policyHasAccountingConnections, hasVisibleCategories, navigateToImportSpreadsheet, isOffline, policyId]);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
@@ -367,10 +370,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 />
             );
         }
-
+        const shouldShowAddCategory = !policyHasAccountingConnections && hasVisibleCategories;
         return (
             <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                {!policyHasAccountingConnections && (
+                {shouldShowAddCategory && (
                     <Button
                         success
                         onPress={navigateToCreateCategoryPage}
@@ -386,7 +389,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     customText={translate('common.more')}
                     options={secondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={policyHasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
+                    wrapperStyle={shouldShowAddCategory ? styles.flexGrow0 : styles.flexGrow1}
                 />
             </View>
         );
@@ -432,7 +435,25 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             )}
         </>
     );
-
+    const subtitleText = useMemo(
+        () => (
+            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+                {!policyHasAccountingConnections ? translate('workspace.categories.emptyCategories.subtitle') : translate(`workspace.categories.emptyCategoriesWithAccounting.subtitle1`)}
+                {policyHasAccountingConnections && (
+                    <>
+                        <TextLink
+                            style={[styles.textAlignCenter]}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyId))}
+                        >
+                            {translate(`workspace.categories.emptyCategoriesWithAccounting.subtitle2`)}
+                        </TextLink>
+                        {translate(`workspace.categories.emptyCategoriesWithAccounting.subtitle3`)}{' '}
+                    </>
+                )}
+            </Text>
+        ),
+        [styles.textAlignCenter, styles.textSupporting, styles.textNormal, policyHasAccountingConnections, translate, policyId],
+    );
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -516,10 +537,27 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                             headerMedia={LottieAnimations.GenericEmptyState}
                             title={translate('workspace.categories.emptyCategories.title')}
-                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                            subtitleText={subtitleText}
                             headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                             headerContentStyles={styles.emptyStateFolderWebStyles}
+                            buttons={
+                                !policyHasAccountingConnections
+                                    ? [
+                                          {
+                                              icon: Expensicons.Plus,
+                                              buttonText: translate('workspace.categories.addCategory'),
+                                              buttonAction: navigateToCreateCategoryPage,
+                                              success: true,
+                                          },
+                                          {
+                                              icon: Expensicons.Table,
+                                              buttonText: translate('common.import'),
+                                              buttonAction: navigateToImportSpreadsheet,
+                                          },
+                                      ]
+                                    : undefined
+                            }
                         />
                     </ScrollView>
                 )}

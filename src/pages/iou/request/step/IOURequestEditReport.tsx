@@ -1,10 +1,8 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
-import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -20,17 +18,15 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID} = route.params;
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
-
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
     const selectReport = (item: ReportListItem) => {
-        if (selectedTransactionsID.length === 0) {
+        if (selectedTransactionIDs.length === 0) {
             return;
         }
-        if (item.value !== transactionReport?.reportID) {
-            changeTransactionsReport(selectedTransactionsID, item.value);
-            setSelectedTransactionsID([]);
+        if (item.value !== reportID) {
+            changeTransactionsReport(selectedTransactionIDs, item.value);
+            clearSelectedTransactions(true);
         }
         Navigation.dismissModalWithReport({reportID: item.value});
     };
@@ -38,7 +34,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionsReports={transactionReport ? [transactionReport] : []}
+            selectedReportID={reportID}
             selectReport={selectReport}
         />
     );
