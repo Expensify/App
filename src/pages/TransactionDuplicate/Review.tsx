@@ -21,7 +21,7 @@ import {getTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import DuplicateTransactionsList from './DuplicateTransactionsList';
+import TransactionsList from './TransactionsList';
 
 function TransactionDuplicateReview() {
     const styles = useThemeStyles();
@@ -61,7 +61,7 @@ function TransactionDuplicateReview() {
                     />
                     {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mt3]}>{translate('iou.someDuplicatesArePaid')}</Text>}
                 </View>
-                <DuplicateTransactionsList transactions={transactions} />
+                <TransactionsList transactions={transactions} />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

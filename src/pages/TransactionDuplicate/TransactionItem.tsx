@@ -8,12 +8,12 @@ import ReportActionItem from '@pages/home/report/ReportActionItem';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
-type DuplicateTransactionItemProps = {
+type TransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
     index: number;
 };
 
-function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
+function TransactionItem(props: TransactionItemProps) {
     const styles = useThemeStyles();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
@@ -46,5 +46,5 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
     );
 }
 
-DuplicateTransactionItem.displayName = 'DuplicateTransactionItem';
-export default DuplicateTransactionItem;
+TransactionItem.displayName = 'TransactionItem';
+export default TransactionItem;
