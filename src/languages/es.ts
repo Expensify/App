@@ -1090,7 +1090,7 @@ const translations = {
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
-        submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: `enviado`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -7198,6 +7198,14 @@ const translations = {
             minutes: '30 minutos',
         },
         callScheduled: 'Llamada programada',
+    },
+    autoSubmitModal: {
+        title: '¡Todo claro y enviado!',
+        description: 'Se han solucionado todas las advertencias e infracciones, así que:',
+        submittedExpensesTitle: 'Estos gastos han sido enviados',
+        submittedExpensesDescription: 'Estos gastos se han enviado a tu aprobador pero aún se pueden editar hasta que sean aprobados.',
+        pendingExpensesTitle: 'Los gastos pendientes se han movido',
+        pendingExpensesDescription: 'Todo gasto de tarjeta pendiente se ha movido a un informe separado hasta que sea contabilizado.',
     },
     testDrive: {
         quickAction: {
