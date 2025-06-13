@@ -5370,6 +5370,13 @@ function dismissChangePolicyModal() {
     API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL, dismissedMethod: 'click'}, {optimisticData});
 }
 
+function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<DismissedProductTraining>, reportID: string) {
+    if (dismissedProductTrainingNVP?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
+        return;
+    }
+    Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+}
+
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
@@ -5388,15 +5395,13 @@ function changeReportPolicy(report: Report, policyID: string) {
     };
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY, params, {optimisticData, successData, failureData});
 
-    // 5. If the dismissedProductTraining.changeReportModal is not set,
+    // If the dismissedProductTraining.changeReportModal is not set,
     // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
-        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
-    }
+    navigateToTrainingModal(nvpDismissedProductTraining, report.reportID);
 }
 
 /**
- * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
+ * Invites the submitter to the new report policy, changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat
  */
 function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, employeeList: PolicyEmployeeList | undefined) {
     if (!report.reportID || !policyID || report.policyID === policyID || !isExpenseReport(report) || !report.ownerAccountID) {
@@ -5443,10 +5448,9 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
     };
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params, {optimisticData, successData, failureData});
 
-    // If the dismissedProductTraining.changeReportModal is not set, navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
-        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
-    }
+    // If the dismissedProductTraining.changeReportModal is not set,
+    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
+    navigateToTrainingModal(nvpDismissedProductTraining, report.reportID);
 }
 
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};

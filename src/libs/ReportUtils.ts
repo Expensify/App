@@ -9691,7 +9691,7 @@ function buildReportIDToThreadsReportIDsMap(): Record<string, string[]> {
  * @private
  * Recursively updates the policyID for a report and all its child reports.
  */
-function updatePolicyIdForReportAndThreads(
+function updatePolicyIDForReportAndThreads(
     currentReportID: string,
     policyID: string,
     reportIDToThreadsReportIDsMap: Record<string, string[]>,
@@ -9717,7 +9717,7 @@ function updatePolicyIdForReportAndThreads(
     // Recursively process child reports for the current report
     const childReportIDs = reportIDToThreadsReportIDsMap[currentReportID] || [];
     childReportIDs.forEach((childReportID) => {
-        updatePolicyIdForReportAndThreads(childReportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
+        updatePolicyIDForReportAndThreads(childReportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
     });
 }
 
@@ -9731,9 +9731,9 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string) {
     // 1.2 Recursively update the policyID of the report and all its child reports
     const reportID = report.reportID;
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
-    updatePolicyIdForReportAndThreads(reportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
+    updatePolicyIDForReportAndThreads(reportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    // 2. If the old workspace had a expense chat, mark the report preview action as deleted
+    // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI
     if (report.parentReportID && report.parentReportActionID) {
         const oldWorkspaceChatReportID = report.parentReportID;
         const oldReportPreviewActionID = report.parentReportActionID;
@@ -9799,54 +9799,52 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string) {
     const policyExpenseChat = getPolicyExpenseChat(currentUserAccountID, policyID);
     const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report);
 
-    if (policyExpenseChat) {
-        const newPolicyExpenseChatReportID = policyExpenseChat.reportID;
+    const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newPolicyExpenseChatReportID}`,
-            value: {[optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction},
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newPolicyExpenseChatReportID}`,
-            value: {
-                [optimisticReportPreviewAction.reportActionID]: {
-                    pendingAction: null,
-                },
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newPolicyExpenseChatReportID}`,
+        value: {[optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction},
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newPolicyExpenseChatReportID}`,
+        value: {
+            [optimisticReportPreviewAction.reportActionID]: {
+                pendingAction: null,
             },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newPolicyExpenseChatReportID}`,
-            value: {[optimisticReportPreviewAction.reportActionID]: null},
-        });
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newPolicyExpenseChatReportID}`,
+        value: {[optimisticReportPreviewAction.reportActionID]: null},
+    });
 
-        // Set the new report preview action as a parent of the moved report,
-        // and set the parentReportID on the moved report as the expense chat reportID
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {parentReportActionID: optimisticReportPreviewAction.reportActionID, parentReportID: newPolicyExpenseChatReportID},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {parentReportActionID: report.parentReportActionID, parentReportID: report.parentReportID},
-        });
+    // Set the new report preview action as a parent of the moved report,
+    // and set the parentReportID on the moved report as the expense chat reportID
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {parentReportActionID: optimisticReportPreviewAction.reportActionID, parentReportID: newPolicyExpenseChatReportID},
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {parentReportActionID: report.parentReportActionID, parentReportID: report.parentReportID},
+    });
 
-        // Set lastVisibleActionCreated
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
-            value: {lastVisibleActionCreated: optimisticReportPreviewAction?.created},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
-            value: {lastVisibleActionCreated: policyExpenseChat.lastVisibleActionCreated},
-        });
-    }
+    // Set lastVisibleActionCreated
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
+        value: {lastVisibleActionCreated: optimisticReportPreviewAction?.created},
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
+        value: {lastVisibleActionCreated: policyExpenseChat?.lastVisibleActionCreated},
+    });
 
     // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID
     const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(report.policyID, policyID);
