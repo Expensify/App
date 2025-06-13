@@ -428,6 +428,7 @@ function MoneyReportHeader({
         }
         return getReportPrimaryAction({
             report: moneyRequestReport,
+            chatReport,
             reportTransactions: transactions,
             violations,
             policy,
@@ -435,7 +436,7 @@ function MoneyReportHeader({
             reportActions,
             isChatReportArchived,
         });
-    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions, isChatReportArchived]);
+    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions, isChatReportArchived, chatReport]);
 
     const confirmExport = useCallback(() => {
         setExportModalStatus(null);
@@ -686,19 +687,19 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(
-            moneyRequestReport,
-            transactions,
+        return getSecondaryReportActions({
+            report: moneyRequestReport,
+            chatReport,
+            reportTransactions: transactions,
             violations,
             policy,
             reportNameValuePairs,
             reportActions,
             policies,
-            isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
-            isBetaEnabled(CONST.BETAS.NEW_DOT_SPLITS),
+            canUseRetractNewDot: isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
             isChatReportArchived,
-        );
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, isChatReportArchived]);
+        });
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, chatReport, isChatReportArchived]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
@@ -873,9 +874,9 @@ function MoneyReportHeader({
             subMenuItems: Object.values(paymentButtonOptions),
         },
     };
-
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false);
-
+    const applicableSecondaryActions = secondaryActions
+        .map((action) => secondaryActionsImplementation[action])
+        .filter((action) => action?.shouldShow !== false && action?.value !== primaryAction);
     useEffect(() => {
         if (!transactionThreadReportID) {
             return;

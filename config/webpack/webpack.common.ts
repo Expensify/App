@@ -268,6 +268,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '@pages': path.resolve(__dirname, '../../src/pages/'),
             // eslint-disable-next-line @typescript-eslint/naming-convention
+            '@prompts': path.resolve(__dirname, '../../prompts'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@styles': path.resolve(__dirname, '../../src/styles/'),
             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
             // eslint-disable-next-line @typescript-eslint/naming-convention
