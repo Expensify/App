@@ -4,6 +4,9 @@ import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+const TIMEOUT_MOUSE_ACTIVITY = 1000 * 60 * 10;
+const TIMEOUT_FOCUS_TAB = 1000 * 60 * 1;
+
 export default function PresenceController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const timeout = useRef<NodeJS.Timeout | null>(null);
@@ -19,35 +22,38 @@ export default function PresenceController() {
         PusherUtils.leavePresenceChannel(accountID);
     }, [accountID]);
 
-    const goActive = useCallback(() => {
-        if (!accountID) {
-            return;
-        }
+    const goActive = useCallback(
+        (timeoutMs: number) => {
+            if (!accountID) {
+                return;
+            }
 
-        if (timeout.current) {
-            clearTimeout(timeout.current);
-        }
-        timeout.current = setTimeout(() => {
-            Log.info('[PresenceController] activity timed out');
-            goInactive();
-        }, 10_000);
+            if (timeout.current) {
+                clearTimeout(timeout.current);
+            }
+            timeout.current = setTimeout(() => {
+                Log.info('[PresenceController] activity timed out');
+                goInactive();
+            }, timeoutMs);
 
-        if (didJoinPresenceChannel.current) {
-            return;
-        }
+            if (didJoinPresenceChannel.current) {
+                return;
+            }
 
-        Log.info('[PresenceController] Going active');
-        didJoinPresenceChannel.current = true;
-        PusherUtils.joinPresenceChannel(accountID);
-    }, [accountID, goInactive]);
+            Log.info('[PresenceController] Going active');
+            didJoinPresenceChannel.current = true;
+            PusherUtils.joinPresenceChannel(accountID);
+        },
+        [accountID, goInactive],
+    );
 
     useEffect(() => {
-        goActive();
+        goActive(TIMEOUT_FOCUS_TAB);
         return () => goInactive();
     }, [goActive, goInactive]);
 
     useEffect(() => {
-        const goActiveForMouseActivity = () => goActive();
+        const goActiveForMouseActivity = () => goActive(TIMEOUT_MOUSE_ACTIVITY);
         document.addEventListener('mousemove', goActiveForMouseActivity);
         return () => document.removeEventListener('mousemove', goActiveForMouseActivity);
     }, [goActive]);
