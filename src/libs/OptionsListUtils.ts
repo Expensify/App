@@ -85,7 +85,6 @@ import {
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
-    isWhisperAction,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
 import {
