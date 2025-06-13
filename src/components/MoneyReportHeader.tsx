@@ -792,6 +792,18 @@ function MoneyReportHeader({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID));
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER]: {
+            text: translate('iou.changeApprover.title'),
+            icon: Expensicons.Workflows,
+            value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER,
+            onSelected: () => {
+                console.debug('[MoneyReportHeader] Change Approver selected', moneyRequestReport);
+                if (!moneyRequestReport) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER.getRoute(moneyRequestReport.reportID, ' '));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
             text: translate('common.delete'),
             icon: Expensicons.Trashcan,
