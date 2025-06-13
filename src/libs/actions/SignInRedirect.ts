@@ -15,6 +15,16 @@ Onyx.connect({
     },
 });
 
+let shouldUseStagingServer: boolean | undefined;
+let isDebugModeEnabled: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (account) => {
+        shouldUseStagingServer = account?.shouldUseStagingServer;
+        isDebugModeEnabled = account?.isDebugModeEnabled;
+    },
+});
+
 function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
@@ -31,8 +41,30 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
+    // Preserve troubleshooting flags
+    keysToPreserve.push(ONYXKEYS.APP_PROFILING_IN_PROGRESS);
+    keysToPreserve.push(ONYXKEYS.SHOULD_STORE_LOGS);
+    keysToPreserve.push(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
+
+    // Preserve the staging server setting and debug mode across logout
+    const stagingServerSetting = shouldUseStagingServer;
+    const debugModeSetting = isDebugModeEnabled;
+
     return Onyx.clear(keysToPreserve).then(() => {
         clearAllPolicies();
+
+        // Restore the staging server and debug mode settings if they were set
+        const accountSettings: Record<string, boolean> = {};
+        if (stagingServerSetting !== undefined) {
+            accountSettings.shouldUseStagingServer = stagingServerSetting;
+        }
+        if (debugModeSetting !== undefined) {
+            accountSettings.isDebugModeEnabled = debugModeSetting;
+        }
+        if (Object.keys(accountSettings).length > 0) {
+            Onyx.merge(ONYXKEYS.ACCOUNT, accountSettings);
+        }
+
         if (!errorMessage) {
             return;
         }
