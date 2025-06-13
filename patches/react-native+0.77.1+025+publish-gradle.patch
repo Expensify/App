@@ -1,13 +1,5 @@
-diff --git a/node_modules/react-native/.DS_Store b/node_modules/react-native/.DS_Store
-new file mode 100644
-index 0000000..60811a9
-Binary files /dev/null and b/node_modules/react-native/.DS_Store differ
-diff --git a/node_modules/react-native/ReactAndroid/.DS_Store b/node_modules/react-native/ReactAndroid/.DS_Store
-new file mode 100644
-index 0000000..8bfcb73
-Binary files /dev/null and b/node_modules/react-native/ReactAndroid/.DS_Store differ
 diff --git a/node_modules/react-native/ReactAndroid/publish.gradle b/node_modules/react-native/ReactAndroid/publish.gradle
-index 32287a7..5607be3 100644
+index 32287a7..6b085e5 100644
 --- a/node_modules/react-native/ReactAndroid/publish.gradle
 +++ b/node_modules/react-native/ReactAndroid/publish.gradle
 @@ -13,7 +13,11 @@ def signingKey = findProperty("SIGNING_KEY")
@@ -15,8 +7,8 @@ index 32287a7..5607be3 100644
  
  def reactAndroidProjectDir = project(':packages:react-native:ReactAndroid').projectDir
 -def mavenTempLocalUrl = "file:///tmp/maven-local"
-+def mavenURL = "https://maven.pkg.github.com/Expensify/App"
 +
++def s3URL = "s3://${System.getenv("S3_BUCKET")}/"
 +def patchedVersion = System.getenv("PATCHED_VERSION")
 +def isHybridBuild = System.getenv("IS_HYBRID_BUILD")?.toBoolean()
 +def publishingGroupId = isHybridBuild ? "com.expensify.react-hybrid" : "com.expensify.react-standalone"
@@ -63,10 +55,10 @@ index 32287a7..5607be3 100644
          maven {
 -            name = "mavenTempLocal"
 -            url = mavenTempLocalUrl
-+            url = mavenURL
-+            credentials {
-+                username = System.getenv("GH_PUBLISH_ACTOR")
-+                password = System.getenv("GH_PUBLISH_TOKEN")
++            url = s3URL
++            credentials(AwsCredentials) {
++                accessKey = System.getenv("S3_ACCESS_KEY")
++                secretKey = System.getenv("S3_SECRET_ACCESS_KEY")
 +            }
          }
      }
