@@ -1,3 +1,4 @@
+import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,7 +16,7 @@ import type {SectionListDataType, SplitListItemType} from '@components/Selection
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
+import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -54,7 +55,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + Math.abs(item.amount ?? 0), 0), [draftTransaction]);
-    const lengthOfSplitExpenses = draftTransaction?.comment?.splitExpenses?.length ?? 0;
+    const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
@@ -62,18 +63,27 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isCardTransaction(transaction);
 
     const childTransactions = getChildTransactions(transactionID);
-    const isCreationOfSplits = !childTransactions.length;
+    const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
+    const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
 
     useEffect(() => {
         setErrorMessage(null);
-    }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
+    }, [sumOfSplitExpenses, splitExpenses.length]);
 
     const onAddSplitExpense = useCallback(() => {
         addSplitExpenseField(transaction, draftTransaction);
     }, [draftTransaction, transaction]);
 
     const onSaveSplitExpense = useCallback(() => {
-        if (isCreationOfSplits && lengthOfSplitExpenses < 2) {
+        if (!childTransactions.length && splitExpenses.length <= 1) {
+            const splitFieldDataFromOriginalTransactionWithoutID = {...splitFieldDataFromOriginalTransaction, transactionID: ''};
+            const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
+            // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
+            if (lodashIsEqual(splitFieldDataFromOriginalTransactionWithoutID, splitExpenseWithoutID)) {
+                Navigation.dismissModal();
+                return;
+            }
+            // When we try to save one split during splits creation and if the data is not identical to the original transaction we should show the error
             setErrorMessage(translate('iou.splitExpenseOneMoreSplit'));
             return;
         }
@@ -88,21 +98,29 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        if ((draftTransaction?.comment?.splitExpenses ?? []).find((item) => item.amount === 0)) {
+        if (splitExpenses.find((item) => item.amount === 0)) {
             setErrorMessage(translate('iou.splitExpenseZeroAmount'));
+            return;
+        }
+
+        // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
+        if (lodashIsEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
+            Navigation.dismissModal();
             return;
         }
 
         saveSplitTransactions(draftTransaction, currentSearchHash);
     }, [
-        isCreationOfSplits,
-        lengthOfSplitExpenses,
+        childTransactions.length,
+        splitExpenses,
         sumOfSplitExpenses,
         transactionDetailsAmount,
         isPerDiem,
         isCard,
         draftTransaction,
+        splitFieldDataFromChildTransactions,
         currentSearchHash,
+        splitFieldDataFromOriginalTransaction,
         translate,
         transactionDetails?.currency,
     ]);

@@ -985,7 +985,7 @@ const translations = {
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `El importe total es ${amount} mayor que el gasto original.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `El importe total es ${amount} menor que el gasto original.`,
         splitExpenseZeroAmount: 'Por favor, introduce un importe válido antes de continuar.',
-        splitExpenseOneMoreSplit: "Utiliza 'Añadir división' para añadir al menos una división más.",
+        splitExpenseOneMoreSplit: 'No se han añadido divisiones. Añade al menos una para guardar.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Editar ${amount} para ${merchant}`,
         removeSplit: 'Eliminar división',
         splitExpenseCannotBeEditedModalTitle: 'Este gasto no se puede editar',

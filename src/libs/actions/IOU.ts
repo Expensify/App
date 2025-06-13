@@ -204,7 +204,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Accountant, Attendee, Participant, Split} from '@src/types/onyx/IOU';
+import type {Accountant, Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
@@ -11369,6 +11369,22 @@ function getSearchOnyxUpdate({participant, transaction, iouReport}: GetSearchOny
     }
 }
 
+function initSplitExpenseItemData(transaction: OnyxEntry<OnyxTypes.Transaction>, amount?: number, transactionID?: string): SplitExpense {
+    const transactionDetails = getTransactionDetails(transaction);
+    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+
+    return {
+        transactionID: transactionID ?? transactionDetails?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+        amount: amount ?? transactionDetails?.amount ?? 0,
+        description: transactionDetails?.comment,
+        category: transactionDetails?.category,
+        tags: transaction?.tag ? [transaction?.tag] : [],
+        created: transactionDetails?.created ?? DateUtils.getDBTime(),
+        merchant: transactionDetails?.merchant ?? '',
+        statusNum: currentReport?.statusNum ?? 0,
+    };
+}
+
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
@@ -11390,20 +11406,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
             transactionParams: {
-                splitExpenses: relatedTransactions.map((currentTransaction) => {
-                    const currentTransactionDetails = getTransactionDetails(currentTransaction);
-                    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-                    return {
-                        transactionID: currentTransaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
-                        amount: currentTransactionDetails?.amount ?? 0,
-                        description: currentTransactionDetails?.comment,
-                        category: currentTransactionDetails?.category,
-                        tags: currentTransactionDetails?.tag ? [currentTransactionDetails?.tag] : [],
-                        created: currentTransactionDetails?.created ?? '',
-                        statusNum: currentReport?.statusNum,
-                        merchant: currentTransactionDetails?.merchant,
-                    };
-                }),
+                splitExpenses: relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)),
                 amount: transactionDetails?.amount ?? 0,
                 currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
                 participants: transaction?.participants,
@@ -11426,24 +11429,8 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
         originalTransactionID: transaction.transactionID,
         transactionParams: {
             splitExpenses: [
-                {
-                    transactionID: NumberUtils.rand64(),
-                    amount: Math.floor(transactionDetailsAmount / 2),
-                    description: transactionDetails?.comment,
-                    category: transactionDetails?.category,
-                    tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: transactionDetails?.created ?? DateUtils.getDBTime(),
-                    merchant: transactionDetails?.merchant ?? '',
-                },
-                {
-                    transactionID: NumberUtils.rand64(),
-                    amount: Math.ceil(transactionDetailsAmount / 2),
-                    description: transactionDetails?.comment,
-                    category: transactionDetails?.category,
-                    tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: transactionDetails?.created ?? DateUtils.getDBTime(),
-                    merchant: transactionDetails?.merchant ?? '',
-                },
+                initSplitExpenseItemData(transaction, Math.floor(transactionDetailsAmount / 2), NumberUtils.rand64()),
+                initSplitExpenseItemData(transaction, Math.ceil(transactionDetailsAmount / 2), NumberUtils.rand64()),
             ],
             amount: transactionDetailsAmount,
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
@@ -11502,22 +11489,9 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
         return;
     }
 
-    const transactionDetails = getTransactionDetails(transaction);
-
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
         comment: {
-            splitExpenses: [
-                ...(draftTransaction.comment?.splitExpenses ?? []),
-                {
-                    transactionID: NumberUtils.rand64(),
-                    amount: 0,
-                    description: transactionDetails?.comment,
-                    category: transactionDetails?.category,
-                    tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: transactionDetails?.created ?? DateUtils.getDBTime(),
-                    merchant: transactionDetails?.merchant,
-                },
-            ],
+            splitExpenses: [...(draftTransaction.comment?.splitExpenses ?? []), initSplitExpenseItemData(transaction, 0, NumberUtils.rand64())],
         },
     });
 }
@@ -11612,9 +11586,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     // List of all child transactions that have been created after split
     let childTransactions = getChildTransactions(originalTransactionID);
-
-    // A value that prevents API call from being called if there are no updates in the split item
-    let canBeClosedWithoutUpdates = true;
 
     const isReverseSplitOperation = splitExpenses.length === 1 && !!childTransactions.length;
 
@@ -11743,10 +11714,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                     policyCategories ?? null,
                 );
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
-                canBeClosedWithoutUpdates = false;
             }
-        } else {
-            canBeClosedWithoutUpdates = false;
         }
 
         // For request params we need to have the transactionThreadReportID, createdReportActionIDForThread and splitReportActionID which we get from moneyRequestInformation
@@ -11764,7 +11732,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     // All transactions that were deleted in the split list will be marked as deleted in onyx
     childTransactions.forEach((undeletedTransaction) => {
-        canBeClosedWithoutUpdates = false;
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
         const splitReportActions = getAllReportActions(splitTransaction?.reportID);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
@@ -11782,13 +11749,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         successData.push(...(deleteExpenseSuccessData ?? []));
         failureData.push(...(deleteExpenseFailureData ?? []));
     });
-
-    // Called if there are no updates in the split item
-    if (canBeClosedWithoutUpdates) {
-        InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
-        Navigation.dismissModal();
-        return;
-    }
 
     if (!isReverseSplitOperation) {
         optimisticData.push({
@@ -11981,6 +11941,7 @@ export {
     submitPerDiemExpense,
     calculateDiffAmount,
     initSplitExpense,
+    initSplitExpenseItemData,
     addSplitExpenseField,
     updateSplitExpenseAmountField,
     saveSplitTransactions,
