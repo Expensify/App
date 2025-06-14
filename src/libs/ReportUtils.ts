@@ -11178,6 +11178,7 @@ export {
     navigateOnDeleteExpense,
     hasReportBeenReopened,
     getMoneyReportPreviewName,
+    isActionOrReportPreviewOwner,
 };
 
 export type {
