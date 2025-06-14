@@ -80,7 +80,12 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             return;
         }
 
-        setCurrentLocale(TranslationStore.getCurrentLocale());
+        const locale = TranslationStore.getCurrentLocale();
+        if (!locale) {
+            return;
+        }
+
+        setCurrentLocale(locale);
     }, [areTranslationsLoading]);
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
