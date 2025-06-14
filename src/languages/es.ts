@@ -267,7 +267,6 @@ import type {TranslationDeepObject} from './types';
 /* eslint-disable max-len */
 const translations = {
     common: {
-        ai: 'IA',
         count: 'Contar',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
