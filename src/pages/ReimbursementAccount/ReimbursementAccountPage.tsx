@@ -3,14 +3,13 @@ import lodashPick from 'lodash/pick';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
-import type {CustomBlockRenderer} from 'react-native-render-html';
 import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -21,7 +20,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -76,8 +74,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
-    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const {isOffline} = useNetwork();
     const requestorStepRef = useRef(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
@@ -404,32 +400,19 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
         errorText = (
-            <RenderHtml
-                contentWidth={windowWidth}
-                source={{
-                    html: translate('bankAccount.hasCurrencyError'),
-                }}
-                systemFonts={systemFonts}
-                tagsStyles={{
-                    body: {...styles.flexRow},
-                }}
-                renderers={{
-                    a: (({TDefaultRenderer, ...props}) => (
-                        <TextLink
-                            style={styles.link}
-                            onPress={() => {
-                                const routeToNavigate = isSmallScreenWidth
-                                    ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
-                                    : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
-                                Navigation.goBack(routeToNavigate);
-                            }}
-                        >
-                            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                            <TDefaultRenderer {...props} />
-                        </TextLink>
-                    )) as CustomBlockRenderer,
-                }}
-            />
+            <Text style={styles.flexRow}>
+                <TextLink
+                    style={styles.link}
+                    onPress={() => {
+                        const routeToNavigate = isSmallScreenWidth
+                            ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
+                            : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
+                        Navigation.goBack(routeToNavigate);
+                    }}
+                >
+                    <RenderHTML html={translate('bankAccount.hasCurrencyError')} />
+                </TextLink>
+            </Text>
         );
     }
 
