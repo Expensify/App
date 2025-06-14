@@ -14,6 +14,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
+import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
@@ -24,7 +25,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 
 function CloseAccountPage() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {
+        canBeMissing: false,
+    });
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -71,9 +74,24 @@ function CloseAccountPage() {
         const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
         const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
 
-        if (values.phoneOrEmail && userEmailOrPhone && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
-            errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
+        if (values.phoneOrEmail && userEmailOrPhone) {
+            let isValid = false;
+
+            if (Str.isValidEmail(userEmailOrPhone)) {
+                // Email comparison - use existing sanitization
+                isValid = sanitizePhoneOrEmail(userEmailOrPhone) === sanitizePhoneOrEmail(values.phoneOrEmail);
+            } else {
+                // Phone number comparison - normalize to E.164
+                const normalizedStored = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone)) ?? '';
+                const normalizedInput = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail)) ?? '';
+                isValid = normalizedStored === normalizedInput;
+            }
+
+            if (!isValid) {
+                errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
+            }
         }
+
         return errors;
     };
 
