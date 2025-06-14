@@ -94,8 +94,6 @@ function ReportCardLostPage({
         setNewCardID(newID);
     }, [cardList, previousCardList]);
 
-    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
-
     useEffect(() => {
         resetValidateActionCodeSent();
     }, []);
