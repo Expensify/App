@@ -254,6 +254,10 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYear: boolean;
 
+        isAmountColumnWide: boolean;
+
+        isTaxAmountColumnWide: boolean;
+
         /** Key used internally by React */
         keyForList: string;
 
