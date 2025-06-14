@@ -2353,12 +2353,12 @@ const translations = {
                     '\u60a8\u5df2\u7ecf\u5b8c\u6210\uff01\u662f\u7684\uff0c\u5c31\u8fd9\u4e48\u7b80\u5355\u3002',
             },
             addAccountingIntegrationTask: {
-                title: ({integrationName, workspaceAccountingLink}) => `\u8fde\u63a5\u5230\u3010${integrationName}\u3011(${workspaceAccountingLink})`,
+                title: ({integrationName, workspaceAccountingLink}) => `\u8FDE\u63A5\u5230[${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `\u8fde\u63a5\u5230 ${integrationName} \uff0c\u5b9e\u73b0\u81ea\u52a8\u652f\u51fa\u7f16\u7801\u548c\u540c\u6b65\uff0c\u8ba9\u6708\u672b\u7ed3\u8d26\u8f7b\u677e\u81ea\u5982\u3002\n\n1. \u70b9\u51fb *\u5de5\u4f5c\u533a*\u3002\n3. \u9009\u62e9\u60a8\u7684\u5de5\u4f5c\u533a\u3002\n4. \u70b9\u51fb *\u4f1a\u8ba1*\u3002\n5. \u627e\u5230 ${integrationName}\u3002\n6. \u70b9\u51fb *\u8fde\u63a5*\u3002\n\n${
+                    `\u8FDE\u63A5\u5230${integrationName}\uFF0C\u5B9E\u73B0\u81EA\u52A8\u8D39\u7528\u7F16\u7801\u548C\u540C\u6B65\uFF0C\u8BA9\u6708\u672B\u7ED3\u8D26\u53D8\u5F97\u8F7B\u800C\u6613\u4E3E\u3002\n\n1. \u70B9\u51FB*\u5DE5\u4F5C\u533A*。\n3. \u9009\u62E9\u60A8\u7684\u5DE5\u4F5C\u533A\u3002\n4. \u70B9\u51FB*\u4F1A\u8BA1*。\n5. \u627E\u5230${integrationName}\u3002\n6. \u70B9\u51FB*\u8FDE\u63A5*。\n\n${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `\u3010\u5e26\u6211\u5230\u4f1a\u8ba1\u3011(${workspaceAccountingLink})\u3002\n\n![Connect to <span class="math-inline">\{integrationName\}\]\(</span>{CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `\u3010\u5e26\u6211\u5230\u4f1a\u8ba1\u3011(${workspaceAccountingLink})\u3002`
+                            ? `[\u5E26\u6211\u5230\u4F1A\u8BA1\u9875\u9762](${workspaceAccountingLink})。\n\n![\\u8FDE\\u63A5\\u5230${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[\u5E26\u6211\u5230\u4F1A\u8BA1\u9875\u9762](${workspaceAccountingLink})`
                     }`,
             },
             connectCorporateCardTask: {
