@@ -43,6 +43,7 @@ import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
+import {canReview} from './ReportPreviewActionUtils';
 import {
     getIcons,
     getPersonalDetailsForAccountID,
@@ -637,6 +638,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
 
     // Only check for violations if we need to (when user has permission to review)
     if ((isSubmitter || isApprover || isAdmin) && hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
+        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, policy, allReportTransactions)) {
+            return CONST.SEARCH.ACTION_TYPES.VIEW;
+        }
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
