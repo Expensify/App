@@ -13,7 +13,7 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
     return (
         <ConfirmationPage
             heading="Your new card is on the way!"
-            description="You'll need to activate it once it arrives in a few bussiness days. In the meantime, your virtual card is ready to use."
+            description="You'll need to activate it once it arrives in a few business days. In the meantime, your virtual card is ready to use."
             illustration={MushroomTopHat}
             shouldShowButton
             onButtonPress={() => {
