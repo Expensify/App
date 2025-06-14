@@ -84,6 +84,8 @@ function ReportCardLostPage({
     const primaryLogin = account?.primaryLogin ?? '';
     const previousCardList = usePrevious(cardList);
 
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
     useEffect(() => {
         const newID = Object.keys(cardList ?? {}).find((cardKey) => cardList?.[cardKey]?.cardID && !Object.keys(previousCardList ?? {}).includes(cardKey));
         if (!newID) {
