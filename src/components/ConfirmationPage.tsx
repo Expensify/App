@@ -60,6 +60,9 @@ type ConfirmationPageProps = {
 
     /** Additional style for the container */
     containerStyle?: ViewStyle;
+
+    /** Additional style for the inner container */
+    innerContainerStyle?: ViewStyle
 };
 
 function ConfirmationPage({
@@ -79,13 +82,14 @@ function ConfirmationPage({
     ctaStyle,
     footerStyle,
     containerStyle,
+    innerContainerStyle,
 }: ConfirmationPageProps) {
     const styles = useThemeStyles();
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     return (
         <View style={[styles.flex1, containerStyle]}>
-            <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
+            <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, innerContainerStyle]}>
                 {isLottie ? (
                     <Lottie
                         source={illustration}

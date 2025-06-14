@@ -6494,6 +6494,8 @@ const translations = {
         shipNewCardButton: 'Enviar tarjeta nueva',
         addressError: 'La dirección es obligatoria',
         reasonError: 'Se requiere justificación',
+        successTitle: '¡Tu nueva tarjeta está en camino!',
+        successDescription: "Tendrás que activarla cuando llegue en unos días hábiles. Mientras tanto, tu tarjeta virtual está lista para usar.",
     },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',

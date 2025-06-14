@@ -53,6 +53,7 @@ import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import MoneyEnvelopeBlue from '@assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '@assets/images/product-illustrations/money-mouse--pink.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
+import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.svg';
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
@@ -322,4 +323,5 @@ export {
     PlaidCompanyCardDetail,
     ReceiptsStackedOnPin,
     PaperAirplane,
+    CardReplacementSuccess,
 };

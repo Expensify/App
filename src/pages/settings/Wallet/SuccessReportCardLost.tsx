@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
-import {MushroomTopHat} from '@components/Icon/Illustrations';
+import {CardReplacementSuccess} from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,15 +12,18 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
 
     return (
         <ConfirmationPage
-            heading="Your new card is on the way!"
-            description="You'll need to activate it once it arrives in a few business days. In the meantime, your virtual card is ready to use."
-            illustration={MushroomTopHat}
+            heading={translate('reportCardLostOrDamaged.successTitle')}
+            description={translate('reportCardLostOrDamaged.successDescription')}
+            illustration={CardReplacementSuccess}
             shouldShowButton
             onButtonPress={() => {
                 Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
             }}
             buttonText={translate('common.buttonConfirm')}
             containerStyle={styles.h100}
+            illustrationStyle={{...styles.w100, ...styles.heightAuto}}
+            innerContainerStyle={styles.ph0}
+            descriptionStyle={styles.ph4}
         />
     );
 }
