@@ -370,7 +370,7 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with disabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
@@ -380,8 +380,8 @@ describe('actions/Policy', () => {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 waitForCollectionCallback: false,
                 callback: (policy) => {
-                    // Then workflows are not enabled
-                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                    // Then workflows is enabled
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
                 },
             });
         });
