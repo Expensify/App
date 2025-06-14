@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -60,6 +61,7 @@ type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenPr
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
+    const {environmentURL} = useEnvironment();
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -396,7 +398,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             ) : (
                 <TextLink
                     style={styles.link}
-                    href={`https://new.expensify.com/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`}
+                    href={`${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`}
                 >
                     <RenderHTML html={translate('bankAccount.hasPhoneLoginError')} />
                 </TextLink>
