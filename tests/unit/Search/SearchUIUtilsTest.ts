@@ -469,6 +469,8 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
+        isAmountColumnWide: false,
+        isTaxAmountColumnWide: false,
         tag: '',
         to: {
             accountID: 0,
@@ -530,6 +532,8 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
+        isAmountColumnWide: false,
+        isTaxAmountColumnWide: false,
         tag: '',
         to: {
             accountID: 18439984,
@@ -607,6 +611,8 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        isAmountColumnWide: false,
+        isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
         description: '',
@@ -669,6 +675,8 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        isAmountColumnWide: false,
+        isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
         description: '',
@@ -759,6 +767,8 @@ const reportsListItems = [
                 shouldShowTag: false,
                 shouldShowTax: false,
                 shouldShowYear: true,
+                isAmountColumnWide: false,
+                isTaxAmountColumnWide: false,
                 tag: '',
                 to: {
                     accountID: 0,
@@ -862,6 +872,8 @@ const reportsListItems = [
                 shouldShowTag: false,
                 shouldShowTax: false,
                 shouldShowYear: true,
+                isAmountColumnWide: false,
+                isTaxAmountColumnWide: false,
                 tag: '',
                 to: {
                     accountID: 18439984,
@@ -1398,5 +1410,31 @@ describe('SearchUIUtils', () => {
         const inValidSearchType: SearchDataTypes = 'expensify' as SearchDataTypes;
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchType)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults.search.type)).toBe(false);
+    });
+
+    test('Should determine whether the date, amount, and tax column require wide columns or not', () => {
+        // Test case 1: `isAmountLengthLong` should be false if the current symbol + amount length does not exceed 11 characters
+        const {shouldShowAmountInWideColumn} = SearchUIUtils.getWideAmountIndicators(transactionsListItems);
+        expect(shouldShowAmountInWideColumn).toBe(false);
+
+        const transaction = transactionsListItems.at(0);
+
+        // Test case 2: `isAmountLengthLong` should be true when the current symbol + amount length exceeds 11 characters
+        // `isTaxAmountLengthLong` should be false if current symbol + tax amount length does not exceed 11 characters
+        const {shouldShowAmountInWideColumn: isAmountLengthLong2, shouldShowTaxAmountInWideColumn} = SearchUIUtils.getWideAmountIndicators([
+            ...transactionsListItems,
+            {...transaction, amount: 99999999.99, taxAmount: 2332.77, modifiedAmount: undefined},
+        ] as TransactionListItemType[]);
+        expect(isAmountLengthLong2).toBe(true);
+        expect(shouldShowTaxAmountInWideColumn).toBe(false);
+
+        // Test case 3: Both `isAmountLengthLong` and `isTaxAmountLengthLong` should be true
+        // when the current symbol + amount and current symbol + tax amount lengths exceed 11 characters
+        const {shouldShowAmountInWideColumn: isAmountLengthLong3, shouldShowTaxAmountInWideColumn: isTaxAmountLengthLong2} = SearchUIUtils.getWideAmountIndicators([
+            ...transactionsListItems,
+            {...transaction, amount: 99999999.99, taxAmount: 45555555.55, modifiedAmount: undefined},
+        ] as TransactionListItemType[]);
+        expect(isAmountLengthLong3).toBe(true);
+        expect(isTaxAmountLengthLong2).toBe(true);
     });
 });
