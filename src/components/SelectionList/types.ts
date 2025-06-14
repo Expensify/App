@@ -822,6 +822,12 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     someSelected: boolean;
 };
 
+type UnreportedExpenseListItemType = Transaction & {
+    isDisabled: boolean;
+    keyForList: string;
+    errors?: Errors;
+};
+
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
 type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
@@ -867,4 +873,5 @@ export type {
     SplitListItemProps,
     SplitListItemType,
     SearchListItem,
+    UnreportedExpenseListItemType,
 };

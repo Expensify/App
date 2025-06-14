@@ -6,6 +6,7 @@ import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {UnreportedExpenseListItemType} from '@components/SelectionList/types';
 import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -1601,23 +1602,17 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
     return getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-type UnreportedExpenseListItem = Transaction & {
-    isDisabled: boolean;
-    keyForList: string;
-    errors?: Errors;
-};
-
 /**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
-function createUnreportedExpenseSections(transactions: Array<Transaction | undefined>): Array<{shouldShow: boolean; data: UnreportedExpenseListItem[]}> {
+function createUnreportedExpenseSections(transactions: Array<Transaction | undefined>): Array<{shouldShow: boolean; data: UnreportedExpenseListItemType[]}> {
     return [
         {
             shouldShow: true,
             data: transactions
                 .filter((t): t is Transaction => t !== undefined)
                 .map(
-                    (transaction): UnreportedExpenseListItem => ({
+                    (transaction): UnreportedExpenseListItemType => ({
                         ...transaction,
                         isDisabled: isTransactionPendingDelete(transaction),
                         keyForList: transaction.transactionID,
