@@ -72,7 +72,7 @@ function ReportCardLostPage({
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
-    const [newCardID, setNewCardID] = useState<string>('13213');
+    const [newCardID, setNewCardID] = useState<string>('');
 
     const physicalCard = cardList?.[cardID];
     const validateError = getLatestErrorMessageField(physicalCard);
