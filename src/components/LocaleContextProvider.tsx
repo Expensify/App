@@ -148,4 +148,4 @@ LocaleContextProvider.displayName = 'LocaleContextProvider';
 
 export {LocaleContext, LocaleContextProvider};
 
-export type {Locale, LocaleContextProps};
+export type {LocaleContextProps};

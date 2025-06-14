@@ -39,6 +39,7 @@ import type JoinablePolicies from './JoinablePolicies';
 import type LastExportMethod from './LastExportMethod';
 import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
+import type Locale from './Locale';
 import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -261,4 +262,5 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
+    Locale,
 };
