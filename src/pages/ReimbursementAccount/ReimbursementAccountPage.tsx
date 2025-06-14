@@ -9,16 +9,19 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -58,6 +61,7 @@ type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenPr
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
+    const {environmentURL} = useEnvironment();
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -383,18 +387,22 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     if (userHasPhonePrimaryEmail) {
-        errorText = (
-            <Text style={styles.flexRow}>
-                <Text>{translate('bankAccount.hasPhoneLoginError.phrase1')}</Text>{' '}
+        errorText =
+            getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.DESKTOP ? (
                 <TextLink
                     style={styles.link}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                 >
-                    {translate('bankAccount.hasPhoneLoginError.link')}
+                    <RenderHTML html={translate('bankAccount.hasPhoneLoginError')} />
                 </TextLink>
-                {translate('bankAccount.hasPhoneLoginError.phrase2')}
-            </Text>
-        );
+            ) : (
+                <TextLink
+                    style={styles.link}
+                    href={`${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`}
+                >
+                    <RenderHTML html={translate('bankAccount.hasPhoneLoginError')} />
+                </TextLink>
+            );
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
