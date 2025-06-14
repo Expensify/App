@@ -5,8 +5,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {MoneyRequestReportContextProvider} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
+import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
@@ -15,6 +16,7 @@ import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
@@ -27,7 +29,7 @@ import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -45,7 +47,6 @@ import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
 import * as PersonalDetails from '@userActions/PersonalDetails';
-import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -70,6 +71,7 @@ import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeM
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
+import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
@@ -219,6 +221,7 @@ const modalScreenListenersWithCancelSearch = {
 
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -239,13 +242,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
-
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('state', () => {
-            PriorityMode.autoSwitchToFocusMode();
-        });
-        return () => unsubscribe();
-    }, [navigation]);
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
@@ -340,10 +336,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
         }
         Download.clearDownloads();
-
-        Navigation.isNavigationReady().then(() => {
-            PriorityMode.autoSwitchToFocusMode();
-        });
 
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
@@ -547,7 +539,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}>
+        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider]}>
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
@@ -754,8 +746,28 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
                 />
+                <RootStack.Screen
+                    name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
+                    options={{
+                        ...rootNavigatorScreenOptions.basicModalNavigator,
+                        native: {
+                            contentStyle: {
+                                ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                            },
+                            animation: InternalPlatformAnimations.FADE,
+                        },
+                        web: {
+                            cardStyle: {
+                                ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                            },
+                        },
+                    }}
+                    component={TestToolsModalNavigator}
+                    listeners={modalScreenListeners}
+                />
             </RootStack.Navigator>
             <SearchRouterModal />
+            <PriorityModeController />
         </ComposeProviders>
     );
 }

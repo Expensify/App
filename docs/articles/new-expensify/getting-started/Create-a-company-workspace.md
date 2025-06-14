@@ -99,9 +99,9 @@ Admins manage workspace settings, reports, and approvals. The table below shows 
 ## Steps to Assign Admins:
 
 <ol type="a">
-   <li>Click <b>Members</b>b> in the left menu.</li>
+   <li>Click <b>Members</b> in the left menu.</li>
    <li>Select a member’s name.</li>
-   <li>Click <b>Role</b>b> and set them as <b>Admin</b>b>.</li>
+   <li>Click <b>Role</b> and set them as <b>Admin</b>.</li>
 </ol>
 
 # 6. Set Up Approval Workflows

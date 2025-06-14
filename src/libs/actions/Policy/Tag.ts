@@ -4,10 +4,12 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
+    ImportMultiLevelTagsParams,
     OpenPolicyTagsPageParams,
     RenamePolicyTagListParams,
     RenamePolicyTagsParams,
     SetPolicyTagApproverParams,
+    SetPolicyTagListsRequired,
     SetPolicyTagsEnabled,
     SetPolicyTagsRequired,
     UpdatePolicyTagGLCodeParams,
@@ -16,6 +18,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -28,7 +31,7 @@ import type {PolicyTagList} from '@pages/workspace/tags/types';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -327,6 +330,90 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
 }
 
+function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isRequired: boolean, policyTags: OnyxEntry<PolicyTagLists>) {
+    if (!policyTags) {
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                        if (tagListIndexes.includes(policyTags[key].orderWeight)) {
+                            acc[key] = {
+                                ...acc[key],
+                                required: isRequired,
+                                errors: undefined,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {
+                                    required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                            };
+
+                            return acc;
+                        }
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                        if (tagListIndexes.includes(policyTags[key].orderWeight)) {
+                            acc[key] = {
+                                ...acc[key],
+                                errors: undefined,
+                                pendingAction: null,
+                                pendingFields: {
+                                    required: null,
+                                },
+                            };
+                            return acc;
+                        }
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                        acc[key] = {
+                            ...acc[key],
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                            pendingAction: null,
+                            pendingFields: {
+                                required: null,
+                            },
+                        };
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyTagListsRequired = {
+        policyID,
+        tagListIndexes,
+        isRequired,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, onyxData);
+}
+
 function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(0);
 
@@ -466,6 +553,8 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
 }
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = PolicyUtils.getPolicy(policyID);
     const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
     if (!tagList) {
@@ -683,6 +772,92 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
     }
+}
+
+function cleanPolicyTags(policyID: string) {
+    // We do not have any optimistic data or success data for this command as this action cannot be done offline
+    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
+}
+
+function setImportedSpreadsheetIsImportingMultiLevelTags(isImportingMultiLevelTags: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingMultiLevelTags});
+}
+
+function setImportedSpreadsheetIsImportingIndependentMultiLevelTags(isImportingIndependentMultiLevelTags: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingIndependentMultiLevelTags});
+}
+
+function setImportedSpreadsheetIsFirstLineHeader(containsHeader: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {containsHeader});
+}
+
+function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
+}
+
+function setImportedSpreadsheetFileURI(fileURI: string) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
+}
+
+function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
+    if (!spreadsheet) {
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    hasMultipleTagLists: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfulTitle'), prompt: translateLocal('spreadsheet.importMultiLevelTagsSuccessfulDescription')},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    hasMultipleTagLists: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                },
+            },
+        ],
+    };
+
+    readFileAsync(
+        spreadsheet?.fileURI ?? '',
+        spreadsheet?.fileName ?? CONST.MULTI_LEVEL_TAGS_FILE_NAME,
+        (file) => {
+            const parameters: ImportMultiLevelTagsParams = {
+                policyID,
+                isFirstLineHeader: spreadsheet?.containsHeader,
+                isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
+                isGLAdjacent: spreadsheet?.isGLAdjacent,
+                file,
+            };
+
+            API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
+        },
+        () => {},
+        spreadsheet?.fileType ?? CONST.SHARE_FILE_MIMETYPE.CSV,
+    );
 }
 
 function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
@@ -945,6 +1120,8 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
 }
 
 function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = PolicyUtils.getPolicy(policyID);
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
@@ -1054,6 +1231,7 @@ export {
     clearPolicyTagListErrorField,
     deletePolicyTags,
     enablePolicyTags,
+    setWorkspaceTagRequired,
     openPolicyTagsPage,
     renamePolicyTag,
     renamePolicyTagList,
@@ -1064,4 +1242,11 @@ export {
     downloadTagsCSV,
     getPolicyTagsData,
     downloadMultiLevelIndependentTagsCSV,
+    cleanPolicyTags,
+    setImportedSpreadsheetIsImportingMultiLevelTags,
+    setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
+    setImportedSpreadsheetIsFirstLineHeader,
+    setImportedSpreadsheetIsGLAdjacent,
+    setImportedSpreadsheetFileURI,
+    importMultiLevelTags,
 };
