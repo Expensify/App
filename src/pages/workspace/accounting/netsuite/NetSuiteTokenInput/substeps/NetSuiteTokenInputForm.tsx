@@ -63,6 +63,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
                 submitButtonText={translate('common.confirm')}
                 shouldValidateOnBlur
                 shouldValidateOnChange
+                addBottomSafeAreaPadding={false}
             >
                 {formInputs.map((formInput, index) => (
                     <View
