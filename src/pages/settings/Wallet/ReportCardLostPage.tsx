@@ -72,7 +72,7 @@ function ReportCardLostPage({
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
-    const [newCardID, setNewCardID] = useState<string>('');
+    const [newCardID, setNewCardID] = useState<string>('13213');
 
     const physicalCard = cardList?.[cardID];
     const validateError = getLatestErrorMessageField(physicalCard);
@@ -198,7 +198,12 @@ function ReportCardLostPage({
                                 sendValidateCode={requestValidateCodeAction}
                                 validateCodeActionErrorField="replaceLostCard"
                                 validateError={validateError}
-                                clearError={() => clearCardListErrors(physicalCard?.cardID ?? 0)}
+                                clearError={() => {
+                                    if (!physicalCard?.cardID) {
+                                        return;
+                                    }
+                                    clearCardListErrors(physicalCard?.cardID);
+                                }}
                                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                                 isVisible={isValidateCodeActionModalVisible}
                                 title={translate('cardPage.validateCardTitle')}
