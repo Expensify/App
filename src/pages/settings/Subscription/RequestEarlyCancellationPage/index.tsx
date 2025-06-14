@@ -94,7 +94,7 @@ function RequestEarlyCancellationPage() {
                 </FixedFooter>
             </View>
         ),
-        [styles, translate],
+        [styles, translate, environmentURL],
     );
     const surveyContent = useMemo(
         () => (
