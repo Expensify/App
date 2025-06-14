@@ -5548,10 +5548,6 @@ const styles = (theme: ThemeColors) =>
             width: 'auto',
         },
 
-        heightAuto: {
-            height: 'auto',
-        },
-
         workspaceTitleStyle: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
