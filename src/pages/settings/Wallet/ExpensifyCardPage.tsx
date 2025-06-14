@@ -332,7 +332,7 @@ function ExpensifyCardPage({
                                     titleStyle={styles.walletCardNumber}
                                 />
                                 <MenuItem
-                                    title={translate('reportCardLostOrDamaged.report')}
+                                    title={translate('reportCardLostOrDamaged.screenTitle')}
                                     icon={Expensicons.Flag}
                                     shouldShowRightIcon
                                     onPress={() => {
