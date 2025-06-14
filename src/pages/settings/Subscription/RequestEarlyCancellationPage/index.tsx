@@ -6,11 +6,13 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCancellationType from '@hooks/useCancellationType';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -22,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
+    const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -76,13 +79,10 @@ function RequestEarlyCancellationPage() {
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.title')}</Text>
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.subtitle')}</Text>
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
-                    <Text>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.route)}>
-                            {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.link')}
-                        </TextLink>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part2')}
-                    </Text>
+
+                    <TextLink href={`${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`}>
+                        <RenderHTML html={translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity')} />
+                    </TextLink>
                 </View>
                 <FixedFooter style={styles.ph0}>
                     <Button
@@ -94,9 +94,8 @@ function RequestEarlyCancellationPage() {
                 </FixedFooter>
             </View>
         ),
-        [styles, translate],
+        [styles, translate, environmentURL],
     );
-
     const surveyContent = useMemo(
         () => (
             <FeedbackSurvey
