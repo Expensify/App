@@ -73,13 +73,10 @@ function ReportCardLostPage({
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
     const [newCardID, setNewCardID] = useState<string>('');
-    const [isSuccess, setIsSuccess] = useState(false);
 
     const physicalCard = cardList?.[cardID];
     const validateError = getLatestErrorMessageField(physicalCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-
-    const prevIsLoading = usePrevious(formData?.isLoading);
 
     const {paddingBottom} = useSafeAreaPaddings();
 
@@ -96,14 +93,6 @@ function ReportCardLostPage({
     }, [cardList, previousCardList]);
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
-
-    useEffect(() => {
-        if (!isEmptyObject(physicalCard?.errors) || !newCardID) {
-            return;
-        }
-
-        setIsSuccess(true);
-    }, [formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID, newCardID]);
 
     useEffect(() => {
         resetValidateActionCodeSent();
@@ -127,7 +116,7 @@ function ReportCardLostPage({
         [physicalCard, reason?.key],
     );
 
-    if (isEmptyObject(physicalCard) && !newCardID) {
+    if (isEmptyObject(physicalCard) && !newCardID && !formData?.isLoading) {
         return <NotFoundPage />;
     }
 
@@ -172,11 +161,11 @@ function ReportCardLostPage({
             testID={ReportCardLostPage.displayName}
         >
             <HeaderWithBackButton
-                title={isSuccess ? translate('common.success') : translate('reportCardLostOrDamaged.screenTitle')}
+                title={newCardID ? translate('common.success') : translate('reportCardLostOrDamaged.screenTitle')}
                 onBackButtonPress={handleBackButtonPress}
-                shouldDisplayHelpButton={!isSuccess}
+                shouldDisplayHelpButton={!newCardID}
             />
-            {!isSuccess && (
+            {!newCardID && (
                 <View style={[styles.flex1, styles.justifyContentBetween, styles.pt3, !paddingBottom ? styles.pb5 : null]}>
                     {isReasonConfirmed ? (
                         <>
@@ -238,7 +227,7 @@ function ReportCardLostPage({
                     )}
                 </View>
             )}
-            {isSuccess && <SuccessReportCardLost cardID={newCardID} />}
+            {!!newCardID && <SuccessReportCardLost cardID={newCardID} />}
         </ScreenWrapper>
     );
 }
