@@ -136,7 +136,7 @@ type OriginalMessageActionableReportMentionWhisper = {
 };
 
 /** Model of `welcome whisper` report action */
-type OriginalMessageWelcomeWhisper = {
+type OriginalMessageExpenseChatWelcomeWhisper = {
     /** HTML content of the welcome message */
     html: string;
 
@@ -847,7 +847,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
-    [CONST.REPORT.ACTIONS.TYPE.WELCOME_WHISPER]: OriginalMessageWelcomeWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.EXPENSE_CHAT_WELCOME_WHISPER]: OriginalMessageExpenseChatWelcomeWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT]: OriginalMessageAddComment;
     [CONST.REPORT.ACTIONS.TYPE.APPROVED]: OriginalMessageApproved;
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD]: never;
