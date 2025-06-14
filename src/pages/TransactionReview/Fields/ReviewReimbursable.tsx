@@ -9,13 +9,13 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
-import duplicateReviewConfig from './duplicateReviewConfig';
-import mergeTransactionConfig from './mergeTransactionConfig';
+import duplicateReviewConfig from '../Duplicates/duplicateReviewConfig';
+import mergeTransactionConfig from '../Merge/mergeTransactionConfig';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
-function ReviewCategory() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.CATEGORY>>();
+function ReviewReimbursable() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
     const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const isMerge = route.path?.includes('merge');
@@ -25,48 +25,44 @@ function ReviewCategory() {
     const stepNames = Object.keys(compareResult.change ?? {}).map((_, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useTransactionFieldNavigation(
         Object.keys(compareResult.change ?? {}),
-        'category',
+        'reimbursable',
         route.params.threadReportID ?? '',
-        duplicateReviewConfig.routes,
+        config.routes,
         route.params.backTo,
     );
     const options = useMemo(
         () =>
-            compareResult.change.category?.map((category) =>
-                !category
-                    ? {text: translate('violations.none'), value: ''}
-                    : {
-                          text: category,
-                          value: category,
-                      },
-            ),
-        [compareResult.change.category, translate],
+            compareResult.change.reimbursable?.map((reimbursable) => ({
+                text: reimbursable ? translate('common.yes') : translate('common.no'),
+                value: reimbursable ?? false,
+            })),
+        [compareResult.change.reimbursable, translate],
     );
 
-    const setCategory = (data: FieldItemType<'category'>) => {
+    const setReimbursable = (data: FieldItemType<'reimbursable'>) => {
         if (data.value !== undefined) {
-            config.setFieldAction({category: data.value});
+            config.setFieldAction({reimbursable: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
-        <ScreenWrapper testID={ReviewCategory.displayName}>
+        <ScreenWrapper testID={ReviewReimbursable.displayName}>
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
             />
-            <ReviewFields<'category'>
+            <ReviewFields<'reimbursable'>
                 stepNames={stepNames}
-                label={translate('violations.categoryToKeep')}
+                label={translate('violations.isTransactionReimbursable')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={setCategory}
+                onSelectRow={setReimbursable}
             />
         </ScreenWrapper>
     );
 }
 
-ReviewCategory.displayName = 'ReviewCategory';
+ReviewReimbursable.displayName = 'ReviewReimbursable';
 
-export default ReviewCategory;
+export default ReviewReimbursable;

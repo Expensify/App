@@ -91,6 +91,7 @@ import type ReportViolations from './ReportViolation';
 import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
+import type MergeTransaction from './MergeTransaction';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
@@ -237,6 +238,7 @@ export type {
     CapturedLogs,
     SearchResults,
     ReviewDuplicates,
+    MergeTransaction,
     PrivateSubscription,
     BillingGraceEndPeriod,
     StripeCustomerID,

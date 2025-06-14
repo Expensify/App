@@ -7,19 +7,17 @@ import useLocalize from '@hooks/useLocalize';
 import useTransactionFieldNavigation from '@hooks/useTransactionFieldNavigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
-import duplicateReviewConfig from './duplicateReviewConfig';
-import mergeTransactionConfig from './mergeTransactionConfig';
+import duplicateReviewConfig from '../Duplicates/duplicateReviewConfig';
+import mergeTransactionConfig from '../Merge/mergeTransactionConfig';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
-function ReviewTag() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+function ReviewCategory() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.CATEGORY>>();
     const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
-
     const isMerge = route.path?.includes('merge');
     const config = isMerge ? mergeTransactionConfig : duplicateReviewConfig;
     const [reviewDuplicates] = useOnyx(config.onyxKey, {canBeMissing: true});
@@ -27,47 +25,48 @@ function ReviewTag() {
     const stepNames = Object.keys(compareResult.change ?? {}).map((_, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useTransactionFieldNavigation(
         Object.keys(compareResult.change ?? {}),
-        'tag',
+        'category',
         route.params.threadReportID ?? '',
-        config.routes,
+        duplicateReviewConfig.routes,
         route.params.backTo,
     );
     const options = useMemo(
         () =>
-            compareResult.change.tag?.map((tag) =>
-                !tag
+            compareResult.change.category?.map((category) =>
+                !category
                     ? {text: translate('violations.none'), value: ''}
                     : {
-                          text: PolicyUtils.getCleanedTagName(tag),
-                          value: tag,
+                          text: category,
+                          value: category,
                       },
             ),
-        [compareResult.change.tag, translate],
+        [compareResult.change.category, translate],
     );
-    const setTag = (data: FieldItemType<'tag'>) => {
+
+    const setCategory = (data: FieldItemType<'category'>) => {
         if (data.value !== undefined) {
-            config.setFieldAction({tag: data.value});
+            config.setFieldAction({category: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
-        <ScreenWrapper testID={ReviewTag.displayName}>
+        <ScreenWrapper testID={ReviewCategory.displayName}>
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
             />
-            <ReviewFields<'tag'>
+            <ReviewFields<'category'>
                 stepNames={stepNames}
-                label={translate('violations.tagToKeep')}
+                label={translate('violations.categoryToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={setTag}
+                onSelectRow={setCategory}
             />
         </ScreenWrapper>
     );
 }
 
-ReviewTag.displayName = 'ReviewTag';
+ReviewCategory.displayName = 'ReviewCategory';
 
-export default ReviewTag;
+export default ReviewCategory;

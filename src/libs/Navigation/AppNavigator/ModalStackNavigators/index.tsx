@@ -694,27 +694,27 @@ const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNav
 });
 
 const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
-    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DuplicateReview').default,
-    [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewMerchant').default,
-    [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewCategory').default,
-    [SCREENS.TRANSACTION_DUPLICATE.TAG]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewTag').default,
-    [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewDescription').default,
-    [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewTaxCode').default,
-    [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewBillable').default,
-    [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewReimbursable').default,
-    [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Confirmation').default,
+    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Duplicates/DuplicateReview').default,
+    [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewMerchant').default,
+    [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewCategory').default,
+    [SCREENS.TRANSACTION_DUPLICATE.TAG]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewTag').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewDescription').default,
+    [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewTaxCode').default,
+    [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewBillable').default,
+    [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewReimbursable').default,
+    [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Duplicates/DuplicateConfirmation').default,
 });
 
 const TransactionMergeStackNavigator = createModalStackNavigator<TransactionMergeNavigatorParamList>({
-    [SCREENS.TRANSACTION_MERGE.REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DuplicateReview').default,
-    [SCREENS.TRANSACTION_MERGE.MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewMerchant').default,
-    [SCREENS.TRANSACTION_MERGE.CATEGORY]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewCategory').default,
-    [SCREENS.TRANSACTION_MERGE.TAG]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewTag').default,
-    [SCREENS.TRANSACTION_MERGE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewDescription').default,
-    [SCREENS.TRANSACTION_MERGE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewTaxCode').default,
-    [SCREENS.TRANSACTION_MERGE.BILLABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewBillable').default,
-    [SCREENS.TRANSACTION_MERGE.REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewReimbursable').default,
-    [SCREENS.TRANSACTION_MERGE.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Confirmation').default,
+    [SCREENS.TRANSACTION_MERGE.REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Merge/MergeReview').default,
+    [SCREENS.TRANSACTION_MERGE.MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewMerchant').default,
+    [SCREENS.TRANSACTION_MERGE.CATEGORY]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewCategory').default,
+    [SCREENS.TRANSACTION_MERGE.TAG]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewTag').default,
+    [SCREENS.TRANSACTION_MERGE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewDescription').default,
+    [SCREENS.TRANSACTION_MERGE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewTaxCode').default,
+    [SCREENS.TRANSACTION_MERGE.BILLABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewBillable').default,
+    [SCREENS.TRANSACTION_MERGE.REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Fields/ReviewReimbursable').default,
+    [SCREENS.TRANSACTION_MERGE.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionReview/Merge/MergeConfirmation').default,
 });
 
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>(

@@ -1136,7 +1136,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING]: boolean;
     [ONYXKEYS.NVP_TRAVEL_SETTINGS]: OnyxTypes.TravelSettings;
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
-    [ONYXKEYS.MERGE_TRANSACTION]: OnyxTypes.ReviewDuplicates;
+    [ONYXKEYS.MERGE_TRANSACTION]: OnyxTypes.MergeTransaction;
     [ONYXKEYS.ADD_NEW_COMPANY_CARD]: OnyxTypes.AddNewCompanyCardFeed;
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
     [ONYXKEYS.MOBILE_SELECTION_MODE]: OnyxTypes.MobileSelectionMode;

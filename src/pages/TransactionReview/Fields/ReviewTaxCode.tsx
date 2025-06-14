@@ -13,7 +13,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import ReviewDescription from './ReviewDescription';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
@@ -66,7 +65,7 @@ function ReviewTaxRate() {
     );
 
     return (
-        <ScreenWrapper testID={ReviewDescription.displayName}>
+        <ScreenWrapper testID={ReviewTaxRate.displayName}>
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}

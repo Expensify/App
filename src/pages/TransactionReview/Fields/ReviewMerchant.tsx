@@ -8,9 +8,9 @@ import useTransactionFieldNavigation from '@hooks/useTransactionFieldNavigation'
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import duplicateReviewConfig from '@pages/TransactionReview/Duplicates/duplicateReviewConfig';
+import mergeTransactionConfig from '@pages/TransactionReview/Merge/mergeTransactionConfig';
 import type SCREENS from '@src/SCREENS';
-import duplicateReviewConfig from './duplicateReviewConfig';
-import mergeTransactionConfig from './mergeTransactionConfig';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 

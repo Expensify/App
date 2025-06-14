@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FlatList from '@components/FlatList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {Transaction} from '@src/types/onyx';
-import DuplicateTransactionItem from './DuplicateTransactionItem';
+import DuplicateTransactionItem from '../Duplicates/DuplicateTransactionItem';
 
 type TransactionsListProps = {
     transactions: Array<OnyxEntry<Transaction>>;
@@ -23,7 +23,7 @@ const maintainVisibleContentPosition: ScrollViewProps['maintainVisibleContentPos
     minIndexForVisible: 1,
 };
 
-function TransactionsList({transactions}: TransactionsListProps) {
+function DuplicateTransactionsList({transactions}: TransactionsListProps) {
     const styles = useThemeStyles();
 
     return (
@@ -37,5 +37,5 @@ function TransactionsList({transactions}: TransactionsListProps) {
     );
 }
 
-TransactionsList.displayName = 'TransactionsList';
-export default TransactionsList;
+DuplicateTransactionsList.displayName = 'TransactionsList';
+export default DuplicateTransactionsList;

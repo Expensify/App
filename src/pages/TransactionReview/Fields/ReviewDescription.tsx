@@ -8,17 +8,19 @@ import useTransactionFieldNavigation from '@hooks/useTransactionFieldNavigation'
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
+import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
-import duplicateReviewConfig from './duplicateReviewConfig';
-import mergeTransactionConfig from './mergeTransactionConfig';
+import duplicateReviewConfig from '../Duplicates/duplicateReviewConfig';
+import mergeTransactionConfig from '../Merge/mergeTransactionConfig';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
-function ReviewBillable() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+function ReviewDescription() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION>>();
     const {translate} = useLocalize();
-    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
+    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
     const isMerge = route.path?.includes('merge');
     const config = isMerge ? mergeTransactionConfig : duplicateReviewConfig;
     const [reviewDuplicates] = useOnyx(config.onyxKey, {canBeMissing: true});
@@ -26,44 +28,47 @@ function ReviewBillable() {
     const stepNames = Object.keys(compareResult.change ?? {}).map((_, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useTransactionFieldNavigation(
         Object.keys(compareResult.change ?? {}),
-        'billable',
-        route.params.threadReportID ?? '',
+        'description',
+        route.params.threadReportID,
         config.routes,
         route.params.backTo,
     );
     const options = useMemo(
         () =>
-            compareResult.change.billable?.map((billable) => ({
-                text: billable ? translate('common.yes') : translate('common.no'),
-                value: billable ?? false,
-            })),
-        [compareResult.change.billable, translate],
+            compareResult.change.description?.map((description) =>
+                !description?.comment
+                    ? {text: translate('violations.none'), value: ''}
+                    : {
+                          text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(description.comment)),
+                          value: description.comment,
+                      },
+            ),
+        [compareResult.change.description, translate],
     );
-
-    const setBillable = (data: FieldItemType<'billable'>) => {
+    const setDescription = (data: FieldItemType<'description'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({billable: data.value});
+            setReviewDuplicatesKey({description: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
-        <ScreenWrapper testID={ReviewBillable.displayName}>
+        <ScreenWrapper testID={ReviewDescription.displayName}>
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
             />
-            <ReviewFields<'billable'>
+            <ReviewFields<'description'>
                 stepNames={stepNames}
-                label={translate('violations.isTransactionBillable')}
+                label={translate('violations.descriptionToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={setBillable}
+                onSelectRow={setDescription}
             />
         </ScreenWrapper>
     );
 }
 
-ReviewBillable.displayName = 'ReviewBillable';
+ReviewDescription.displayName = 'ReviewDescription';
 
-export default ReviewBillable;
+export default ReviewDescription;
