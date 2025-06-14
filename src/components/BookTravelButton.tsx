@@ -174,6 +174,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         isUserValidated,
         groupPaidPolicies.length,
         isBetaEnabled,
+        environmentURL,
     ]);
 
     return (
