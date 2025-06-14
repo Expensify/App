@@ -223,17 +223,6 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '\n' +
                 'And you’re done! Now wait for that sweet “Cha-ching!” when it’s complete.',
         },
-        {
-            type: 'reviewWorkspaceSettings',
-            autoCompleted: false,
-            mediaAttributes: {},
-            title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
-            description: ({workspaceSettingsLink}) =>
-                "Here's how to review and update your workspace settings:\n" +
-                '1. Click the settings tab.\n' +
-                '2. Click *Workspaces* > [Your workspace].\n' +
-                `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
-        },
     ],
 };
 
