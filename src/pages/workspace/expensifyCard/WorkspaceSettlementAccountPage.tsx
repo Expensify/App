@@ -140,10 +140,14 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     listHeaderContent={
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                            {!!isUsingContinuousReconciliation && (
+                            {!!isUsingContinuousReconciliation && !!connectionParam && (
                                 <Text style={[styles.mh5, styles.mb6]}>
                                     <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
-                                    <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam))}>
+                                    <TextLink
+                                        onPress={() =>
+                                            Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam, Navigation.getActiveRoute()))
+                                        }
+                                    >
                                         {translate('workspace.expensifyCard.reconciliationAccount')}
                                     </TextLink>{' '}
                                     <Text>{`(${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}) `}</Text>
