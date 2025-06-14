@@ -142,7 +142,7 @@ type SearchQueryAST = {
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     filters: ASTNode;
-    policyID?: string;
+    policyID?: string[];
 };
 
 type SearchQueryJSON = {
