@@ -331,7 +331,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 break;
 
             default:
-                Navigation.goBack();
+                Navigation.dismissModal();
         }
     };
 
