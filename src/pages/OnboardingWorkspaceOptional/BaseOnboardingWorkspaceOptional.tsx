@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +38,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const {onboardingMessages} = useOnboardingMessages();
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
@@ -75,7 +77,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
 
         completeOnboardingReport({
             engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
             firstName: currentUserPersonalDetails.firstName,
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID: onboardingAdminsChatReportID,
@@ -91,6 +93,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         currentUserPersonalDetails.firstName,
         currentUserPersonalDetails.lastName,
         onboardingAdminsChatReportID,
+        onboardingMessages,
         onboardingPolicyID,
         isSmallScreenWidth,
         isBetaEnabled,
