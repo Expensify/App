@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -32,7 +33,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs) || ReportUtils.isSelfDM(report);
     const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
     const notificationPreference =
@@ -43,7 +44,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace), [report, linkedWorkspace]);
-    const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
+    const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(linkedWorkspace, isReportArchived), [report, linkedWorkspace]);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && !ReportUtils.isHiddenForCurrentUser(notificationPreferenceValue);
 
