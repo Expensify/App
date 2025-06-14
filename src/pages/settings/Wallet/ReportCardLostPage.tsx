@@ -72,6 +72,7 @@ function ReportCardLostPage({
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
+    const [newCardID, setNewCardID] = useState<string>();
     const [isSuccess, setIsSuccess] = useState(false);
 
     const physicalCard = cardList?.[cardID];
@@ -84,16 +85,25 @@ function ReportCardLostPage({
 
     const formattedAddress = getFormattedAddress(privatePersonalDetails ?? {});
     const primaryLogin = account?.primaryLogin ?? '';
+    const previousCardList = usePrevious(cardList);
+
+    useEffect(() => {
+        const newID = Object.keys(cardList ?? {}).find((cardKey) => cardList?.[cardKey]?.cardID && !Object.keys(previousCardList ?? {}).includes(cardKey));
+        if (!newID) {
+            return;
+        }
+        setNewCardID(newID);
+    }, [cardList, previousCardList]);
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
-        if (!isEmptyObject(physicalCard?.errors) || !(prevIsLoading && !formData?.isLoading)) {
+        if (!isEmptyObject(physicalCard?.errors) || !(prevIsLoading && !formData?.isLoading) || !newCardID) {
             return;
         }
 
         setIsSuccess(true);
-    }, [formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID]);
+    }, [formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID, newCardID]);
 
     useEffect(() => {
         resetValidateActionCodeSent();
@@ -228,7 +238,7 @@ function ReportCardLostPage({
                     )}
                 </View>
             )}
-            {isSuccess && <SuccessReportCardLost cardID={cardID} />}
+            {isSuccess && <SuccessReportCardLost cardID={newCardID ?? ''} />}
         </ScreenWrapper>
     );
 }

@@ -44,6 +44,7 @@ import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__t
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
+import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
 import JewelBoxBlue from '@assets/images/product-illustrations/jewel-box--blue.svg';
 import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green.svg';
@@ -53,7 +54,6 @@ import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import MoneyEnvelopeBlue from '@assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '@assets/images/product-illustrations/money-mouse--pink.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
-import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.svg';
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';

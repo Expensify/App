@@ -62,7 +62,7 @@ type ConfirmationPageProps = {
     containerStyle?: ViewStyle;
 
     /** Additional style for the inner container */
-    innerContainerStyle?: ViewStyle
+    innerContainerStyle?: ViewStyle;
 };
 
 function ConfirmationPage({
