@@ -152,7 +152,6 @@ export type {
     AddNewCompanyCardFeed,
     CompanyCardFeed,
     LastExportMethod,
-    Locale,
     LockAccountDetails,
     Login,
     LoginList,
@@ -263,4 +262,5 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
+    Locale,
 };

@@ -2,7 +2,7 @@ import type {TupleToUnion} from 'type-fest';
 import emojis, {localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
-import type {Locale} from '@src/types/onyx';
+import type {Locale} from '@src/CONST/LOCALES';
 import Timing from './actions/Timing';
 import StringUtils from './StringUtils';
 import Trie from './Trie';

@@ -1,11 +1,14 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {setLocale} from '@userActions/App';
 import CONST from '@src/CONST';
+import type {SupportedLanguage} from '@src/CONST/LOCALES';
+import {LANGUAGES, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
@@ -19,14 +22,28 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const localesToLanguages = CONST.LANGUAGES.map((language) => ({
+
+    const {isBetaEnabled} = usePermissions();
+    const localesToLanguages = LANGUAGES.map((language: SupportedLanguage) => ({
         value: language,
         label: translate(`languagePage.languages.${language}.label`),
         keyForList: language,
         isSelected: preferredLocale === language,
     }));
+
+    if (isBetaEnabled(CONST.BETAS.STATIC_AI_TRANSLATIONS)) {
+        localesToLanguages.push(
+            ...UPCOMING_LANGUAGES.map((language: SupportedLanguage) => ({
+                value: language,
+                label: translate(`languagePage.languages.${language}.label`),
+                keyForList: language,
+                isSelected: preferredLocale === language,
+            })),
+        );
+    }
+
     const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 
     return (

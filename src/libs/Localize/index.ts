@@ -5,10 +5,10 @@ import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import translations from '@src/languages/translations';
-import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
+import type {FlatTranslationsObject, PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Locale} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
@@ -59,8 +59,8 @@ function init() {
  * phrase and stores the translated value in the cache and returns
  * the translated value.
  */
-function getTranslatedPhrase<TKey extends TranslationPaths>(language: 'en' | 'es', phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
-    const translatedPhrase = translations?.[language]?.[phraseKey];
+function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
+    const translatedPhrase = (translations as Record<string, FlatTranslationsObject>)?.[language]?.[phraseKey];
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
@@ -120,7 +120,7 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
  * @param [desiredLanguage] eg 'en', 'es-ES'
  * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', path: TPath, ...parameters: TranslationParameters<TPath>): string {
+function translate<TPath extends TranslationPaths>(desiredLanguage: Locale, path: TPath, ...parameters: TranslationParameters<TPath>): string {
     // Search phrase in full locale e.g. es-ES
     const language = ([CONST.LOCALES.ES_ES_ONFIDO, CONST.LOCALES.ES_ES] as string[]).includes(desiredLanguage) ? CONST.LOCALES.ES : (desiredLanguage as 'en' | 'es');
 

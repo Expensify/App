@@ -1,4 +1,4 @@
-import type {Spread, TupleToUnion} from 'type-fest';
+import type {Spread, TupleToUnion, ValueOf} from 'type-fest';
 
 const LOCALES = {
     EN: 'en',
@@ -18,7 +18,7 @@ const UPCOMING_LOCALES = {
     PL: 'pl',
     PT_BR: 'pt-BR',
     ZH_HANS: 'zh-hans',
-};
+} as const;
 
 const LANGUAGES = [LOCALES.EN, LOCALES.ES] as const;
 
@@ -48,10 +48,12 @@ const LOCALE_TO_LANGUAGE_STRING = {
 
 type SupportedLanguage = TupleToUnion<Spread<typeof LANGUAGES, typeof UPCOMING_LANGUAGES>>;
 
+type Locale = ValueOf<typeof LOCALES> | ValueOf<typeof UPCOMING_LOCALES>;
+
 /**
  * We can translate into any language but English (which is used as the source language).
  */
 type TranslationTargetLanguage = Exclude<SupportedLanguage, typeof LOCALES.EN>;
 
-export {LOCALES, LANGUAGES, UPCOMING_LANGUAGES, LOCALE_TO_LANGUAGE_STRING};
-export type {SupportedLanguage, TranslationTargetLanguage};
+export {LOCALES, UPCOMING_LOCALES, LANGUAGES, UPCOMING_LANGUAGES, LOCALE_TO_LANGUAGE_STRING};
+export type {Locale, SupportedLanguage, TranslationTargetLanguage};

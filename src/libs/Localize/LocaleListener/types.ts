@@ -1,13 +1,9 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 
-type BaseLocale = ValueOf<typeof CONST.LOCALES>;
-
-type LocaleListenerConnect = (callbackAfterChange?: (locale?: BaseLocale) => void) => void;
+type LocaleListenerConnect = (callbackAfterChange?: (locale?: Locale) => void) => void;
 
 type LocaleListener = {
     connect: LocaleListenerConnect;
 };
 
 export type {LocaleListenerConnect, LocaleListener};
-export default BaseLocale;
