@@ -72,7 +72,10 @@ function usePaymentOptions({
             if (typeof paymentMethod?.[policyIDKey] === 'string') {
                 return paymentMethod?.[policyIDKey];
             }
-            return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed;
+            if (typeof (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed === 'string') {
+                return (paymentMethod?.[policyIDKey] as LastPaymentMethodType).lastUsed;
+            }
+            return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed.name;
         },
     });
 
