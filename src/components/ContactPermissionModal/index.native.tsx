@@ -9,7 +9,7 @@ import {getContactPermission, requestContactPermission} from '@libs/ContactPermi
 import type {ContactPermissionModalProps} from './types';
 
 let hasShownContactImportPromptThisSession = false;
-function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) {
+function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPermissionModalProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const styles = useThemeStyles();
@@ -17,11 +17,13 @@ function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) 
 
     useEffect(() => {
         if (hasShownContactImportPromptThisSession) {
+            onFocusTextInput();
             return;
         }
         getContactPermission().then((status) => {
             // Permission hasn't been asked yet, show the soft permission modal
             if (status !== RESULTS.DENIED) {
+                onFocusTextInput();
                 return;
             }
             hasShownContactImportPromptThisSession = true;
@@ -35,6 +37,7 @@ function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) 
         InteractionManager.runAfterInteractions(() => {
             requestContactPermission().then((status) => {
                 if (status !== RESULTS.GRANTED) {
+                    onFocusTextInput();
                     return;
                 }
                 onGrant();
