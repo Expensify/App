@@ -4243,6 +4243,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
             color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
+            flexShrink: 1,
         },
 
         quickReactionsContainer: {
