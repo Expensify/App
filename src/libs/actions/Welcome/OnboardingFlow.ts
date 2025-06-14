@@ -303,7 +303,7 @@ const getOnboardingMessages = () => {
 
     const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
         ...onboardingEmployerOrSubmitMessage,
-        tasks: [testDriveEmployeeTask, combinedTrackSubmitExpenseTask, reviewWorkspaceSettingsTask],
+        tasks: [testDriveEmployeeTask, combinedTrackSubmitExpenseTask],
     };
 
     const onboardingPersonalSpendMessage: OnboardingMessage = {
