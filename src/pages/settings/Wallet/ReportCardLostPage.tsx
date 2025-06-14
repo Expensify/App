@@ -198,7 +198,7 @@ function ReportCardLostPage({
                                 sendValidateCode={requestValidateCodeAction}
                                 validateCodeActionErrorField="replaceLostCard"
                                 validateError={validateError}
-                                clearError={() => clearCardListErrors(physicalCard.cardID)}
+                                clearError={() => clearCardListErrors(physicalCard?.cardID ?? 0)}
                                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                                 isVisible={isValidateCodeActionModalVisible}
                                 title={translate('cardPage.validateCardTitle')}
