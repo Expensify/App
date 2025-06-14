@@ -4,6 +4,7 @@ import type {ReactElement} from 'react';
 import React, {useCallback, useContext, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -47,6 +48,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
 };
 
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: BookTravelButtonProps) {
+    const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -96,7 +98,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
                 ) : (
                     <TextLink
                         style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
-                        href={`https://new.expensify.com/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`}
+                        href={`${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`}
                     >
                         <RenderHTML html={translate('travel.phoneError')} />
                     </TextLink>
