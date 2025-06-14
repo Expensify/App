@@ -14,12 +14,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -59,6 +61,7 @@ type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenPr
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
+    const {environmentURL} = useEnvironment();
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -401,17 +404,26 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     } else if (hasUnsupportedCurrency) {
         errorText = (
             <Text style={styles.flexRow}>
-                <TextLink
-                    style={styles.link}
-                    onPress={() => {
-                        const routeToNavigate = isSmallScreenWidth
-                            ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
-                            : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
-                        Navigation.goBack(routeToNavigate);
-                    }}
-                >
-                    <RenderHTML html={translate('bankAccount.hasCurrencyError')} />
-                </TextLink>
+                {getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.DESKTOP ? (
+                    <TextLink
+                        style={styles.link}
+                        onPress={() => {
+                            const routeToNavigate = isSmallScreenWidth
+                                ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
+                                : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
+                            Navigation.goBack(routeToNavigate);
+                        }}
+                    >
+                        <RenderHTML html={translate('bankAccount.hasCurrencyError')} />
+                    </TextLink>
+                ) : (
+                    <TextLink
+                        style={styles.link}
+                        href={`${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute())}`}
+                    >
+                        <RenderHTML html={translate('bankAccount.hasCurrencyError')} />
+                    </TextLink>
+                )}
             </Text>
         );
     }
